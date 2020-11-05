@@ -20,8 +20,10 @@ var staticUserAuth = basicAuth({
 })
 
 
+app.use(express.static(path.join(__dirname, 'build')));
+
+
 app.get('/', staticUserAuth, function(req, res) {
-    app.use(express.static(path.join(__dirname, 'build')));
     res.sendFile(path.join(__dirname, 'build', 'index.html'));
 })
 
@@ -127,6 +129,9 @@ app.get('/get_latest_experiment/', function (req, res) {
 })
 
 
+app.get('*', staticUserAuth, function(req, res) {
+    res.sendFile(path.join(__dirname, 'build', 'index.html'));
+})
 
 const PORT = process.env.PORT || 3000
 app.listen(PORT, () => {
