@@ -54,6 +54,7 @@ class LogTable extends React.Component {
 
   onConnect() {
       this.client.subscribe(["morbidostat", "+", this.experiment, "log"].join("/"))
+      this.client.subscribe(["morbidostat", "+", this.experiment, "error_log"].join("/"))
   }
 
   onMessageArrived(message) {

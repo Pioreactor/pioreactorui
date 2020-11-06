@@ -22,7 +22,6 @@ var staticUserAuth = basicAuth({
 
 app.use(express.static(path.join(__dirname, 'build')));
 
-
 app.get('/', staticUserAuth, function(req, res) {
     res.sendFile(path.join(__dirname, 'build', 'index.html'));
 })
@@ -45,7 +44,7 @@ app.get('/add_media/:unit', function (req, res) {
 
     const queryObject = url.parse(req.url, true).query;
     options = ("mL" in queryObject) ? ["--mL", queryObject['mL']] : ["--duration", queryObject['duration']]
-    command = (["mba", "add_media", "-y", "--units", req.params.unit].concat(options)).join(" ")
+    command = (["mba", "run", "add_media", "-y", "--units", req.params.unit].concat(options)).join(" ")
 
     exec(command, (error, stdout, stderr) => {
         if (error) {
@@ -63,7 +62,7 @@ app.get('/add_media/:unit', function (req, res) {
 app.get('/add_alt_media/:unit', function (req, res) {
     const queryObject = url.parse(req.url, true).query;
     options = ("mL" in queryObject) ? ["--mL", queryObject['mL']] : ["--duration", queryObject['duration']]
-    command = (["mba", "add_alt_media", "-y", "--units", req.params.unit].concat(options)).join(" ")
+    command = (["mba", "run", "add_alt_media", "-y", "--units", req.params.unit].concat(options)).join(" ")
     exec(command, (error, stdout, stderr) => {
         if (error) {
             res.send(`error: ${error.message}`);
@@ -81,7 +80,7 @@ app.get('/add_alt_media/:unit', function (req, res) {
 app.get('/remove_waste/:unit', function (req, res) {
     const queryObject = url.parse(req.url, true).query;
     options = ("mL" in queryObject) ? ["--mL", queryObject['mL']] : ["--duration", queryObject['duration']]
-    command = (["mba", "remove_waste", "-y", "--units", req.params.unit].concat(options)).join(" ")
+    command = (["mba", "run", "remove_waste", "-y", "--units", req.params.unit].concat(options)).join(" ")
     exec(command, (error, stdout, stderr) => {
         if (error) {
             res.send(`error: ${error.message}`);
@@ -130,6 +129,7 @@ app.get('/get_latest_experiment/', function (req, res) {
 
 
 app.get('*', staticUserAuth, function(req, res) {
+    app.use(express.static(path.join(__dirname, 'build')));
     res.sendFile(path.join(__dirname, 'build', 'index.html'));
 })
 

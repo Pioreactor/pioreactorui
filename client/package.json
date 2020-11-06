@@ -41,7 +41,9 @@
     ]
   },
   "devDependencies": {
+    "css-loader": "^5.0.1",
     "nodemon": "^2.0.6",
-    "prettier": "2.1.2"
+    "prettier": "2.1.2",
+    "style-loader": "^2.0.0"
   }
 }

@@ -3,6 +3,9 @@ import {makeStyles} from '@material-ui/styles';
 import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/Card';
 import {Typography} from '@material-ui/core';
+import moment from "moment";
+import Box from '@material-ui/core/Box';
+
 
 const useStyles = makeStyles({
   root: {
@@ -23,6 +26,7 @@ const useStyles = makeStyles({
 function ExperimentSummary(props){
   const classes = useStyles();
   const [experiment, setExperiment] = React.useState("")
+  const [startedAt, setStartedAt] = React.useState(moment())
 
   React.useEffect(() => {
     async function getData() {
@@ -32,6 +36,7 @@ function ExperimentSummary(props){
         })
         .then((data) => {
           setExperiment(data[0].experiment)
+          setStartedAt(moment(data[0].timestamp, 'YYYY-MM-DD HH:mm:SS'))
         });
       }
       getData()
@@ -46,9 +51,15 @@ function ExperimentSummary(props){
         <Typography variant="h5" component="h2">
           {experiment}
         </Typography>
-        <Typography variant="body2" component="p">
-          This is the description of the experiment. This description is stored in a database, along with
-          the other metadata in the experiment, like <code>started date</code>.
+        <Typography variant="subtitle2">
+          <Box fontWeight="fontWeightRegular">
+            Start date: <span title={startedAt.format("YYYY-MM-DD HH:mm:ss")}>{startedAt.format("YYYY-MM-DD")}</span>
+          </Box>
+        </Typography>
+        <Typography variant="subtitle2" >
+          <Box fontWeight="fontWeightRegular">
+            Elapsed: {(moment().diff(startedAt, 'H'))}h
+          </Box>
         </Typography>
       </CardContent>
     </Card>

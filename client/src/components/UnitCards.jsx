@@ -149,7 +149,6 @@ class UnitSettingDisplay extends React.Component {
   }
 
   onMessageArrived(message) {
-    console.log(message);
     var parsedFloat = parseFloat(message.payloadString);
     if (isNaN(parsedFloat)) {
       var payload = message.payloadString;
@@ -165,22 +164,22 @@ class UnitSettingDisplay extends React.Component {
   render() {
     if (this.props.isBinaryActive) {
       if (!this.props.isUnitActive) {
-        return <div style={{ color: "grey" }}> {this.state.msg} </div>;
+        return <div style={{ color: "grey"}}> {this.state.msg} </div>;
       } else {
         if (this.state.msg === 1) {
-          return <div style={{ color: "#4caf50" }}> On </div>;
+          return <div style={{ color: "#4caf50"}}> On </div>;
         } else if (this.state.msg === 0) {
-          return <div style={{ color: "grey" }}> Off </div>;
+          return <div style={{ color: "grey"}}> Off </div>;
         } else {
-          return <div style={{ color: "grey" }}> {this.state.msg} </div>;
+          return <div style={{ color: "grey"}}> {this.state.msg} </div>;
         }
       }
     } else {
       if (!this.props.isUnitActive || this.state.msg == "-") {
-        return <div style={{ color: "grey" }}> {this.state.msg} </div>;
+        return <div style={{ color: "grey"}}> {this.state.msg} </div>;
       } else {
         return (
-          <div style={{ color: "rgba(0, 0, 0, 0.54)" }}>
+          <div style={{ color: "rgba(0, 0, 0, 0.54)", fontFamily: "courier", fontSize: "13px" }}>
             {(typeof this.state.msg === "string"
               ? this.state.msg
               : +this.state.msg.toFixed(this.props.precision)) +
@@ -605,6 +604,7 @@ function UnitCard(props) {
   var textSettingsClasses = `${classes.alignLeft} ${
     isUnitActive ? null : classes.disabledText
   }`;
+
   return (
     <Card className={classes.root}>
       <CardContent className={classes.content}>
@@ -747,7 +747,7 @@ function UnitCard(props) {
               isUnitActive={isUnitActive}
               default={"-"}
               className={classes.alignRight}
-              topic="io_controlling/mode"
+              topic="io_controlling/display_name"
               unitNumber={unitNumber}
             />
           </div>
