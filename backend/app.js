@@ -43,7 +43,7 @@ app.get('/stop', function (req, res) {
 app.get('/add_media/:unit', function (req, res) {
 
     const queryObject = url.parse(req.url, true).query;
-    options = ("mL" in queryObject) ? ["--mL", queryObject['mL']] : ["--duration", queryObject['duration']]
+    options = ("mL" in queryObject) ? ["--ml", queryObject['mL']] : ["--duration", queryObject['duration']]
     command = (["mba", "run", "add_media", "-y", "--units", req.params.unit].concat(options)).join(" ")
 
     exec(command, (error, stdout, stderr) => {
@@ -61,7 +61,7 @@ app.get('/add_media/:unit', function (req, res) {
 
 app.get('/add_alt_media/:unit', function (req, res) {
     const queryObject = url.parse(req.url, true).query;
-    options = ("mL" in queryObject) ? ["--mL", queryObject['mL']] : ["--duration", queryObject['duration']]
+    options = ("mL" in queryObject) ? ["--ml", queryObject['mL']] : ["--duration", queryObject['duration']]
     command = (["mba", "run", "add_alt_media", "-y", "--units", req.params.unit].concat(options)).join(" ")
     exec(command, (error, stdout, stderr) => {
         if (error) {
@@ -79,7 +79,7 @@ app.get('/add_alt_media/:unit', function (req, res) {
 
 app.get('/remove_waste/:unit', function (req, res) {
     const queryObject = url.parse(req.url, true).query;
-    options = ("mL" in queryObject) ? ["--mL", queryObject['mL']] : ["--duration", queryObject['duration']]
+    options = ("mL" in queryObject) ? ["--ml", queryObject['mL']] : ["--duration", queryObject['duration']]
     command = (["mba", "run", "remove_waste", "-y", "--units", req.params.unit].concat(options)).join(" ")
     exec(command, (error, stdout, stderr) => {
         if (error) {
