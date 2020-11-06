@@ -392,7 +392,7 @@ function ButtonActionDialog(props) {
           <Typography variant="body2" component="p">
             Run the waste pump for a set duration (seconds), or a set volume (mL).
           </Typography>
-          <ActionPumpForm action="add_media" unitName={unitName} />
+          <ActionPumpForm action="remove_waste" unitName={unitName} />
           <Divider className={classes.divider} />
         </DialogContent>
       </Dialog>
@@ -457,7 +457,7 @@ class VolumeThroughputTally extends React.Component {
     this.state = {mediaThroughputPerUnit: {}, altMediaThroughputPerUnit: {}, mediaThroughput: 0, altMediaThroughput: 0};
     this.onConnect = this.onConnect.bind(this);
     this.onMessageArrived = this.onMessageArrived.bind(this);
-    this.experiment = "Trial-22-a3cfb599c7ea4693a8e6c4b5f4f6e240-2"
+    this.experiment = "Trial-23"
   }
 
   componentDidMount() {
@@ -543,7 +543,7 @@ class VolumeThroughputTally extends React.Component {
 
 const AllUnitsCard = () => {
     const classes = useStyles();
-    const experiment = "Trial-22-a3cfb599c7ea4693a8e6c4b5f4f6e240-2";
+    const experiment = "Trial-23";
 
     return (
       <Card>

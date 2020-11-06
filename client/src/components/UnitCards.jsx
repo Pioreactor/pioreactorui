@@ -554,7 +554,7 @@ function ModalUnitActions(props) {
         <Typography variant="body2" component="p">
           Run the waste pump for a set duration (seconds), or a set volume (mL).
         </Typography>
-        <ActionPumpForm action="add_media" unitName={props.unitName} />
+        <ActionPumpForm action="remove_waste" unitName={props.unitName} />
         <Divider className={classes.divider} />
       </CardContent>
     </Card>
@@ -566,7 +566,7 @@ function UnitCard(props) {
   const unitName = props.name;
   const isUnitActive = props.isUnitActive;
   const unitNumber = unitName.slice(-1);
-  const experiment = "Trial-22-a3cfb599c7ea4693a8e6c4b5f4f6e240-2";
+  const experiment = "Trial-23";
 
   const [showingAllSettings, setShowingAllSettings] = useState(false);
 
