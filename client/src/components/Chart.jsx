@@ -54,7 +54,6 @@ class Chart extends React.Component {
   }
 
   onConnect() {
-    console.log(["morbidostat", "+", this.experiment, this.props.topic].join("/"))
     this.client.subscribe(
       ["morbidostat", "+", this.experiment, this.props.topic].join("/")
     );
@@ -132,7 +131,6 @@ class Chart extends React.Component {
   }
 
   onMessageArrived(message) {
-    console.log(message)
     const currentTime = parseInt(moment().format("x"));
 
     var key = this.props.isODReading

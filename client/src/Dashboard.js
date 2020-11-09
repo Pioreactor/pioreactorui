@@ -7,6 +7,8 @@ import LogTable from "./components/LogTable";
 import ExperimentSummary from "./components/ExperimentSummary";
 import Chart from "./components/Chart";
 import AllUnitsManagerCard from "./components/AllUnitsManagerCard";
+import ClearChartButton from "./components/ClearChartButton";
+import Button from "@material-ui/core/Button";
 
 import CssBaseline from "@material-ui/core/CssBaseline";
 import { MuiThemeProvider, createMuiTheme } from "@material-ui/core/styles";
@@ -81,6 +83,7 @@ function Dashboard() {
                 experiment="+"
               />
             </Grid>
+            <Grid item> <ClearChartButton /> </Grid>
           </Grid>
 
           <Grid item xs={4} container direction="column" spacing={2}>
@@ -93,11 +96,11 @@ function Dashboard() {
               </Grid>
             </Grid>
 
-              <Grid item >
+              <Grid item style={{padding: "10px 0px"}}>
                 <AllUnitsManagerCard />
               </Grid>
 
-            <Grid item>
+            <Grid item style={{padding: "10px 0px"}}>
               <LogTable />
             </Grid>
           </Grid>

@@ -21,9 +21,12 @@ var staticUserAuth = basicAuth({
 })
 
 
-app.use(express.static(path.join(__dirname, 'build')));
+app.get('/', function(req, res) {
+    res.redirect(301, '/dashboard');
+})
 
-app.get('/', staticUserAuth, function(req, res) {
+app.get('/dashboard', staticUserAuth, function(req, res) {
+    app.use(express.static(path.join(__dirname, 'build')));
     res.sendFile(path.join(__dirname, 'build', 'index.html'));
 })
 
@@ -131,18 +134,27 @@ app.get('/download_data/', function(req, res) {
     res.download(file);
 })
 
-
-app.get('*', staticUserAuth, function(req, res) {
+app.get('/download-data', staticUserAuth, function(req, res) {
     app.use(express.static(path.join(__dirname, 'build')));
     res.sendFile(path.join(__dirname, 'build', 'index.html'));
 })
 
 
-
-
-
-
-
+app.get('/clear_charts', staticUserAuth, function(req, res) {
+    command = ["rm", "./build/data/*.json"].join(" ")
+    exec(command, (error, stdout, stderr) => {
+        if (error) {
+            res.send(`error: ${error.message}`);
+            return;
+        }
+        if (stderr) {
+            res.send(`stderr: ${stderr}`);
+            return;
+        }
+        console.log(`stdout: ${stdout}`);
+    });
+    res.sendStatus(200)
+})
 
 
 

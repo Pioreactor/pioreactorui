@@ -280,6 +280,7 @@ function ButtonSettingsDialog(props) {
       color="primary"
       onClick={handleClickOpen}
       disabled={props.disabled}
+      style={{padding: "4px 0px"}}
     >
       Settings
     </Button>
@@ -473,7 +474,12 @@ function ButtonActionDialog(props) {
 
   return (
     <div>
-      <Button onClick={handleClickOpen} disabled={props.disabled} size="small" color="Primary">
+      <Button
+        style={{padding: "4px 0px"}}
+        onClick={handleClickOpen}
+        disabled={props.disabled}
+        size="small"
+        color="Primary">
       Actions
       </Button>
       <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">

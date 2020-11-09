@@ -18,7 +18,7 @@ const useStyles = theme => ({
     fontSize: 13,
   },
   headerCell: {
-    fontWeight: "bold"
+    backgroundColor: "white"
   },
   tightRight: {
     textAlign: "right"
@@ -71,7 +71,7 @@ class LogTable extends React.Component {
     const { classes } = this.props;
     return (
       <Card>
-        <TableContainer style={{ height: "500px", width: "100%", overflowY: "scroll"}}>
+        <TableContainer style={{ height: "600px", width: "100%", overflowY: "scroll"}}>
           <Table stickyHeader size="small" aria-label="log table">
              <TableHead>
               <TableRow>

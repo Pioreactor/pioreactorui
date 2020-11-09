@@ -9,7 +9,10 @@ function App() {
     <Router>
       <div className="pageContainer">
         <Switch>
-          <Route exact path="/">
+          <Route path="/dashboard">
+            <Dashboard />
+          </Route>
+          <Route path="/">
             <Dashboard />
           </Route>
           <Route path="/download-data">
