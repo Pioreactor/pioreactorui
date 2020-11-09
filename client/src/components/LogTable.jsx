@@ -31,7 +31,7 @@ class LogTable extends React.Component {
     this.state = {listOfLogs: []};
     this.onConnect = this.onConnect.bind(this);
     this.onMessageArrived = this.onMessageArrived.bind(this);
-    this.experiment = "Trial-23"
+    this.experiment = "Trial-24"
   }
 
   async getData() {

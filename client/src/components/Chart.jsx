@@ -14,17 +14,17 @@ import moment from "moment";
 import Card from "@material-ui/core/Card";
 
 const colors = {
-  1: "#087e8b",
-  "1-A": "#087e8b",
-  "1-B": "#08278C",
+  1: "#9C6ADE",
+  "1-A": "#9C6ADE",
+  "1-B": "#E3D0FF",
 
-  2: "#bfd7ea",
-  "2-A": "#bfd7ea",
-  "2-B": "#C3BEEA",
+  2: "#47C1BF",
+  "2-A": "#47C1BF",
+  "2-B": "#B7ECEC",
 
-  3: "#ff5a5f",
-  "3-A": "#ff5a5f",
-  "3-B": "#FF5CCE",
+  3: "#F49342",
+  "3-A": "#F49342",
+  "3-B": "#FFC58B",
 };
 
 function linspace(startValue, stopValue, cardinality) {
@@ -50,10 +50,11 @@ class Chart extends React.Component {
     };
     this.onConnect = this.onConnect.bind(this);
     this.onMessageArrived = this.onMessageArrived.bind(this);
-    this.experiment = "Trial-23";
+    this.experiment = props.experiment || "Trial-24";
   }
 
   onConnect() {
+    console.log(["morbidostat", "+", this.experiment, this.props.topic].join("/"))
     this.client.subscribe(
       ["morbidostat", "+", this.experiment, this.props.topic].join("/")
     );
@@ -131,22 +132,45 @@ class Chart extends React.Component {
   }
 
   onMessageArrived(message) {
+    console.log(message)
     const currentTime = parseInt(moment().format("x"));
 
     var key = this.props.isODReading
       ? message.topic.split("/")[1] + "-" + message.topic.split("/")[5]
       : message.topic.split("/")[1];
 
-    this.state.seriesMap[key].data.push({
-      x: currentTime,
-      y: parseFloat(message.payloadString),
-    });
-    this.setState({
-      seriesMap: this.state.seriesMap,
-      maxTimestamp: currentTime,
-      lastMsgRecievedAt: currentTime,
-    });
+    // TODO: this should handle when we see a new series / key
+    try {
+      this.state.seriesMap[key].data.push({
+        x: currentTime,
+        y: parseFloat(message.payloadString),
+      });
+      this.setState({
+        seriesMap: this.state.seriesMap,
+        maxTimestamp: currentTime,
+        lastMsgRecievedAt: currentTime,
+      });
+    }
+    catch {
+    }
     return;
+  }
+
+
+  createXTickValues(minTimestamp, maxTimestamp){
+    const delta_ts = moment(maxTimestamp, "x").diff(
+      moment(minTimestamp, "x"),
+      "hours"
+    );
+    const v = linspace(
+      minTimestamp,
+      maxTimestamp + 100000,
+      7
+    ).map((x) =>
+      moment(Math.round(x), "x").startOf(delta_ts >= 16 ? "hour" : "minute")
+    );
+    return v
+
   }
 
   render() {
@@ -162,15 +186,8 @@ class Chart extends React.Component {
           ? "MMM DD HH:mm"
           : "dd HH:mm"
         : "H:mm";
-
-    const VictoryZoomVoronoiContainer = createContainer("zoom", "voronoi");
-    var tv = linspace(
-      this.state.minTimestamp,
-      this.state.maxTimestamp + 100000,
-      7
-    ).map((x) =>
-      moment(Math.round(x), "x").startOf(delta_ts >= 16 ? "hour" : "minute")
-    );
+    const ts = this.createXTickValues(this.state.minTimestamp, this.state.maxTimestamp)
+    const VictoryVoronoiContainer = createContainer("voronoi");
     return (
       <Card>
         <VictoryChart
@@ -183,8 +200,8 @@ class Chart extends React.Component {
           responsive={false}
           theme={VictoryTheme.material}
           containerComponent={
-            <VictoryZoomVoronoiContainer
-              zoomDimension="x"
+            <VictoryVoronoiContainer
+              voronoiBlacklist={['parent']}
               labels={(d) => `${moment(d.datum.x, "x").format(
                 tooltip_display_ts_format
               )}
@@ -214,7 +231,7 @@ ${Math.round(d.datum.y * 1000) / 1000}`}
           />
           <VictoryAxis
             tickFormat={(mt) => mt.format(axis_display_ts_format)}
-            tickValues={tv}
+            tickValues={ts}
             style={{
               tickLabels: {
                 fontSize: 13 * this.props.fontScale,

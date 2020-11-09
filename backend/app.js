@@ -2,6 +2,7 @@ const express = require('express');
 const basicAuth = require('express-basic-auth')
 const path = require('path');
 require('dotenv').config()
+var cp = require('child_process');
 
 const app = express();
 const { exec } = require("child_process");
@@ -95,22 +96,6 @@ app.get('/remove_waste/:unit', function (req, res) {
 })
 
 
-app.get('/start_experiment/', staticUserAuth, function (req, res) {
-  app.use(express.static(path.join(__dirname, 'build')));
-  res.sendFile(path.join(__dirname, 'build', 'start_experiment.html'));
-})
-
-app.get('/download_data/', staticUserAuth, function (req, res) {
-  app.use(express.static(path.join(__dirname, 'build')));
-  res.sendFile(path.join(__dirname, 'build', 'download_data.html'));
-})
-
-app.get('/edit_config/', staticUserAuth, function (req, res) {
-  app.use(express.static(path.join(__dirname, 'build')));
-  res.sendFile(path.join(__dirname, 'build', 'index.html'));
-})
-
-
 app.get('/get_experiments/', function (req, res) {
   db.serialize(function () {
     db.all('SELECT experiment FROM experiments ORDER BY timestamp DESC;', function (err, rows) {
@@ -128,10 +113,38 @@ app.get('/get_latest_experiment/', function (req, res) {
 })
 
 
+app.get('/download_data/', function(req, res) {
+    const queryObject = url.parse(req.url, true).query;
+    tables = queryObject['table']
+    console.log(tables)
+
+    var child = cp.fork('./child_tasks/db_export');
+
+    child.on('message', function(m) {
+      // Receive results from child process
+      console.log('received: ' + m);
+    });
+
+    child.send(tables);
+
+    const file = `${__dirname}/build/robots.txt`;
+    res.download(file);
+})
+
+
 app.get('*', staticUserAuth, function(req, res) {
     app.use(express.static(path.join(__dirname, 'build')));
     res.sendFile(path.join(__dirname, 'build', 'index.html'));
 })
+
+
+
+
+
+
+
+
+
 
 const PORT = process.env.PORT || 3000
 app.listen(PORT, () => {

@@ -8,7 +8,6 @@ import CardActions from "@material-ui/core/CardActions";
 import CardContent from "@material-ui/core/CardContent";
 import Button from "@material-ui/core/Button";
 import Typography from "@material-ui/core/Typography";
-import Modal from "@material-ui/core/Modal";
 import Divider from "@material-ui/core/Divider";
 import Slider from "@material-ui/core/Slider";
 import TextField from "@material-ui/core/TextField";
@@ -16,6 +15,12 @@ import InputAdornment from "@material-ui/core/InputAdornment";
 import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
 import ExpandLessIcon from "@material-ui/icons/ExpandLess";
 import IconButton from "@material-ui/core/IconButton";
+import Dialog from '@material-ui/core/Dialog';
+import DialogContent from '@material-ui/core/DialogContent';
+import DialogContentText from '@material-ui/core/DialogContentText';
+import DialogTitle from '@material-ui/core/DialogTitle';
+
+import ActionPumpForm from "./ActionPumpForm"
 
 const useStyles = makeStyles({
   root: {
@@ -33,13 +38,18 @@ const useStyles = makeStyles({
     fontFamily: "courier",
     color: "rgba(0, 0, 0, 0.54)",
   },
-  disabledText: {
-    color: "rgba(0, 0, 0, 0.38)",
+  unitTitleDialog :{
+    fontSize: 20,
+    fontFamily: "courier",
+    color: "rgba(0, 0, 0, 0.54)",
   },
   unitTitleDisable: {
     color: "rgba(0, 0, 0, 0.38)",
     fontSize: 17,
     fontFamily: "courier",
+  },
+  disabledText: {
+    color: "rgba(0, 0, 0, 0.38)",
   },
   pos: {
     marginBottom: 0,
@@ -78,12 +88,6 @@ const useStyles = makeStyles({
   alignRight: {
     flex: 1,
     textAlign: "right",
-  },
-  actionTextField: {
-    padding: "0px 10px 0px 0px",
-  },
-  actionForm: {
-    padding: "20px 0px 0px 0px",
   },
   textField: {
     marginTop: "15px",
@@ -191,10 +195,10 @@ class UnitSettingDisplay extends React.Component {
   }
 }
 
-function ModalUnitSettings(props) {
+function ButtonSettingsDialog(props) {
   const classes = useStyles();
   const [defaultStirring, setDefaultStirring] = useState(0);
-  const [modalStyle] = useState(getModalStyle);
+  const [open, setOpen] = useState(false);
 
   useEffect(() => {
     async function fetchData() {
@@ -217,11 +221,7 @@ function ModalUnitSettings(props) {
     "webui" + Math.random()
   );
 
-  client.connect({ onSuccess: onConnect });
-
-  function onConnect() {
-    console.log("Modal unit setting connected");
-  }
+  client.connect();
 
   function setActiveState(job, state) {
     return function () {
@@ -263,17 +263,33 @@ function ModalUnitSettings(props) {
     setMorbidostatJobState("stirring/duty_cycle", value);
   }
 
+
+  const handleClickOpen = () => {
+    setOpen(true);
+  };
+
+  const handleClose = () => {
+    setOpen(false);
+  };
+
+
   return (
-    <Card style={modalStyle} className={classes.paper}>
-      <CardContent>
-        <Typography
-          className={classes.unitTitle}
-          color="textSecondary"
-          gutterBottom
-        >
-          {props.unitName}
+    <div>
+    <Button
+      size="small"
+      color="primary"
+      onClick={handleClickOpen}
+      disabled={props.disabled}
+    >
+      Settings
+    </Button>
+    <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
+      <DialogTitle>
+        <Typography className={classes.unitTitleDialog}>
+          morbidostat{props.unitNumber}
         </Typography>
-        <Divider className={classes.divider} />
+      </DialogTitle>
+      <DialogContent>
         <Typography color="textSecondary" gutterBottom>
           Optical density reading
         </Typography>
@@ -296,14 +312,14 @@ function ModalUnitSettings(props) {
           color="primary"
           onClick={setActiveState("od_reading", 1)}
         >
-          Start
+          Unpause
         </Button>
         <Divider className={classes.divider} />
         <Typography color="textSecondary" gutterBottom>
           Growth rate calculating
         </Typography>
         <Typography variant="body2" component="p">
-          Pause or start the calculating the implied growth rate and smooted
+          Pause or start the calculating the implied growth rate and smoothed
           optical densities.
         </Typography>
         <Button
@@ -320,7 +336,7 @@ function ModalUnitSettings(props) {
           color="primary"
           onClick={setActiveState("growth_rate_calculating", 1)}
         >
-          Start
+          Unpause
         </Button>
         <Divider className={classes.divider} />
         <Typography color="textSecondary" gutterBottom>
@@ -343,7 +359,7 @@ function ModalUnitSettings(props) {
           color="primary"
           onClick={setActiveState("io_controlling", 1)}
         >
-          Start
+          Unpause
         </Button>
         <Divider className={classes.divider} />
         <Typography color="textSecondary" gutterBottom>
@@ -433,140 +449,78 @@ function ModalUnitSettings(props) {
           className={classes.textField}
         />
         <Divider className={classes.divider} />
-      </CardContent>
-    </Card>
+      </DialogContent>
+    </Dialog>
+    </div>
   );
 }
 
-function ActionPumpForm(props) {
-  const emptyState = "";
-  const [mL, setML] = useState(emptyState);
-  const [duration, setDuration] = useState(emptyState);
+
+function ButtonActionDialog(props) {
   const classes = useStyles();
-  const [isMLDisabled, setIsMLDisabled] = useState(false);
-  const [isDurationDisabled, setIsDurationDisabled] = useState(false);
+  const [open, setOpen] = useState(false);
+  const unitNumber = props.unitNumber
+  const isPlural = props.isPlural
 
-  function onSubmit(e) {
-    e.preventDefault();
-    if (mL !== emptyState || duration !== emptyState) {
-      const params = mL !== "" ? { mL: mL } : { duration: duration };
-      fetch(
-        "/" +
-          props.action +
-          "/" +
-          props.unitName +
-          "?" +
-          new URLSearchParams(params)
-      );
-    }
-  }
+  const handleClickOpen = () => {
+    setOpen(true);
+  };
 
-  function handleMLChange(e) {
-    setML(e.target.value);
-    setIsDurationDisabled(true);
-    if (e.target.value === emptyState) {
-      setIsDurationDisabled(false);
-    }
-  }
+  const handleClose = () => {
+    setOpen(false);
+  };
 
-  function handleDurationChange(e) {
-    setDuration(e.target.value);
-    setIsMLDisabled(true);
-    if (e.target.value === emptyState) {
-      setIsMLDisabled(false);
-    }
-  }
 
   return (
-    <form id={props.action} className={classes.actionForm}>
-      <TextField
-        name="mL"
-        value={mL}
-        size="small"
-        id={props.action + "_mL"}
-        label="mL"
-        variant="outlined"
-        disabled={isMLDisabled}
-        onChange={handleMLChange}
-        className={classes.actionTextField}
-      />
-      <TextField
-        name="duration"
-        value={duration}
-        size="small"
-        id={props.action + "_duration"}
-        label="seconds"
-        variant="outlined"
-        disabled={isDurationDisabled}
-        onChange={handleDurationChange}
-        className={classes.actionTextField}
-      />
-      <br />
-      <br />
-      <Button
-        type="submit"
-        variant="contained"
-        color="primary"
-        className={classes.button}
-        onClick={onSubmit}
-      >
-        Run
+    <div>
+      <Button onClick={handleClickOpen} disabled={props.disabled} size="small" color="Primary">
+      Actions
       </Button>
-    </form>
+      <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
+        <DialogTitle id="form-dialog-title">
+          <Typography className={classes.unitTitleDialog}>
+            {props.title || `morbidostat${props.unitNumber}`}
+          </Typography>
+        </DialogTitle>
+        <DialogContent>
+          <Typography color="textSecondary" gutterBottom>
+            Add media
+          </Typography>
+          <Typography variant="body2" component="p">
+            Run the media pump{isPlural ? "s" : ""} for a set duration (seconds), or a set volume (mL).
+          </Typography>
+          <ActionPumpForm action="add_media" unitNumber={unitNumber} />
+          <Divider className={classes.divider} />
+          <Typography color="textSecondary" gutterBottom>
+            Add alternative media
+          </Typography>
+          <Typography variant="body2" component="p">
+            Run the alternative media pump{isPlural ? "s" : ""} for a set duration (seconds), or a set
+            volume (mL).
+          </Typography>
+          <ActionPumpForm action="add_alt_media" unitNumber={unitNumber} />
+          <Divider className={classes.divider} />
+          <Typography color="textSecondary" gutterBottom>
+            Remove waste
+          </Typography>
+          <Typography variant="body2" component="p">
+            Run the waste pump{isPlural ? "s" : ""} for a set duration (seconds), or a set volume (mL).
+          </Typography>
+          <ActionPumpForm action="remove_waste" unitNumber={unitNumber} />
+          <Divider className={classes.divider} />
+        </DialogContent>
+      </Dialog>
+    </div>
   );
 }
 
-function ModalUnitActions(props) {
-  const classes = useStyles();
-  const [modalStyle] = useState(getModalStyle);
-
-  return (
-    <Card style={modalStyle} className={classes.paper}>
-      <CardContent>
-        <Typography
-          className={classes.unitTitle}
-          color="textSecondary"
-          gutterBottom
-        >
-          {props.unitName}
-        </Typography>
-        <Divider className={classes.divider} />
-        <Typography color="textSecondary" gutterBottom>
-          Add media
-        </Typography>
-        <Typography variant="body2" component="p">
-          Run the media pump for a set duration (seconds), or a set volume (mL).
-        </Typography>
-        <ActionPumpForm action="add_media" unitName={props.unitName} />
-        <Divider className={classes.divider} />
-        <Typography color="textSecondary" gutterBottom>
-          Add alternative media
-        </Typography>
-        <Typography variant="body2" component="p">
-          Run the alternative media pump for a set duration (seconds), or a set
-          volume (mL).
-        </Typography>
-        <ActionPumpForm action="add_alt_media" unitName={props.unitName} />
-        <Divider className={classes.divider} />
-        <Typography color="textSecondary" gutterBottom>
-          Remove waste
-        </Typography>
-        <Typography variant="body2" component="p">
-          Run the waste pump for a set duration (seconds), or a set volume (mL).
-        </Typography>
-        <ActionPumpForm action="remove_waste" unitName={props.unitName} />
-        <Divider className={classes.divider} />
-      </CardContent>
-    </Card>
-  );
-}
 
 function UnitCard(props) {
   const classes = useStyles();
   const unitName = props.name;
   const isUnitActive = props.isUnitActive;
   const unitNumber = unitName.slice(-1);
-  const experiment = "Trial-23";
+  const experiment = "Trial-24";
 
   const [showingAllSettings, setShowingAllSettings] = useState(false);
 
@@ -758,58 +712,23 @@ function UnitCard(props) {
         <IconButton size="small" onClick={handleShowAllSettingsClick}>
           {showingAllSettings ? <ExpandLessIcon /> : <ExpandMoreIcon />}
         </IconButton>
-        <Button
-          size="small"
-          color="primary"
+
+        <ButtonSettingsDialog
+          stirringState={stirringState}
+          ODReadingActiveState={ODReadingActiveState}
+          growthRateActiveState={growthRateActiveState}
+          IOEventsActiveState={IOEventsActiveState}
+          targetGrowthRateState={targetGrowthRateState}
+          volumeState={volumeState}
+          targetODState={targetODState}
+          experiment={experiment}
+          unitNumber={unitNumber}
           disabled={!isUnitActive}
-          onClick={handleSettingModalOpen}
-        >
-          Settings
-        </Button>
-        <Modal
-          open={settingModelOpen}
-          onClose={handleSettingModalClose}
-          aria-labelledby="simple-modal-title"
-          aria-describedby="simple-modal-description"
-        >
-          <div>
-            <ModalUnitSettings
-              stirringState={stirringState}
-              ODReadingActiveState={ODReadingActiveState}
-              growthRateActiveState={growthRateActiveState}
-              IOEventsActiveState={IOEventsActiveState}
-              targetGrowthRateState={targetGrowthRateState}
-              volumeState={volumeState}
-              targetODState={targetODState}
-              experiment={experiment}
-              unitName={unitName}
-              unitNumber={unitNumber}
-            />
-          </div>
-        </Modal>
-        <Button
-          size="small"
-          color="primary"
+        />
+        <ButtonActionDialog
+          unitNumber={unitNumber}
           disabled={!isUnitActive}
-          onClick={handleActionModalOpen}
-        >
-          Actions
-        </Button>
-        <Modal
-          open={actionModelOpen}
-          onClose={handleActionModalClose}
-          aria-labelledby="simple-modal-title"
-          aria-describedby="simple-modal-description"
-          onEscapeKeyDown={handleSettingModalClose}
-        >
-          <div>
-            <ModalUnitActions
-              experiment={experiment}
-              unitName={unitName}
-              unitNumber={unitNumber}
-            />
-          </div>
-        </Modal>
+        />
       </CardActions>
     </Card>
   );
@@ -829,4 +748,4 @@ function UnitCards(props) {
   );
 }
 
-export default UnitCards;
+export {UnitCards, ButtonActionDialog};

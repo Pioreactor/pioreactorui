@@ -2,7 +2,7 @@ import React from "react";
 
 import Grid from "@material-ui/core/Grid";
 import Header from "./components/Header";
-import UnitCards from "./components/UnitCards";
+import {UnitCards} from "./components/UnitCards";
 import LogTable from "./components/LogTable";
 import ExperimentSummary from "./components/ExperimentSummary";
 import Chart from "./components/Chart";
@@ -24,19 +24,18 @@ function Dashboard() {
     <MuiThemeProvider theme={themeLight}>
       <CssBaseline />
       <div>
-        <Grid container spacing={2}>
+        <Grid container spacing={4}>
           <Grid item xs={12}>
             <Header />
           </Grid>
 
-          <Grid item container xs={7} direction="row" spacing={2}>
-            <Grid item xs={1} />
-            <Grid item xs={11}>
+          <Grid item xs={1}/>
+          <Grid item xs={6} container direction="column" spacing={2}>
+            <Grid item>
               <ExperimentSummary />
             </Grid>
 
-            <Grid item xs={1} />
-            <Grid item xs={11}>
+            <Grid item>
               <Chart
                 dataFile={"./data/implied_growth_rate.json"}
                 interpolation="stepAfter"
@@ -47,8 +46,7 @@ function Dashboard() {
               />
             </Grid>
 
-            <Grid item xs={1} />
-            <Grid item xs={11}>
+            <Grid item >
               <Chart
                 dataFile={"./data/alt_media_fraction.json"}
                 interpolation="stepAfter"
@@ -59,41 +57,51 @@ function Dashboard() {
               />
             </Grid>
 
-            <Grid item xs={1} />
-            <Grid item xs={11}>
+            <Grid item>
               <Chart
                 isODReading={true}
                 dataFile={"./data/implied_135.json"}
                 fontScale={1.0}
-                title="135° optical density"
+                interpolation="stepAfter"
+                title="Filtered 135° optical density"
                 topic="od_filtered/135/+"
-                yAxisLabel="Optical density (AU)"
+                yAxisLabel="Current OD / initial OD"
+              />
+            </Grid>
+
+            <Grid item >
+              <Chart
+                isODReading={true}
+                dataFile={"./data/raw_135.json"}
+                fontScale={1.0}
+                interpolation="stepAfter"
+                title="Raw 135° optical density"
+                topic="od_raw/135/+"
+                yAxisLabel="Voltage"
+                experiment="+"
               />
             </Grid>
           </Grid>
 
-          <Grid item container xs={5} direction="row" spacing={2}>
-            <Grid item xs={1} />
-            <Grid item xs={5}>
-              <UnitCards units={[1, 3, 5]} />
+          <Grid item xs={4} container direction="column" spacing={2}>
+            <Grid container spacing={2}>
+              <Grid item xs={6}>
+                <UnitCards units={[1, 3, 5]} />
+              </Grid>
+              <Grid item item xs={6}>
+                <UnitCards units={[2, 4, 6]} />
+              </Grid>
             </Grid>
-            <Grid item xs={5}>
-              <UnitCards units={[2, 4, 6]} />
-            </Grid>
-            <Grid item xs={1} />
 
-            <Grid item xs={1} />
-            <Grid item xs={10}>
-              <AllUnitsManagerCard />
-            </Grid>
-            <Grid item xs={1} />
+              <Grid item >
+                <AllUnitsManagerCard />
+              </Grid>
 
-            <Grid item xs={1} />
-            <Grid item xs={10}>
+            <Grid item>
               <LogTable />
             </Grid>
-            <Grid item xs={1} />
           </Grid>
+          <Grid item xs={1} />
         </Grid>
       </div>
     </MuiThemeProvider>

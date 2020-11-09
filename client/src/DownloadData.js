@@ -20,6 +20,7 @@ import Select from '@material-ui/core/Select';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/Select';
 import InputLabel from '@material-ui/core/Select';
+import Button from "@material-ui/core/Button";
 
 
 const useStyles = makeStyles((theme) => ({
@@ -55,6 +56,22 @@ const themeLight = createMuiTheme({
 
 
 
+function ExperimentSelection(){
+  const classes = useStyles();
+  const chosenExperiment = "Trial-23"
+
+  return (
+    <div className={classes.root}>
+      <FormControl component="fieldset" className={classes.formControl}>
+
+        <FormLabel component="legend">Experiment</FormLabel>
+        <span>{chosenExperiment}</span>
+      </FormControl>
+    </div>
+  )
+}
+
+
 
 function CheckboxesGroup() {
   const classes = useStyles();
@@ -75,7 +92,7 @@ function CheckboxesGroup() {
   return (
     <div className={classes.root}>
       <FormControl component="fieldset" className={classes.formControl}>
-        <FormLabel component="legend">Download datasets</FormLabel>
+        <FormLabel component="legend">Datasets</FormLabel>
         <FormGroup>
           <FormControlLabel
             control={<Checkbox checked={state.growthRate} onChange={handleChange} name="growthRate" />}
@@ -87,19 +104,19 @@ function CheckboxesGroup() {
           />
           <FormControlLabel
             control={<Checkbox checked={state.odreadingRaw90} onChange={handleChange} name="odreadingRaw90" />}
-            label="Raw 90 OD readings"
+            label="Raw 90° OD readings"
           />
           <FormControlLabel
             control={<Checkbox checked={state.odreadingRaw135} onChange={handleChange} name="odreadingRaw135" />}
-            label="Raw 135 OD readings"
+            label="Raw 135° OD readings"
           />
           <FormControlLabel
             control={<Checkbox checked={state.odreadingFiltered90} onChange={handleChange} name="odreadingFiltered90" />}
-            label="Filtered 90 OD readings"
+            label="Filtered 90° OD readings"
           />
           <FormControlLabel
             control={<Checkbox checked={state.odreadingFiltered135} onChange={handleChange} name="odreadingFiltered135" />}
-            label="Filtered 90 OD readings"
+            label="Filtered 135° OD readings"
           />
           <FormControlLabel
             control={<Checkbox checked={state.logs} onChange={handleChange} name="logs" />}
@@ -114,7 +131,7 @@ function CheckboxesGroup() {
 function DownloadDataForm() {
   const classes = useStyles();
 
-  const handleSubmit = (event) =>{
+  const onSubmit = (event) =>{
 
   }
 
@@ -124,8 +141,25 @@ function DownloadDataForm() {
         <Typography variant="h5" component="h2">
           Download experiment data
         </Typography>
-        <form onSubmit={handleSubmit}>
-          <CheckboxesGroup/>
+
+        <form>
+          <Grid container spacing={1}>
+            <Grid item xs={6}><CheckboxesGroup/></Grid>
+            <Grid item xs={6}><ExperimentSelection/></Grid>
+
+            <Grid item xs={9} />
+            <Grid item xs={3}>
+              <Button
+                type="submit"
+                variant="contained"
+                color="primary"
+                onClick={onSubmit}
+              >
+                Download
+              </Button>
+            </Grid>
+            <Grid item xs={12}/>
+          </Grid>
         </form>
       </CardContent>
     </Card>
@@ -141,15 +175,16 @@ function DownloadData() {
       <div>
         <Grid container spacing={2} >
           <Grid item xs={12}><Header /></Grid>
-
-          <Grid item xs={2}/>
-          <Grid item xs={8}>
+          <Grid item xs={3}/>
+          <Grid item xs={6}>
             <div> <DownloadDataForm/> </div>
           </Grid>
-          <Grid item xs={2}/>
+          <Grid item xs={3}/>
         </Grid>
       </div>
     </MuiThemeProvider>
     )
 }
+
 export default DownloadData;
+
