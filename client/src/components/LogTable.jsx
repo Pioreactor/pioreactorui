@@ -60,8 +60,7 @@ class LogTable extends React.Component {
   onMessageArrived(message) {
     this.state.listOfLogs.pop()
     const unit = message.topic.split("/")[1]
-    // TODO: make the log table spit out unix timestamps
-    this.state.listOfLogs.unshift({timestamp: moment().format("MMM D HH:mm:ss.SSS"), unit: unit, message: message.payloadString})
+    this.state.listOfLogs.unshift({timestamp: moment().format("x"), unit: unit, message: message.payloadString})
     this.setState({
       listOfLogs: this.state.listOfLogs
     });
@@ -87,7 +86,7 @@ class LogTable extends React.Component {
             <TableBody>
               {this.state.listOfLogs.map((log, i) => (
                 <TableRow key={i}>
-                  <TableCell className={classes.tightCell}> {moment(log.timestamp, 'MMM D HH:mm:ss.SSS').format('HH:mm:ss')} </TableCell>
+                  <TableCell className={classes.tightCell}> {moment(log.timestamp, 'x').format('HH:mm:ss')} </TableCell>
                   <TableCell className={classes.tightCell}> {log.message} </TableCell>
                   <TableCell className={[classes.tightCell, classes.tightRight].join(" ")}>{log.unit}</TableCell>
                 </TableRow>
