@@ -325,7 +325,7 @@ class VolumeThroughputTally extends React.Component {
     this.state = {mediaThroughputPerUnit: {}, altMediaThroughputPerUnit: {}, mediaThroughput: 0, altMediaThroughput: 0};
     this.onConnect = this.onConnect.bind(this);
     this.onMessageArrived = this.onMessageArrived.bind(this);
-    this.experiment = "Trial-24"
+    this.experiment = this.props.experiment
   }
 
   componentDidMount() {
@@ -401,7 +401,7 @@ const AllUnitsCard = (props) => {
           <Typography className={classes.unitTitle}>
             All Units
           </Typography>
-          <VolumeThroughputTally/>
+          <VolumeThroughputTally experiment={experiment}/>
         </CardContent>
         <CardActions>
           <ButtonAllUnitSettingsDialog disabled={false} experiment={experiment}/>
