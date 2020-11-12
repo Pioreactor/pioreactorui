@@ -206,7 +206,6 @@ function ButtonSettingsDialog(props) {
   client.connect({onSuccess: onConnect});
 
   function onConnect(){
-    console.log("I've connected")
   }
 
   function setMorbidostatJobState(job, state) {

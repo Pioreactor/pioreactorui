@@ -106,7 +106,7 @@ function Dashboard() {
               </Grid>
 
             <Grid item style={{padding: "10px 0px"}}>
-              <LogTable />
+              <LogTable experiment={experiment} />
             </Grid>
             <Grid item> <ClearLogButton experiment={experiment}/> </Grid>
           </Grid>
