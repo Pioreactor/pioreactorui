@@ -15,7 +15,6 @@ import DialogTitle from '@material-ui/core/DialogTitle';
 import TextField from '@material-ui/core/TextField';
 import InputAdornment from "@material-ui/core/InputAdornment";
 import {ButtonActionDialog} from "./UnitCards"
-import ActionPumpForm from "./ActionPumpForm"
 
 const dividerStyle = {
   marginTop: 4,
@@ -63,7 +62,7 @@ const useStyles = makeStyles({
 
 function ButtonAllUnitSettingsDialog(props) {
   const classes = useStyles();
-  const unitNumber = "$unit"
+  const unitNumber = "$broadcast"
   const [open, setOpen] = useState(false);
 
 
@@ -79,7 +78,7 @@ function ButtonAllUnitSettingsDialog(props) {
     console.log("Modal unit setting connected");
   }
 
-  function setActiveState(job, state) {
+  function setJobState(job, state) {
     return function () {
       var message = new Message(String(state));
       message.destinationName = [
@@ -87,7 +86,7 @@ function ButtonAllUnitSettingsDialog(props) {
         unitNumber,
         props.experiment,
         job,
-        "active",
+        "$state",
         "set",
       ].join("/");
       message.qos = 1;
@@ -151,14 +150,14 @@ function ButtonAllUnitSettingsDialog(props) {
           <Button
             disableElevation
             color="secondary"
-            onClick={setActiveState("od_reading", 0)}
+            onClick={setJobState("od_reading", "sleeping")}
           >
             Pause
           </Button>
           <Button
             disableElevation
             color="primary"
-            onClick={setActiveState("od_reading", 1)}
+            onClick={setJobState("od_reading", "ready")}
           >
             Start
           </Button>
@@ -173,14 +172,14 @@ function ButtonAllUnitSettingsDialog(props) {
           <Button
             disableElevation
             color="secondary"
-            onClick={setActiveState("growth_rate_calculating", 0)}
+            onClick={setJobState("growth_rate_calculating", "sleeping")}
           >
             Pause
           </Button>
           <Button
             disableElevation
             color="primary"
-            onClick={setActiveState("growth_rate_calculating", 1)}
+            onClick={setJobState("growth_rate_calculating", "ready")}
           >
             Start
           </Button>
@@ -194,14 +193,14 @@ function ButtonAllUnitSettingsDialog(props) {
           <Button
             disableElevation
             color="secondary"
-            onClick={setActiveState("io_controlling", 0)}
+            onClick={setJobState("io_controlling", "sleeping")}
           >
             Pause
           </Button>
           <Button
             disableElevation
             color="primary"
-            onClick={setActiveState("io_controlling", 1)}
+            onClick={setJobState("io_controlling", "ready")}
           >
             Start
           </Button>
@@ -392,9 +391,9 @@ class VolumeThroughputTally extends React.Component {
 }
 
 
-const AllUnitsCard = () => {
+const AllUnitsCard = (props) => {
     const classes = useStyles();
-    const experiment = "Trial-24";
+    const experiment = props.experiment;
 
     return (
       <Card>
@@ -408,7 +407,7 @@ const AllUnitsCard = () => {
           <ButtonAllUnitSettingsDialog disabled={false} experiment={experiment}/>
           <ButtonActionDialog
             disabled={false}
-            unitNumber={"$unit"}
+            unitNumber={"$broadcast"}
             title="All units"
             isPlural={true}
             />

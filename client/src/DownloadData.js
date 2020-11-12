@@ -26,13 +26,11 @@ import Button from "@material-ui/core/Button";
 const useStyles = makeStyles((theme) => ({
   root: {
     display: 'flex',
+    minWidth: 100,
+    marginTop: "15px"
   },
   formControl: {
     margin: theme.spacing(3),
-  },
-  root: {
-    minWidth: 100,
-    marginTop: "15px"
   },
   title: {
     fontSize: 14,

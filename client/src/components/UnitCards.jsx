@@ -17,7 +17,6 @@ import ExpandLessIcon from "@material-ui/icons/ExpandLess";
 import IconButton from "@material-ui/core/IconButton";
 import Dialog from '@material-ui/core/Dialog';
 import DialogContent from '@material-ui/core/DialogContent';
-import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
 
 import ActionPumpForm from "./ActionPumpForm"
@@ -100,23 +99,11 @@ const useStyles = makeStyles({
   displaySettings: {},
 });
 
-function getModalStyle() {
-  const top = 50;
-  const left = 50;
-
-  return {
-    top: `${top}%`,
-    left: `${left}%`,
-    transform: `translate(-${top}%, -${left}%)`,
-  };
-}
-
 class UnitSettingDisplay extends React.Component {
   constructor(props) {
     super(props);
     this.state = { msg: this.props.default };
     this.onConnect = this.onConnect.bind(this);
-    this.onConnectionLost = this.onConnectionLost.bind(this);
     this.onMessageArrived = this.onMessageArrived.bind(this);
   }
 
@@ -127,13 +114,15 @@ class UnitSettingDisplay extends React.Component {
   }
 
   componentDidMount() {
-    // need to have unique clientIds
-    this.client = new Client(
-      "ws://morbidostatws.ngrok.io/",
-      "webui" + Math.random()
-    );
-    this.client.connect({ onSuccess: this.onConnect });
-    this.client.onMessageArrived = this.onMessageArrived;
+    if (this.props.isUnitActive) {
+      // need to have unique clientIds
+      this.client = new Client(
+        "ws://morbidostatws.ngrok.io/",
+        "webui" + Math.random()
+      );
+      this.client.connect({ onSuccess: this.onConnect });
+      this.client.onMessageArrived = this.onMessageArrived;
+    }
   }
 
   onConnect() {
@@ -148,17 +137,10 @@ class UnitSettingDisplay extends React.Component {
     );
   }
 
-  onConnectionLost() {
-    console.log("disconnected");
-  }
 
   onMessageArrived(message) {
     var parsedFloat = parseFloat(message.payloadString);
-    if (isNaN(parsedFloat)) {
-      var payload = message.payloadString;
-    } else {
-      var payload = parsedFloat;
-    }
+    var payload = isNaN(parsedFloat) ? message.payloadString : parsedFloat
     this.setState({
       msg: payload,
     });
@@ -170,16 +152,16 @@ class UnitSettingDisplay extends React.Component {
       if (!this.props.isUnitActive) {
         return <div style={{ color: "grey"}}> {this.state.msg} </div>;
       } else {
-        if (this.state.msg === 1) {
+        if (this.state.msg === "ready") {
           return <div style={{ color: "#4caf50"}}> On </div>;
-        } else if (this.state.msg === 0) {
+        } else if (this.state.msg !== "ready") {
           return <div style={{ color: "grey"}}> Off </div>;
         } else {
           return <div style={{ color: "grey"}}> {this.state.msg} </div>;
         }
       }
     } else {
-      if (!this.props.isUnitActive || this.state.msg == "-") {
+      if (!this.props.isUnitActive || this.state.msg === "-") {
         return <div style={{ color: "grey"}}> {this.state.msg} </div>;
       } else {
         return (
@@ -221,9 +203,13 @@ function ButtonSettingsDialog(props) {
     "webui" + Math.random()
   );
 
-  client.connect();
+  client.connect({onSuccess: onConnect});
 
-  function setActiveState(job, state) {
+  function onConnect(){
+    console.log("I've connected")
+  }
+
+  function setMorbidostatJobState(job, state) {
     return function () {
       var message = new Message(String(state));
       message.destinationName = [
@@ -231,15 +217,21 @@ function ButtonSettingsDialog(props) {
         props.unitNumber,
         props.experiment,
         job,
-        "active",
+        "$state",
         "set",
       ].join("/");
       message.qos = 1;
-      client.publish(message);
+      try{
+        client.publish(message);
+      }
+      catch (e){
+        console.log(e)
+        client.connect({onSuccess: () => setMorbidostatJobState(job, state)()});
+      }
     };
   }
 
-  function setMorbidostatJobState(job_attr, value) {
+  function setMorbidostatJobAttr(job_attr, value) {
     var message = new Message(String(value));
     message.destinationName = [
       "morbidostat",
@@ -249,18 +241,23 @@ function ButtonSettingsDialog(props) {
       "set",
     ].join("/");
     message.qos = 1;
-    client.publish(message);
+    try{
+      client.publish(message);
+    }
+    catch{
+      client.connect({onSuccess: () => setMorbidostatJobAttr(job_attr, value)});
+    }
   }
 
-  function setMorbidostatJobStateOnEnter(e) {
+  function setMorbidostatJobAttrOnEnter(e) {
     if (e.key === "Enter") {
-      setMorbidostatJobState(e.target.id, e.target.value);
+      setMorbidostatJobAttr(e.target.id, e.target.value);
       e.target.value = "";
     }
   }
 
   function setMorbidostatStirring(e, value) {
-    setMorbidostatJobState("stirring/duty_cycle", value);
+    setMorbidostatJobAttr("stirring/duty_cycle", value);
   }
 
 
@@ -301,17 +298,17 @@ function ButtonSettingsDialog(props) {
         </Typography>
         <Button
           disableElevation
-          disabled={props.ODReadingActiveState === 0}
+          disabled={props.ODReadingJobState === "sleeping"}
           color="secondary"
-          onClick={setActiveState("od_reading", 0)}
+          onClick={setMorbidostatJobState("od_reading", "sleeping")}
         >
           Pause
         </Button>
         <Button
           disableElevation
-          disabled={props.ODReadingActiveState === 1}
+          disabled={props.ODReadingJobState === "ready"}
           color="primary"
-          onClick={setActiveState("od_reading", 1)}
+          onClick={setMorbidostatJobState("od_reading", "ready")}
         >
           Unpause
         </Button>
@@ -325,17 +322,17 @@ function ButtonSettingsDialog(props) {
         </Typography>
         <Button
           disableElevation
-          disabled={props.growthRateActiveState === 0}
+          disabled={props.growthRateJobState === "sleeping"}
           color="secondary"
-          onClick={setActiveState("growth_rate_calculating", 0)}
+          onClick={setMorbidostatJobState("growth_rate_calculating", "sleeping")}
         >
           Pause
         </Button>
         <Button
           disableElevation
-          disabled={props.growthRateActiveState === 1}
+          disabled={props.growthRateJobState === "ready"}
           color="primary"
-          onClick={setActiveState("growth_rate_calculating", 1)}
+          onClick={setMorbidostatJobState("growth_rate_calculating", "ready")}
         >
           Unpause
         </Button>
@@ -348,17 +345,17 @@ function ButtonSettingsDialog(props) {
         </Typography>
         <Button
           disableElevation
-          disabled={props.IOEventsActiveState === 0}
+          disabled={props.IOEventsJobState === "sleeping"}
           color="secondary"
-          onClick={setActiveState("io_controlling", 0)}
+          onClick={setMorbidostatJobState("io_controlling", "sleeping")}
         >
           Pause
         </Button>
         <Button
           disableElevation
-          disabled={props.IOEventsActiveState === 1}
+          disabled={props.IOEventsJobState === "ready"}
           color="primary"
-          onClick={setActiveState("io_controlling", 1)}
+          onClick={setMorbidostatJobState("io_controlling", "ready")}
         >
           Unpause
         </Button>
@@ -376,7 +373,7 @@ function ButtonSettingsDialog(props) {
             aria-labelledby="discrete-slider-custom"
             step={1}
             valueLabelDisplay="on"
-            id="stirring/duty_cycle"
+            id={"stirring/duty_cycle" + props.unitNumber}
             onChangeCommitted={setMorbidostatStirring}
             marks={[
               { value: 0, label: "0" },
@@ -405,7 +402,7 @@ function ButtonSettingsDialog(props) {
             endAdornment: <InputAdornment position="end">mL</InputAdornment>,
           }}
           variant="outlined"
-          onKeyPress={setMorbidostatJobStateOnEnter}
+          onKeyPress={setMorbidostatJobAttrOnEnter}
           className={classes.textField}
         />
         <Divider className={classes.divider} />
@@ -425,7 +422,7 @@ function ButtonSettingsDialog(props) {
             endAdornment: <InputAdornment position="end">AU</InputAdornment>,
           }}
           variant="outlined"
-          onKeyPress={setMorbidostatJobStateOnEnter}
+          onKeyPress={setMorbidostatJobAttrOnEnter}
           className={classes.textField}
         />
         <Divider className={classes.divider} />
@@ -446,7 +443,7 @@ function ButtonSettingsDialog(props) {
             endAdornment: <InputAdornment position="end">h⁻¹</InputAdornment>,
           }}
           variant="outlined"
-          onKeyPress={setMorbidostatJobStateOnEnter}
+          onKeyPress={setMorbidostatJobAttrOnEnter}
           className={classes.textField}
         />
         <Divider className={classes.divider} />
@@ -526,36 +523,18 @@ function UnitCard(props) {
   const unitName = props.name;
   const isUnitActive = props.isUnitActive;
   const unitNumber = unitName.slice(-1);
-  const experiment = "Trial-24";
+  const experiment = props.experiment;
 
   const [showingAllSettings, setShowingAllSettings] = useState(false);
 
-  const [settingModelOpen, setSettingModalOpen] = useState(false);
-  const [actionModelOpen, setActionModalOpen] = useState(false);
-
   const [stirringState, setStirringState] = useState(0);
-  const [ODReadingActiveState, setODReadingActiveState] = useState(0);
-  const [growthRateActiveState, setGrowthRateActiveState] = useState(0);
-  const [IOEventsActiveState, setIOEventsActiveState] = useState(0);
+  const [ODReadingJobState, setODReadingJobState] = useState(0);
+  const [growthRateJobState, setGrowthRateJobState] = useState(0);
+  const [IOEventsJobState, setIOEventsJobState] = useState(0);
   const [targetODState, setTargetODState] = useState(0);
   const [targetGrowthRateState, setTargetGrowthRateState] = useState(0);
   const [volumeState, setVolumeState] = useState(0);
 
-  const handleSettingModalOpen = () => {
-    setSettingModalOpen(true);
-  };
-
-  const handleSettingModalClose = () => {
-    setSettingModalOpen(false);
-  };
-
-  const handleActionModalOpen = () => {
-    setActionModalOpen(true);
-  };
-
-  const handleActionModalClose = () => {
-    setActionModalOpen(false);
-  };
 
   const handleShowAllSettingsClick = () => {
     setShowingAllSettings(!showingAllSettings);
@@ -590,13 +569,13 @@ function UnitCard(props) {
               Optical density job:
             </Typography>
             <UnitSettingDisplay
-              passChildData={setODReadingActiveState}
+              passChildData={setODReadingJobState}
               experiment={experiment}
               isUnitActive={isUnitActive}
               default={"Off"}
               className={classes.alignRight}
               isBinaryActive
-              topic="od_reading/active"
+              topic="od_reading/$state"
               unitNumber={unitNumber}
             />
           </div>
@@ -606,13 +585,13 @@ function UnitCard(props) {
               Growth rate job:
             </Typography>
             <UnitSettingDisplay
-              passChildData={setGrowthRateActiveState}
+              passChildData={setGrowthRateJobState}
               experiment={experiment}
               isUnitActive={isUnitActive}
               default={"Off"}
               className={classes.alignRight}
               isBinaryActive
-              topic="growth_rate_calculating/active"
+              topic="growth_rate_calculating/$state"
               unitNumber={unitNumber}
             />
           </div>
@@ -622,13 +601,13 @@ function UnitCard(props) {
               IO events job:
             </Typography>
             <UnitSettingDisplay
-              passChildData={setIOEventsActiveState}
+              passChildData={setIOEventsJobState}
               experiment={experiment}
               isUnitActive={isUnitActive}
               default={"Off"}
               className={classes.alignRight}
               isBinaryActive
-              topic="io_controlling/active"
+              topic="io_controlling/$state"
               unitNumber={unitNumber}
             />
           </div>
@@ -721,9 +700,9 @@ function UnitCard(props) {
 
         <ButtonSettingsDialog
           stirringState={stirringState}
-          ODReadingActiveState={ODReadingActiveState}
-          growthRateActiveState={growthRateActiveState}
-          IOEventsActiveState={IOEventsActiveState}
+          ODReadingJobState={ODReadingJobState}
+          growthRateJobState={growthRateJobState}
+          IOEventsJobState={IOEventsJobState}
           targetGrowthRateState={targetGrowthRateState}
           volumeState={volumeState}
           targetODState={targetODState}
@@ -748,6 +727,7 @@ function UnitCards(props) {
           key={"morbidostat" + unit}
           name={"morbidostat" + unit}
           isUnitActive={[1, 2, 3].includes(unit)}
+          experiment={props.experiment}
         />
       ))}
     </div>

@@ -8,7 +8,7 @@ import ExperimentSummary from "./components/ExperimentSummary";
 import Chart from "./components/Chart";
 import AllUnitsManagerCard from "./components/AllUnitsManagerCard";
 import ClearChartButton from "./components/ClearChartButton";
-import Button from "@material-ui/core/Button";
+import ClearLogButton from "./components/ClearLogButton";
 
 import CssBaseline from "@material-ui/core/CssBaseline";
 import { MuiThemeProvider, createMuiTheme } from "@material-ui/core/styles";
@@ -20,6 +20,8 @@ const themeLight = createMuiTheme({
     },
   },
 });
+
+const experiment = "Trial-25"
 
 function Dashboard() {
   return (
@@ -45,6 +47,7 @@ function Dashboard() {
                 title="Implied growth rate"
                 topic="growth_rate"
                 yAxisLabel="Growth rate, h⁻¹"
+                experiment={experiment}
               />
             </Grid>
 
@@ -56,6 +59,7 @@ function Dashboard() {
                 title="Fraction of volume that is alternative media"
                 topic="alt_media_fraction"
                 yAxisLabel="Fraction"
+                experiment={experiment}
               />
             </Grid>
 
@@ -68,6 +72,7 @@ function Dashboard() {
                 title="Filtered 135° optical density"
                 topic="od_filtered/135/+"
                 yAxisLabel="Current OD / initial OD"
+                experiment={experiment}
               />
             </Grid>
 
@@ -87,22 +92,23 @@ function Dashboard() {
           </Grid>
 
           <Grid item xs={4} container direction="column" spacing={2}>
-            <Grid container spacing={2}>
+            <Grid container spacing={1}>
               <Grid item xs={6}>
-                <UnitCards units={[1, 3, 5]} />
+                <UnitCards experiment={experiment} units={[1, 3, 5]} />
               </Grid>
-              <Grid item item xs={6}>
-                <UnitCards units={[2, 4, 6]} />
+              <Grid item xs={6}>
+                <UnitCards experiment={experiment} units={[2, 4, 6]} />
               </Grid>
             </Grid>
 
               <Grid item style={{padding: "10px 0px"}}>
-                <AllUnitsManagerCard />
+                <AllUnitsManagerCard experiment={experiment}/>
               </Grid>
 
             <Grid item style={{padding: "10px 0px"}}>
               <LogTable />
             </Grid>
+            <Grid item> <ClearLogButton experiment={experiment}/> </Grid>
           </Grid>
           <Grid item xs={1} />
         </Grid>

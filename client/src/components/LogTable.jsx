@@ -31,7 +31,7 @@ class LogTable extends React.Component {
     this.state = {listOfLogs: []};
     this.onConnect = this.onConnect.bind(this);
     this.onMessageArrived = this.onMessageArrived.bind(this);
-    this.experiment = "Trial-24"
+    this.experiment = this.props.experiment
   }
 
   async getData() {
@@ -58,7 +58,9 @@ class LogTable extends React.Component {
   }
 
   onMessageArrived(message) {
-    this.state.listOfLogs.pop()
+    if (this.state.listOfLogs.length > 50){
+      this.state.listOfLogs.pop()
+    }
     const unit = message.topic.split("/")[1]
     this.state.listOfLogs.unshift({timestamp: moment().format("x"), unit: unit, message: message.payloadString})
     this.setState({
@@ -70,7 +72,7 @@ class LogTable extends React.Component {
     const { classes } = this.props;
     return (
       <Card>
-        <TableContainer style={{ height: "600px", width: "100%", overflowY: "scroll"}}>
+        <TableContainer style={{ height: "700px", width: "100%", overflowY: "scroll"}}>
           <Table stickyHeader size="small" aria-label="log table">
              <TableHead>
               <TableRow>

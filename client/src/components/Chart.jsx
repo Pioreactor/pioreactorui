@@ -50,7 +50,7 @@ class Chart extends React.Component {
     };
     this.onConnect = this.onConnect.bind(this);
     this.onMessageArrived = this.onMessageArrived.bind(this);
-    this.experiment = props.experiment || "Trial-24";
+    this.experiment = props.experiment;
   }
 
   onConnect() {
