@@ -75,7 +75,6 @@ class Chart extends React.Component {
         return response.json();
       })
       .then((data) => {
-        data = data[0];
         let initialSeriesMap = {};
         for (const [i, v] of data["series"].entries()) {
           if (data["data"][i].length > 0) {

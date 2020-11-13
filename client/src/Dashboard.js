@@ -41,7 +41,7 @@ function Dashboard() {
 
             <Grid item>
               <Chart
-                dataFile={"./data/implied_growth_rate.json"}
+                dataFile={"./data/growth_rate.json"}
                 interpolation="stepAfter"
                 fontScale={1}
                 title="Implied growth rate"
@@ -66,7 +66,7 @@ function Dashboard() {
             <Grid item>
               <Chart
                 isODReading={true}
-                dataFile={"./data/implied_135.json"}
+                dataFile={"./data/od_filtered_135.json"}
                 fontScale={1.0}
                 interpolation="stepAfter"
                 title="Filtered 135° optical density"
@@ -79,7 +79,7 @@ function Dashboard() {
             <Grid item >
               <Chart
                 isODReading={true}
-                dataFile={"./data/raw_135.json"}
+                dataFile={"./data/od_raw_135.json"}
                 fontScale={1.0}
                 interpolation="stepAfter"
                 title="Raw 135° optical density"
