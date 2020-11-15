@@ -10,7 +10,6 @@ import Box from '@material-ui/core/Box';
 const useStyles = makeStyles({
   root: {
     minWidth: 100,
-    marginTop: "15px"
   },
   title: {
     fontSize: 14,
@@ -35,8 +34,8 @@ function ExperimentSummary(props){
           return response.json();
         })
         .then((data) => {
-          setExperiment(data[0].experiment)
-          setStartedAt(moment(data[0].timestamp, 'YYYY-MM-DD HH:mm:SS'))
+          setExperiment(data.experiment)
+          setStartedAt(moment(data.timestamp, 'YYYY-MM-DD HH:mm:SS'))
         });
       }
       getData()

@@ -25,8 +25,6 @@ import Button from "@material-ui/core/Button";
 
 const useStyles = makeStyles((theme) => ({
   root: {
-    display: 'flex',
-    minWidth: 100,
     marginTop: "15px"
   },
   formControl: {
@@ -54,16 +52,15 @@ const themeLight = createMuiTheme({
 
 
 
-function ExperimentSelection(){
+const ExperimentSelection = (props) => {
   const classes = useStyles();
-  const chosenExperiment = "Trial-23"
 
   return (
     <div className={classes.root}>
       <FormControl component="fieldset" className={classes.formControl}>
 
         <FormLabel component="legend">Experiment</FormLabel>
-        <span>{chosenExperiment}</span>
+        <span>{props.chosenExperiment}</span>
       </FormControl>
     </div>
   )
@@ -71,21 +68,8 @@ function ExperimentSelection(){
 
 
 
-function CheckboxesGroup() {
+const CheckboxesGroup = (props) => {
   const classes = useStyles();
-  const [state, setState] = React.useState({
-    growthRate: false,
-    ioEvents: false,
-    odreadingRaw90: false,
-    odreadingRaw135: false,
-    odreadingFiltered90: false,
-    odreadingFiltered135: false,
-    log: false,
-  });
-
-  const handleChange = (event) => {
-    setState({ ...state, [event.target.name]: event.target.checked });
-  };
 
   return (
     <div className={classes.root}>
@@ -93,31 +77,23 @@ function CheckboxesGroup() {
         <FormLabel component="legend">Datasets</FormLabel>
         <FormGroup>
           <FormControlLabel
-            control={<Checkbox checked={state.growthRate} onChange={handleChange} name="growthRate" />}
+            control={<Checkbox checked={props.isChecked.growth_rate} onChange={props.handleChange} name="growth_rate" />}
             label="Growth rate"
           />
           <FormControlLabel
-            control={<Checkbox checked={state.ioEvents} onChange={handleChange} name="ioEvents" />}
+            control={<Checkbox checked={props.isChecked.io_events} onChange={props.handleChange} name="io_events" />}
             label="IO Events"
           />
           <FormControlLabel
-            control={<Checkbox checked={state.odreadingRaw90} onChange={handleChange} name="odreadingRaw90" />}
-            label="Raw 90° OD readings"
+            control={<Checkbox checked={props.isChecked.od_readings_raw} onChange={props.handleChange} name="od_readings_raw" />}
+            label="Raw OD readings"
           />
           <FormControlLabel
-            control={<Checkbox checked={state.odreadingRaw135} onChange={handleChange} name="odreadingRaw135" />}
-            label="Raw 135° OD readings"
+            control={<Checkbox checked={props.isChecked.od_readings_filtered} onChange={props.handleChange} name="od_readings_filtered" />}
+            label="Filtered OD readings"
           />
           <FormControlLabel
-            control={<Checkbox checked={state.odreadingFiltered90} onChange={handleChange} name="odreadingFiltered90" />}
-            label="Filtered 90° OD readings"
-          />
-          <FormControlLabel
-            control={<Checkbox checked={state.odreadingFiltered135} onChange={handleChange} name="odreadingFiltered135" />}
-            label="Filtered 135° OD readings"
-          />
-          <FormControlLabel
-            control={<Checkbox checked={state.logs} onChange={handleChange} name="logs" />}
+            control={<Checkbox checked={props.isChecked.logs} onChange={props.handleChange} name="logs" />}
             label="Logs"
           />
         </FormGroup>
@@ -126,12 +102,47 @@ function CheckboxesGroup() {
 )}
 
 
-function DownloadDataForm() {
+function DownloadDataFormContainer() {
   const classes = useStyles();
+  const [state, setState] = React.useState({
+    experimentSelection: "Trial-25",
+    datasetCheckbox: {
+      growth_rate: false,
+      io_events: false,
+      od_readings_raw: false,
+      od_readings_filtered: false,
+      logs: false,
+    }
+  });
 
   const onSubmit = (event) =>{
+    event.preventDefault()
+    fetch('query_datasets',{
+        method: "POST",
+        body: JSON.stringify(state),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        },
+    }).then(req => {
+      fetch("/download_data").then({})
 
+    })
   }
+
+  const handleCheckboxChange = (event) => {
+    setState(prevState => ({
+      ...prevState,
+      datasetCheckbox: {...state.datasetCheckbox, [event.target.name]: event.target.checked }
+    }));
+  };
+
+  const handleExperimentSelectionChange = (event) => {
+    setState(prevState => ({
+      ...prevState,
+      experimentSelection: event.target.value
+    }));
+  };
 
   return (
     <Card className={classes.root}>
@@ -142,11 +153,21 @@ function DownloadDataForm() {
 
         <form>
           <Grid container spacing={1}>
-            <Grid item xs={6}><CheckboxesGroup/></Grid>
-            <Grid item xs={6}><ExperimentSelection/></Grid>
+            <Grid item xs={12} md={6}>
+              <CheckboxesGroup
+              isChecked={state.datasetCheckbox}
+              handleChange={handleCheckboxChange}
+              />
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <ExperimentSelection
+              chosenExperiment={state.experimentSelection}
+              handleChange={handleExperimentSelectionChange}
+              />
+            </Grid>
 
-            <Grid item xs={9} />
-            <Grid item xs={3}>
+            <Grid item xs={false} md={9} />
+            <Grid item xs={12} md={3}>
               <Button
                 type="submit"
                 variant="contained"
@@ -170,16 +191,14 @@ function DownloadData() {
     return (
     <MuiThemeProvider theme={themeLight}>
       <CssBaseline />
-      <div>
         <Grid container spacing={2} >
           <Grid item xs={12}><Header /></Grid>
           <Grid item xs={3}/>
           <Grid item xs={6}>
-            <div> <DownloadDataForm/> </div>
+            <div> <DownloadDataFormContainer/> </div>
           </Grid>
           <Grid item xs={3}/>
         </Grid>
-      </div>
     </MuiThemeProvider>
     )
 }

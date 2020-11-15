@@ -152,14 +152,14 @@ function ButtonAllUnitSettingsDialog(props) {
             color="secondary"
             onClick={setJobState("od_reading", "sleeping")}
           >
-            Pause
+            Pause all
           </Button>
           <Button
             disableElevation
             color="primary"
             onClick={setJobState("od_reading", "ready")}
           >
-            Start
+            Unpause all
           </Button>
           <Divider className={classes.divider} />
           <Typography color="textSecondary" gutterBottom>
@@ -174,14 +174,14 @@ function ButtonAllUnitSettingsDialog(props) {
             color="secondary"
             onClick={setJobState("growth_rate_calculating", "sleeping")}
           >
-            Pause
+            Pause all
           </Button>
           <Button
             disableElevation
             color="primary"
             onClick={setJobState("growth_rate_calculating", "ready")}
           >
-            Start
+            Unpause all
           </Button>
           <Divider className={classes.divider} />
           <Typography color="textSecondary" gutterBottom>
@@ -195,14 +195,14 @@ function ButtonAllUnitSettingsDialog(props) {
             color="secondary"
             onClick={setJobState("io_controlling", "sleeping")}
           >
-            Pause
+            Pause all
           </Button>
           <Button
             disableElevation
             color="primary"
             onClick={setJobState("io_controlling", "ready")}
           >
-            Start
+            Unpause all
           </Button>
           <Divider className={classes.divider} />
           <Typography color="textSecondary" gutterBottom>

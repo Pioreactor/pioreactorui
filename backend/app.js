@@ -1,15 +1,17 @@
 const express = require('express');
 const basicAuth = require('express-basic-auth')
 const path = require('path');
+const bodyParser = require('body-parser');
 require('dotenv').config()
-var cp = require('child_process');
+const url = require('url');
+const { exec } = require("child_process");
+const cp = require('child_process');
+const sqlite3 = require('sqlite3').verbose()
 
 const app = express();
-const { exec } = require("child_process");
-const url = require('url');
+app.use(bodyParser.json());
 
 
-var sqlite3 = require('sqlite3').verbose()
 var db = new sqlite3.Database(process.env.DB_LOCATION)
 
 // this is not secure, and I know it. It's fine for now, as the app isn't exposed to the internet.
@@ -29,6 +31,28 @@ app.get('/dashboard', staticUserAuth, function(req, res) {
     app.use(express.static(path.join(__dirname, 'build')));
     res.sendFile(path.join(__dirname, 'build', 'index.html'));
 })
+
+app.get('/download-data', staticUserAuth, function(req, res) {
+    app.use(express.static(path.join(__dirname, 'build')));
+    res.sendFile(path.join(__dirname, 'build', 'index.html'));
+})
+
+
+app.post('/query_datasets', function(req, res) {
+    var child = cp.fork('./child_tasks/db_export');
+
+    child.on('message', function(m) {
+      console.log('received: ' + m);
+    });
+
+    child.send(req.body);
+    res.send({okay: 1})
+})
+
+app.get('/download_data', function(req, res) {
+    res.download("morbidostat.sql")
+})
+
 
 app.get('/stop', function (req, res) {
     exec("mba kill python -y", (error, stdout, stderr) => {
@@ -99,7 +123,7 @@ app.get('/remove_waste/:unit', function (req, res) {
 })
 
 
-app.get('/get_experiments/', function (req, res) {
+app.get('/get_experiments', function (req, res) {
   db.serialize(function () {
     db.all('SELECT experiment FROM experiments ORDER BY timestamp DESC;', function (err, rows) {
       res.send(rows)
@@ -107,54 +131,15 @@ app.get('/get_experiments/', function (req, res) {
   })
 })
 
-app.get('/get_latest_experiment/', function (req, res) {
+app.get('/get_latest_experiment', function (req, res) {
   db.serialize(function () {
     db.all('SELECT * FROM experiments ORDER BY timestamp DESC LIMIT 1;', function (err, rows) {
-      res.send(rows)
+      res.send(rows[0])
     })
   })
 })
 
 
-app.get('/download_data/', function(req, res) {
-    const queryObject = url.parse(req.url, true).query;
-    tables = queryObject['table']
-    console.log(tables)
-
-    var child = cp.fork('./child_tasks/db_export');
-
-    child.on('message', function(m) {
-      // Receive results from child process
-      console.log('received: ' + m);
-    });
-
-    child.send(tables);
-
-    const file = `${__dirname}/build/robots.txt`;
-    res.download(file);
-})
-
-app.get('/download-data', staticUserAuth, function(req, res) {
-    app.use(express.static(path.join(__dirname, 'build')));
-    res.sendFile(path.join(__dirname, 'build', 'index.html'));
-})
-
-
-app.get('/clear_charts', staticUserAuth, function(req, res) {
-    command = ["rm", "./build/data/*.json"].join(" ")
-    exec(command, (error, stdout, stderr) => {
-        if (error) {
-            res.send(`error: ${error.message}`);
-            return;
-        }
-        if (stderr) {
-            res.send(`stderr: ${stderr}`);
-            return;
-        }
-        console.log(`stdout: ${stdout}`);
-    });
-    res.sendStatus(200)
-})
 
 
 

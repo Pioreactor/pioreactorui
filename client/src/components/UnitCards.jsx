@@ -197,7 +197,6 @@ function ButtonSettingsDialog(props) {
     fetchData();
   }, []);
 
-  // MQTT - client ids should be unique
   var client = new Client(
     "ws://morbidostatws.ngrok.io/",
     "webui" + Math.random()
@@ -311,6 +310,7 @@ function ButtonSettingsDialog(props) {
         >
           Unpause
         </Button>
+
         <Divider className={classes.divider} />
         <Typography color="textSecondary" gutterBottom>
           Growth rate calculating
@@ -335,6 +335,7 @@ function ButtonSettingsDialog(props) {
         >
           Unpause
         </Button>
+
         <Divider className={classes.divider} />
         <Typography color="textSecondary" gutterBottom>
           Input/output events
@@ -358,6 +359,7 @@ function ButtonSettingsDialog(props) {
         >
           Unpause
         </Button>
+
         <Divider className={classes.divider} />
         <Typography color="textSecondary" gutterBottom>
           Stirring
@@ -404,6 +406,7 @@ function ButtonSettingsDialog(props) {
           onKeyPress={setMorbidostatJobAttrOnEnter}
           className={classes.textField}
         />
+
         <Divider className={classes.divider} />
         <Typography color="textSecondary" gutterBottom>
           Target optical density
@@ -424,6 +427,7 @@ function ButtonSettingsDialog(props) {
           onKeyPress={setMorbidostatJobAttrOnEnter}
           className={classes.textField}
         />
+
         <Divider className={classes.divider} />
         <Typography color="textSecondary" gutterBottom>
           Target growth rate
@@ -475,7 +479,7 @@ function ButtonActionDialog(props) {
         onClick={handleClickOpen}
         disabled={props.disabled}
         size="small"
-        color="Primary">
+        color="primary">
       Actions
       </Button>
       <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
@@ -527,9 +531,9 @@ function UnitCard(props) {
   const [showingAllSettings, setShowingAllSettings] = useState(false);
 
   const [stirringState, setStirringState] = useState(0);
-  const [ODReadingJobState, setODReadingJobState] = useState(0);
-  const [growthRateJobState, setGrowthRateJobState] = useState(0);
-  const [IOEventsJobState, setIOEventsJobState] = useState(0);
+  const [ODReadingJobState, setODReadingJobState] = useState("disconnected");
+  const [growthRateJobState, setGrowthRateJobState] = useState("disconnected");
+  const [IOEventsJobState, setIOEventsJobState] = useState("disconnected");
   const [targetODState, setTargetODState] = useState(0);
   const [targetGrowthRateState, setTargetGrowthRateState] = useState(0);
   const [volumeState, setVolumeState] = useState(0);

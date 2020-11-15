@@ -1,14 +1,32 @@
 import React from "react";
-
+import { Client, Message } from "paho-mqtt";
 import Button from "@material-ui/core/Button";
 
 
 
-function ClearChartButton(){
+function ClearChartButton(props){
+
 
   function onClick() {
-    fetch("/clear_charts")
-    window.location.reload(false);
+    var client = new Client(
+      "ws://morbidostatws.ngrok.io/",
+      "client" + Math.random()
+    );
+    client.connect({onSuccess: () => {
+      var message = new Message("");
+      message.destinationName = [
+        "morbidostat",
+        "leader",
+        props.experiment,
+        "time_series_aggregating",
+        "aggregated_time_series",
+        "set",
+      ].join("/");
+      message.qos = 2;
+      client.publish(message);
+      window.location.reload();
+      return false
+    }});
   }
 
   return (

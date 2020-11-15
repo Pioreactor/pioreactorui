@@ -186,15 +186,15 @@ class Chart extends React.Component {
     const ts = this.createXTickValues(this.state.minTimestamp, this.state.maxTimestamp)
     const VictoryVoronoiContainer = createContainer("voronoi");
     return (
-      <Card>
+      <Card style={{width: "100%", "height": "100%"}}>
         <VictoryChart
           title={this.props.title}
           domainPadding={10}
           padding={{ left: 70, right: 80, bottom: 50, top: 50 }}
+          events={this.state.legendEvents}
+          responsive={true}
           width={600}
           height={285}
-          events={this.state.legendEvents}
-          responsive={false}
           theme={VictoryTheme.material}
           containerComponent={
             <VictoryVoronoiContainer

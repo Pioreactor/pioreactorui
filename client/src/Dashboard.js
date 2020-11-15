@@ -33,8 +33,8 @@ function Dashboard() {
             <Header />
           </Grid>
 
-          <Grid item xs={1}/>
-          <Grid item xs={6} container direction="column" spacing={2}>
+          <Grid item xs={false} md={1}/>
+          <Grid item xs={12} md={6} container direction="column" spacing={2}>
             <Grid item>
               <ExperimentSummary />
             </Grid>
@@ -53,7 +53,7 @@ function Dashboard() {
 
             <Grid item >
               <Chart
-                dataFile={"./data/alt_media_fraction.json"}
+                dataFile={"./data/alt_media_calculating_alt_media_fraction.json"}
                 interpolation="stepAfter"
                 fontScale={1}
                 title="Fraction of volume that is alternative media"
@@ -91,7 +91,7 @@ function Dashboard() {
             <Grid item> <ClearChartButton /> </Grid>
           </Grid>
 
-          <Grid item xs={4} container direction="column" spacing={2}>
+          <Grid item xs={12} md={4} container direction="column" spacing={2}>
             <Grid container spacing={1}>
               <Grid item xs={6}>
                 <UnitCards experiment={experiment} units={[1, 3, 5]} />
@@ -110,7 +110,7 @@ function Dashboard() {
             </Grid>
             <Grid item> <ClearLogButton experiment={experiment}/> </Grid>
           </Grid>
-          <Grid item xs={1} />
+          <Grid item xs={false} md={1}/>
         </Grid>
       </div>
     </MuiThemeProvider>

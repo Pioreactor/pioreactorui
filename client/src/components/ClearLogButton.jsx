@@ -22,9 +22,10 @@ function ClearLogButton(props){
         "aggregated_log_table",
         "set",
       ].join("/");
-      message.qos = 1;
+      message.qos = 2;
       client.publish(message);
-      window.location.reload(false);
+      window.location.reload();
+      return false
     }});
   }
 
