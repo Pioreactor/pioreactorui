@@ -86,6 +86,7 @@ app.get('/add_media/:unit', function (req, res) {
             return;
         }
         console.log(`stdout: ${stdout}`);
+        res.sendStatus(200)
     });
 })
 
@@ -103,6 +104,8 @@ app.get('/add_alt_media/:unit', function (req, res) {
             return;
         }
         console.log(`stdout: ${stdout}`);
+        res.sendStatus(200)
+
     });
 })
 
@@ -121,6 +124,7 @@ app.get('/remove_waste/:unit', function (req, res) {
             return;
         }
         console.log(`stdout: ${stdout}`);
+        res.sendStatus(200)
     });
 })
 
