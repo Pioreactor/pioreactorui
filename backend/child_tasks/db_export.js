@@ -5,9 +5,11 @@ process.on('message', function(options) {
     tables = Object.keys(options.datasetCheckbox)
     tables = tables.filter(t => options.datasetCheckbox[t])
     cmd_tables = tables.map(s => "--tables " + s).join(" ")
-    command = ["mba", "download_experment_data", "--experiment", options.experimentSelection, "--output", "/home/pi/morbidostatui/backend/build/static/exports/", cmd_tables].join(" ")
-    console.log(command)
+    command = ["mb", "download_experiment_data", "--experiment", options.experimentSelection, "--output", "/home/pi/morbidostatui/backend/build/static/exports/", cmd_tables].join(" ")
     exec(command, (error, stdout, stderr) => {
+        console.log(error)
+        console.log(stdout)
+        console.log(stderr)
         if (error) {
             process.send(false);
         }
