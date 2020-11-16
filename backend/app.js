@@ -56,14 +56,17 @@ app.post('/query_datasets', function(req, res) {
 app.get('/stop', function (req, res) {
     exec("mba kill python -y", (error, stdout, stderr) => {
         if (error) {
+            console.log(error)
             res.send(`error: ${error.message}`);
             return;
         }
         if (stderr) {
+            console.log(stderr)
             res.send(`stderr: ${stderr}`);
             return;
         }
         console.log(`stdout: ${stdout}`);
+        res.sendStatus(200)
     });
 })
 

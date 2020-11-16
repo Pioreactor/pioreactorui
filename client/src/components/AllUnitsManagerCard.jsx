@@ -301,7 +301,8 @@ function ButtonAllUnitSettingsDialog(props) {
         <DialogTitle id="alert-dialog-title">{"Stop all morbidostat processes?"}</DialogTitle>
         <DialogContent>
           <DialogContentText id="alert-dialog-description">
-            This will stop stirring, optical density measuring, future IO events from occuring for <b>all</b> morbidostat units.
+            This will stop stirring, optical density measuring, future IO events from occuring for <b>all</b> morbidostat units. It may take a few minutes to
+            take effect.
           </DialogContentText>
         </DialogContent>
         <DialogActions>
