@@ -20,6 +20,7 @@ import Select from '@material-ui/core/Select';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/Select';
 import InputLabel from '@material-ui/core/Select';
+import CircularProgress from '@material-ui/core/CircularProgress';
 import Button from "@material-ui/core/Button";
 
 
@@ -62,6 +63,23 @@ const ExperimentSelection = (props) => {
         <FormLabel component="legend">Experiment</FormLabel>
         <span>{props.chosenExperiment}</span>
       </FormControl>
+      <FormControl>
+        <Select
+          native
+          value={props.chosenExperiment}
+          onChange={props.handleExperimentSelectionChange}
+          inputProps={{
+            name: 'age',
+            id: 'age-native-simple',
+          }}
+        >
+          <option aria-label="None" value="" />
+          <option value={10}>Ten</option>
+          <option value={20}>Twenty</option>
+          <option value={30}>Thirty</option>
+        </Select>
+      </FormControl>
+
     </div>
   )
 }
@@ -82,7 +100,7 @@ const CheckboxesGroup = (props) => {
           />
           <FormControlLabel
             control={<Checkbox checked={props.isChecked.io_events} onChange={props.handleChange} name="io_events" />}
-            label="IO Events"
+            label="IO events"
           />
           <FormControlLabel
             control={<Checkbox checked={props.isChecked.od_readings_raw} onChange={props.handleChange} name="od_readings_raw" />}
@@ -96,6 +114,10 @@ const CheckboxesGroup = (props) => {
             control={<Checkbox checked={props.isChecked.logs} onChange={props.handleChange} name="logs" />}
             label="Logs"
           />
+          <FormControlLabel
+            control={<Checkbox checked={props.isChecked.alt_media_fraction} onChange={props.handleChange} name="alt_media_fraction" />}
+            label="Alt. media fraction"
+          />
         </FormGroup>
       </FormControl>
     </div>
@@ -104,6 +126,7 @@ const CheckboxesGroup = (props) => {
 
 function DownloadDataFormContainer() {
   const classes = useStyles();
+  const [isRunning, setIsRunning] = React.useState(false)
   const [state, setState] = React.useState({
     experimentSelection: "Trial-25",
     datasetCheckbox: {
@@ -112,11 +135,13 @@ function DownloadDataFormContainer() {
       od_readings_raw: false,
       od_readings_filtered: false,
       logs: false,
+      alt_media_fraction: false,
     }
   });
 
   const onSubmit = (event) =>{
     event.preventDefault()
+    setIsRunning(true)
     fetch('query_datasets',{
         method: "POST",
         body: JSON.stringify(state),
@@ -124,9 +149,15 @@ function DownloadDataFormContainer() {
           'Accept': 'application/json',
           'Content-Type': 'application/json'
         },
-    }).then(req => {
-      fetch("/download_data").then({})
-
+    }).then(res => res.json())
+      .then(res => {
+      var link = document.createElement("a");
+      link.setAttribute('download', res['filename']);
+      link.href = "/public/" + res['filename'];
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setIsRunning(false)
     })
   }
 
@@ -144,6 +175,7 @@ function DownloadDataFormContainer() {
     }));
   };
 
+  var runningFeedback = isRunning ? <CircularProgress color="white" size={20}/> : "Download"
   return (
     <Card className={classes.root}>
       <CardContent className={classes.cardContent}>
@@ -166,16 +198,19 @@ function DownloadDataFormContainer() {
               />
             </Grid>
 
-            <Grid item xs={false} md={9} />
-            <Grid item xs={12} md={3}>
+            <Grid item xs={false} md={8} />
+            <Grid item xs={12} md={4}>
               <Button
                 type="submit"
                 variant="contained"
                 color="primary"
                 onClick={onSubmit}
+                style={{width: "100px"}}
               >
-                Download
+                {runningFeedback}
               </Button>
+              <p> Querying the database may take up to a minute or so.</p>
+
             </Grid>
             <Grid item xs={12}/>
           </Grid>

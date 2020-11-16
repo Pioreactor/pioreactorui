@@ -8,9 +8,9 @@ const { exec } = require("child_process");
 const cp = require('child_process');
 const sqlite3 = require('sqlite3').verbose()
 
-const app = express();
+const app = express()
 app.use(bodyParser.json());
-
+app.use('/public', express.static('public'));
 
 var db = new sqlite3.Database(process.env.DB_LOCATION)
 
@@ -42,15 +42,14 @@ app.post('/query_datasets', function(req, res) {
     var child = cp.fork('./child_tasks/db_export');
 
     child.on('message', function(m) {
-      console.log('received: ' + m);
+      if (m) {
+          res.json({filename: m})
+      }
+      else{
+        res.sendStatus(503)
+      }
     });
-
     child.send(req.body);
-    res.send({okay: 1})
-})
-
-app.get('/download_data', function(req, res) {
-    res.download("morbidostat.sql")
 })
 
 

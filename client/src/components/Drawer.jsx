@@ -13,12 +13,6 @@ import AddIcon from '@material-ui/icons/Add';
 import SaveAltIcon from '@material-ui/icons/SaveAlt';
 import SettingsIcon from '@material-ui/icons/Settings';
 import DashboardIcon from '@material-ui/icons/Dashboard';
-import { BrowserRouter as Router, Switch, Route, Link } from "react-router-dom";
-
-
-import DialogTitle from '@material-ui/core/DialogTitle';
-import Dialog from '@material-ui/core/Dialog';
-
 
 const useStyles = makeStyles({
   list: {
