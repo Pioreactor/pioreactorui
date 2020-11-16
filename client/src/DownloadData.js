@@ -77,7 +77,7 @@ const CheckboxesGroup = (props) => {
         <FormLabel component="legend">Datasets</FormLabel>
         <FormGroup>
           <FormControlLabel
-            control={<Checkbox checked={props.isChecked.growth_rate} onChange={props.handleChange} name="growth_rate" />}
+            control={<Checkbox checked={props.isChecked.growth_rates} onChange={props.handleChange} name="growth_rates" />}
             label="Growth rate"
           />
           <FormControlLabel
@@ -107,7 +107,7 @@ function DownloadDataFormContainer() {
   const [state, setState] = React.useState({
     experimentSelection: "Trial-25",
     datasetCheckbox: {
-      growth_rate: false,
+      growth_rates: false,
       io_events: false,
       od_readings_raw: false,
       od_readings_filtered: false,
