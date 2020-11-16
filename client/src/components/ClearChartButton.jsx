@@ -22,6 +22,9 @@ function ClearChartButton(props){
         "aggregated_time_series",
         "set",
       ].join("/");
+      console.log(message.destinationName)
+      console.log(message.message)
+      // not working?
       message.qos = 2;
       client.publish(message);
       window.location.reload();

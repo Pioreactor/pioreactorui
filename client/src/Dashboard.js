@@ -88,7 +88,7 @@ function Dashboard() {
                 experiment="+"
               />
             </Grid>
-            <Grid item> <ClearChartButton /> </Grid>
+            <Grid item> <ClearChartButton experiment={experiment}/> </Grid>
           </Grid>
 
           <Grid item xs={12} md={4} container direction="column" spacing={2}>

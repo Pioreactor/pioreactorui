@@ -199,10 +199,8 @@ class Chart extends React.Component {
           containerComponent={
             <VictoryVoronoiContainer
               voronoiBlacklist={['parent']}
-              labels={(d) => `${moment(d.datum.x, "x").format(
-                tooltip_display_ts_format
-              )}
-${Math.round(d.datum.y * 1000) / 1000}`}
+              voronoiDimension="x"
+              labels={(d) => `${Math.round(d.datum.y * 1000) / 1000}`}
               labelComponent={
                 <VictoryTooltip
                   cornerRadius={0}
