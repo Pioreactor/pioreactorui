@@ -62,7 +62,7 @@ const useStyles = makeStyles({
 
 function ButtonAllUnitSettingsDialog(props) {
   const classes = useStyles();
-  const unitNumber = "$broadcast"
+  const unitNumber = "'$broadcast'"
   const [open, setOpen] = useState(false);
 
 
@@ -408,7 +408,7 @@ const AllUnitsCard = (props) => {
           <ButtonAllUnitSettingsDialog disabled={false} experiment={experiment}/>
           <ButtonActionDialog
             disabled={false}
-            unitNumber={"$broadcast"}
+            unitNumber={"'$broadcast'"}
             title="All units"
             isPlural={true}
             />
