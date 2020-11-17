@@ -37,6 +37,12 @@ app.get('/download-data', staticUserAuth, function(req, res) {
     res.sendFile(path.join(__dirname, 'build', 'index.html'));
 })
 
+app.get('/start-new-experiment', staticUserAuth, function(req, res) {
+    app.use(express.static(path.join(__dirname, 'build')));
+    res.sendFile(path.join(__dirname, 'build', 'index.html'));
+})
+
+
 
 app.post('/query_datasets', function(req, res) {
     var child = cp.fork('./child_tasks/db_export');
@@ -46,7 +52,7 @@ app.post('/query_datasets', function(req, res) {
           res.json({filename: m})
       }
       else{
-        res.sendStatus(503)
+        res.sendStatus(500)
       }
     });
     child.send(req.body);
@@ -75,7 +81,9 @@ app.get('/add_media/:unit', function (req, res) {
     const queryObject = url.parse(req.url, true).query;
     options = ("mL" in queryObject) ? ["--ml", queryObject['mL']] : ["--duration", queryObject['duration']]
     command = (["mba", "run", "add_media", "-y", "--units", `'${req.params.unit}'`].concat(options)).join(" ")
-    console.log(command)
+    if ("duty_cycle" in queryObject) {
+        options.push("--duty_cycle", queryObject['duty_cycle'])
+    }
     exec(command, (error, stdout, stderr) => {
         if (error) {
             res.send(`error: ${error.message}`);
@@ -93,6 +101,9 @@ app.get('/add_media/:unit', function (req, res) {
 app.get('/add_alt_media/:unit', function (req, res) {
     const queryObject = url.parse(req.url, true).query;
     options = ("mL" in queryObject) ? ["--ml", queryObject['mL']] : ["--duration", queryObject['duration']]
+    if ("duty_cycle" in queryObject) {
+        options.push("--duty_cycle", queryObject['duty_cycle'])
+    }
     command = (["mba", "run", "add_alt_media", "-y", "--units", `'${req.params.unit}'`].concat(options)).join(" ")
     exec(command, (error, stdout, stderr) => {
         if (error) {
@@ -113,6 +124,9 @@ app.get('/add_alt_media/:unit', function (req, res) {
 app.get('/remove_waste/:unit', function (req, res) {
     const queryObject = url.parse(req.url, true).query;
     options = ("mL" in queryObject) ? ["--ml", queryObject['mL']] : ["--duration", queryObject['duration']]
+    if ("duty_cycle" in queryObject) {
+        options.push("--duty_cycle", queryObject['duty_cycle'])
+    }
     command = (["mba", "run", "remove_waste", "-y", "--units", `'${req.params.unit}'`].concat(options)).join(" ")
     exec(command, (error, stdout, stderr) => {
         if (error) {

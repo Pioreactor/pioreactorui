@@ -53,30 +53,42 @@ const themeLight = createMuiTheme({
 
 
 
-const ExperimentSelection = (props) => {
+function ExperimentSelection(props) {
   const classes = useStyles();
+
+  const [experiments, setExperiments] = React.useState([])
+
+  React.useEffect(() => {
+    async function getData() {
+         await fetch("/get_experiments")
+        .then((response) => {
+          return response.json();
+        })
+        .then((data) => {
+          setExperiments(data)
+        });
+      }
+      getData()
+  }, [])
 
   return (
     <div className={classes.root}>
       <FormControl component="fieldset" className={classes.formControl}>
 
-        <FormLabel component="legend">Experiment</FormLabel>
-        <span>{props.chosenExperiment}</span>
-      </FormControl>
-      <FormControl>
+      <FormLabel component="legend">Experiment</FormLabel>
         <Select
           native
-          value={props.chosenExperiment}
+          value={props.ExperimentSelection}
           onChange={props.handleExperimentSelectionChange}
           inputProps={{
-            name: 'age',
-            id: 'age-native-simple',
+            name: 'experiment',
+            id: 'experiment',
           }}
         >
-          <option aria-label="None" value="" />
-          <option value={10}>Ten</option>
-          <option value={20}>Twenty</option>
-          <option value={30}>Thirty</option>
+          {experiments.map((v) => {
+            return <option value={v.experiment}>{v.experiment}</option>
+            }
+          )}
         </Select>
       </FormControl>
 
@@ -127,6 +139,7 @@ const CheckboxesGroup = (props) => {
 function DownloadDataFormContainer() {
   const classes = useStyles();
   const [isRunning, setIsRunning] = React.useState(false)
+  const [isError, setIsError] = React.useState(false)
   const [state, setState] = React.useState({
     experimentSelection: "Trial-25",
     datasetCheckbox: {
@@ -158,7 +171,10 @@ function DownloadDataFormContainer() {
       link.click();
       link.remove();
       setIsRunning(false)
-    })
+    }).catch(e => {
+      setIsRunning(false)
+      setIsError(true)
+    });
   }
 
   const handleCheckboxChange = (event) => {
@@ -175,7 +191,8 @@ function DownloadDataFormContainer() {
     }));
   };
 
-  var runningFeedback = isRunning ? <CircularProgress color="white" size={20}/> : "Download"
+  const runningFeedback = isRunning ? <CircularProgress color="white" size={20}/> : "Download"
+  const errorFeedbackOrDefault = isError ? "Server error occurred. Check logs." : "Querying the database may take up to a minute or so."
   return (
     <Card className={classes.root}>
       <CardContent className={classes.cardContent}>
@@ -185,31 +202,32 @@ function DownloadDataFormContainer() {
 
         <form>
           <Grid container spacing={1}>
-            <Grid item xs={12} md={6}>
+            <Grid item xs={12} md={12}>
+              <ExperimentSelection
+              experimentSelection={state.experimentSelection}
+              handleChange={handleExperimentSelectionChange}
+              />
+            </Grid>
+            <Grid item xs={12} md={12}>
               <CheckboxesGroup
               isChecked={state.datasetCheckbox}
               handleChange={handleCheckboxChange}
               />
             </Grid>
-            <Grid item xs={12} md={6}>
-              <ExperimentSelection
-              chosenExperiment={state.experimentSelection}
-              handleChange={handleExperimentSelectionChange}
-              />
-            </Grid>
 
-            <Grid item xs={false} md={8} />
-            <Grid item xs={12} md={4}>
+            <Grid item xs={0}/>
+            <Grid item xs={4}>
               <Button
                 type="submit"
                 variant="contained"
                 color="primary"
                 onClick={onSubmit}
-                style={{width: "100px"}}
+                style={{width: "120px"}}
               >
                 {runningFeedback}
               </Button>
-              <p> Querying the database may take up to a minute or so.</p>
+              <p>{errorFeedbackOrDefault}</p>
+            <Grid item md={8} />
 
             </Grid>
             <Grid item xs={12}/>
@@ -218,7 +236,6 @@ function DownloadDataFormContainer() {
       </CardContent>
     </Card>
   )
-
 }
 
 

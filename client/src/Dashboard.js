@@ -21,9 +21,25 @@ const themeLight = createMuiTheme({
   },
 });
 
-const experiment = "Trial-26"
+
 
 function Dashboard() {
+
+  const [experiment, setExperiment] = React.useState("")
+
+  React.useEffect(() => {
+    async function getData() {
+         await fetch("/get_latest_experiment")
+        .then((response) => {
+          return response.json();
+        })
+        .then((data) => {
+          setExperiment(data.experiment)
+        });
+      }
+      getData()
+  }, [])
+
   return (
     <MuiThemeProvider theme={themeLight}>
       <CssBaseline />

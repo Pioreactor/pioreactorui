@@ -46,23 +46,23 @@ class Chart extends React.Component {
       lastMsgRecievedAt: parseInt(moment().format("x")),
       names: [],
       legendEvents: [],
-      minTimestamp: 0,
+      minTimestamp: parseInt(moment().subtract(1, 'hours').format("x")),
     };
     this.onConnect = this.onConnect.bind(this);
     this.onMessageArrived = this.onMessageArrived.bind(this);
-    this.experiment = props.experiment;
   }
 
   onConnect() {
     this.client.subscribe(
-      ["morbidostat", "+", this.experiment, this.props.topic].join("/")
+      ["morbidostat", "+", this.props.experiment, this.props.topic].join("/")
     );
+    console.log(["morbidostat", "+", this.props.experiment, this.props.topic].join("/"))
   }
 
   componentDidMount() {
     this.getData();
     this.client = new Client(
-      "ws://morbidostatws.ngrok.io/",
+      "localhost", 9001,
       "client" + Math.random()
     );
     this.client.connect({ onSuccess: this.onConnect });
@@ -136,8 +136,15 @@ class Chart extends React.Component {
       ? message.topic.split("/")[1] + "-" + message.topic.split("/")[5]
       : message.topic.split("/")[1];
 
-    // TODO: this should handle when we see a new series / key
     try {
+      if (!(key in this.state.seriesMap)){
+        this.state.seriesMap[key] = {
+          data: [],
+          name: key,
+          color: colors[key]
+        }
+      }
+
       this.state.seriesMap[key].data.push({
         x: currentTime,
         y: parseFloat(message.payloadString),
@@ -148,7 +155,8 @@ class Chart extends React.Component {
         lastMsgRecievedAt: currentTime,
       });
     }
-    catch {
+    catch (error) {
+      console.log(error)
     }
     return;
   }
@@ -200,7 +208,9 @@ class Chart extends React.Component {
             <VictoryVoronoiContainer
               voronoiBlacklist={['parent']}
               voronoiDimension="x"
-              labels={(d) => `${Math.round(d.datum.y * 1000) / 1000}`}
+              labels={(d) => {
+                return `${d.datum.childName}: ${Math.round(d.datum.y * 1000) / 1000}`
+              }}
               labelComponent={
                 <VictoryTooltip
                   cornerRadius={0}
@@ -291,8 +301,9 @@ class Chart extends React.Component {
               <VictoryLine
                 interpolation={this.props.interpolation}
                 key={"line-" + name}
-                name={"line-" + name}
+                name={name}
                 style={{
+                  labels: {fill: this.state.seriesMap[name].color},
                   data: {
                     stroke: this.state.seriesMap[name].color,
                     strokeWidth: 2,

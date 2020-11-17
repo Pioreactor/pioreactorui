@@ -1,6 +1,7 @@
 import React, {useState} from 'react'
 import TextField from "@material-ui/core/TextField";
 import Button from "@material-ui/core/Button";
+import Snackbar from "@material-ui/core/Snackbar";
 import { makeStyles } from "@material-ui/styles";
 
 const useStyles = makeStyles({
@@ -12,6 +13,14 @@ const useStyles = makeStyles({
   }
 });
 
+
+const actionToAct = {
+  "remove_waste": "Removing waste",
+  "add_media": "Adding media",
+  "add_alt_media": "Adding alt. media",
+
+}
+
 export default function ActionPumpForm(props) {
   const emptyState = "";
   const [mL, setML] = useState(emptyState);
@@ -19,6 +28,7 @@ export default function ActionPumpForm(props) {
   const classes = useStyles();
   const [isMLDisabled, setIsMLDisabled] = useState(false);
   const [isDurationDisabled, setIsDurationDisabled] = useState(false);
+  const [openSnackbar, setOpenSnackbar] = useState(false);
 
   function onSubmit(e) {
     e.preventDefault();
@@ -32,8 +42,13 @@ export default function ActionPumpForm(props) {
           "?" +
           new URLSearchParams(params)
       );
+      setOpenSnackbar(true);
     }
   }
+
+  const handleSnackbarClose = () => {
+    setOpenSnackbar(false );
+  };
 
   function handleMLChange(e) {
     setML(e.target.value);
@@ -83,8 +98,16 @@ export default function ActionPumpForm(props) {
         color="primary"
         onClick={onSubmit}
       >
-        Run
+        {props.action.replace(/_/g, " ")}
       </Button>
+      <Snackbar
+        anchorOrigin={{vertical: "bottom", horizontal: "center"}}
+        open={openSnackbar}
+        onClose={handleSnackbarClose}
+        message={actionToAct[props.action] + " for " + (duration !== emptyState ? (duration + " seconds") : (mL + "mL"))}
+        autoHideDuration={6000}
+        key={"snackbar" + props.unitNumber + props.action}
+      />
     </form>
   );
 }

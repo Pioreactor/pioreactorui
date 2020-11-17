@@ -1,0 +1,185 @@
+import React from 'react';
+import { makeStyles } from '@material-ui/core/styles';
+import Stepper from '@material-ui/core/Stepper';
+import Step from '@material-ui/core/Step';
+import StepLabel from '@material-ui/core/StepLabel';
+import StepContent from '@material-ui/core/StepContent';
+import Button from '@material-ui/core/Button';
+import Paper from '@material-ui/core/Paper';
+import Typography from '@material-ui/core/Typography';
+
+const useStyles = makeStyles((theme) => ({
+  root: {
+    width: '100%',
+  },
+  button: {
+    marginTop: theme.spacing(1),
+    marginRight: theme.spacing(1),
+  },
+  actionsContainer: {
+    marginBottom: theme.spacing(2),
+  },
+  resetContainer: {
+    padding: theme.spacing(3),
+  },
+  divInstructions: {
+    marginBottom: theme.spacing(3),
+  }
+}));
+
+
+
+function CycleLiquid(props) {
+  const classes = useStyles();
+  const liquid = props.liquid
+
+  const onSubmit = () => {
+    fetch("/remove_waste/$broadcast" + "?" + new URLSearchParams({duration: 120, duty_cycle: 100}));
+    fetch("/add_media/$broadcast" + "?" + new URLSearchParams({duration: 50, duty_cycle: 25}));
+    fetch("/add_alt_media/$broadcast" + "?" + new URLSearchParams({duration: 50, duty_cycle: 25}));
+  }
+
+  return (
+    <div className={classes.divInstructions}>
+      <p>Remove any waste from the non-waste containers (that the media and alt-media tubes are attached to).</p>
+      <p>Add <b>{liquid}</b> to the non-waste containers. We will cycle this solution through our system. Click the button below once the {liquid} is in place.</p>
+      <Button className={classes.button} variant="contained" color="primary" onClick={onSubmit}>Cycle {liquid}</Button>
+    </div>
+    )
+}
+
+
+function MediaFlush(props) {
+  const classes = useStyles();
+  const isAlt = props.altMedia
+
+  const onSubmit = () => {
+    fetch("/remove_waste/$broadcast" + "?" + new URLSearchParams({duration: 120, duty_cycle: 100}));
+    if (isAlt){
+      fetch("/add_media/$broadcast" + "?" + new URLSearchParams({duration: 10, duty_cycle: 25}));
+    } else {
+      fetch("/add_alt_media/$broadcast" + "?" + new URLSearchParams({duration: 10, duty_cycle: 25}));
+    }
+  }
+
+  return (
+    <div className={classes.divInstructions}>
+      <p>Next, we will prime the {isAlt ? "alt-" : ""}media tubes with our {isAlt ? "alt-" : ""}media.</p>
+      <p>Replace the container attached to the {isAlt ? "alt-" : ""}media outflow tubes with the sterlized {isAlt ? "alt-" : ""}media container. Remember to use proper sanitation techniques!</p>
+      <Button className={classes.button} variant="contained" color="primary" onClick={onSubmit}>Run {isAlt ? "alt-" : ""}media and waste pumps</Button>
+    </div>
+    )
+}
+
+function AddFinalVolumeOfMedia(props) {
+  const classes = useStyles();
+
+  const onSubmit = () => {
+    fetch("/add_media/$broadcast" + "?" + new URLSearchParams({mL: 12}));
+  }
+
+  return (
+    <div className={classes.divInstructions}>
+      <p> Finally, we will add fresh media to our vials </p>
+      <Button className={classes.button} variant="contained" color="primary" onClick={onSubmit}>Add 12mL of media</Button>
+    </div>
+    )
+}
+
+
+function getSteps() {
+  return [
+    'Setup inflow and outflow tubes',
+    '10% bleach cycling',
+    '70% alcohol cycling',
+    'Distilled water cycling',
+    'Media preparation',
+    'Alt media preparation',
+    'Replace vials',
+    'Add initial media to vials'];
+}
+
+
+function getStepContent(step) {
+  switch (step) {
+    case 0:
+      return `For each morbidostat unit, connect the media inflow, alt-media inflow, and waste out flow tubes to an empty
+      vial with hat. Connect the all the media outflow tubes to a single empty container, all the alt-media outflow tubes to a single empty container, and
+      all the waste inflow tubes to a single, empty, large container.`;
+    case 1:
+      return <CycleLiquid liquid={"10% bleach solution"}/>;
+    case 2:
+      return <CycleLiquid liquid={"70% alcohol"}/>;
+    case 3:
+      return <CycleLiquid liquid={"distilled water"}/>;
+    case 4:
+      return <MediaFlush />;
+    case 5:
+      return <MediaFlush altMedia={true}/>;
+    case 6:
+      return `Using proper sanitation techniques, replace the morbidostat vials - now full of water and media - with the empty-but-innocculated vials`;
+    case 7:
+      return <AddFinalVolumeOfMedia/>;
+    default:
+      return 'Unknown step';
+  }
+}
+
+export default function VerticalLinearStepper() {
+  const classes = useStyles();
+  const [activeStep, setActiveStep] = React.useState(0);
+  const steps = getSteps();
+
+  const handleNext = () => {
+    setActiveStep((prevActiveStep) => prevActiveStep + 1);
+  };
+
+  const handleBack = () => {
+    setActiveStep((prevActiveStep) => prevActiveStep - 1);
+  };
+
+  const handleReset = () => {
+    setActiveStep(0);
+  };
+
+  return (
+    <div className={classes.root}>
+      <Stepper activeStep={activeStep} orientation="vertical">
+        {steps.map((label, index) => (
+          <Step key={label}>
+            <StepLabel>{label}</StepLabel>
+            <StepContent>
+              <Typography>{getStepContent(index)}</Typography>
+              <div className={classes.actionsContainer}>
+                <div>
+                  <Button
+                    disabled={activeStep === 0}
+                    onClick={handleBack}
+                    className={classes.button}
+                  >
+                    Back
+                  </Button>
+                  <Button
+                    variant="contained"
+                    onClick={handleNext}
+                    className={classes.button}
+                  >
+                    {activeStep === steps.length - 1 ? 'Finish' : 'Next'}
+                  </Button>
+                </div>
+              </div>
+            </StepContent>
+          </Step>
+        ))}
+      </Stepper>
+      {activeStep === steps.length && (
+        <Paper square elevation={0} className={classes.resetContainer}>
+          <Typography>All steps completed - move on to turning on our sensors</Typography>
+          <Button onClick={handleReset} className={classes.button}>
+            Reset
+          </Button>
+        </Paper>
+      )}
+    </div>
+  );
+}
