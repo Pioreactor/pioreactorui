@@ -66,10 +66,15 @@ function ExperimentSelection(props) {
         })
         .then((data) => {
           setExperiments(data)
+          props.handleChange(data[0].experiment)
         });
       }
       getData()
   }, [])
+
+  const handleExperimentSelectionChange = (e) => {
+    props.handleChange(e.target.value)
+  }
 
   return (
     <div className={classes.root}>
@@ -79,7 +84,7 @@ function ExperimentSelection(props) {
         <Select
           native
           value={props.ExperimentSelection}
-          onChange={props.handleExperimentSelectionChange}
+          onChange={handleExperimentSelectionChange}
           inputProps={{
             name: 'experiment',
             id: 'experiment',
@@ -141,7 +146,7 @@ function DownloadDataFormContainer() {
   const [isRunning, setIsRunning] = React.useState(false)
   const [isError, setIsError] = React.useState(false)
   const [state, setState] = React.useState({
-    experimentSelection: "Trial-25",
+    experimentSelection: "",
     datasetCheckbox: {
       growth_rates: false,
       io_events: false,
@@ -184,10 +189,10 @@ function DownloadDataFormContainer() {
     }));
   };
 
-  const handleExperimentSelectionChange = (event) => {
+  function handleExperimentSelectionChange(value) {
     setState(prevState => ({
       ...prevState,
-      experimentSelection: event.target.value
+      experimentSelection: value
     }));
   };
 
@@ -216,7 +221,7 @@ function DownloadDataFormContainer() {
             </Grid>
 
             <Grid item xs={0}/>
-            <Grid item xs={4}>
+            <Grid item xs={12}>
               <Button
                 type="submit"
                 variant="contained"
@@ -227,7 +232,6 @@ function DownloadDataFormContainer() {
                 {runningFeedback}
               </Button>
               <p>{errorFeedbackOrDefault}</p>
-            <Grid item md={8} />
 
             </Grid>
             <Grid item xs={12}/>
@@ -245,11 +249,13 @@ function DownloadData() {
       <CssBaseline />
         <Grid container spacing={2} >
           <Grid item xs={12}><Header /></Grid>
-          <Grid item xs={3}/>
-          <Grid item xs={6}>
+
+          <Grid item md={4} xs={false}/>
+          <Grid item md={4} xs={12}>
             <div> <DownloadDataFormContainer/> </div>
           </Grid>
-          <Grid item xs={3}/>
+          <Grid item md={4} xs={false}/>
+
         </Grid>
     </MuiThemeProvider>
     )
