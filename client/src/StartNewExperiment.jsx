@@ -1,9 +1,12 @@
 import React from "react";
 import moment from "moment";
+import { Client, Message } from "paho-mqtt";
 
 import Grid from '@material-ui/core/Grid';
 import Header from "./components/Header"
 import CleaningScript from "./components/CleaningScript"
+import StartSensors from "./components/StartSensors"
+import StartCalculations from "./components/StartCalculations"
 
 import CssBaseline from "@material-ui/core/CssBaseline";
 import { MuiThemeProvider, createMuiTheme } from "@material-ui/core/styles";
@@ -76,23 +79,62 @@ function ExperimentSummaryForm(props) {
   const [openSnackbar, setOpenSnackbar] = React.useState(false);
   const [formError, setFormError] = React.useState(false);
   const [expName, setExpName] = React.useState("");
+  const [timestamp, setTimestamp] = React.useState(moment().format("YYYY-MM-DDTHH:mm:ss"));
+  const [description, setDescription] = React.useState("");
 
+
+  function publishExpNameToMQTT(){
+
+    function onConnect() {
+      var message = new Message(expName);
+      message.destinationName = "morbidostat/latest_experiment"
+      message.qos = 1;
+      message.retained = true;
+      client.publish(message);
+    }
+
+    var client = new Client(
+      "ws://morbidostatws.ngrok.io/",
+      "webui" + Math.random()
+    );
+    client.connect({ onSuccess: onConnect });
+
+  }
 
   function onSubmit(e) {
-    console.log(expName)
     e.preventDefault();
     if (expName == ""){
       setFormError(true)
+      return
     }
-    else{
-      // TODO: send to db
-      setFormError(false)
-      setOpenSnackbar(true);
-    }
+    fetch('create_experiment',{
+        method: "POST",
+        body: JSON.stringify({experiment : expName, timestamp: timestamp, description: description}),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        }
+      }).then(res => {
+        if (res.status === 200){
+          setFormError(false);
+          setOpenSnackbar(true);
+          publishExpNameToMQTT()
+        }
+        else{
+          setFormError(true);
+        }
+      }
+     )
   }
 
   const onExpNameChange = (e) => {
     setExpName(e.target.value)
+  }
+  const onDescChange = (e) => {
+    setDescription(e.target.value)
+  }
+  const onTimestampChange = (e) => {
+    setTimestamp(e.target.value)
   }
 
   const handleSnackbarClose = () => {
@@ -109,15 +151,17 @@ function ExperimentSummaryForm(props) {
               id="expName"
               label="Experiment name"
               required className={`${classes.halfTextField} ${classes.textField}`}
-              onChange={onExpNameChange} />
+              onChange={onExpNameChange}
+              />
           </Grid>
           <Grid item xs={12} md={6}>
             <TextField
               id="datetime"
               label="Start time"
               type="datetime-local"
-              defaultValue={moment().format("YYYY-MM-DDTHH:mm:ss")}
+              defaultValue={timestamp}
               className={`${classes.halfTextField} ${classes.textField}`}
+              onChange={onTimestampChange}
               InputLabelProps={{
                 shrink: true,
               }}
@@ -130,6 +174,7 @@ function ExperimentSummaryForm(props) {
               placeholder={"Add a description: what microbe are you using? What is the media composition?"}
               multiline
               className={classes.textField}
+              onChange={onDescChange}
               fullWidth={true}
             />
           </Grid>
@@ -141,7 +186,7 @@ function ExperimentSummaryForm(props) {
               open={openSnackbar}
               onClose={handleSnackbarClose}
               message={"Created new experiment"}
-              autoHideDuration={6000}
+              autoHideDuration={7000}
               key={"snackbar" + props.unitNumber + props.action}
             />
           </Grid>
@@ -151,16 +196,24 @@ function ExperimentSummaryForm(props) {
   )
 }
 
+function LinkToDashboard() {
+
+  return (
+    <div>
+      <p> Your experiment is all ready to go. You can <a href="/dashboard">view it on the dashboard.</a></p>
+    </div>
+
+)}
+
 
 
 function getSteps() {
   return [
     {title: 'Experiment summary', content: <ExperimentSummaryForm/>, optional: false},
     {title: 'Cleaning and preparation', content: <CleaningScript/>, optional: true},
-    {title: 'Start sensors', content: 'This is the bit I really care about!', optional: true},
-    {title: 'Start calculations', content: 'This is the bit I really care about!', optional: true},
-    {title: 'View dashboard', content: 'This is the bit I really care about!', optional: false},
-    ];
+    {title: 'Start sensors', content: <StartSensors/>, optional: true},
+    {title: 'Start calculations', content: <StartCalculations/>, optional: false},
+  ];
 }
 
 
@@ -183,14 +236,20 @@ function StartNewExperimentContainer() {
   };
 
   const handleNext = () => {
-    let newSkipped = skipped;
-    if (isStepSkipped(activeStep)) {
-      newSkipped = new Set(newSkipped.values());
-      newSkipped.delete(activeStep);
-    }
+    if (activeStep === steps.length - 1){
+      window.location.href = "/dashboard";
+    } else {
 
-    setActiveStep((prevActiveStep) => prevActiveStep + 1);
-    setSkipped(newSkipped);
+      let newSkipped = skipped;
+      if (isStepSkipped(activeStep)) {
+        newSkipped = new Set(newSkipped.values());
+        newSkipped.delete(activeStep);
+      }
+
+      setActiveStep((prevActiveStep) => prevActiveStep + 1);
+      setSkipped(newSkipped);
+      window.scrollTo({top: 0})
+    }
   };
 
   const handleBack = () => {
@@ -269,7 +328,7 @@ function StartNewExperimentContainer() {
                   onClick={handleNext}
                   className={classes.button}
                 >
-                  {activeStep === steps.length - 1 ? 'Finish' : 'Next'}
+                  {activeStep === steps.length - 1 ? 'Go to dashboard' : 'Next'}
                 </Button>
               </div>
             </div>

@@ -32,18 +32,20 @@ const useStyles = makeStyles((theme) => ({
 function CycleLiquid(props) {
   const classes = useStyles();
   const liquid = props.liquid
+  const [isClicked, setIsClicked] = React.useState(false)
 
   const onSubmit = () => {
-    fetch("/remove_waste/$broadcast" + "?" + new URLSearchParams({duration: 120, duty_cycle: 100}));
-    fetch("/add_media/$broadcast" + "?" + new URLSearchParams({duration: 50, duty_cycle: 25}));
-    fetch("/add_alt_media/$broadcast" + "?" + new URLSearchParams({duration: 50, duty_cycle: 25}));
+    fetch("/run/remove_waste/$broadcast?" + new URLSearchParams({duration: 90, duty_cycle: 100}));
+    fetch("/run/add_media/$broadcast?" + new URLSearchParams({duration: 50, duty_cycle: 25}));
+    fetch("/run/add_alt_media/$broadcast?" + new URLSearchParams({duration: 50, duty_cycle: 25}));
+    setIsClicked(true)
   }
 
   return (
     <div className={classes.divInstructions}>
       <p>Remove any waste from the non-waste containers (that the media and alt-media tubes are attached to).</p>
       <p>Add <b>{liquid}</b> to the non-waste containers. We will cycle this solution through our system. Click the button below once the {liquid} is in place.</p>
-      <Button className={classes.button} variant="contained" color="primary" onClick={onSubmit}>Cycle {liquid}</Button>
+      <Button className={classes.button} variant="contained" color={isClicked ? "default" : "primary" } onClick={onSubmit}>Cycle {liquid}</Button>
     </div>
     )
 }
@@ -52,36 +54,41 @@ function CycleLiquid(props) {
 function MediaFlush(props) {
   const classes = useStyles();
   const isAlt = props.altMedia
+  const [isClicked, setIsClicked] = React.useState(false)
 
   const onSubmit = () => {
-    fetch("/remove_waste/$broadcast" + "?" + new URLSearchParams({duration: 120, duty_cycle: 100}));
+    fetch("/run/remove_waste/$broadcast?" + new URLSearchParams({duration: 120, duty_cycle: 100}));
     if (isAlt){
-      fetch("/add_media/$broadcast" + "?" + new URLSearchParams({duration: 10, duty_cycle: 25}));
+      fetch("/run/add_alt_media/$broadcast?" + new URLSearchParams({duration: 10, duty_cycle: 25}));
     } else {
-      fetch("/add_alt_media/$broadcast" + "?" + new URLSearchParams({duration: 10, duty_cycle: 25}));
+      fetch("/run/add_media/$broadcast?" + new URLSearchParams({duration: 10, duty_cycle: 25}));
     }
+    setIsClicked(true)
   }
 
   return (
     <div className={classes.divInstructions}>
       <p>Next, we will prime the {isAlt ? "alt-" : ""}media tubes with our {isAlt ? "alt-" : ""}media.</p>
       <p>Replace the container attached to the {isAlt ? "alt-" : ""}media outflow tubes with the sterlized {isAlt ? "alt-" : ""}media container. Remember to use proper sanitation techniques!</p>
-      <Button className={classes.button} variant="contained" color="primary" onClick={onSubmit}>Run {isAlt ? "alt-" : ""}media and waste pumps</Button>
+      <Button className={classes.button} variant="contained" color={isClicked ? "default" : "primary" } onClick={onSubmit}>Run {isAlt ? "alt-" : ""}media and waste pumps</Button>
     </div>
     )
 }
 
 function AddFinalVolumeOfMedia(props) {
   const classes = useStyles();
+  const [isClicked, setIsClicked] = React.useState(false)
+
 
   const onSubmit = () => {
-    fetch("/add_media/$broadcast" + "?" + new URLSearchParams({mL: 12}));
+    fetch("/run/add_media/$broadcast?" + new URLSearchParams({mL: 12}));
+    setIsClicked(true)
   }
 
   return (
     <div className={classes.divInstructions}>
       <p> Finally, we will add fresh media to our vials </p>
-      <Button className={classes.button} variant="contained" color="primary" onClick={onSubmit}>Add 12mL of media</Button>
+      <Button className={classes.button} variant="contained" color={isClicked ? "default" : "primary" } onClick={onSubmit}>Add 12mL of media</Button>
     </div>
     )
 }
@@ -174,7 +181,7 @@ export default function VerticalLinearStepper() {
       </Stepper>
       {activeStep === steps.length && (
         <Paper square elevation={0} className={classes.resetContainer}>
-          <Typography>All steps completed - move on to turning on our sensors</Typography>
+          <Typography>All cleaning and preparation steps completed!</Typography>
           <Button onClick={handleReset} className={classes.button}>
             Reset
           </Button>

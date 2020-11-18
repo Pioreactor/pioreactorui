@@ -46,7 +46,7 @@ class Chart extends React.Component {
       lastMsgRecievedAt: parseInt(moment().format("x")),
       names: [],
       legendEvents: [],
-      minTimestamp: parseInt(moment().subtract(1, 'hours').format("x")),
+      minTimestamp: parseInt(moment().subtract(30, 'seconds').format("x")),
     };
     this.onConnect = this.onConnect.bind(this);
     this.onMessageArrived = this.onMessageArrived.bind(this);
@@ -62,7 +62,7 @@ class Chart extends React.Component {
   componentDidMount() {
     this.getData();
     this.client = new Client(
-      "localhost", 9001,
+      "ws://morbidostatws.ngrok.io/",
       "client" + Math.random()
     );
     this.client.connect({ onSuccess: this.onConnect });
@@ -143,8 +143,12 @@ class Chart extends React.Component {
           name: key,
           color: colors[key]
         }
+        this.setState({
+          names: [...this.state.names, key]
+        })
       }
 
+      // .push seems like bad state management, and maybe a hit to performance...
       this.state.seriesMap[key].data.push({
         x: currentTime,
         y: parseFloat(message.payloadString),

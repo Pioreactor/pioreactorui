@@ -76,58 +76,15 @@ app.get('/stop', function (req, res) {
     });
 })
 
-app.get('/add_media/:unit', function (req, res) {
 
+app.get("/run/:job/:unit", function(req, res) {
     const queryObject = url.parse(req.url, true).query;
-    options = ("mL" in queryObject) ? ["--ml", queryObject['mL']] : ["--duration", queryObject['duration']]
-    command = (["mba", "run", "add_media", "-y", "--units", `'${req.params.unit}'`].concat(options)).join(" ")
-    if ("duty_cycle" in queryObject) {
-        options.push("--duty_cycle", queryObject['duty_cycle'])
-    }
-    exec(command, (error, stdout, stderr) => {
-        if (error) {
-            res.send(`error: ${error.message}`);
-            return;
-        }
-        if (stderr) {
-            res.send(`stderr: ${stderr}`);
-            return;
-        }
-        console.log(`stdout: ${stdout}`);
-        res.sendStatus(200)
-    });
-})
-
-app.get('/add_alt_media/:unit', function (req, res) {
-    const queryObject = url.parse(req.url, true).query;
-    options = ("mL" in queryObject) ? ["--ml", queryObject['mL']] : ["--duration", queryObject['duration']]
-    if ("duty_cycle" in queryObject) {
-        options.push("--duty_cycle", queryObject['duty_cycle'])
-    }
-    command = (["mba", "run", "add_alt_media", "-y", "--units", `'${req.params.unit}'`].concat(options)).join(" ")
-    exec(command, (error, stdout, stderr) => {
-        if (error) {
-            res.send(`error: ${error.message}`);
-            return;
-        }
-        if (stderr) {
-            res.send(`stderr: ${stderr}`);
-            return;
-        }
-        console.log(`stdout: ${stdout}`);
-        res.sendStatus(200)
-
-    });
-})
-
-
-app.get('/remove_waste/:unit', function (req, res) {
-    const queryObject = url.parse(req.url, true).query;
-    options = ("mL" in queryObject) ? ["--ml", queryObject['mL']] : ["--duration", queryObject['duration']]
-    if ("duty_cycle" in queryObject) {
-        options.push("--duty_cycle", queryObject['duty_cycle'])
-    }
-    command = (["mba", "run", "remove_waste", "-y", "--units", `'${req.params.unit}'`].concat(options)).join(" ")
+    // assume that all query params are optional args for the job
+    unit = req.params.unit
+    job = req.params.job
+    options = Object.entries(queryObject).map(k_v => [`--${k_v[0]} ${k_v[1]}`])
+    command = (["mba", "run", job, "-y", "--units", `'${req.params.unit}'`].concat(options)).join(" ")
+    console.log(command)
     exec(command, (error, stdout, stderr) => {
         if (error) {
             res.send(`error: ${error.message}`);
@@ -160,7 +117,17 @@ app.get('/get_latest_experiment', function (req, res) {
 })
 
 
-
+app.post("/create_experiment", function (req, res) {
+    var insert = 'INSERT INTO experiments (timestamp, experiment, description) VALUES (?,?,?)'
+    db.run(insert, [req.body.timestamp, req.body.experiment, req.body.description], function(err){
+        if (err){
+            console.log(err)
+            res.sendStatus(500)
+        } else {
+        res.sendStatus(200)
+        }
+    })
+})
 
 
 const PORT = process.env.PORT || 3000

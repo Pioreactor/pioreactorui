@@ -33,9 +33,9 @@ export default function ActionPumpForm(props) {
   function onSubmit(e) {
     e.preventDefault();
     if (mL !== emptyState || duration !== emptyState) {
-      const params = mL !== "" ? { mL: mL } : { duration: duration };
+      const params = mL !== "" ? { ml: mL } : { duration: duration };
       fetch(
-        "/" +
+        "/run/" +
           props.action +
           "/" +
           props.unitNumber +
@@ -105,7 +105,7 @@ export default function ActionPumpForm(props) {
         open={openSnackbar}
         onClose={handleSnackbarClose}
         message={actionToAct[props.action] + " for " + (duration !== emptyState ? (duration + " seconds") : (mL + "mL"))}
-        autoHideDuration={6000}
+        autoHideDuration={7000}
         key={"snackbar" + props.unitNumber + props.action}
       />
     </form>
