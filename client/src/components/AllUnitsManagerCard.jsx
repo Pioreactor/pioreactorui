@@ -75,7 +75,6 @@ function ButtonAllUnitSettingsDialog(props) {
   client.connect({ onSuccess: onConnect });
 
   function onConnect() {
-    console.log("Modal unit setting connected");
   }
 
   function setJobState(job, state) {
@@ -326,7 +325,6 @@ class VolumeThroughputTally extends React.Component {
     this.state = {mediaThroughputPerUnit: {}, altMediaThroughputPerUnit: {}, mediaThroughput: 0, altMediaThroughput: 0};
     this.onConnect = this.onConnect.bind(this);
     this.onMessageArrived = this.onMessageArrived.bind(this);
-    this.experiment = this.props.experiment
   }
 
   componentDidMount() {
@@ -336,8 +334,8 @@ class VolumeThroughputTally extends React.Component {
   }
 
   onConnect() {
-      this.client.subscribe(["morbidostat", "+", this.experiment, "throughput_calculating", "alt_media_throughput"].join("/"))
-      this.client.subscribe(["morbidostat", "+", this.experiment, "throughput_calculating", "media_throughput"].join("/"))
+      this.client.subscribe(["morbidostat", "+", this.props.experiment, "throughput_calculating", "alt_media_throughput"].join("/"))
+      this.client.subscribe(["morbidostat", "+", this.props.experiment, "throughput_calculating", "media_throughput"].join("/"))
   }
 
   addOrUpdate(hash, object, value) {

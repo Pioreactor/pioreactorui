@@ -9,7 +9,7 @@ function ClearLogButton(props){
 
   function onClick() {
     var client = new Client(
-      "localhost", 9001,
+      "ws://morbidostatws.ngrok.io/",
       "client" + Math.random()
     );
     client.connect({onSuccess: () => {

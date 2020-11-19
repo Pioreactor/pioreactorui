@@ -82,15 +82,17 @@ app.get("/run/:job/:unit", function(req, res) {
     // assume that all query params are optional args for the job
     unit = req.params.unit
     job = req.params.job
-    options = Object.entries(queryObject).map(k_v => [`--${k_v[0]} ${k_v[1]}`])
+    options = Object.entries(queryObject).map(k_v => [`--${k_v[0].replace(/_/g, "-")} ${k_v[1]}`])
     command = (["mba", "run", job, "-y", "--units", `'${req.params.unit}'`].concat(options)).join(" ")
     console.log(command)
     exec(command, (error, stdout, stderr) => {
         if (error) {
+            console.log(command)
             res.send(`error: ${error.message}`);
             return;
         }
         if (stderr) {
+            console.log(command)
             res.send(`stderr: ${stderr}`);
             return;
         }

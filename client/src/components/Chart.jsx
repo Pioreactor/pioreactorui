@@ -56,7 +56,6 @@ class Chart extends React.Component {
     this.client.subscribe(
       ["morbidostat", "+", this.props.experiment, this.props.topic].join("/")
     );
-    console.log(["morbidostat", "+", this.props.experiment, this.props.topic].join("/"))
   }
 
   componentDidMount() {
