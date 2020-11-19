@@ -31,7 +31,6 @@ class LogTable extends React.Component {
     this.state = {listOfLogs: []};
     this.onConnect = this.onConnect.bind(this);
     this.onMessageArrived = this.onMessageArrived.bind(this);
-    this.experiment = this.props.experiment
   }
 
   async getData() {
@@ -45,7 +44,6 @@ class LogTable extends React.Component {
   }
 
   componentDidMount() {
-      // Get shop data and update URL when selection changes
     this.getData()
     this.client = new Client("ws://morbidostatws.ngrok.io/", "client-log-table");
     this.client.connect({'onSuccess': this.onConnect});
@@ -53,8 +51,8 @@ class LogTable extends React.Component {
   }
 
   onConnect() {
-      this.client.subscribe(["morbidostat", "+", this.experiment, "log"].join("/"))
-      this.client.subscribe(["morbidostat", "+", this.experiment, "error_log"].join("/"))
+      this.client.subscribe(["morbidostat", "+", this.props.experiment, "log"].join("/"))
+      this.client.subscribe(["morbidostat", "+", this.props.experiment, "error_log"].join("/"))
   }
 
   onMessageArrived(message) {
