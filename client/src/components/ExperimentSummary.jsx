@@ -26,6 +26,7 @@ function ExperimentSummary(props){
   const classes = useStyles();
   const [experiment, setExperiment] = React.useState("")
   const [startedAt, setStartedAt] = React.useState(moment())
+  const [desc, setDesc] = React.useState("")
 
   React.useEffect(() => {
     async function getData() {
@@ -36,6 +37,7 @@ function ExperimentSummary(props){
         .then((data) => {
           setExperiment(data.experiment)
           setStartedAt(moment(data.timestamp, 'YYYY-MM-DD HH:mm:SS'))
+          setDesc(data.description)
         });
       }
       getData()
@@ -60,6 +62,7 @@ function ExperimentSummary(props){
             Elapsed: {(moment().diff(startedAt, 'H'))}h
           </Box>
         </Typography>
+        <p>{desc}</p>
       </CardContent>
     </Card>
   )

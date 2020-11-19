@@ -12,9 +12,9 @@ function StartGrowthRate(props){
   const [openSnackbar, setOpenSnackbar] = React.useState(false);
 
   const onClick = (e) => {
+    setIsClicked(true)
     fetch("/run/growth_rate_calculating/$broadcast").then(r => {
       setOpenSnackbar(true)
-      setIsClicked(true)
     })
   }
 
@@ -46,9 +46,9 @@ function StartODNormalization(props){
   const [openSnackbar, setOpenSnackbar] = React.useState(false);
 
   const onClick = (e) => {
+    setIsClicked(true)
     fetch("/run/od_normalization/$broadcast").then(r => {
       setOpenSnackbar(true)
-      setIsClicked(true)
     })
   }
 
@@ -77,7 +77,20 @@ function StartODNormalization(props){
 
 
 function StartCalculations(props){
+  const [experiment, setExperiment] = React.useState("null_exp")
 
+  React.useEffect(() => {
+    async function getData() {
+         await fetch("/get_latest_experiment")
+        .then((response) => {
+          return response.json();
+        })
+        .then((data) => {
+          setExperiment(data.experiment)
+        });
+      }
+      getData()
+  }, [])
 
   return (
     <Grid
@@ -97,7 +110,7 @@ function StartCalculations(props){
         title="Implied growth rate"
         topic="growth_rate"
         yAxisLabel="Growth rate, h⁻¹"
-        experiment={"+"}
+        experiment={experiment}
       />
       </Grid>
       <Grid item xs={2}/>

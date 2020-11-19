@@ -43,7 +43,7 @@ function CycleLiquid(props) {
 
   return (
     <div className={classes.divInstructions}>
-      <p>Remove any waste from the non-waste containers (that the media and alt-media tubes are attached to).</p>
+      <p>{props.additionalMsg}</p>
       <p>Add <b>{liquid}</b> to the non-waste containers. We will cycle this solution through our system. Click the button below once the {liquid} is in place.</p>
       <Button className={classes.button} variant="contained" color={isClicked ? "default" : "primary" } onClick={onSubmit}>Cycle {liquid}</Button>
     </div>
@@ -57,11 +57,11 @@ function MediaFlush(props) {
   const [isClicked, setIsClicked] = React.useState(false)
 
   const onSubmit = () => {
-    fetch("/run/remove_waste/$broadcast?" + new URLSearchParams({duration: 120, duty_cycle: 100}));
+    fetch("/run/remove_waste/$broadcast?" + new URLSearchParams({duration: 60, duty_cycle: 100}));
     if (isAlt){
-      fetch("/run/add_alt_media/$broadcast?" + new URLSearchParams({duration: 10, duty_cycle: 25}));
+      fetch("/run/add_alt_media/$broadcast?" + new URLSearchParams({duration: 15, duty_cycle: 25}));
     } else {
-      fetch("/run/add_media/$broadcast?" + new URLSearchParams({duration: 10, duty_cycle: 25}));
+      fetch("/run/add_media/$broadcast?" + new URLSearchParams({duration: 15, duty_cycle: 25}));
     }
     setIsClicked(true)
   }
@@ -81,7 +81,7 @@ function AddFinalVolumeOfMedia(props) {
 
 
   const onSubmit = () => {
-    fetch("/run/add_media/$broadcast?" + new URLSearchParams({mL: 12}));
+    fetch("/run/add_media/$broadcast?" + new URLSearchParams({ml: 12}));
     setIsClicked(true)
   }
 
@@ -116,7 +116,7 @@ function getStepContent(step) {
     case 1:
       return <CycleLiquid liquid={"10% bleach solution"}/>;
     case 2:
-      return <CycleLiquid liquid={"70% alcohol"}/>;
+      return <CycleLiquid additionalMsg={"Remove any excess bleach from the containers, and empty the waste container. Bleach and alcohol should not mix."} liquid={"70% alcohol"}/>;
     case 3:
       return <CycleLiquid liquid={"distilled water"}/>;
     case 4:

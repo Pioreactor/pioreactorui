@@ -12,9 +12,9 @@ function StartStirringButton(props){
   const [openSnackbar, setOpenSnackbar] = React.useState(false);
 
   const onClick = (e) => {
+    setIsClicked(true)
     fetch("/run/stirring/$broadcast").then(r => {
       setOpenSnackbar(true)
-      setIsClicked(true)
     })
   }
 
@@ -45,9 +45,9 @@ function StartODReading(props){
   const [openSnackbar, setOpenSnackbar] = React.useState(false);
 
   const onClick = (e) => {
+    setIsClicked(true)
     fetch("/run/od_reading/$broadcast").then(r => {
       setOpenSnackbar(true)
-      setIsClicked(true)
     })
   }
 
