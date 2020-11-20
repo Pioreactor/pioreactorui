@@ -73,7 +73,7 @@ function Dashboard() {
                 interpolation="stepAfter"
                 fontScale={1}
                 title="Fraction of volume that is alternative media"
-                topic="alt_media_fraction"
+                topic="alt_media_calculating/alt_media_fraction"
                 yAxisLabel="Fraction"
                 experiment={experiment}
               />
