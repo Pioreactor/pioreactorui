@@ -171,7 +171,7 @@ function ExperimentSummaryForm(props) {
             <TextField
               label="Description"
               rowsMax={4}
-              placeholder={"Add a description: what microbe are you using? What is the media composition?"}
+              placeholder={"Add a description: what microbe are you using? What is the media composition? This can always be changed later."}
               multiline
               className={classes.textField}
               onChange={onDescChange}

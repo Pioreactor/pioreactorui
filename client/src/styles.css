@@ -1,0 +1,14 @@
+p[contenteditable="true"] {
+    border-top: 1px solid transparent;
+    border-left: 1px solid transparent;
+    border-bottom: 1px solid transparent;
+    border-right: 1px solid transparent;
+}
+
+p[contenteditable="true"]:hover {
+    border-top:    1px solid #51a7e8;
+    border-left:   1px solid #51a7e8;
+    border-bottom: 1px solid #51a7e8;
+    border-right:  1px solid #51a7e8;
+    border-radius: 3px;
+}

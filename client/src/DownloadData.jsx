@@ -113,19 +113,19 @@ const CheckboxesGroup = (props) => {
         <FormGroup>
           <FormControlLabel
             control={<Checkbox checked={props.isChecked.growth_rates} onChange={props.handleChange} name="growth_rates" />}
-            label="Growth rate"
+            label="Implied growth rate"
           />
           <FormControlLabel
             control={<Checkbox checked={props.isChecked.io_events} onChange={props.handleChange} name="io_events" />}
-            label="IO events"
+            label="Input/output events"
           />
           <FormControlLabel
             control={<Checkbox checked={props.isChecked.od_readings_raw} onChange={props.handleChange} name="od_readings_raw" />}
-            label="Raw OD readings"
+            label="Raw optical density"
           />
           <FormControlLabel
             control={<Checkbox checked={props.isChecked.od_readings_filtered} onChange={props.handleChange} name="od_readings_filtered" />}
-            label="Filtered OD readings"
+            label="Filtered optical density"
           />
           <FormControlLabel
             control={<Checkbox checked={props.isChecked.logs} onChange={props.handleChange} name="logs" />}
@@ -145,6 +145,7 @@ function DownloadDataFormContainer() {
   const classes = useStyles();
   const [isRunning, setIsRunning] = React.useState(false)
   const [isError, setIsError] = React.useState(false)
+  const [errorMsg, setErrorMsg] = React.useState("")
   const [state, setState] = React.useState({
     experimentSelection: "",
     datasetCheckbox: {
@@ -159,6 +160,13 @@ function DownloadDataFormContainer() {
 
   const onSubmit = (event) =>{
     event.preventDefault()
+
+    if (!Object.values(state['datasetCheckbox']).some((e) => e)) {
+      setIsError(true)
+      setErrorMsg("At least one dataset must be selected.")
+      return
+    }
+
     setIsRunning(true)
     fetch('query_datasets',{
         method: "POST",
@@ -179,6 +187,7 @@ function DownloadDataFormContainer() {
     }).catch(e => {
       setIsRunning(false)
       setIsError(true)
+      setErrorMsg("Server error occurred. Check logs.")
     });
   }
 
@@ -197,7 +206,7 @@ function DownloadDataFormContainer() {
   };
 
   const runningFeedback = isRunning ? <CircularProgress color="white" size={20}/> : "Download"
-  const errorFeedbackOrDefault = isError ? "Server error occurred. Check logs." : "Querying the database may take up to a minute or so."
+  const errorFeedbackOrDefault = isError ? errorMsg : "Querying the database may take up to a minute or so."
   return (
     <Card className={classes.root}>
       <CardContent className={classes.cardContent}>
@@ -250,11 +259,11 @@ function DownloadData() {
         <Grid container spacing={2} >
           <Grid item xs={12}><Header /></Grid>
 
-          <Grid item md={4} xs={false}/>
-          <Grid item md={4} xs={12}>
+          <Grid item md={3} xs={false}/>
+          <Grid item md={6} xs={12}>
             <div> <DownloadDataFormContainer/> </div>
           </Grid>
-          <Grid item md={4} xs={false}/>
+          <Grid item md={3} xs={false}/>
 
         </Grid>
     </MuiThemeProvider>

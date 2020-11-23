@@ -132,6 +132,20 @@ app.post("/create_experiment", function (req, res) {
 })
 
 
+app.post("/update_experiment_desc", function (req, res) {
+    console.log(req.body)
+    var update = 'UPDATE experiments SET description = (?) WHERE experiment=(?)'
+    db.run(update, [req.body.description, req.body.experiment], function(err){
+        if (err){
+            console.log(err)
+            res.sendStatus(500)
+        } else {
+        res.sendStatus(200)
+        }
+    })
+})
+
+
 const PORT = process.env.PORT || 3000
 app.listen(PORT, () => {
   console.log(`Listening on port ${PORT}`)

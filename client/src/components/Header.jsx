@@ -1,5 +1,5 @@
 import React from 'react'
-import {AppBar, Toolbar, Typography} from '@material-ui/core';
+import {AppBar, Toolbar, Typography, Link} from '@material-ui/core';
 import {makeStyles} from '@material-ui/styles';
 import Drawer from './Drawer'
 
@@ -16,7 +16,7 @@ const Header = () => {
         <Toolbar variant="dense">
           <Drawer />
           <Typography className={classes.logo}>
-            Morbidostat
+            <Link color="inherit" underline="none" href="/dashboard"> Morbidostat </Link>
           </Typography>
         </Toolbar>
       </AppBar>

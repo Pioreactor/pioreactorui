@@ -18,6 +18,7 @@ import IconButton from "@material-ui/core/IconButton";
 import Dialog from '@material-ui/core/Dialog';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
+import Snackbar from '@material-ui/core/Snackbar';
 
 import ActionPumpForm from "./ActionPumpForm"
 
@@ -181,14 +182,16 @@ function ButtonSettingsDialog(props) {
   const classes = useStyles();
   const [defaultStirring, setDefaultStirring] = useState(0);
   const [open, setOpen] = useState(false);
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
 
   useEffect(() => {
     async function fetchData() {
-      await fetch("./data/config.json")
+      await fetch("./static/js/config.json")
         .then((response) => {
           return response.json();
         })
         .then((config) => {
+          console.log(config)
           setDefaultStirring(
             config["stirring"]["duty_cycle" + props.unitNumber]
           );
@@ -202,10 +205,8 @@ function ButtonSettingsDialog(props) {
     "webui" + Math.random()
   );
 
-  client.connect({onSuccess: onConnect});
+  client.connect();
 
-  function onConnect(){
-  }
 
   function setMorbidostatJobState(job, state) {
     return function () {
@@ -250,7 +251,7 @@ function ButtonSettingsDialog(props) {
   function setMorbidostatJobAttrOnEnter(e) {
     if (e.key === "Enter") {
       setMorbidostatJobAttr(e.target.id, e.target.value);
-      e.target.value = "";
+      setSnackbarOpen(true)
     }
   }
 
@@ -266,6 +267,10 @@ function ButtonSettingsDialog(props) {
   const handleClose = () => {
     setOpen(false);
   };
+
+  const handleSnackbarClose = () => {
+    setSnackbarOpen(false)
+  }
 
 
   return (
@@ -430,6 +435,26 @@ function ButtonSettingsDialog(props) {
 
         <Divider className={classes.divider} />
         <Typography color="textSecondary" gutterBottom>
+          Duration between dilutions
+        </Typography>
+        <Typography variant="body2" component="p">
+          Change how long to wait between dilutions. Typically between 5 and 90 minutes.
+        </Typography>
+        <TextField
+          size="small"
+          id="io_controlling/duration"
+          label="Duration"
+          defaultValue={props.durationState}
+          InputProps={{
+            endAdornment: <InputAdornment position="end">min</InputAdornment>,
+          }}
+          variant="outlined"
+          onKeyPress={setMorbidostatJobAttrOnEnter}
+          className={classes.textField}
+        />
+
+        <Divider className={classes.divider} />
+        <Typography color="textSecondary" gutterBottom>
           Target growth rate
         </Typography>
         <Typography variant="body2" component="p">
@@ -452,6 +477,14 @@ function ButtonSettingsDialog(props) {
         <Divider className={classes.divider} />
       </DialogContent>
     </Dialog>
+    <Snackbar
+      anchorOrigin={{vertical: "bottom", horizontal: "center"}}
+      open={snackbarOpen}
+      onClose={handleSnackbarClose}
+      message={"Updated"}
+      autoHideDuration={7000}
+      key={"snackbar" + props.unitNumber + "settings"}
+    />
     </div>
   );
 }
@@ -535,6 +568,7 @@ function UnitCard(props) {
   const [growthRateJobState, setGrowthRateJobState] = useState("disconnected");
   const [IOEventsJobState, setIOEventsJobState] = useState("disconnected");
   const [targetODState, setTargetODState] = useState(0);
+  const [durationState, setDurationState] = useState(0);
   const [targetGrowthRateState, setTargetGrowthRateState] = useState(0);
   const [volumeState, setVolumeState] = useState(0);
 
@@ -648,6 +682,7 @@ function UnitCard(props) {
             />
           </div>
 
+
           <div className={classes.textbox}>
             <Typography className={textSettingsClasses}>
               Target growth rate:{" "}
@@ -665,6 +700,7 @@ function UnitCard(props) {
             />
           </div>
 
+
           <div className={classes.textbox}>
             <Typography className={textSettingsClasses}>
               Volume/dilution:{" "}
@@ -678,6 +714,23 @@ function UnitCard(props) {
               default={"-"}
               className={classes.alignRight}
               topic="io_controlling/volume"
+              unitNumber={unitNumber}
+            />
+          </div>
+
+          <div className={classes.textbox}>
+            <Typography className={textSettingsClasses}>
+              {" "}
+              Duration:
+            </Typography>
+            <UnitSettingDisplay
+              precision={0}
+              experiment={experiment}
+              passChildData={setDurationState}
+              isUnitActive={isUnitActive}
+              default={"-"}
+              className={classes.alignRight}
+              topic="io_controlling/duration"
               unitNumber={unitNumber}
             />
           </div>
