@@ -12,3 +12,9 @@ p[contenteditable="true"]:hover {
     border-right:  1px solid #51a7e8;
     border-radius: 3px;
 }
+
+
+.underlineSpan {
+    border-bottom: 1px dotted #000;
+    text-decoration: none;
+}

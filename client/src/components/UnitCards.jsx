@@ -19,6 +19,7 @@ import Dialog from '@material-ui/core/Dialog';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import Snackbar from '@material-ui/core/Snackbar';
+import Grid from '@material-ui/core/Grid';
 
 import ActionPumpForm from "./ActionPumpForm"
 
@@ -191,7 +192,6 @@ function ButtonSettingsDialog(props) {
           return response.json();
         })
         .then((config) => {
-          console.log(config)
           setDefaultStirring(
             config["stirring"]["duty_cycle" + props.unitNumber]
           );
@@ -280,7 +280,6 @@ function ButtonSettingsDialog(props) {
       color="primary"
       onClick={handleClickOpen}
       disabled={props.disabled}
-      style={{padding: "4px 0px"}}
     >
       Settings
     </Button>
@@ -508,7 +507,6 @@ function ButtonActionDialog(props) {
   return (
     <div>
       <Button
-        style={{padding: "4px 0px"}}
         onClick={handleClickOpen}
         disabled={props.disabled}
         size="small"
@@ -725,6 +723,7 @@ function UnitCard(props) {
             </Typography>
             <UnitSettingDisplay
               precision={0}
+              unit="m"
               experiment={experiment}
               passChildData={setDurationState}
               isUnitActive={isUnitActive}
@@ -742,7 +741,7 @@ function UnitCard(props) {
               isUnitActive={isUnitActive}
               default={"-"}
               className={classes.alignRight}
-              topic="io_controlling/display_name"
+              topic="algorithm_controlling/io_algorithm"
               unitNumber={unitNumber}
             />
           </div>
@@ -750,26 +749,36 @@ function UnitCard(props) {
         </div>
       </CardContent>
       <CardActions>
-        <IconButton size="small" onClick={handleShowAllSettingsClick}>
-          {showingAllSettings ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-        </IconButton>
+        <Grid container>
+          <Grid item xs={3} md={12} lg={3}>
+            <IconButton size="small" onClick={handleShowAllSettingsClick}>
+              {showingAllSettings ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+            </IconButton>
+          </Grid>
 
-        <ButtonSettingsDialog
-          stirringState={stirringState}
-          ODReadingJobState={ODReadingJobState}
-          growthRateJobState={growthRateJobState}
-          IOEventsJobState={IOEventsJobState}
-          targetGrowthRateState={targetGrowthRateState}
-          volumeState={volumeState}
-          targetODState={targetODState}
-          experiment={experiment}
-          unitNumber={unitNumber}
-          disabled={!isUnitActive}
-        />
-        <ButtonActionDialog
-          unitNumber={unitNumber}
-          disabled={!isUnitActive}
-        />
+          <Grid item xs={5} md={12} lg={5}>
+            <ButtonSettingsDialog
+              stirringState={stirringState}
+              ODReadingJobState={ODReadingJobState}
+              growthRateJobState={growthRateJobState}
+              IOEventsJobState={IOEventsJobState}
+              targetGrowthRateState={targetGrowthRateState}
+              volumeState={volumeState}
+              durationState={durationState}
+              targetODState={targetODState}
+              experiment={experiment}
+              unitNumber={unitNumber}
+              disabled={!isUnitActive}
+            />
+          </Grid>
+          <Grid item xs={4} md={12} lg={4}>
+
+            <ButtonActionDialog
+              unitNumber={unitNumber}
+              disabled={!isUnitActive}
+            />
+          </Grid>
+        </Grid>
       </CardActions>
     </Card>
   );

@@ -241,6 +241,26 @@ function ButtonAllUnitSettingsDialog(props) {
             onKeyPress={setMorbidostatJobStateOnEnter}
             className={classes.textField}
           />
+
+          <Divider className={classes.divider} />
+          <Typography color="textSecondary" gutterBottom>
+            Duration between dilutions
+          </Typography>
+          <Typography variant="body2" component="p">
+            Change how long to wait between dilutions. Typically between 5 and 90 minutes.
+          </Typography>
+          <TextField
+            size="small"
+            id="io_controlling/duration"
+            label="Duration"
+            InputProps={{
+              endAdornment: <InputAdornment position="end">min</InputAdornment>,
+            }}
+            variant="outlined"
+            onKeyPress={setMorbidostatJobStateOnEnter}
+            className={classes.textField}
+          />
+
           <Divider className={classes.divider} />
           <Typography color="textSecondary" gutterBottom>
             Target growth rate
@@ -322,15 +342,39 @@ function ButtonAllUnitSettingsDialog(props) {
 class VolumeThroughputTally extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {mediaThroughputPerUnit: {}, altMediaThroughputPerUnit: {}, mediaThroughput: 0, altMediaThroughput: 0};
+    this.state = {
+        mediaThroughputPerUnit: {},
+        altMediaThroughputPerUnit: {},
+        mediaThroughput: 0,
+        altMediaThroughput: 0,
+        mediaRate: 0,
+        altMediaRate: 0,
+      };
     this.onConnect = this.onConnect.bind(this);
     this.onMessageArrived = this.onMessageArrived.bind(this);
   }
 
+  async getRecentRates() {
+     await fetch("/recent_media_rates/" + this.props.experiment)
+    .then((response) => {
+      return response.json();
+    })
+    .then((data) => {
+      this.setState(data)
+    });
+  }
+
   componentDidMount() {
+    this.getRecentRates()
     this.client = new Client("ws://morbidostatws.ngrok.io/", "client-throughput");
     this.client.connect({'onSuccess': this.onConnect});
     this.client.onMessageArrived = this.onMessageArrived;
+  }
+
+  componentDidUpdate(prevProps) {
+     if (prevProps.experiment !== this.props.experiment) {
+      this.getRecentRates()
+     }
   }
 
   onConnect() {
@@ -375,14 +419,16 @@ class VolumeThroughputTally extends React.Component {
           <Typography style={{display: "flex", "fontSize": 14, flex: 1, textAlign: "left"}}>
             Media throughput:
           </Typography>
-          <span style={{fontFamily: "courier", flex: 1, textAlign: "right"}}>{Math.round(this.state.mediaThroughput, 2)}mL</span>
+          <span style={{fontFamily: "courier", flex: 1, textAlign: "right"}}>
+            {Math.round(this.state.mediaThroughput, 2)}mL (<span className={"underlineSpan"} title="Last 3 hour average">~{Math.round(this.state.mediaRate, 2)}mL/h</span>)
+          </span>
         </div>
         <Divider style={dividerStyle}/>
         <div style={{display: "flex", "fontSize": 14}}>
           <Typography style={{display: "flex", "fontSize": 14, flex: 1, textAlign: "left"}}>
             Alt. Media throughput:
           </Typography>
-          <span style={{fontFamily: "courier", flex: 1, textAlign: "right"}}>{Math.round(this.state.altMediaThroughput, 2)}mL</span>
+          <span style={{fontFamily: "courier", flex: 1, textAlign: "right"}}>{Math.round(this.state.altMediaThroughput, 2)}mL (<span className={"underlineSpan"} title="Last 3 hour average">~{Math.round(this.state.altMediaRate, 2)}mL/h</span>)</span>
         </div>
       <Divider style={dividerStyle}/>
     </div>
@@ -392,18 +438,16 @@ class VolumeThroughputTally extends React.Component {
 
 const AllUnitsCard = (props) => {
     const classes = useStyles();
-    const experiment = props.experiment;
-
     return (
       <Card>
         <CardContent>
           <Typography className={classes.unitTitle}>
             All Units
           </Typography>
-          <VolumeThroughputTally experiment={experiment}/>
+          <VolumeThroughputTally experiment={props.experiment}/>
         </CardContent>
         <CardActions>
-          <ButtonAllUnitSettingsDialog disabled={false} experiment={experiment}/>
+          <ButtonAllUnitSettingsDialog disabled={false} experiment={props.experiment}/>
           <ButtonActionDialog
             disabled={false}
             unitNumber={"'$broadcast'"}

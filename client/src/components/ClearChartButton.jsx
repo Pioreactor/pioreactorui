@@ -13,20 +13,22 @@ function ClearChartButton(props){
       "client" + Math.random()
     );
     client.connect({onSuccess: () => {
-      var message = new Message("");
-      message.destinationName = [
-        "morbidostat",
-        "leader",
-        props.experiment,
-        "time_series_aggregating",
-        "aggregated_time_series",
-        "set",
-      ].join("/");
-      console.log(message.destinationName)
-      console.log(message.message)
-      // not working?
-      message.qos = 2;
-      client.publish(message);
+      for (var jobName of ['od_raw', 'od_filtered', 'growth_rate', 'alt_media_fraction']) {
+        var message = new Message("");
+
+        message.destinationName = [
+          "morbidostat",
+          "leader",
+          props.experiment,
+          `${jobName}_time_series_aggregating`,
+          "aggregated_time_series",
+          "set",
+        ].join("/");
+
+        message.qos = 2;
+        client.publish(message);
+      }
+
       window.location.reload();
       return false
     }});

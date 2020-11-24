@@ -132,8 +132,21 @@ app.post("/create_experiment", function (req, res) {
 })
 
 
+app.get("/recent_media_rates/:experiment", function (req, res) {
+  experiment = req.params.experiment
+  db.serialize(function () {
+    db.all(`SELECT CASE WHEN event="add_alt_media" THEN "mediaRate" ELSE "altMediaRate" END AS type, SUM(volume_change_ml) as rate FROM io_events where datetime(timestamp) >= datetime('now', '-3 Hour') and event in ('add_alt_media', 'add_media') and experiment='${experiment}' GROUP BY event;`, function (err, rows) {
+      var jsonResult = {}
+      for (const row of rows){
+        jsonResult[row.type] = row.rate
+      }
+      res.json(jsonResult)
+    })
+  })
+})
+
+
 app.post("/update_experiment_desc", function (req, res) {
-    console.log(req.body)
     var update = 'UPDATE experiments SET description = (?) WHERE experiment=(?)'
     db.run(update, [req.body.description, req.body.experiment], function(err){
         if (err){
