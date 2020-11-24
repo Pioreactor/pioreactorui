@@ -420,7 +420,7 @@ class VolumeThroughputTally extends React.Component {
             Media throughput:
           </Typography>
           <span style={{fontFamily: "courier", flex: 1, textAlign: "right"}}>
-            {Math.round(this.state.mediaThroughput)}mL (<span className={"underlineSpan"} title="Last 3 hour average">~{this.state.mediaRate.toPrecision(2)}mL/h</span>)
+            {Math.round(this.state.mediaThroughput)}mL (<span className={"underlineSpan"} title="Last 12 hour average">~{this.state.mediaRate.toFixed(1)}mL/h</span>)
           </span>
         </div>
         <Divider style={dividerStyle}/>
@@ -428,7 +428,7 @@ class VolumeThroughputTally extends React.Component {
           <Typography style={{display: "flex", "fontSize": 14, flex: 1, textAlign: "left"}}>
             Alt. Media throughput:
           </Typography>
-          <span style={{fontFamily: "courier", flex: 1, textAlign: "right"}}>{Math.round(this.state.altMediaThroughput)}mL (<span className={"underlineSpan"} title="Last 3 hour average">~{this.state.altMediaRate.toPrecision(2)}mL/h</span>)</span>
+          <span style={{fontFamily: "courier", flex: 1, textAlign: "right"}}>{Math.round(this.state.altMediaThroughput)}mL (<span className={"underlineSpan"} title="Last 12 hour average">~{this.state.altMediaRate.toFixed(1)}mL/h</span>)</span>
         </div>
       <Divider style={dividerStyle}/>
     </div>
