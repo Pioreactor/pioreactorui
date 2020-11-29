@@ -9,7 +9,7 @@ function ClearChartButton(props){
 
   function onClick() {
     var client = new Client(
-      "ws://morbidostatws.ngrok.io/",
+      "ws://pioreactorws.ngrok.io/",
       "client" + Math.random()
     );
     client.connect({onSuccess: () => {
@@ -17,7 +17,7 @@ function ClearChartButton(props){
         var message = new Message("");
 
         message.destinationName = [
-          "morbidostat",
+          "pioreactor",
           "leader",
           props.experiment,
           `${jobName}_time_series_aggregating`,

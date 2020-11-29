@@ -119,7 +119,7 @@ class UnitSettingDisplay extends React.Component {
     if (this.props.isUnitActive) {
       // need to have unique clientIds
       this.client = new Client(
-        "ws://morbidostatws.ngrok.io/",
+        "ws://pioreactorws.ngrok.io/",
         "webui" + Math.random()
       );
       this.client.connect({ onSuccess: this.onConnect });
@@ -130,7 +130,7 @@ class UnitSettingDisplay extends React.Component {
   onConnect() {
     this.client.subscribe(
       [
-        "morbidostat",
+        "pioreactor",
         this.props.unitNumber,
         this.props.experiment,
         this.props.topic,
@@ -163,8 +163,8 @@ class UnitSettingDisplay extends React.Component {
         }
       }
     } else {
-      if (!this.props.isUnitActive || this.state.msg === "-") {
-        return <div style={{ color: "grey"}}> {this.state.msg} </div>;
+      if (!this.props.isUnitActive || this.state.msg === "-" || this.state.msg === "") {
+        return <div style={{ color: "grey"}}> {this.props.default} </div>;
       } else {
         return (
           <div style={{ color: "rgba(0, 0, 0, 0.54)", fontFamily: "courier", fontSize: "13px" }}>
@@ -201,7 +201,7 @@ function ButtonSettingsDialog(props) {
   }, []);
 
   var client = new Client(
-    "ws://morbidostatws.ngrok.io/",
+    "ws://pioreactorws.ngrok.io/",
     "webui" + Math.random()
   );
 
@@ -212,7 +212,7 @@ function ButtonSettingsDialog(props) {
     return function () {
       var message = new Message(String(state));
       message.destinationName = [
-        "morbidostat",
+        "pioreactor",
         props.unitNumber,
         props.experiment,
         job,
@@ -233,7 +233,7 @@ function ButtonSettingsDialog(props) {
   function setMorbidostatJobAttr(job_attr, value) {
     var message = new Message(String(value));
     message.destinationName = [
-      "morbidostat",
+      "pioreactor",
       props.unitNumber,
       props.experiment,
       job_attr,
@@ -286,7 +286,7 @@ function ButtonSettingsDialog(props) {
     <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
       <DialogTitle>
         <Typography className={classes.unitTitleDialog}>
-          morbidostat{props.unitNumber}
+          pioreactor{props.unitNumber}
         </Typography>
       </DialogTitle>
       <DialogContent>
@@ -516,7 +516,7 @@ function ButtonActionDialog(props) {
       <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
         <DialogTitle id="form-dialog-title">
           <Typography className={classes.unitTitleDialog}>
-            {props.title || `morbidostat${props.unitNumber}`}
+            {props.title || `pioreactor${props.unitNumber}`}
           </Typography>
         </DialogTitle>
         <DialogContent>
@@ -750,8 +750,8 @@ function UnitCard(props) {
       </CardContent>
       <CardActions>
         <Grid container>
-          <Grid item xs={3} md={12} lg={3}>
-            <IconButton size="small" onClick={handleShowAllSettingsClick}>
+          <Grid item xs={2} md={12} lg={2}>
+            <IconButton edge="end" size="small" onClick={handleShowAllSettingsClick}>
               {showingAllSettings ? <ExpandLessIcon /> : <ExpandMoreIcon />}
             </IconButton>
           </Grid>
@@ -771,7 +771,7 @@ function UnitCard(props) {
               disabled={!isUnitActive}
             />
           </Grid>
-          <Grid item xs={4} md={12} lg={4}>
+          <Grid item xs={5} md={12} lg={5}>
 
             <ButtonActionDialog
               unitNumber={unitNumber}
@@ -789,8 +789,8 @@ function UnitCards(props) {
     <div>
       {props.units.map((unit) => (
         <UnitCard
-          key={"morbidostat" + unit}
-          name={"morbidostat" + unit}
+          key={"pioreactor" + unit}
+          name={"pioreactor" + unit}
           isUnitActive={[1, 2, 3].includes(unit)}
           experiment={props.experiment}
         />

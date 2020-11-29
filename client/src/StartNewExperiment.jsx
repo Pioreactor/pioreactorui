@@ -87,14 +87,14 @@ function ExperimentSummaryForm(props) {
 
     function onConnect() {
       var message = new Message(expName);
-      message.destinationName = "morbidostat/latest_experiment"
+      message.destinationName = "pioreactor/latest_experiment"
       message.qos = 1;
       message.retained = true;
       client.publish(message);
     }
 
     var client = new Client(
-      "ws://morbidostatws.ngrok.io/",
+      "ws://pioreactorws.ngrok.io/",
       "webui" + Math.random()
     );
     client.connect({ onSuccess: onConnect });
@@ -171,7 +171,7 @@ function ExperimentSummaryForm(props) {
             <TextField
               label="Description"
               rowsMax={4}
-              placeholder={"Add a description: what microbe are you using? What is the media composition? This can always be changed later."}
+              placeholder={"Add a description: what microbe are you using? What is the media composition? This description can always be changed later."}
               multiline
               className={classes.textField}
               onChange={onDescChange}

@@ -110,7 +110,7 @@ function getSteps() {
 function getStepContent(step) {
   switch (step) {
     case 0:
-      return `For each morbidostat unit, connect the media inflow, alt-media inflow, and waste out flow tubes to an empty
+      return `For each pioreactor unit, connect the media inflow, alt-media inflow, and waste out flow tubes to an empty
       vial with hat. Connect the all the media outflow tubes to a single empty container, all the alt-media outflow tubes to a single empty container, and
       all the waste inflow tubes to a single, empty, large container.`;
     case 1:
@@ -124,7 +124,7 @@ function getStepContent(step) {
     case 5:
       return <MediaFlush altMedia={true}/>;
     case 6:
-      return `Using proper sanitation techniques, replace the morbidostat vials - now full of water and media - with the empty-but-innocculated vials`;
+      return `Using proper sanitation techniques, replace the pioreactor vials - now full of water and media - with the empty-but-innocculated vials`;
     case 7:
       return <AddFinalVolumeOfMedia/>;
     default:

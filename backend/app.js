@@ -60,7 +60,7 @@ app.post('/query_datasets', function(req, res) {
 
 
 app.get('/stop', function (req, res) {
-    exec("mba kill python -y", (error, stdout, stderr) => {
+    exec("pios kill python -y", (error, stdout, stderr) => {
         if (error) {
             console.log(error)
             res.send(`error: ${error.message}`);
@@ -83,7 +83,7 @@ app.get("/run/:job/:unit", function(req, res) {
     unit = req.params.unit
     job = req.params.job
     options = Object.entries(queryObject).map(k_v => [`--${k_v[0].replace(/_/g, "-")} ${k_v[1]}`])
-    command = (["mba", "run", job, "-y", "--units", `'${req.params.unit}'`].concat(options)).join(" ")
+    command = (["pios", "run", job, "-y", "--units", `'${req.params.unit}'`].concat(options)).join(" ")
     console.log(command)
     exec(command, (error, stdout, stderr) => {
         if (error) {
@@ -133,9 +133,10 @@ app.post("/create_experiment", function (req, res) {
 
 
 app.get("/recent_media_rates/:experiment", function (req, res) {
-  experiment = req.params.experiment
+  const experiment = req.params.experiment
+  const hours = 12
   db.serialize(function () {
-    db.all(`SELECT CASE WHEN event="add_media" THEN "mediaRate" ELSE "altMediaRate" END AS type, SUM(volume_change_ml) as rate FROM io_events where datetime(timestamp) >= datetime('now', '-12 Hour') and event in ('add_alt_media', 'add_media') and experiment='${experiment}' GROUP BY event;`, function (err, rows) {
+    db.all(`SELECT CASE WHEN event="add_media" THEN "mediaRate" ELSE "altMediaRate" END AS type, SUM(volume_change_ml)/${hours} as rate FROM io_events where datetime(timestamp) >= datetime('now', '-${hours} Hour') and event in ('add_alt_media', 'add_media') and experiment='${experiment}' GROUP BY event;`, function (err, rows) {
       var jsonResult = {}
       for (const row of rows){
         jsonResult[row.type] = row.rate

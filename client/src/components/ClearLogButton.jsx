@@ -9,13 +9,13 @@ function ClearLogButton(props){
 
   function onClick() {
     var client = new Client(
-      "ws://morbidostatws.ngrok.io/",
+      "ws://pioreactorws.ngrok.io/",
       "client" + Math.random()
     );
     client.connect({onSuccess: () => {
       var message = new Message("");
       message.destinationName = [
-        "morbidostat",
+        "pioreactor",
         "leader",
         props.experiment,
         "log_aggregating",

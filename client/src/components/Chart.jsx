@@ -16,15 +16,15 @@ import Card from "@material-ui/core/Card";
 const colors = {
   1: "#9C6ADE",
   "1-A": "#9C6ADE",
-  "1-B": "#E3D0FF",
+  "1-D": "#E3D0FF",
 
   2: "#47C1BF",
   "2-A": "#47C1BF",
-  "2-B": "#B7ECEC",
+  "2-D": "#B7ECEC",
 
   3: "#F49342",
   "3-A": "#F49342",
-  "3-B": "#FFC58B",
+  "3-D": "#FFC58B",
 };
 
 function linspace(startValue, stopValue, cardinality) {
@@ -54,14 +54,14 @@ class Chart extends React.Component {
 
   onConnect() {
     this.client.subscribe(
-      ["morbidostat", "+", this.props.experiment, this.props.topic].join("/")
+      ["pioreactor", "+", this.props.experiment, this.props.topic].join("/")
     );
   }
 
   componentDidMount() {
     this.getData();
     this.client = new Client(
-      "ws://morbidostatws.ngrok.io/",
+      "ws://pioreactorws.ngrok.io/",
       "client" + Math.random()
     );
     this.client.connect({ onSuccess: this.onConnect });
@@ -274,6 +274,7 @@ ${d.datum.childName}: ${Math.round(d.datum.y * 1000) / 1000}`
           <VictoryLegend
             x={527}
             y={60}
+            itemsPerRow={6}
             name={"legend"}
             borderPadding={{ right: 8 }}
             orientation="vertical"

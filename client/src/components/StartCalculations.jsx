@@ -24,7 +24,7 @@ function StartGrowthRate(props){
 
   return(
     <div>
-      <p>From the (normalized) OD readings, we can calculate the <em>implied hourly growth rate</em>, which is our measure of growth. For morbidostats, this is the metric we with to target.</p>
+      <p>From the (normalized) OD readings, we can calculate the <em>implied hourly growth rate</em>, which is our measure of growth. For morbidostats, this is the metric we wish to target.</p>
       <p>Let's start the growth rate calculations. The graph below should start to populate.</p>
       <Button variant="contained"  color="primary" disabled={isClicked ? true : false } onClick={onClick}> Start growth rate calculations </Button>
       <Snackbar

@@ -34,7 +34,7 @@ class LogTable extends React.Component {
   }
 
   async getData() {
-    await fetch("./data/all_morbidostat.log.json")
+    await fetch("./data/all_pioreactor.log.json")
       .then(response => {
         return response.json();
       })
@@ -45,14 +45,14 @@ class LogTable extends React.Component {
 
   componentDidMount() {
     this.getData()
-    this.client = new Client("ws://morbidostatws.ngrok.io/", "client-log-table");
+    this.client = new Client("ws://pioreactorws.ngrok.io/", "client-log-table");
     this.client.connect({'onSuccess': this.onConnect});
     this.client.onMessageArrived = this.onMessageArrived;
   }
 
   onConnect() {
-      this.client.subscribe(["morbidostat", "+", this.props.experiment, "log"].join("/"))
-      this.client.subscribe(["morbidostat", "+", this.props.experiment, "error_log"].join("/"))
+      this.client.subscribe(["pioreactor", "+", this.props.experiment, "log"].join("/"))
+      this.client.subscribe(["pioreactor", "+", this.props.experiment, "error_log"].join("/"))
   }
 
   onMessageArrived(message) {

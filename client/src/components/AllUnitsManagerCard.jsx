@@ -68,7 +68,7 @@ function ButtonAllUnitSettingsDialog(props) {
 
   // MQTT - client ids should be unique
   var client = new Client(
-    "ws://morbidostatws.ngrok.io/",
+    "ws://pioreactorws.ngrok.io/",
     "webui" + Math.random()
   );
 
@@ -81,7 +81,7 @@ function ButtonAllUnitSettingsDialog(props) {
     return function () {
       var message = new Message(String(state));
       message.destinationName = [
-        "morbidostat",
+        "pioreactor",
         unitNumber,
         props.experiment,
         job,
@@ -96,7 +96,7 @@ function ButtonAllUnitSettingsDialog(props) {
   function setMorbidostatJobState(job_attr, value) {
     var message = new Message(String(value));
     message.destinationName = [
-      "morbidostat",
+      "pioreactor",
       unitNumber,
       props.experiment,
       job_attr,
@@ -317,10 +317,10 @@ function ButtonAllUnitSettingsDialog(props) {
         aria-labelledby="alert-dialog-title"
         aria-describedby="alert-dialog-description"
       >
-        <DialogTitle id="alert-dialog-title">{"Stop all morbidostat processes?"}</DialogTitle>
+        <DialogTitle id="alert-dialog-title">{"Stop all pioreactor processes?"}</DialogTitle>
         <DialogContent>
           <DialogContentText id="alert-dialog-description">
-            This will stop stirring, optical density measuring, future IO events from occuring for <b>all</b> morbidostat units. It may take a few minutes to
+            This will stop stirring, optical density measuring, and future IO events from occurring for <b>all</b> pioreactor units. It may take a moment to
             take effect.
           </DialogContentText>
         </DialogContent>
@@ -366,7 +366,7 @@ class VolumeThroughputTally extends React.Component {
 
   componentDidMount() {
     this.getRecentRates()
-    this.client = new Client("ws://morbidostatws.ngrok.io/", "client-throughput");
+    this.client = new Client("ws://pioreactorws.ngrok.io/", "client-throughput");
     this.client.connect({'onSuccess': this.onConnect});
     this.client.onMessageArrived = this.onMessageArrived;
   }
@@ -378,8 +378,8 @@ class VolumeThroughputTally extends React.Component {
   }
 
   onConnect() {
-      this.client.subscribe(["morbidostat", "+", this.props.experiment, "throughput_calculating", "alt_media_throughput"].join("/"))
-      this.client.subscribe(["morbidostat", "+", this.props.experiment, "throughput_calculating", "media_throughput"].join("/"))
+      this.client.subscribe(["pioreactor", "+", this.props.experiment, "throughput_calculating", "alt_media_throughput"].join("/"))
+      this.client.subscribe(["pioreactor", "+", this.props.experiment, "throughput_calculating", "media_throughput"].join("/"))
   }
 
   addOrUpdate(hash, object, value) {
@@ -420,7 +420,7 @@ class VolumeThroughputTally extends React.Component {
             Media throughput:
           </Typography>
           <span style={{fontFamily: "courier", flex: 1, textAlign: "right"}}>
-            {Math.round(this.state.mediaThroughput)}mL (<span className={"underlineSpan"} title="Last 12 hour average">~{this.state.mediaRate.toFixed(1)}mL/h</span>)
+            {Math.round(this.state.mediaThroughput)}mL (<span className={"underlineSpan"} title="Last 12 hour average">～{this.state.mediaRate.toFixed(1)}mL/h</span>)
           </span>
         </div>
         <Divider style={dividerStyle}/>
@@ -428,7 +428,7 @@ class VolumeThroughputTally extends React.Component {
           <Typography style={{display: "flex", "fontSize": 14, flex: 1, textAlign: "left"}}>
             Alt. Media throughput:
           </Typography>
-          <span style={{fontFamily: "courier", flex: 1, textAlign: "right"}}>{Math.round(this.state.altMediaThroughput)}mL (<span className={"underlineSpan"} title="Last 12 hour average">~{this.state.altMediaRate.toFixed(1)}mL/h</span>)</span>
+          <span style={{fontFamily: "courier", flex: 1, textAlign: "right"}}>{Math.round(this.state.altMediaThroughput)}mL (<span className={"underlineSpan"} title="Last 12 hour average">～{this.state.altMediaRate.toFixed(1)}mL/h</span>)</span>
         </div>
       <Divider style={dividerStyle}/>
     </div>
