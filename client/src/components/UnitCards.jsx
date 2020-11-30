@@ -139,6 +139,13 @@ class UnitSettingDisplay extends React.Component {
     );
   }
 
+  stateDisplay = {
+    "init":         {message: "", display: "Initializing", color: "grey"},
+    "ready":        {message: "", display: "On", color: "#4caf50"},
+    "sleeping":     {message: "", display: "Paused", color: "grey"},
+    "disconnected": {message: "", display: "Off", color: "grey"},
+    "lost":         {message: "Check logs for errors.", display: "Error", color: "rgba(0, 0, 0, 0.87)"},
+  }
 
   onMessageArrived(message) {
     var parsedFloat = parseFloat(message.payloadString);
@@ -150,18 +157,16 @@ class UnitSettingDisplay extends React.Component {
   }
 
   render() {
-    if (this.props.isBinaryActive) {
+    if (this.props.isStateSetting) {
       if (!this.props.isUnitActive) {
-        return <div style={{ color: "grey"}}> {this.state.msg} </div>;
+        return <div style={{ color: "grey"}}> Off </div>;
       } else {
-        if (this.state.msg === "ready") {
-          return <div style={{ color: "#4caf50"}}> On </div>;
-        } else if (this.state.msg !== "ready") {
-          return <div style={{ color: "grey"}}> Off </div>;
-        } else {
-          return <div style={{ color: "grey"}}> {this.state.msg} </div>;
-        }
-      }
+        var displaySettings = this.stateDisplay[this.state.msg]
+        return (
+          <div style={{ color: displaySettings.color}}>
+            <span title={displaySettings.message} className={displaySettings.message ? "underlineSpan" : ""}>{displaySettings.display}</span>
+          </div>
+      )}
     } else {
       if (!this.props.isUnitActive || this.state.msg === "-" || this.state.msg === "") {
         return <div style={{ color: "grey"}}> {this.props.default} </div>;
@@ -607,9 +612,9 @@ function UnitCard(props) {
               passChildData={setODReadingJobState}
               experiment={experiment}
               isUnitActive={isUnitActive}
-              default={"Off"}
+              default={"disconnected"}
               className={classes.alignRight}
-              isBinaryActive
+              isStateSetting
               topic="od_reading/$state"
               unitNumber={unitNumber}
             />
@@ -623,9 +628,9 @@ function UnitCard(props) {
               passChildData={setGrowthRateJobState}
               experiment={experiment}
               isUnitActive={isUnitActive}
-              default={"Off"}
+              default={"disconnected"}
               className={classes.alignRight}
-              isBinaryActive
+              isStateSetting
               topic="growth_rate_calculating/$state"
               unitNumber={unitNumber}
             />
@@ -639,9 +644,9 @@ function UnitCard(props) {
               passChildData={setIOEventsJobState}
               experiment={experiment}
               isUnitActive={isUnitActive}
-              default={"Off"}
+              default={"disconnected"}
               className={classes.alignRight}
-              isBinaryActive
+              isStateSetting
               topic="io_controlling/$state"
               unitNumber={unitNumber}
             />
