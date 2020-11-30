@@ -27,17 +27,17 @@ app.get('/', function(req, res) {
     res.redirect(301, '/dashboard');
 })
 
-app.get('/dashboard', staticUserAuth, function(req, res) {
+app.get('/dashboard', function(req, res) {
     app.use(express.static(path.join(__dirname, 'build')));
     res.sendFile(path.join(__dirname, 'build', 'index.html'));
 })
 
-app.get('/download-data', staticUserAuth, function(req, res) {
+app.get('/download-data', function(req, res) {
     app.use(express.static(path.join(__dirname, 'build')));
     res.sendFile(path.join(__dirname, 'build', 'index.html'));
 })
 
-app.get('/start-new-experiment', staticUserAuth, function(req, res) {
+app.get('/start-new-experiment', function(req, res) {
     app.use(express.static(path.join(__dirname, 'build')));
     res.sendFile(path.join(__dirname, 'build', 'index.html'));
 })
