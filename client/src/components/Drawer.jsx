@@ -47,7 +47,7 @@ export default function Drawer() {
       onKeyDown={toggleDrawer(false)}
     >
       <Typography style={{textAlign: "center", paddingTop: "15px"}} className={classes.logo}>
-        Morbidostat
+        Pioreactor
       </Typography>
       <List>
 

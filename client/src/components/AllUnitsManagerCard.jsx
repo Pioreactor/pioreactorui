@@ -93,7 +93,7 @@ function ButtonAllUnitSettingsDialog(props) {
     };
   }
 
-  function setMorbidostatJobState(job_attr, value) {
+  function setPioreactorJobState(job_attr, value) {
     var message = new Message(String(value));
     message.destinationName = [
       "pioreactor",
@@ -106,9 +106,9 @@ function ButtonAllUnitSettingsDialog(props) {
     client.publish(message);
   }
 
-  function setMorbidostatJobStateOnEnter(e) {
+  function setPioreactorJobStateOnEnter(e) {
     if (e.key === "Enter") {
-      setMorbidostatJobState(e.target.id, e.target.value);
+      setPioreactorJobState(e.target.id, e.target.value);
       e.target.value = "";
     }
   }
@@ -219,7 +219,7 @@ function ButtonAllUnitSettingsDialog(props) {
               endAdornment: <InputAdornment position="end">mL</InputAdornment>,
             }}
             variant="outlined"
-            onKeyPress={setMorbidostatJobStateOnEnter}
+            onKeyPress={setPioreactorJobStateOnEnter}
             className={classes.textField}
           />
           <Divider className={classes.divider} />
@@ -238,7 +238,7 @@ function ButtonAllUnitSettingsDialog(props) {
               endAdornment: <InputAdornment position="end">AU</InputAdornment>,
             }}
             variant="outlined"
-            onKeyPress={setMorbidostatJobStateOnEnter}
+            onKeyPress={setPioreactorJobStateOnEnter}
             className={classes.textField}
           />
 
@@ -257,7 +257,7 @@ function ButtonAllUnitSettingsDialog(props) {
               endAdornment: <InputAdornment position="end">min</InputAdornment>,
             }}
             variant="outlined"
-            onKeyPress={setMorbidostatJobStateOnEnter}
+            onKeyPress={setPioreactorJobStateOnEnter}
             className={classes.textField}
           />
 
@@ -278,7 +278,7 @@ function ButtonAllUnitSettingsDialog(props) {
               endAdornment: <InputAdornment position="end">h⁻¹</InputAdornment>,
             }}
             variant="outlined"
-            onKeyPress={setMorbidostatJobStateOnEnter}
+            onKeyPress={setPioreactorJobStateOnEnter}
             className={classes.textField}
           />
           <Divider className={classes.divider} />

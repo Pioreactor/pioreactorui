@@ -208,7 +208,7 @@ function ButtonSettingsDialog(props) {
   client.connect();
 
 
-  function setMorbidostatJobState(job, state) {
+  function setPioreactorJobState(job, state) {
     return function () {
       var message = new Message(String(state));
       message.destinationName = [
@@ -225,12 +225,12 @@ function ButtonSettingsDialog(props) {
       }
       catch (e){
         console.log(e)
-        client.connect({onSuccess: () => setMorbidostatJobState(job, state)()});
+        client.connect({onSuccess: () => setPioreactorJobState(job, state)()});
       }
     };
   }
 
-  function setMorbidostatJobAttr(job_attr, value) {
+  function setPioreactorJobAttr(job_attr, value) {
     var message = new Message(String(value));
     message.destinationName = [
       "pioreactor",
@@ -244,19 +244,19 @@ function ButtonSettingsDialog(props) {
       client.publish(message);
     }
     catch{
-      client.connect({onSuccess: () => setMorbidostatJobAttr(job_attr, value)});
+      client.connect({onSuccess: () => setPioreactorJobAttr(job_attr, value)});
     }
   }
 
-  function setMorbidostatJobAttrOnEnter(e) {
+  function setPioreactorJobAttrOnEnter(e) {
     if (e.key === "Enter") {
-      setMorbidostatJobAttr(e.target.id, e.target.value);
+      setPioreactorJobAttr(e.target.id, e.target.value);
       setSnackbarOpen(true)
     }
   }
 
-  function setMorbidostatStirring(e, value) {
-    setMorbidostatJobAttr("stirring/duty_cycle", value);
+  function setPioreactorStirring(e, value) {
+    setPioreactorJobAttr("stirring/duty_cycle", value);
   }
 
 
@@ -302,7 +302,7 @@ function ButtonSettingsDialog(props) {
           disableElevation
           disabled={props.ODReadingJobState === "sleeping"}
           color="secondary"
-          onClick={setMorbidostatJobState("od_reading", "sleeping")}
+          onClick={setPioreactorJobState("od_reading", "sleeping")}
         >
           Pause
         </Button>
@@ -310,7 +310,7 @@ function ButtonSettingsDialog(props) {
           disableElevation
           disabled={props.ODReadingJobState === "ready"}
           color="primary"
-          onClick={setMorbidostatJobState("od_reading", "ready")}
+          onClick={setPioreactorJobState("od_reading", "ready")}
         >
           Unpause
         </Button>
@@ -327,7 +327,7 @@ function ButtonSettingsDialog(props) {
           disableElevation
           disabled={props.growthRateJobState === "sleeping"}
           color="secondary"
-          onClick={setMorbidostatJobState("growth_rate_calculating", "sleeping")}
+          onClick={setPioreactorJobState("growth_rate_calculating", "sleeping")}
         >
           Pause
         </Button>
@@ -335,7 +335,7 @@ function ButtonSettingsDialog(props) {
           disableElevation
           disabled={props.growthRateJobState === "ready"}
           color="primary"
-          onClick={setMorbidostatJobState("growth_rate_calculating", "ready")}
+          onClick={setPioreactorJobState("growth_rate_calculating", "ready")}
         >
           Unpause
         </Button>
@@ -351,7 +351,7 @@ function ButtonSettingsDialog(props) {
           disableElevation
           disabled={props.IOEventsJobState === "sleeping"}
           color="secondary"
-          onClick={setMorbidostatJobState("io_controlling", "sleeping")}
+          onClick={setPioreactorJobState("io_controlling", "sleeping")}
         >
           Pause
         </Button>
@@ -359,7 +359,7 @@ function ButtonSettingsDialog(props) {
           disableElevation
           disabled={props.IOEventsJobState === "ready"}
           color="primary"
-          onClick={setMorbidostatJobState("io_controlling", "ready")}
+          onClick={setPioreactorJobState("io_controlling", "ready")}
         >
           Unpause
         </Button>
@@ -379,7 +379,7 @@ function ButtonSettingsDialog(props) {
             step={1}
             valueLabelDisplay="on"
             id={"stirring/duty_cycle" + props.unitNumber}
-            onChangeCommitted={setMorbidostatStirring}
+            onChangeCommitted={setPioreactorStirring}
             marks={[
               { value: 0, label: "0" },
               { value: defaultStirring, label: "Default: " + defaultStirring },
@@ -407,7 +407,7 @@ function ButtonSettingsDialog(props) {
             endAdornment: <InputAdornment position="end">mL</InputAdornment>,
           }}
           variant="outlined"
-          onKeyPress={setMorbidostatJobAttrOnEnter}
+          onKeyPress={setPioreactorJobAttrOnEnter}
           className={classes.textField}
         />
 
@@ -428,7 +428,7 @@ function ButtonSettingsDialog(props) {
             endAdornment: <InputAdornment position="end">AU</InputAdornment>,
           }}
           variant="outlined"
-          onKeyPress={setMorbidostatJobAttrOnEnter}
+          onKeyPress={setPioreactorJobAttrOnEnter}
           className={classes.textField}
         />
 
@@ -448,7 +448,7 @@ function ButtonSettingsDialog(props) {
             endAdornment: <InputAdornment position="end">min</InputAdornment>,
           }}
           variant="outlined"
-          onKeyPress={setMorbidostatJobAttrOnEnter}
+          onKeyPress={setPioreactorJobAttrOnEnter}
           className={classes.textField}
         />
 
@@ -470,7 +470,7 @@ function ButtonSettingsDialog(props) {
             endAdornment: <InputAdornment position="end">h⁻¹</InputAdornment>,
           }}
           variant="outlined"
-          onKeyPress={setMorbidostatJobAttrOnEnter}
+          onKeyPress={setPioreactorJobAttrOnEnter}
           className={classes.textField}
         />
         <Divider className={classes.divider} />
