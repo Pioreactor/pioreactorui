@@ -140,11 +140,11 @@ class UnitSettingDisplay extends React.Component {
   }
 
   stateDisplay = {
-    "init":         {message: "", display: "Initializing", color: "grey"},
+    "init":         {message: "", display: "Starting", color: "4caf50"},
     "ready":        {message: "", display: "On", color: "#4caf50"},
     "sleeping":     {message: "", display: "Paused", color: "grey"},
     "disconnected": {message: "", display: "Off", color: "grey"},
-    "lost":         {message: "Check logs for errors.", display: "Error", color: "rgba(0, 0, 0, 0.87)"},
+    "lost":         {message: "Check logs for errors.", display: "Error", color: "#DE3618"},
   }
 
   onMessageArrived(message) {
@@ -230,9 +230,16 @@ function ButtonSettingsDialog(props) {
       }
       catch (e){
         console.log(e)
-        client.connect({onSuccess: () => setPioreactorJobState(job, state)()});
       }
     };
+  }
+
+  function startPioreactorJob(job_attr){
+    return function() {
+      console.log("fetching")
+      fetch("/run/" + job_attr + "/" + props.unitNumber).then(res => {
+      })
+    }
   }
 
   function setPioreactorJobAttr(job_attr, value) {
@@ -305,7 +312,15 @@ function ButtonSettingsDialog(props) {
         </Typography>
         <Button
           disableElevation
-          disabled={props.ODReadingJobState === "sleeping"}
+          disabled={props.ODReadingJobState != "disconnected"}
+          color="primary"
+          onClick={startPioreactorJob("od_reading")}
+        >
+          Start
+        </Button>
+        <Button
+          disableElevation
+          disabled={["sleeping", "disconnected"].includes(props.ODReadingJobState)}
           color="secondary"
           onClick={setPioreactorJobState("od_reading", "sleeping")}
         >
@@ -313,11 +328,19 @@ function ButtonSettingsDialog(props) {
         </Button>
         <Button
           disableElevation
-          disabled={props.ODReadingJobState === "ready"}
+          disabled={["ready", "disconnected"].includes(props.ODReadingJobState)}
           color="primary"
           onClick={setPioreactorJobState("od_reading", "ready")}
         >
           Unpause
+        </Button>
+        <Button
+          disableElevation
+          disabled={props.ODReadingJobState === "disconnected"}
+          color="secondary"
+          onClick={setPioreactorJobState("od_reading", "disconnected")}
+        >
+          Disconnect
         </Button>
 
         <Divider className={classes.divider} />
@@ -796,7 +819,7 @@ function UnitCards(props) {
         <UnitCard
           key={"pioreactor" + unit}
           name={"pioreactor" + unit}
-          isUnitActive={[1, 2, 3].includes(unit)}
+          isUnitActive={[1, 2, 3, 4].includes(unit)}
           experiment={props.experiment}
         />
       ))}

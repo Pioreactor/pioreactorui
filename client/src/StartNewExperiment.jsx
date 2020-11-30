@@ -3,14 +3,6 @@ import moment from "moment";
 import { Client, Message } from "paho-mqtt";
 
 import Grid from '@material-ui/core/Grid';
-import Header from "./components/Header"
-import CleaningScript from "./components/CleaningScript"
-import StartSensors from "./components/StartSensors"
-import StartCalculations from "./components/StartCalculations"
-
-import CssBaseline from "@material-ui/core/CssBaseline";
-import { MuiThemeProvider, createMuiTheme } from "@material-ui/core/styles";
-
 import { makeStyles } from '@material-ui/core/styles';
 import FormLabel from '@material-ui/core/FormLabel';
 import FormControl from '@material-ui/core/FormControl';
@@ -32,6 +24,11 @@ import Step from '@material-ui/core/Step';
 import StepLabel from '@material-ui/core/StepLabel';
 import TextField from '@material-ui/core/TextField';
 import Snackbar from '@material-ui/core/Snackbar';
+
+import Header from "./components/Header"
+import CleaningScript from "./components/CleaningScript"
+import StartSensors from "./components/StartSensors"
+import StartCalculations from "./components/StartCalculations"
 
 
 const useStyles = makeStyles((theme) => ({
@@ -63,14 +60,6 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-
-const themeLight = createMuiTheme({
-  palette: {
-    background: {
-      default: "#fafbfc"
-    }
-  }
-});
 
 
 
@@ -209,7 +198,7 @@ function LinkToDashboard() {
 
 function getSteps() {
   return [
-    {title: 'Experiment summary', content: <ExperimentSummaryForm/>, optional: false},
+    {title: 'Experiment summary', content: <ExperimentSummaryForm/>, optional: true},
     {title: 'Cleaning and preparation', content: <CleaningScript/>, optional: true},
     {title: 'Start sensors', content: <StartSensors/>, optional: true},
     {title: 'Start calculations', content: <StartCalculations/>, optional: false},
@@ -343,8 +332,6 @@ function StartNewExperimentContainer() {
 
 function StartNewExperiment() {
     return (
-    <MuiThemeProvider theme={themeLight}>
-      <CssBaseline />
         <Grid container spacing={2} >
           <Grid item xs={12}><Header /></Grid>
 
@@ -354,7 +341,6 @@ function StartNewExperiment() {
           </Grid>
           <Grid item xs={1}/>
         </Grid>
-    </MuiThemeProvider>
     )
 }
 

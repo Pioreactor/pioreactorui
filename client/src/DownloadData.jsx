@@ -3,9 +3,6 @@ import React from "react";
 import Grid from '@material-ui/core/Grid';
 import Header from "./components/Header"
 
-import CssBaseline from "@material-ui/core/CssBaseline";
-import { MuiThemeProvider, createMuiTheme } from "@material-ui/core/styles";
-
 import { makeStyles } from '@material-ui/core/styles';
 import FormLabel from '@material-ui/core/FormLabel';
 import FormControl from '@material-ui/core/FormControl';
@@ -41,15 +38,6 @@ const useStyles = makeStyles((theme) => ({
     marginBottom: 0,
   },
 }));
-
-
-const themeLight = createMuiTheme({
-  palette: {
-    background: {
-      default: "#fafbfc"
-    }
-  }
-});
 
 
 
@@ -254,8 +242,6 @@ function DownloadDataFormContainer() {
 
 function DownloadData() {
     return (
-    <MuiThemeProvider theme={themeLight}>
-      <CssBaseline />
         <Grid container spacing={2} >
           <Grid item xs={12}><Header /></Grid>
 
@@ -266,7 +252,6 @@ function DownloadData() {
           <Grid item md={3} xs={false}/>
 
         </Grid>
-    </MuiThemeProvider>
     )
 }
 

@@ -10,17 +10,6 @@ import AllUnitsManagerCard from "./components/AllUnitsManagerCard";
 import ClearChartButton from "./components/ClearChartButton";
 import ClearLogButton from "./components/ClearLogButton";
 
-import CssBaseline from "@material-ui/core/CssBaseline";
-import { MuiThemeProvider, createMuiTheme } from "@material-ui/core/styles";
-
-const themeLight = createMuiTheme({
-  palette: {
-    background: {
-      default: "#fafbfc",
-    },
-  },
-});
-
 
 
 function Dashboard() {
@@ -41,8 +30,6 @@ function Dashboard() {
   }, [])
 
   return (
-    <MuiThemeProvider theme={themeLight}>
-      <CssBaseline />
       <div>
         <Grid container spacing={4}>
           <Grid item xs={12}>
@@ -129,7 +116,6 @@ function Dashboard() {
           <Grid item xs={false} md={1}/>
         </Grid>
       </div>
-    </MuiThemeProvider>
   );
 }
 export default Dashboard;

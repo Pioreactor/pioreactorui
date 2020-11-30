@@ -13,8 +13,10 @@ function StartStirringButton(props){
 
   const onClick = (e) => {
     setIsClicked(true)
-    fetch("/run/stirring/$broadcast").then(r => {
-      setOpenSnackbar(true)
+    fetch("/run/stirring/$broadcast").then(res => {
+      if (res.status === 200){
+        setOpenSnackbar(true);
+      }
     })
   }
 
@@ -30,7 +32,7 @@ function StartStirringButton(props){
       anchorOrigin={{vertical: "bottom", horizontal: "center"}}
       open={openSnackbar}
       onClose={handleSnackbarClose}
-      message={"Stirring started"}
+      message={"Stirring starting"}
       autoHideDuration={7000}
       key={"snackbarStirring"}
     />
@@ -46,8 +48,10 @@ function StartODReading(props){
 
   const onClick = (e) => {
     setIsClicked(true)
-    fetch("/run/od_reading/$broadcast").then(r => {
-      setOpenSnackbar(true)
+    fetch("/run/od_reading/$broadcast").then(res => {
+      if (res.status === 200){
+        setOpenSnackbar(true);
+      }
     })
   }
 
@@ -58,12 +62,12 @@ function StartODReading(props){
   return(
     <div>
       <p> Next, we will turn on the optical density reading. We also call this <em>OD readings</em>. This will provide us with a measure of cell density. After a minute or so, you should see the data in the chart below. </p>
-      <Button variant="contained"  color="primary" disabled={isClicked ? true : false } onClick={onClick}> Start optical density sensors </Button>
+      <Button variant="contained"  color="primary" disabled={isClicked ? true : false } onClick={onClick}> Start OD readings </Button>
       <Snackbar
       anchorOrigin={{vertical: "bottom", horizontal: "center"}}
       open={openSnackbar}
       onClose={handleSnackbarClose}
-      message={"OD reading started"}
+      message={"OD reading starting"}
       autoHideDuration={7000}
       key={"snackbarOD"}
     />

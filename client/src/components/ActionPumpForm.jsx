@@ -33,7 +33,7 @@ export default function ActionPumpForm(props) {
   function onSubmit(e) {
     e.preventDefault();
     if (mL !== emptyState || duration !== emptyState) {
-      const params = mL !== "" ? { ml: mL } : { duration: duration };
+      const params = mL !== "" ? { ml: mL, source_of_event: "UI"} : { duration: duration, source_of_event: "UI"};
       fetch(
         "/run/" +
           props.action +
