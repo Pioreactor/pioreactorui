@@ -285,6 +285,65 @@ function ButtonSettingsDialog(props) {
   }
 
 
+  function createUserButtonsBasedOnState(jobState, jobAttr){
+       switch (jobState){
+                case "lost":
+                case "disconnected":
+                 return (<div><Button
+                          disableElevation
+                          color="primary"
+                          variant="contained"
+                          size="small"
+                          onClick={startPioreactorJob(jobAttr)}
+                        >
+                          Start
+                        </Button></div>)
+                case "init":
+                case "ready":
+                  return (<div>
+                    <Button
+                      disableElevation
+                      color="secondary"
+                      variant="contained"
+                      size="small"
+                      onClick={setPioreactorJobState(jobAttr, "sleeping")}
+                    >
+                      Pause
+                    </Button>
+                    <Button
+                      disableElevation
+                      color="secondary"
+                      onClick={setPioreactorJobState(jobAttr, "disconnected")}
+                    >
+                      Stop
+                    </Button>
+                  </div>)
+                case "sleeping":
+                  return (<div>
+                    <Button
+                      disableElevation
+                      color="primary"
+                      variant="contained"
+                      size="small"
+                      onClick={setPioreactorJobState(jobAttr, "ready")}
+                    >
+                      Resume
+                    </Button>
+                    <Button
+                      disableElevation
+                      color="secondary"
+                      onClick={setPioreactorJobState(jobAttr, "disconnected")}
+                    >
+                      Stop
+                    </Button>
+                  </div>)
+              }
+   }
+
+  const ioButtons = createUserButtonsBasedOnState(props.IOEventsJobState, "io_controlling")
+  const odButtons = createUserButtonsBasedOnState(props.ODReadingJobState, "od_reading")
+  const grButtons = createUserButtonsBasedOnState(props.growthRateJobState, "growth_rate_calculating")
+
   return (
     <div>
     <Button
@@ -305,125 +364,33 @@ function ButtonSettingsDialog(props) {
         <Typography color="textSecondary" gutterBottom>
           Optical density reading
         </Typography>
-        <Typography variant="body2" component="p">
+        <Typography variant="body2" component="p" gutterBottom>
           Pausing the optical density readings will also pause
           downstream jobs that rely on optical density readings, like growth
           rates.
         </Typography>
-        <Button
-          disableElevation
-          disabled={props.ODReadingJobState !== "disconnected"}
-          color="primary"
-          onClick={startPioreactorJob("od_reading")}
-        >
-          Start
-        </Button>
-        <Button
-          disableElevation
-          disabled={["sleeping", "disconnected", "init"].includes(props.ODReadingJobState)}
-          color="secondary"
-          onClick={setPioreactorJobState("od_reading", "sleeping")}
-        >
-          Pause
-        </Button>
-        <Button
-          disableElevation
-          disabled={["ready", "disconnected", "init"].includes(props.ODReadingJobState)}
-          color="primary"
-          onClick={setPioreactorJobState("od_reading", "ready")}
-        >
-          Unpause
-        </Button>
-        <Button
-          disableElevation
-          disabled={props.ODReadingJobState === "disconnected"}
-          color="secondary"
-          onClick={setPioreactorJobState("od_reading", "disconnected")}
-        >
-          Disconnect
-        </Button>
+
+        {odButtons}
 
         <Divider className={classes.divider} />
         <Typography color="textSecondary" gutterBottom>
           Growth rate calculating
         </Typography>
-        <Typography variant="body2" component="p">
-          Start, or pause, calculating the implied growth rate and smoothed
-          optical densities.
+        <Typography variant="body2" component="p" gutterBottom>
+          Pausing the growth rate calculating will also pause
+          downstream jobs that rely on it, like IO events.
         </Typography>
-        <Button
-          disableElevation
-          disabled={props.growthRateJobState !== "disconnected"}
-          color="primary"
-          onClick={startPioreactorJob("growth_rate_calculating")}
-        >
-          Start
-        </Button>
-        <Button
-          disableElevation
-          disabled={["sleeping", "disconnected", "init"].includes(props.growthRateJobState)}
-          color="secondary"
-          onClick={setPioreactorJobState("growth_rate_calculating", "sleeping")}
-        >
-          Pause
-        </Button>
-        <Button
-          disableElevation
-          disabled={["ready", "disconnected", "init"].includes(props.growthRateJobState)}
-          color="primary"
-          onClick={setPioreactorJobState("growth_rate_calculating", "ready")}
-        >
-          Unpause
-        </Button>
-        <Button
-          disableElevation
-          disabled={props.growthRateJobState === "disconnected"}
-          color="secondary"
-          onClick={setPioreactorJobState("growth_rate_calculating", "disconnected")}
-        >
-          Disconnect
-        </Button>
+
+        {grButtons}
 
         <Divider className={classes.divider} />
         <Typography color="textSecondary" gutterBottom>
           Input/Output events
         </Typography>
-        <Typography variant="body2" component="p">
-          By default, IO events will start in Silent mode.
+        <Typography variant="body2" component="p" gutterBottom>
+          By default, IO events will start in <span className={"underlineSpan"} title="Silent mode performs no IO operations.">Silent</span> mode.
         </Typography>
-        <Button
-          disableElevation
-          disabled={props.IOEventsJobState != "disconnected"}
-          color="primary"
-          onClick={startPioreactorJob("io_controlling")}
-        >
-          Start
-        </Button>
-        <Button
-          disableElevation
-          disabled={["sleeping", "disconnected", "init"].includes(props.IOEventsJobState)}
-          color="secondary"
-          onClick={setPioreactorJobState("io_controlling", "sleeping")}
-        >
-          Pause
-        </Button>
-        <Button
-          disableElevation
-          disabled={["ready", "disconnected", "init"].includes(props.IOEventsJobState)}
-          color="primary"
-          onClick={setPioreactorJobState("io_controlling", "ready")}
-        >
-          Unpause
-        </Button>
-        <Button
-          disableElevation
-          disabled={props.IOEventsJobState === "disconnected"}
-          color="secondary"
-          onClick={setPioreactorJobState("io_controlling", "disconnected")}
-        >
-          Disconnect
-        </Button>
-
+          {ioButtons}
         <Divider className={classes.divider} />
         <Typography color="textSecondary" gutterBottom>
           Stirring

@@ -62,7 +62,7 @@ const useStyles = makeStyles({
 
 function ButtonAllUnitSettingsDialog(props) {
   const classes = useStyles();
-  const unitNumber = "'$broadcast'"
+  const unitNumber = "$broadcast"
   const [open, setOpen] = useState(false);
 
 
@@ -88,6 +88,7 @@ function ButtonAllUnitSettingsDialog(props) {
         "$state",
         "set",
       ].join("/");
+      console.log(message.destinationName)
       message.qos = 1;
       client.publish(message);
     };
@@ -121,6 +122,53 @@ function ButtonAllUnitSettingsDialog(props) {
     setOpen(false);
   };
 
+
+  function startPioreactorJob(job_attr){
+    return function() {
+      console.log("fetching")
+      fetch("/run/" + job_attr + "/" + unitNumber).then(res => {
+      })
+    }
+  }
+
+  function createUserButtonsBasedOnState(jobAttr){
+       return (<div>
+            <Button
+              disableElevation
+              color="primary"
+              onClick={startPioreactorJob(jobAttr)}
+            >
+              Start
+            </Button>
+            <Button
+              disableElevation
+              color="primary"
+              onClick={setJobState(jobAttr, "sleeping")}
+            >
+              Pause
+            </Button>
+            <Button
+              disableElevation
+              color="primary"
+              onClick={setJobState(jobAttr, "ready")}
+            >
+              Resume
+            </Button>
+            <Button
+              disableElevation
+              color="secondary"
+              onClick={setJobState(jobAttr, "disconnected")}
+            >
+              Stop
+            </Button>
+          </div>
+   )}
+
+  const ioButtons = createUserButtonsBasedOnState("io_controlling")
+  const odButtons = createUserButtonsBasedOnState("od_reading")
+  const grButtons = createUserButtonsBasedOnState("growth_rate_calculating")
+
+
   return (
     <div>
       <Button color="primary" size="small" onClick={handleClickOpen}>
@@ -146,20 +194,9 @@ function ButtonAllUnitSettingsDialog(props) {
             downstream jobs that rely on optical density readings, like growth
             rates.
           </Typography>
-          <Button
-            disableElevation
-            color="secondary"
-            onClick={setJobState("od_reading", "sleeping")}
-          >
-            Pause all
-          </Button>
-          <Button
-            disableElevation
-            color="primary"
-            onClick={setJobState("od_reading", "ready")}
-          >
-            Unpause all
-          </Button>
+
+          {odButtons}
+
           <Divider className={classes.divider} />
           <Typography color="textSecondary" gutterBottom>
             Growth rate calculating
@@ -168,20 +205,9 @@ function ButtonAllUnitSettingsDialog(props) {
             Pause or start the calculating the implied growth rate and smooted
             optical densities.
           </Typography>
-          <Button
-            disableElevation
-            color="secondary"
-            onClick={setJobState("growth_rate_calculating", "sleeping")}
-          >
-            Pause all
-          </Button>
-          <Button
-            disableElevation
-            color="primary"
-            onClick={setJobState("growth_rate_calculating", "ready")}
-          >
-            Unpause all
-          </Button>
+
+          {grButtons}
+
           <Divider className={classes.divider} />
           <Typography color="textSecondary" gutterBottom>
             Input/output events
@@ -189,20 +215,9 @@ function ButtonAllUnitSettingsDialog(props) {
           <Typography variant="body2" component="p">
             Pause media input/output events from occuring, or restart them.
           </Typography>
-          <Button
-            disableElevation
-            color="secondary"
-            onClick={setJobState("io_controlling", "sleeping")}
-          >
-            Pause all
-          </Button>
-          <Button
-            disableElevation
-            color="primary"
-            onClick={setJobState("io_controlling", "ready")}
-          >
-            Unpause all
-          </Button>
+
+          {ioButtons}
+
           <Divider className={classes.divider} />
           <Typography color="textSecondary" gutterBottom>
             Volume per dilution

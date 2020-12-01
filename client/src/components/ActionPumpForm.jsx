@@ -95,6 +95,7 @@ export default function ActionPumpForm(props) {
       <Button
         type="submit"
         variant="contained"
+        size="small"
         color="primary"
         onClick={onSubmit}
       >
