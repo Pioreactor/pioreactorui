@@ -131,42 +131,43 @@ function ButtonAllUnitSettingsDialog(props) {
     }
   }
 
-  function createUserButtonsBasedOnState(jobAttr){
-       return (<div>
-            <Button
-              disableElevation
-              color="primary"
-              onClick={startPioreactorJob(jobAttr)}
-            >
-              Start
-            </Button>
-            <Button
-              disableElevation
-              color="primary"
-              onClick={setJobState(jobAttr, "sleeping")}
-            >
-              Pause
-            </Button>
-            <Button
-              disableElevation
-              color="primary"
-              onClick={setJobState(jobAttr, "ready")}
-            >
-              Resume
-            </Button>
-            <Button
-              disableElevation
-              color="secondary"
-              onClick={setJobState(jobAttr, "disconnected")}
-            >
-              Stop
-            </Button>
-          </div>
-   )}
+  function createUserButtonsBasedOnState(job, parentJob=null){
+    parentJob = parentJob || job
+    return (<div>
+        <Button
+          disableElevation
+          color="primary"
+          onClick={startPioreactorJob(job)}
+        >
+          Start
+        </Button>
+        <Button
+          disableElevation
+          color="primary"
+          onClick={setJobState(job, "sleeping")}
+        >
+          Pause
+        </Button>
+        <Button
+          disableElevation
+          color="primary"
+          onClick={setJobState(job, "ready")}
+        >
+          Resume
+        </Button>
+        <Button
+          disableElevation
+          color="secondary"
+          onClick={setJobState(parentJob, "disconnected")}
+        >
+          Stop
+        </Button>
+      </div>
+  )}
 
-  const ioButtons = createUserButtonsBasedOnState("io_controlling")
   const odButtons = createUserButtonsBasedOnState("od_reading")
   const grButtons = createUserButtonsBasedOnState("growth_rate_calculating")
+  const ioButtons = createUserButtonsBasedOnState("io_controlling", "algorithm_controlling")
 
 
   return (

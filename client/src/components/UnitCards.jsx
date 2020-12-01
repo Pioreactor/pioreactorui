@@ -285,64 +285,66 @@ function ButtonSettingsDialog(props) {
   }
 
 
-  function createUserButtonsBasedOnState(jobState, jobAttr){
-       switch (jobState){
-                case "lost":
-                case "disconnected":
-                 return (<div><Button
-                          disableElevation
-                          color="primary"
-                          variant="contained"
-                          size="small"
-                          onClick={startPioreactorJob(jobAttr)}
-                        >
-                          Start
-                        </Button></div>)
-                case "init":
-                case "ready":
-                  return (<div>
-                    <Button
-                      disableElevation
-                      color="secondary"
-                      variant="contained"
-                      size="small"
-                      onClick={setPioreactorJobState(jobAttr, "sleeping")}
-                    >
-                      Pause
-                    </Button>
-                    <Button
-                      disableElevation
-                      color="secondary"
-                      onClick={setPioreactorJobState(jobAttr, "disconnected")}
-                    >
-                      Stop
-                    </Button>
-                  </div>)
-                case "sleeping":
-                  return (<div>
-                    <Button
-                      disableElevation
-                      color="primary"
-                      variant="contained"
-                      size="small"
-                      onClick={setPioreactorJobState(jobAttr, "ready")}
-                    >
-                      Resume
-                    </Button>
-                    <Button
-                      disableElevation
-                      color="secondary"
-                      onClick={setPioreactorJobState(jobAttr, "disconnected")}
-                    >
-                      Stop
-                    </Button>
-                  </div>)
-              }
+  function createUserButtonsBasedOnState(jobState, job, parentJob=null){
+
+    parentJob = parentJob || job
+    switch (jobState){
+      case "lost":
+      case "disconnected":
+       return (<div><Button
+                disableElevation
+                color="primary"
+                variant="contained"
+                size="small"
+                onClick={startPioreactorJob(job)}
+              >
+                Start
+              </Button></div>)
+      case "init":
+      case "ready":
+        return (<div>
+          <Button
+            disableElevation
+            color="secondary"
+            variant="contained"
+            size="small"
+            onClick={setPioreactorJobState(job, "sleeping")}
+          >
+            Pause
+          </Button>
+          <Button
+            disableElevation
+            color="secondary"
+            onClick={setPioreactorJobState(parentJob, "disconnected")}
+          >
+            Stop
+          </Button>
+        </div>)
+      case "sleeping":
+        return (<div>
+          <Button
+            disableElevation
+            color="primary"
+            variant="contained"
+            size="small"
+            onClick={setPioreactorJobState(job, "ready")}
+          >
+            Resume
+          </Button>
+          <Button
+            disableElevation
+            color="secondary"
+            onClick={setPioreactorJobState(parentJob, "disconnected")}
+          >
+            Stop
+          </Button>
+        </div>)
+    }
    }
 
-  const ioButtons = createUserButtonsBasedOnState(props.IOEventsJobState, "io_controlling")
   const odButtons = createUserButtonsBasedOnState(props.ODReadingJobState, "od_reading")
   const grButtons = createUserButtonsBasedOnState(props.growthRateJobState, "growth_rate_calculating")
+  const ioButtons = createUserButtonsBasedOnState(props.IOEventsJobState, "io_controlling", "algorithm_controlling")
 
   return (
     <div>

@@ -7,6 +7,7 @@ const url = require('url');
 const { exec } = require("child_process");
 const cp = require('child_process');
 const sqlite3 = require('sqlite3').verbose()
+const fs = require('fs')
 
 const app = express()
 app.use(bodyParser.json());
@@ -38,6 +39,11 @@ app.get('/download-data', function(req, res) {
 })
 
 app.get('/start-new-experiment', function(req, res) {
+    app.use(express.static(path.join(__dirname, 'build')));
+    res.sendFile(path.join(__dirname, 'build', 'index.html'));
+})
+
+app.get('/edit-config', function(req, res) {
     app.use(express.static(path.join(__dirname, 'build')));
     res.sendFile(path.join(__dirname, 'build', 'index.html'));
 })
@@ -158,6 +164,22 @@ app.post("/update_experiment_desc", function (req, res) {
         }
     })
 })
+
+
+app.get("/get_current_config", function(req, res) {
+  var configPath = path.join(process.env.CONFIG_INI_FOLDER, 'config.ini');
+  res.send(fs.readFileSync(configPath))
+})
+
+app.post("/save_new_config", function(req, res) {
+  // TODO handle failure
+  var configPath = path.join(process.env.CONFIG_INI_FOLDER, 'config.ini');
+  fs.writeFile(configPath, req.body.code, function (err) {
+    if (err) return console.log(err);
+  })
+  res.sendStatus(200)
+})
+
 
 
 const PORT = process.env.PORT || 3000

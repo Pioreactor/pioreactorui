@@ -3,6 +3,7 @@ import { makeStyles } from '@material-ui/core/styles';
 import SwipeableDrawer from '@material-ui/core/SwipeableDrawer';
 import List from '@material-ui/core/List';
 import {Typography} from '@material-ui/core';
+import Divider from '@material-ui/core/Divider';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
@@ -13,6 +14,7 @@ import AddIcon from '@material-ui/icons/Add';
 import SaveAltIcon from '@material-ui/icons/SaveAlt';
 import SettingsIcon from '@material-ui/icons/Settings';
 import DashboardIcon from '@material-ui/icons/Dashboard';
+import BatteryStdIcon from '@material-ui/icons/BatteryStd';
 
 const useStyles = makeStyles({
   list: {
@@ -65,16 +67,23 @@ export default function Drawer() {
           <ListItemIcon> <AddIcon color={isSelected("/start-new-experiment") ? "primary" : "inherit"}/> </ListItemIcon>
           <ListItemText primary={"Start new experiment"} />
         </ListItem>
-
+      </List>
+      <Divider />
+      <List>
+        <ListItem button href="/edit-config"  component="a" key={"edit_config"} selected={isSelected("/edit-config")}>
+          <ListItemIcon> <EditIcon color={isSelected("/edit-config") ? "primary" : "inherit"}/> </ListItemIcon>
+          <ListItemText primary={"Edit config.ini"} />
+        </ListItem>
         <ListItem button href="/calibrate"  component="a" key={"calibrate"} selected={isSelected("/calibrate")}>
           <ListItemIcon> <SettingsIcon color={isSelected("/calibrate") ? "primary" : "inherit"}/> </ListItemIcon>
           <ListItemText primary={"Calibrate unit"} />
         </ListItem>
 
-        <ListItem button href="/edit-config"  component="a" key={"edit_config"} selected={isSelected("/edit-config")}>
-          <ListItemIcon> <EditIcon color={isSelected("/edit-config") ? "primary" : "inherit"}/> </ListItemIcon>
-          <ListItemText primary={"Edit config.ini"} />
+        <ListItem button href="/add-new-pioreactor"  component="a" key={"add-new-pioreactor"} selected={isSelected("/add-new-pioreactor")}>
+          <ListItemIcon> <BatteryStdIcon color={isSelected("/add-new-pioreactor") ? "primary" : "inherit"}/> </ListItemIcon>
+          <ListItemText primary={"Add new Pioreactor"} />
         </ListItem>
+
       </List>
     </div>
   );
