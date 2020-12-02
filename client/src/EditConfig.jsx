@@ -31,17 +31,11 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 
-const highlight = editor => {
-  let code = editor.textContent;
-  code = code.replace(/\((\w+?)(\b)/g, '(<font color="#8a2be2">$1</font>$2');
-  editor.innerHTML = code;
-};
-
 
 class EditableCodeDiv extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {code: "", openSnackbar: false, filename: "config.ini"};
+    this.state = {code: "", openSnackbar: false, filename: "config.ini", snackbarMsg: ""};
     this.saveCurrentCode = this.saveCurrentCode.bind(this);
     this.availableConfigs = [
       {name: "shared config.ini", filename: "config.ini"},
@@ -73,6 +67,11 @@ class EditableCodeDiv extends React.Component {
         }
       })
     .then(res => {
+      if (res.ok) {
+        this.setState({snackbarMsg: this.state.filename + " saved"})
+      } else {
+        this.setState({snackbarMsg: "Something when wrong saving or syncing..."})
+      }
       this.setState({openSnackbar: true});
     })
   }
@@ -132,7 +131,7 @@ class EditableCodeDiv extends React.Component {
           anchorOrigin={{vertical: "bottom", horizontal: "center"}}
           open={this.state.openSnackbar}
           onClose={this.handleSnackbarClose}
-          message={this.state.filename + " saved"}
+          message={this.state.snackbarMsg}
           autoHideDuration={2000}
           key={"snackbar"}
         />
@@ -140,6 +139,7 @@ class EditableCodeDiv extends React.Component {
     )
   }
 }
+
 
 
 

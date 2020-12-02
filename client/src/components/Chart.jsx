@@ -136,11 +136,13 @@ class Chart extends React.Component {
 
     try {
       if (!(key in this.state.seriesMap)){
-        this.state.seriesMap[key] = {
+        const newSeriesMap = {...this.state.seriesMap, [key]:  {
           data: [],
           name: key,
           color: colors[key]
-        }
+        }}
+
+        this.setState({ seriesMap: newSeriesMap })
         this.setState({
           names: [...this.state.names, key]
         })

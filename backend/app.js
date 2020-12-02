@@ -175,9 +175,27 @@ app.post("/save_new_config", function(req, res) {
   // TODO handle failure
   var configPath = path.join(process.env.CONFIG_INI_FOLDER, req.body.filename);
   fs.writeFile(configPath, req.body.code, function (err) {
-    if (err) return console.log(err);
+    if (err) {
+      res.sendStatus(500)
+    }
+    else {
+      command = (["pios", "sync-configs"]).join(" ")
+      exec(command, (error, stdout, stderr) => {
+          if (error) {
+              console.log(error)
+              res.sendStatus(500);
+          }
+          else if (stderr) {
+              console.log(stderr)
+              res.sendStatus(500);
+          }
+          else{
+            console.log(`stdout: ${stdout}`);
+            res.sendStatus(200)
+          }
+      });
+    }
   })
-  res.sendStatus(200)
 })
 
 

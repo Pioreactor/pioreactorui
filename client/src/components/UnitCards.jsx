@@ -101,6 +101,38 @@ const useStyles = makeStyles({
   displaySettings: {},
 });
 
+
+function parseINIString(data){
+    var regex = {
+        section: /^\s*\[\s*([^\]]*)\s*\]\s*$/,
+        param: /^\s*([^=]+?)\s*=\s*(.*?)\s*$/,
+        comment: /^\s*;.*$/
+    };
+    var value = {};
+    var lines = data.split(/[\r\n]+/);
+    var section = null;
+    lines.forEach(function(line){
+        if(regex.comment.test(line)){
+            return;
+        }else if(regex.param.test(line)){
+            var match = line.match(regex.param);
+            if(section){
+                value[section][match[1]] = match[2];
+            }else{
+                value[match[1]] = match[2];
+            }
+        }else if(regex.section.test(line)){
+            var match = line.match(regex.section);
+            value[match[1]] = {};
+            section = match[1];
+        }else if(line.length === 0 && section){
+            section = null;
+        };
+    });
+    return value;
+}
+
+
 class UnitSettingDisplay extends React.Component {
   constructor(props) {
     super(props);
@@ -192,15 +224,21 @@ function ButtonSettingsDialog(props) {
 
   useEffect(() => {
     async function fetchData() {
-      await fetch("./static/js/config.json")
+      await fetch("/get_config/config" + props.unitNumber + ".ini")
         .then((response) => {
-          return response.json();
-        })
+            if (response.ok) {
+              return response.text();
+            } else {
+              throw new Error('Something went wrong');
+            }
+          })
         .then((config) => {
+          config = parseINIString(config);
           setDefaultStirring(
             config["stirring"]["duty_cycle" + props.unitNumber]
           );
-        });
+        })
+        .catch((error) => {})
     }
     fetchData();
   }, []);
@@ -417,7 +455,7 @@ function ButtonSettingsDialog(props) {
           />
         </div>
         <Typography className={classes.footnote} color="textSecondary">
-          Default values are defined in the <code>config.ini</code> file.
+          Default values are defined in the unit's <code>config.ini</code> file.
         </Typography>
         <Divider className={classes.divider} />
         <Typography color="textSecondary" gutterBottom>
