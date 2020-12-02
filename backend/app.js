@@ -166,14 +166,14 @@ app.post("/update_experiment_desc", function (req, res) {
 })
 
 
-app.get("/get_current_config", function(req, res) {
-  var configPath = path.join(process.env.CONFIG_INI_FOLDER, 'config.ini');
+app.get("/get_config/:filename", function(req, res) {
+  var configPath = path.join(process.env.CONFIG_INI_FOLDER, req.params.filename);
   res.send(fs.readFileSync(configPath))
 })
 
 app.post("/save_new_config", function(req, res) {
   // TODO handle failure
-  var configPath = path.join(process.env.CONFIG_INI_FOLDER, 'config.ini');
+  var configPath = path.join(process.env.CONFIG_INI_FOLDER, req.body.filename);
   fs.writeFile(configPath, req.body.code, function (err) {
     if (err) return console.log(err);
   })

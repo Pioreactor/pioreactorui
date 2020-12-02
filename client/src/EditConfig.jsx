@@ -8,6 +8,7 @@ import CardContent from '@material-ui/core/Card';
 import Button from '@material-ui/core/Button';
 import {Typography} from '@material-ui/core';
 import Snackbar from '@material-ui/core/Snackbar';
+import Select from '@material-ui/core/Select';
 
 import { CodeFlaskReact } from "react-codeflask"
 
@@ -40,13 +41,19 @@ const highlight = editor => {
 class EditableCodeDiv extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {code: "", openSnackbar: false};
+    this.state = {code: "", openSnackbar: false, filename: "config.ini"};
     this.saveCurrentCode = this.saveCurrentCode.bind(this);
+    this.availableConfigs = [
+      {name: "shared config.ini", filename: "config.ini"},
+      {name: "unit 1 config.ini", filename: "config1.ini"},
+      {name: "unit 2 config.ini", filename: "config2.ini"},
+      {name: "unit 3 config.ini", filename: "config3.ini"},
 
+    ]
   }
 
-  async getData() {
-    await fetch("/get_current_config")
+  async getData(filename) {
+    await fetch("/get_config/" + filename)
       .then(response => {
         return response.text();
       })
@@ -59,7 +66,7 @@ class EditableCodeDiv extends React.Component {
   saveCurrentCode() {
     fetch('/save_new_config',{
         method: "POST",
-        body: JSON.stringify({code :this.state.code}),
+        body: JSON.stringify({code :this.state.code, filename: this.state.filename}),
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json'
@@ -71,15 +78,21 @@ class EditableCodeDiv extends React.Component {
   }
 
   componentDidMount() {
-    this.getData()
+    this.getData(this.state.filename)
   }
+
+  onSelectionChange = (e) => {
+    this.setState({filename: e.target.value})
+    this.getData(e.target.value)
+  }
+
 
   getCodeFlaskRef = (codeFlask) => {
     this.codeFlask = codeFlask
   }
 
-  onChange = (code) => {
-    this.setState({ code })
+  onTextChange = (code) => {
+    this.setState({code: code})
   }
 
   handleSnackbarClose = () => {
@@ -87,22 +100,39 @@ class EditableCodeDiv extends React.Component {
   };
 
   render() {
+    console.log(this.state)
     return (
       <div>
+        <Select
+          style={{margin: "10px 10px 10px 10px"}}
+          native
+          value={this.state.filename}
+          onChange={this.onSelectionChange}
+          inputProps={{
+            name: 'config',
+            id: 'config',
+          }}
+        >
+          {this.availableConfigs.map((v) => {
+            return <option key={v.filename} value={v.filename}>{v.name}</option>
+            }
+          )}
+        </Select>
+
         <div style={{margin: "10px auto 10px auto", position: "relative", width: "98%", height: "320px", border: "1px solid #ccc"}}>
           <CodeFlaskReact
             code={this.state.code}
-            onChange={this.onChange}
+            onChange={this.onTextChange}
             editorRef={this.getCodeFlaskRef}
             language={"python"}
           />
         </div>
-        <Button color="primary" variant="contained" onClick={this.saveCurrentCode}> Save </Button>
+        <Button style={{margin: "5px 10px 5px 10px"}} color="primary" variant="contained" onClick={this.saveCurrentCode}> Save </Button>
         <Snackbar
           anchorOrigin={{vertical: "bottom", horizontal: "center"}}
           open={this.state.openSnackbar}
           onClose={this.handleSnackbarClose}
-          message={"config.ini saved"}
+          message={this.state.filename + " saved"}
           autoHideDuration={2000}
           key={"snackbar"}
         />
@@ -122,7 +152,9 @@ function EditConfigContainer(){
         <Typography variant="h5" component="h2">
           Edit config.ini
         </Typography>
-        <p style={{maxWidth: "100%"}}>Update the <code>config.ini</code> file on the leader pioreactor. After syncing, this will be deployed to all the pioreactor units. For some configs (the like <code>dashboard</code> configs), the leader may need to be restarted.</p>
+        <p>Update the <code>config.ini</code> files. The shared <code>config.ini</code> will be deployed to <em>all</em> units, but can be overwritten with a specific unit's <code>config.ini</code>.</p>
+
+        <p>Note: for some configs (the like <code>dashboard</code> configs), the leader may need to be restarted.</p>
         <EditableCodeDiv/>
       </CardContent>
     </Card>
