@@ -11,13 +11,14 @@ You will also see any lint errors in the console.
 
 ### Production
 
-#### `npm run build`
+
+In `client/` folder:
+
+```
+npm run build && cp -r build/ ../backend/ && pm2 restart ui
+```
 
 Builds the app for production to the `build` folder.<br />
 It correctly bundles React in production mode and optimizes the build for the best performance.
 
 The build is minified and the filenames include the hashes.<br />
-
-Start the backend server, first. Then run:
-
-`serve -s build -l 9000`

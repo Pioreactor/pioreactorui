@@ -154,7 +154,7 @@ function EditConfigContainer(){
         </Typography>
         <p>Update the <code>config.ini</code> files. The shared <code>config.ini</code> will be deployed to <em>all</em> units, but can be overwritten with a specific unit's <code>config.ini</code>.</p>
 
-        <p>Note: for some configs (the like <code>dashboard</code> configs), the leader may need to be restarted.</p>
+        <p>Note: for some settings (like any <code>dashboard</code> settings), the leader may need to be restarted.</p>
         <EditableCodeDiv/>
       </CardContent>
     </Card>
