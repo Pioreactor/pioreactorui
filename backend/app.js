@@ -172,7 +172,8 @@ app.get("/get_config/:filename", function(req, res) {
 })
 
 app.post("/save_new_config", function(req, res) {
-  // TODO handle failure
+  // this will get too slow as more and more units are added.
+  // need to extract out unit number and ship to only that unit.
   var configPath = path.join(process.env.CONFIG_INI_FOLDER, req.body.filename);
   fs.writeFile(configPath, req.body.code, function (err) {
     if (err) {

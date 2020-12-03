@@ -30,12 +30,12 @@ class EditableDescription extends React.Component {
   constructor(props) {
     super(props)
     this.contentEditable = React.createRef();
-    this.state = {desc: "", openSnackBar: false};
+    this.state = {desc: "", openSnackBar: false, originalDesc: ""};
   };
 
   componentDidUpdate(prevProps) {
     if (this.props.description !== prevProps.description) {
-      this.setState({'desc': `${this.props.description}`})
+      this.setState({desc: `${this.props.description}`, originalDesc: `${this.props.description}`})
     }
   }
 
@@ -44,19 +44,21 @@ class EditableDescription extends React.Component {
   };
 
   onBlur = evt => {
-    return fetch('update_experiment_desc', {
-        method: "POST",
-        body: JSON.stringify({experiment : this.props.experiment, description: this.state.desc}),
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json'
-        }
-      }).then(res => {
-        if (res.status === 200){
-          this.setState({openSnackBar: true});
-        }
-      }
-     )
+    if (this.state.desc !== this.state.originalDesc) {
+      this.setState({originalDesc: this.state.desc})
+      return fetch('update_experiment_desc', {
+          method: "POST",
+          body: JSON.stringify({experiment : this.props.experiment, description: this.state.desc}),
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          }
+        }).then(res => {
+          if (res.status === 200){
+            this.setState({openSnackBar: true});
+          }
+        })
+    }
   };
 
   handleSnackbarClose = (e, reason) => {

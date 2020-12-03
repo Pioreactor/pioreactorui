@@ -44,9 +44,8 @@ function Dashboard() {
 
             <Grid item>
               <Chart
-                dataFile={"./data/growth_rate.json"}
+                dataFile={"./data/growth_rate_time_series_aggregating.json"}
                 interpolation="stepAfter"
-                fontScale={1}
                 title="Implied growth rate"
                 topic="growth_rate"
                 yAxisLabel="Growth rate, h⁻¹"
@@ -56,9 +55,8 @@ function Dashboard() {
 
             <Grid item >
               <Chart
-                dataFile={"./data/alt_media_calculating_alt_media_fraction.json"}
+                dataFile={"./data/alt_media_fraction_time_series_aggregating.json"}
                 interpolation="stepAfter"
-                fontScale={1}
                 title="Fraction of volume that is alternative media"
                 topic="alt_media_calculating/alt_media_fraction"
                 yAxisLabel="Fraction"
@@ -69,8 +67,7 @@ function Dashboard() {
             <Grid item>
               <Chart
                 isODReading={true}
-                dataFile={"./data/od_filtered_135.json"}
-                fontScale={1.0}
+                dataFile={"./data/od_filtered_time_series_aggregating.json"}
                 interpolation="stepAfter"
                 title="Filtered 135° optical density"
                 topic="od_filtered/135/+"
@@ -82,8 +79,7 @@ function Dashboard() {
             <Grid item >
               <Chart
                 isODReading={true}
-                dataFile={"./data/od_raw_135.json"}
-                fontScale={1.0}
+                dataFile={"./data/od_raw_time_series_aggregating.json"}
                 interpolation="stepAfter"
                 title="Raw 135° optical density"
                 topic="od_raw/135/+"

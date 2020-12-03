@@ -35,13 +35,18 @@ const useStyles = makeStyles((theme) => ({
 class EditableCodeDiv extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {code: "", openSnackbar: false, filename: "config.ini", snackbarMsg: ""};
+    this.state = {
+      code: "",
+      openSnackbar: false,
+      filename: "config.ini",
+      snackbarMsg: "",
+    };
     this.saveCurrentCode = this.saveCurrentCode.bind(this);
     this.availableConfigs = [
       {name: "shared config.ini", filename: "config.ini"},
-      {name: "unit 1 config.ini", filename: "config1.ini"},
-      {name: "unit 2 config.ini", filename: "config2.ini"},
-      {name: "unit 3 config.ini", filename: "config3.ini"},
+      {name: "1 unit_config.ini", filename: "config1.ini"},
+      {name: "2 unit_config.ini", filename: "config2.ini"},
+      {name: "3 unit_config.ini", filename: "config3.ini"},
 
     ]
   }
@@ -54,7 +59,6 @@ class EditableCodeDiv extends React.Component {
       .then(text => {
         this.setState({code: text});
       })
-
   }
 
   saveCurrentCode() {
@@ -68,9 +72,9 @@ class EditableCodeDiv extends React.Component {
       })
     .then(res => {
       if (res.ok) {
-        this.setState({snackbarMsg: this.state.filename + " saved"})
+        this.setState({snackbarMsg: this.state.filename + " saved and synced."})
       } else {
-        this.setState({snackbarMsg: "Something when wrong saving or syncing..."})
+        this.setState({snackbarMsg: "Hm. Something when wrong saving or syncing..."})
       }
       this.setState({openSnackbar: true});
     })
@@ -85,7 +89,6 @@ class EditableCodeDiv extends React.Component {
     this.getData(e.target.value)
   }
 
-
   getCodeFlaskRef = (codeFlask) => {
     this.codeFlask = codeFlask
   }
@@ -99,7 +102,6 @@ class EditableCodeDiv extends React.Component {
   };
 
   render() {
-    console.log(this.state)
     return (
       <div>
         <Select
@@ -118,7 +120,7 @@ class EditableCodeDiv extends React.Component {
           )}
         </Select>
 
-        <div style={{margin: "10px auto 10px auto", position: "relative", width: "98%", height: "320px", border: "1px solid #ccc"}}>
+        <div style={{margin: "10px auto 10px auto", position: "relative", width: "98%", height: "300px", border: "1px solid #ccc"}}>
           <CodeFlaskReact
             code={this.state.code}
             onChange={this.onTextChange}
@@ -126,7 +128,14 @@ class EditableCodeDiv extends React.Component {
             language={"python"}
           />
         </div>
-        <Button style={{margin: "5px 10px 5px 10px"}} color="primary" variant="contained" onClick={this.saveCurrentCode}> Save </Button>
+        <Button
+          style={{margin: "5px 10px 5px 10px"}}
+          color="primary"
+          variant="contained"
+          onClick={this.saveCurrentCode}
+          disabled={false}>
+          Save
+        </Button>
         <Snackbar
           anchorOrigin={{vertical: "bottom", horizontal: "center"}}
           open={this.state.openSnackbar}
@@ -152,7 +161,7 @@ function EditConfigContainer(){
         <Typography variant="h5" component="h2">
           Edit config.ini
         </Typography>
-        <p>Update the <code>config.ini</code> files. The shared <code>config.ini</code> will be deployed to <em>all</em> units, but can be overwritten with a specific unit's <code>config.ini</code>.</p>
+        <p>Update the <code>config.ini</code> files. The shared <code>config.ini</code> will be deployed to <em>all</em> units, but can be overwritten with a specific unit's <code>config.ini</code>. <a href="https://github.com/Pioreactor/pioreactor/wiki/Configuration">Learn more about Pioreactor configuration</a>.</p>
 
         <p>Note: for some settings (like any <code>dashboard</code> settings), the leader may need to be restarted.</p>
         <EditableCodeDiv/>

@@ -137,7 +137,7 @@ class Chart extends React.Component {
     try {
       if (!(key in this.state.seriesMap)){
         const newSeriesMap = {...this.state.seriesMap, [key]:  {
-          data: [],
+          data: [{x: currentTime, y: parseFloat(message.payloadString)}],
           name: key,
           color: colors[key]
         }}
@@ -146,15 +146,16 @@ class Chart extends React.Component {
         this.setState({
           names: [...this.state.names, key]
         })
+      } else {
+        // .push seems like bad state management, and maybe a hit to performance...
+        this.state.seriesMap[key].data.push({
+          x: currentTime,
+          y: parseFloat(message.payloadString),
+        });
+        this.setState({ seriesMap: this.state.seriesMap })
       }
 
-      // .push seems like bad state management, and maybe a hit to performance...
-      this.state.seriesMap[key].data.push({
-        x: currentTime,
-        y: parseFloat(message.payloadString),
-      });
       this.setState({
-        seriesMap: this.state.seriesMap,
         maxTimestamp: currentTime,
         lastMsgRecievedAt: currentTime,
       });
@@ -234,7 +235,7 @@ ${d.datum.childName}: ${Math.round(d.datum.y * 1000) / 1000}`
             y={30}
             textAnchor="middle"
             style={{
-              fontSize: 15 * this.props.fontScale,
+              fontSize: 15,
               fontFamily: "inherit",
             }}
           />
@@ -243,7 +244,7 @@ ${d.datum.childName}: ${Math.round(d.datum.y * 1000) / 1000}`
             tickValues={ts}
             style={{
               tickLabels: {
-                fontSize: 13 * this.props.fontScale,
+                fontSize: 13,
                 padding: 5,
                 fontFamily: "inherit",
               },
@@ -259,7 +260,7 @@ ${d.datum.childName}: ${Math.round(d.datum.y * 1000) / 1000}`
               <VictoryLabel
                 dy={-40}
                 style={{
-                  fontSize: 15 * this.props.fontScale,
+                  fontSize: 15,
                   padding: 10,
                   fontFamily: "inherit",
                 }}
@@ -267,7 +268,7 @@ ${d.datum.childName}: ${Math.round(d.datum.y * 1000) / 1000}`
             }
             style={{
               tickLabels: {
-                fontSize: 13 * this.props.fontScale,
+                fontSize: 13,
                 padding: 5,
                 fontFamily: "inherit",
               },
@@ -283,7 +284,7 @@ ${d.datum.childName}: ${Math.round(d.datum.y * 1000) / 1000}`
             cursor={"pointer"}
             style={{
               border: { stroke: "#90a4ae" },
-              labels: { fontSize: 13 * this.props.fontScale },
+              labels: { fontSize: 13 },
               data: { stroke: "black", strokeWidth: 1, size: 6 },
             }}
             data={this.state.names.map((name) => {

@@ -25,7 +25,7 @@ const Header = () => {
             <Link color="inherit" underline="none" href="/dashboard" className={classes.title}> Pioreactor </Link>
           </Typography>
           <Button color="inherit">
-            <Link color="inherit" underline="none" href="https://github.com/Pioreactor/pioreactor/wiki" target="_blank" rel="noopener"> Help </Link> <OpenInNewIcon fontSize="small"/>
+            <Link color="inherit" underline="none" href="https://github.com/Pioreactor/pioreactor/wiki/Pioreactor" target="_blank" rel="noopener"> Help </Link> <OpenInNewIcon fontSize="small"/>
           </Button>
         </Toolbar>
       </AppBar>

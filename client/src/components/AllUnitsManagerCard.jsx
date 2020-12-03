@@ -62,7 +62,6 @@ const useStyles = makeStyles({
 
 function ButtonAllUnitSettingsDialog(props) {
   const classes = useStyles();
-  const unitNumber = "$broadcast"
   const [open, setOpen] = useState(false);
 
 
@@ -82,7 +81,7 @@ function ButtonAllUnitSettingsDialog(props) {
       var message = new Message(String(state));
       message.destinationName = [
         "pioreactor",
-        unitNumber,
+        props.unitNumber,
         props.experiment,
         job,
         "$state",
@@ -98,7 +97,7 @@ function ButtonAllUnitSettingsDialog(props) {
     var message = new Message(String(value));
     message.destinationName = [
       "pioreactor",
-      unitNumber,
+      props.unitNumber,
       props.experiment,
       job_attr,
       "set",
@@ -126,7 +125,7 @@ function ButtonAllUnitSettingsDialog(props) {
   function startPioreactorJob(job_attr){
     return function() {
       console.log("fetching")
-      fetch("/run/" + job_attr + "/" + unitNumber).then(res => {
+      fetch("/run/" + job_attr + "/" + props.unitNumber).then(res => {
       })
     }
   }
@@ -462,10 +461,10 @@ const AllUnitsCard = (props) => {
           <VolumeThroughputTally experiment={props.experiment}/>
         </CardContent>
         <CardActions>
-          <ButtonAllUnitSettingsDialog disabled={false} experiment={props.experiment}/>
+          <ButtonAllUnitSettingsDialog disabled={false} unitNumber={"$broadcast"} experiment={props.experiment}/>
           <ButtonActionDialog
             disabled={false}
-            unitNumber={"'$broadcast'"}
+            unitNumber={"$broadcast"}
             title="All units"
             isPlural={true}
             />
