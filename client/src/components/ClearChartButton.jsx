@@ -19,7 +19,7 @@ function ClearChartButton(props){
         message.destinationName = [
           "pioreactor",
           "leader",
-          props.experiment,
+          "$experiment",
           `${jobName}_time_series_aggregating`,
           "aggregated_time_series",
           "set",

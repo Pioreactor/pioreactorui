@@ -4,20 +4,10 @@ import { Client, Message } from "paho-mqtt";
 
 import Grid from '@material-ui/core/Grid';
 import { makeStyles } from '@material-ui/core/styles';
-import FormLabel from '@material-ui/core/FormLabel';
-import FormControl from '@material-ui/core/FormControl';
 import FormGroup from '@material-ui/core/FormGroup';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
-import FormHelperText from '@material-ui/core/FormHelperText';
-import Checkbox from '@material-ui/core/Checkbox';
 import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/Card';
 import {Typography} from '@material-ui/core';
-import Select from '@material-ui/core/Select';
-import Menu from '@material-ui/core/Menu';
-import MenuItem from '@material-ui/core/Select';
-import InputLabel from '@material-ui/core/Select';
-import CircularProgress from '@material-ui/core/CircularProgress';
 import Button from "@material-ui/core/Button";
 import Stepper from '@material-ui/core/Stepper';
 import Step from '@material-ui/core/Step';
@@ -92,7 +82,7 @@ function ExperimentSummaryForm(props) {
 
   function onSubmit(e) {
     e.preventDefault();
-    if (expName == ""){
+    if (expName === ""){
       setFormError(true)
       return
     }
@@ -184,15 +174,6 @@ function ExperimentSummaryForm(props) {
     </div>
   )
 }
-
-function LinkToDashboard() {
-
-  return (
-    <div>
-      <p> Your experiment is all ready to go. You can <a href="/dashboard">view it on the dashboard.</a></p>
-    </div>
-
-)}
 
 
 

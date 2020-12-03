@@ -51,8 +51,8 @@ class LogTable extends React.Component {
   }
 
   onConnect() {
-      this.client.subscribe(["pioreactor", "+", this.props.experiment, "log"].join("/"))
-      this.client.subscribe(["pioreactor", "+", this.props.experiment, "error_log"].join("/"))
+      this.client.subscribe(["pioreactor", "+", "+", "log"].join("/"))
+      this.client.subscribe(["pioreactor", "+", "+", "error_log"].join("/"))
   }
 
   onMessageArrived(message) {

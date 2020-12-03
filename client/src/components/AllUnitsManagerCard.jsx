@@ -450,7 +450,7 @@ class VolumeThroughputTally extends React.Component {
 }
 
 
-const AllUnitsCard = (props) => {
+const AllUnitsManagerCard = (props) => {
     const classes = useStyles();
     return (
       <Card>
@@ -474,4 +474,4 @@ const AllUnitsCard = (props) => {
     )
 }
 
-export default AllUnitsCard;
+export default AllUnitsManagerCard;

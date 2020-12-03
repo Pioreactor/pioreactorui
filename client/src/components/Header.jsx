@@ -22,10 +22,10 @@ const Header = () => {
         <Toolbar variant="dense">
           <Drawer />
           <Typography variant="h6" className={classes.title}>
-            <Link color="inherit" underline="none" href="/dashboard" className={classes.title}> Pioreactor </Link>
+            <Link color="inherit" underline="none" href="/dashboard" className={classes.title}> <img src="white_colour.png" style={{width: "120px"}}/> </Link>
           </Typography>
           <Button color="inherit">
-            <Link color="inherit" underline="none" href="https://github.com/Pioreactor/pioreactor/wiki/Pioreactor" target="_blank" rel="noopener"> Help </Link> <OpenInNewIcon fontSize="small"/>
+            <Link color="inherit" underline="none" href="https://github.com/Pioreactor/pioreactor/wiki/Pioreactor" target="_blank" rel="noopener"> Help  </Link>
           </Button>
         </Toolbar>
       </AppBar>

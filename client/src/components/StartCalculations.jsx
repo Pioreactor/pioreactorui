@@ -1,4 +1,4 @@
-import { Client, Message } from "paho-mqtt";
+import { Client } from "paho-mqtt";
 
 import React from "react";
 import Grid from '@material-ui/core/Grid';
@@ -13,7 +13,6 @@ function StartGrowthRate(props){
   const [isClickable, setIsClickable] = React.useState(false)
   const [openSnackbar, setOpenSnackbar] = React.useState(false);
   const [snackbarMessage, setSnackbarMessage] = React.useState("test");
-  const experiment = props.experiment
 
 
 

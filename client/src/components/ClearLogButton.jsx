@@ -17,7 +17,7 @@ function ClearLogButton(props){
       message.destinationName = [
         "pioreactor",
         "leader",
-        props.experiment,
+        "$experiment",
         "log_aggregating",
         "aggregated_log_table",
         "set",

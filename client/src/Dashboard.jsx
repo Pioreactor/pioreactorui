@@ -105,9 +105,9 @@ function Dashboard() {
               </Grid>
 
             <Grid item style={{padding: "10px 0px"}}>
-              <LogTable experiment={experiment} />
+              <LogTable />
             </Grid>
-            <Grid item> <ClearLogButton experiment={experiment}/> </Grid>
+            <Grid item> <ClearLogButton /> </Grid>
           </Grid>
           <Grid item xs={false} md={1}/>
         </Grid>

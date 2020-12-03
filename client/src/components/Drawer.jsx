@@ -48,9 +48,7 @@ export default function Drawer() {
       onClick={toggleDrawer(false)}
       onKeyDown={toggleDrawer(false)}
     >
-      <Typography style={{textAlign: "center", paddingTop: "15px"}} className={classes.logo}>
-        Pioreactor
-      </Typography>
+      <img src="grey_color.png" width="40%" style={{marginLeft: "70px", marginTop: "5px"}}/>
       <List>
 
         <ListItem href="/" component="a" button key={"dashboard"} selected={isSelected("/")}>
