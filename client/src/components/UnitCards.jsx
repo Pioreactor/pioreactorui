@@ -274,7 +274,6 @@ function ButtonSettingsDialog(props) {
 
   function startPioreactorJob(job_attr){
     return function() {
-      console.log("fetching")
       fetch("/run/" + job_attr + "/" + props.unitNumber).then(res => {
       })
     }
