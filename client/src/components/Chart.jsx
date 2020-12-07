@@ -128,6 +128,9 @@ class Chart extends React.Component {
   }
 
   onMessageArrived(message) {
+    if (message.retained){
+      return
+    }
     const currentTime = parseInt(moment().format("x"));
 
     var key = this.props.isODReading

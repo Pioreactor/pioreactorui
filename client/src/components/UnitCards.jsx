@@ -280,11 +280,14 @@ function ButtonSettingsDialog(props) {
     "webui" + Math.random()
   );
 
-  client.connect();
+  function onSuccess(){
+    console.log("connected")
+  }
+  client.connect({onSuccess: onSuccess, reconnect: true, timeout:60});
 
 
   function setPioreactorJobState(job, state) {
-    return function () {
+    return function sendMessage() {
       var message = new Message(String(state));
       message.destinationName = [
         "pioreactor",
@@ -300,6 +303,7 @@ function ButtonSettingsDialog(props) {
       }
       catch (e){
         console.log(e)
+        setTimeout(function(){sendMessage()}, 750)
       }
     };
   }
