@@ -93,10 +93,10 @@ function Dashboard() {
           <Grid item xs={12} md={4} container direction="column" spacing={2}>
             <Grid container spacing={1}>
               <Grid item xs={6}>
-                <UnitCards experiment={experiment} units={[1, 3, 5]} />
+                <UnitCards experiment={experiment} units={["1", "3", "5"]} />
               </Grid>
               <Grid item xs={6}>
-                <UnitCards experiment={experiment} units={[2, 4, 6]} />
+                <UnitCards experiment={experiment} units={["2", "4", "6"]} />
               </Grid>
             </Grid>
 

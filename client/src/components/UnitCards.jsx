@@ -179,8 +179,8 @@ class UnitSettingDisplay extends React.Component {
     } catch (e) {}
   }
 
-  componentDidMount() {
-    if (this.props.isUnitActive) {
+  MQTTConnect() {
+    {
       // need to have unique clientIds
       this.client = new Client(
         "ws://pioreactorws.ngrok.io/",
@@ -188,6 +188,13 @@ class UnitSettingDisplay extends React.Component {
       );
       this.client.connect({ onSuccess: this.onConnect });
       this.client.onMessageArrived = this.onMessageArrived;
+    }
+  }
+
+  componentDidUpdate(prevProps) {
+    if(this.props.isUnitActive !== prevProps.isUnitActive) // Check if it's a new user, you can also use some unique property, like the ID  (this.props.user.id !== prevProps.user.id)
+    {
+      this.MQTTConnect();
     }
   }
 
@@ -645,9 +652,8 @@ function ButtonActionDialog(props) {
 
 function UnitCard(props) {
   const classes = useStyles();
-  const unitName = props.name;
+  const unitNumber = props.unit;
   const isUnitActive = props.isUnitActive;
-  const unitNumber = unitName.slice(-1);
   const experiment = props.experiment;
 
   const [showingAllSettings, setShowingAllSettings] = useState(false);
@@ -678,7 +684,7 @@ function UnitCard(props) {
             isUnitActive ? classes.unitTitle : classes.unitTitleDisable
           }
         >
-          {unitName}
+          {"pioreactor" + unitNumber}
         </Typography>
         <div
           id="displaySettings"
@@ -876,13 +882,37 @@ function UnitCard(props) {
 }
 
 function UnitCards(props) {
+  const [activeUnits, setActiveUnits] = useState([])
+
+  useEffect(() => {
+    async function fetchData() {
+      await fetch("/get_config/config.ini")
+        .then((response) => {
+            if (response.ok) {
+              return response.text();
+            } else {
+              throw new Error('Something went wrong');
+            }
+          })
+        .then((config) => {
+          config = parseINIString(config);
+          setActiveUnits(
+            Object.keys(config['network']).map((name) => name.replace("pioreactor", ""))
+          );
+        })
+        .catch((error) => {})
+    }
+    fetchData();
+  }, []);
+
+
   return (
     <div>
       {props.units.map((unit) => (
         <UnitCard
-          key={"pioreactor" + unit}
-          name={"pioreactor" + unit}
-          isUnitActive={[1, 2, 3, 4].includes(unit)}
+          key={"unitCardPioreactor" + unit}
+          unit={unit}
+          isUnitActive={activeUnits.includes(unit)}
           experiment={props.experiment}
         />
       ))}

@@ -161,8 +161,6 @@ function EditConfigContainer(){
           Edit config.ini
         </Typography>
         <p>Update the <code>config.ini</code> files. The shared <code>config.ini</code> will be deployed to <em>all</em> units, but can be overwritten with a specific unit's <code>config.ini</code>. <a href="https://github.com/Pioreactor/pioreactor/wiki/Configuration">Learn more about Pioreactor configuration</a>.</p>
-
-        <p>Note: for some settings (like any <code>dashboard</code> settings), the leader may need to be restarted.</p>
         <EditableCodeDiv/>
       </CardContent>
     </Card>

@@ -1,7 +1,7 @@
 import React from 'react'
 import {AppBar, Toolbar, Typography, Link, Button} from '@material-ui/core';
 import {makeStyles} from '@material-ui/styles';
-import Drawer from './Drawer'
+import SideDrawer from './Drawer'
 import OpenInNewIcon from '@material-ui/icons/OpenInNew';
 
 const useStyles = makeStyles((theme) => ({
@@ -20,7 +20,7 @@ const Header = () => {
     <div className={classes.root}>
       <AppBar position="static">
         <Toolbar variant="dense">
-          <Drawer />
+          <SideDrawer />
           <Typography variant="h6" className={classes.title}>
             <Link color="inherit" underline="none" href="/dashboard" className={classes.title}> <img src="white_colour.png" style={{width: "120px"}}/> </Link>
           </Typography>

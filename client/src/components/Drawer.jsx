@@ -1,6 +1,6 @@
 import React from 'react';
 import { makeStyles } from '@material-ui/core/styles';
-import SwipeableDrawer from '@material-ui/core/SwipeableDrawer';
+import Drawer from '@material-ui/core/Drawer';
 import List from '@material-ui/core/List';
 import {Typography} from '@material-ui/core';
 import Divider from '@material-ui/core/Divider';
@@ -25,7 +25,7 @@ const useStyles = makeStyles({
   },
 });
 
-export default function Drawer() {
+export default function SideDrawer() {
   const classes = useStyles();
   const [isOpen, setIsOpen] = React.useState(false)
 
@@ -81,14 +81,21 @@ export default function Drawer() {
           <ListItemIcon> <BatteryStdIcon color={isSelected("/add-new-pioreactor") ? "primary" : "inherit"}/> </ListItemIcon>
           <ListItemText primary={"Add new Pioreactor"} />
         </ListItem>
-
+      </List>
+      <Divider />
+      <List>
+        <ListItem>
+          <ListItemText
+            primary={<span style={{fontSize: ".9em"}}>Questions? Feedback? Email us at<br/><code><a href="mailto:support@pioreactor.com">support@pioreactor.com</a></code></span>}
+          />
+        </ListItem>
       </List>
     </div>
   );
 
   return (
     <div>
-      <React.Fragment key={"left"}>
+      <React.Fragment key={"leftDrawer"}>
         <IconButton
           color="inherit"
           aria-label="open drawer"
@@ -98,14 +105,14 @@ export default function Drawer() {
           <MenuIcon />
         </IconButton>
 
-        <SwipeableDrawer
+        <Drawer
           anchor={"left"}
           open={isOpen}
           onClose={toggleDrawer(false)}
           onOpen={toggleDrawer(true)}
         >
           {list()}
-        </SwipeableDrawer>
+        </Drawer>
       </React.Fragment>
     </div>
   );
