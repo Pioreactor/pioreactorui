@@ -155,7 +155,7 @@ function PatientButton(props) {
       style={{width: "70px"}}
       color={props.color}
       variant={props.variant}
-      size={props.size}
+      size="small"
       onClick={wrappingOnClick()}
     >
       {buttonText}
@@ -363,7 +363,6 @@ function ButtonSettingsDialog(props) {
        return (<div><PatientButton
                 color="primary"
                 variant="contained"
-                size="small"
                 onClick={startPioreactorJob(job)}
                 buttonText="Start"
               />
@@ -374,7 +373,6 @@ function ButtonSettingsDialog(props) {
           <PatientButton
             color="secondary"
             variant="contained"
-            size="small"
             onClick={setPioreactorJobState(job, "sleeping")}
             buttonText="Pause"
           />
@@ -389,7 +387,6 @@ function ButtonSettingsDialog(props) {
           <PatientButton
             color="primary"
             variant="contained"
-            size="small"
             onClick={setPioreactorJobState(job, "ready")}
             buttonText="Resume"
           />
