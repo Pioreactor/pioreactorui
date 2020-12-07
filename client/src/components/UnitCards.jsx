@@ -20,6 +20,8 @@ import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import Snackbar from '@material-ui/core/Snackbar';
 import Grid from '@material-ui/core/Grid';
+import CircularProgress from '@material-ui/core/CircularProgress';
+
 
 import ActionPumpForm from "./ActionPumpForm"
 
@@ -36,18 +38,15 @@ const useStyles = makeStyles({
   },
   unitTitle: {
     fontSize: 17,
-    fontFamily: "courier",
     color: "rgba(0, 0, 0, 0.54)",
   },
   unitTitleDialog :{
     fontSize: 20,
-    fontFamily: "courier",
     color: "rgba(0, 0, 0, 0.54)",
   },
   unitTitleDisable: {
     color: "rgba(0, 0, 0, 0.38)",
     fontSize: 17,
-    fontFamily: "courier",
   },
   disabledText: {
     color: "rgba(0, 0, 0, 0.38)",
@@ -131,6 +130,39 @@ function parseINIString(data){
     });
     return value;
 }
+
+
+function PatientButton(props) {
+  const [buttonText, setButtonText] = useState(props.buttonText)
+
+  useEffect(
+    () => {
+      setButtonText(props.buttonText)
+    }
+  , [props.buttonText])
+
+  function wrappingOnClick() {
+    function f() {
+      setButtonText(<CircularProgress color="inherit" size={22}/>)
+      props.onClick()
+    }
+    return f
+  }
+
+  return (
+    <Button
+      disableElevation
+      style={{width: "70px"}}
+      color={props.color}
+      variant={props.variant}
+      size={props.size}
+      onClick={wrappingOnClick()}
+    >
+      {buttonText}
+    </Button>
+  )
+}
+
 
 
 class UnitSettingDisplay extends React.Component {
@@ -328,53 +360,44 @@ function ButtonSettingsDialog(props) {
     switch (jobState){
       case "lost":
       case "disconnected":
-       return (<div><Button
-                disableElevation
+       return (<div><PatientButton
                 color="primary"
                 variant="contained"
                 size="small"
                 onClick={startPioreactorJob(job)}
-              >
-                Start
-              </Button></div>)
+                buttonText="Start"
+              />
+              </div>)
       case "init":
       case "ready":
         return (<div>
-          <Button
-            disableElevation
+          <PatientButton
             color="secondary"
             variant="contained"
             size="small"
             onClick={setPioreactorJobState(job, "sleeping")}
-          >
-            Pause
-          </Button>
-          <Button
-            disableElevation
+            buttonText="Pause"
+          />
+          <PatientButton
             color="secondary"
             onClick={setPioreactorJobState(parentJob, "disconnected")}
-          >
-            Stop
-          </Button>
+            buttonText="Stop"
+          />
         </div>)
       case "sleeping":
         return (<div>
-          <Button
-            disableElevation
+          <PatientButton
             color="primary"
             variant="contained"
             size="small"
             onClick={setPioreactorJobState(job, "ready")}
-          >
-            Resume
-          </Button>
-          <Button
-            disableElevation
+            buttonText="Resume"
+          />
+          <PatientButton
             color="secondary"
             onClick={setPioreactorJobState(parentJob, "disconnected")}
-          >
-            Stop
-          </Button>
+            buttonText="Stop"
+          />
         </div>)
     }
    }
@@ -382,6 +405,7 @@ function ButtonSettingsDialog(props) {
   const odButtons = createUserButtonsBasedOnState(props.ODReadingJobState, "od_reading")
   const grButtons = createUserButtonsBasedOnState(props.growthRateJobState, "growth_rate_calculating")
   const ioButtons = createUserButtonsBasedOnState(props.IOEventsJobState, "io_controlling", "algorithm_controlling")
+
 
   return (
     <div>

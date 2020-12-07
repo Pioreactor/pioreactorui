@@ -35,12 +35,10 @@ const useStyles = makeStyles({
   },
   unitTitle: {
     fontSize: 17,
-    fontFamily: "courier",
     color: "rgba(0, 0, 0, 0.54)",
   },
   unitTitleDialog: {
     fontSize: 20,
-    fontFamily: "courier",
     color: "rgba(0, 0, 0, 0.54)",
   },
   textbox: {
