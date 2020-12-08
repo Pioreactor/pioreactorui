@@ -170,8 +170,8 @@ class Chart extends React.Component {
   }
 
   breakString(string){
-    if (string.length > 6){
-      return string.slice(0, 6) + "..."
+    if (string.length > 5){
+      return string.slice(0, 4) + "..."
     }
     return string
 

@@ -2,7 +2,6 @@ import React from 'react'
 import {AppBar, Toolbar, Typography, Link, Button} from '@material-ui/core';
 import {makeStyles} from '@material-ui/styles';
 import SideDrawer from './Drawer'
-import OpenInNewIcon from '@material-ui/icons/OpenInNew';
 
 const useStyles = makeStyles((theme) => ({
   root: {

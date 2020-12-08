@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 
+import clsx from 'clsx';
+
 import { Client, Message } from "paho-mqtt";
 
 import { makeStyles } from "@material-ui/styles";
@@ -48,9 +50,9 @@ const useStyles = makeStyles({
     fontSize: 20,
     color: "rgba(0, 0, 0, 0.60)",
   },
-  unitTitleDisable: {
-    color: "rgba(0, 0, 0, 0.38)",
-    fontSize: 17,
+  suptitle: {
+    fontSize: "12px",
+    color: "rgba(0, 0, 0, 0.60)",
   },
   disabledText: {
     color: "rgba(0, 0, 0, 0.38)",
@@ -101,10 +103,6 @@ const useStyles = makeStyles({
     height: "60px",
     overflow: "hidden",
   },
-  suptitle: {
-    fontSize: "12px",
-  }
-
 });
 
 
@@ -156,15 +154,13 @@ class UnitSettingDisplay extends React.Component {
   }
 
   MQTTConnect() {
-    {
-      // need to have unique clientIds
-      this.client = new Client(
-        "ws://pioreactorws.ngrok.io/",
-        "webui" + Math.random()
-      );
-      this.client.connect({ onSuccess: this.onConnect });
-      this.client.onMessageArrived = this.onMessageArrived;
-    }
+    // need to have unique clientIds
+    this.client = new Client(
+      "ws://pioreactorws.ngrok.io/",
+      "webui" + Math.random()
+    );
+    this.client.connect({ onSuccess: this.onConnect });
+    this.client.onMessageArrived = this.onMessageArrived;
   }
 
   componentDidUpdate(prevProps) {
@@ -258,7 +254,7 @@ function ButtonSettingsDialog(props) {
     if (!props.disabled) {
       fetchData();
     }
-  }, []);
+  }, [props.disabled, props.unitNumber]);
 
   var client = new Client(
     "ws://pioreactorws.ngrok.io/",
@@ -384,6 +380,8 @@ function ButtonSettingsDialog(props) {
             buttonText="Stop"
           />
         </div>)
+      default:
+        return(<div></div>)
     }
    }
 
@@ -404,6 +402,9 @@ function ButtonSettingsDialog(props) {
     </Button>
     <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
       <DialogTitle>
+        <Typography className={classes.suptitle}>
+          {props.config['dashboard.rename'] ? props.config['dashboard.rename'][props.unitNumber] : ""}
+        </Typography>
         <Typography className={classes.unitTitleDialog}>
           pioreactor{props.unitNumber}
         </Typography>
@@ -454,6 +455,7 @@ function ButtonSettingsDialog(props) {
             step={1}
             valueLabelDisplay="on"
             id={"stirring/duty_cycle" + props.unitNumber}
+            key={"stirring/duty_cycle" + props.unitNumber}
             onChangeCommitted={setPioreactorStirring}
             marks={[
               { value: 0, label: "0" },
@@ -649,19 +651,17 @@ function UnitCard(props) {
     setShowingAllSettings(!showingAllSettings);
   };
 
-  var textSettingsClasses = `${classes.alignLeft} ${
-    isUnitActive ? null : classes.disabledText
-  }`;
+  var textSettingsClasses = clsx(classes.alignLeft, {[classes.disabledText]: !isUnitActive})
 
   return (
     <Card className={classes.root}>
       <CardContent className={classes.content}>
 
 
-        <Typography className={classes.suptitle} color="textSecondary">
+        <Typography className={clsx(classes.suptitle, {[classes.disabledText]: !isUnitActive})}>
           {props.config['dashboard.rename'] ? props.config['dashboard.rename'][unitNumber] : ""}
         </Typography>
-        <Typography className={isUnitActive ? classes.unitTitle : classes.unitTitleDisable} gutterBottom>
+        <Typography className={clsx(classes.unitTitle, {[classes.disabledText]: !isUnitActive})} gutterBottom>
           {"pioreactor" + unitNumber}
         </Typography>
 
@@ -835,6 +835,7 @@ function UnitCard(props) {
 
           <Grid item xs={5} md={12} lg={5}>
             <ButtonSettingsDialog
+              config={props.config}
               stirringState={stirringState}
               ODReadingJobState={ODReadingJobState}
               growthRateJobState={growthRateJobState}

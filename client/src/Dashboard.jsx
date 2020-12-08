@@ -46,8 +46,6 @@ function Dashboard() {
     getLatestExperiment()
   }, [])
 
-  console.log(config)
-
   return (
       <div>
         <Grid container spacing={4}>

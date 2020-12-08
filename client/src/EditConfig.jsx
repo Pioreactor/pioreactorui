@@ -124,7 +124,7 @@ class EditableCodeDiv extends React.Component {
             code={this.state.code}
             onChange={this.onTextChange}
             editorRef={this.getCodeFlaskRef}
-            language={"js"}
+            language={"python"}
           />
         </div>
         <Button

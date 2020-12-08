@@ -1,8 +1,6 @@
 import React from 'react';
-import { makeStyles } from '@material-ui/core/styles';
 import Drawer from '@material-ui/core/Drawer';
 import List from '@material-ui/core/List';
-import {Typography} from '@material-ui/core';
 import Divider from '@material-ui/core/Divider';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
@@ -16,17 +14,7 @@ import SettingsIcon from '@material-ui/icons/Settings';
 import DashboardIcon from '@material-ui/icons/Dashboard';
 import BatteryStdIcon from '@material-ui/icons/BatteryStd';
 
-const useStyles = makeStyles({
-  list: {
-    width: 250,
-  },
-  fullList: {
-    width: 'auto',
-  },
-});
-
 export default function SideDrawer() {
-  const classes = useStyles();
   const [isOpen, setIsOpen] = React.useState(false)
 
   function isSelected(path) {
