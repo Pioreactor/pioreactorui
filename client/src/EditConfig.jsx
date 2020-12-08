@@ -119,12 +119,12 @@ class EditableCodeDiv extends React.Component {
           )}
         </Select>
 
-        <div style={{margin: "10px auto 10px auto", position: "relative", width: "98%", height: "300px", border: "1px solid #ccc"}}>
+        <div style={{letterSpacing: "0em", margin: "10px auto 10px auto", position: "relative", width: "98%", height: "300px", border: "1px solid #ccc"}}>
           <CodeFlaskReact
             code={this.state.code}
             onChange={this.onTextChange}
             editorRef={this.getCodeFlaskRef}
-            language={"python"}
+            language={"js"}
           />
         </div>
         <Button
