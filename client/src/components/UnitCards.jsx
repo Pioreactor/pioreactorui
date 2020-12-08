@@ -22,8 +22,12 @@ import Snackbar from '@material-ui/core/Snackbar';
 import Grid from '@material-ui/core/Grid';
 import CircularProgress from '@material-ui/core/CircularProgress';
 
-
+import {parseINIString} from "../utilities"
 import ActionPumpForm from "./ActionPumpForm"
+
+const onlineGreen = "#4caf50"
+const offlineGrey = "grey"
+const errorRed = "#DE3618"
 
 const useStyles = makeStyles({
   root: {
@@ -38,11 +42,11 @@ const useStyles = makeStyles({
   },
   unitTitle: {
     fontSize: 17,
-    color: "rgba(0, 0, 0, 0.54)",
+    color: "rgba(0, 0, 0, 0.60)",
   },
   unitTitleDialog :{
     fontSize: 20,
-    color: "rgba(0, 0, 0, 0.54)",
+    color: "rgba(0, 0, 0, 0.60)",
   },
   unitTitleDisable: {
     color: "rgba(0, 0, 0, 0.38)",
@@ -97,39 +101,11 @@ const useStyles = makeStyles({
     height: "60px",
     overflow: "hidden",
   },
-  displaySettings: {},
+  suptitle: {
+    fontSize: "12px",
+  }
+
 });
-
-
-function parseINIString(data){
-    var regex = {
-        section: /^\s*\[\s*([^\]]*)\s*\]\s*$/,
-        param: /^\s*([^=]+?)\s*=\s*(.*?)\s*$/,
-        comment: /^\s*;.*$/
-    };
-    var value = {};
-    var lines = data.split(/[\r\n]+/);
-    var section = null;
-    lines.forEach(function(line){
-        if(regex.comment.test(line)){
-            return;
-        }else if(regex.param.test(line)){
-            var match = line.match(regex.param);
-            if(section){
-                value[section][match[1]] = match[2];
-            }else{
-                value[match[1]] = match[2];
-            }
-        }else if(regex.section.test(line)){
-            var match = line.match(regex.section);
-            value[match[1]] = {};
-            section = match[1];
-        }else if(line.length === 0 && section){
-            section = null;
-        };
-    });
-    return value;
-}
 
 
 function PatientButton(props) {
@@ -211,11 +187,11 @@ class UnitSettingDisplay extends React.Component {
   }
 
   stateDisplay = {
-    "init":         {message: "", display: "Starting", color: "4caf50"},
-    "ready":        {message: "", display: "On", color: "#4caf50"},
-    "sleeping":     {message: "", display: "Paused", color: "grey"},
-    "disconnected": {message: "", display: "Off", color: "grey"},
-    "lost":         {message: "Check logs for errors.", display: "Error", color: "#DE3618"},
+    "init":         {message: "", display: "Starting", color: onlineGreen},
+    "ready":        {message: "", display: "On", color: onlineGreen},
+    "sleeping":     {message: "", display: "Paused", color: offlineGrey},
+    "disconnected": {message: "", display: "Off", color: offlineGrey},
+    "lost":         {message: "Check logs for errors.", display: "Error", color: errorRed},
   }
 
   onMessageArrived(message) {
@@ -230,7 +206,7 @@ class UnitSettingDisplay extends React.Component {
   render() {
     if (this.props.isStateSetting) {
       if (!this.props.isUnitActive) {
-        return <div style={{ color: "grey"}}> Off </div>;
+        return <div style={{ color: offlineGrey}}> Off </div>;
       } else {
         var displaySettings = this.stateDisplay[this.state.msg]
         return (
@@ -240,7 +216,7 @@ class UnitSettingDisplay extends React.Component {
       )}
     } else {
       if (!this.props.isUnitActive || this.state.msg === "-" || this.state.msg === "") {
-        return <div style={{ color: "grey"}}> {this.props.default} </div>;
+        return <div style={{ color: offlineGrey}}> {this.props.default} </div>;
       } else {
         return (
           <div style={{ color: "rgba(0, 0, 0, 0.54)", fontFamily: "courier", fontSize: "13px" }}>
@@ -279,7 +255,9 @@ function ButtonSettingsDialog(props) {
         })
         .catch((error) => {})
     }
-    fetchData();
+    if (!props.disabled) {
+      fetchData();
+    }
   }, []);
 
   var client = new Client(
@@ -288,7 +266,6 @@ function ButtonSettingsDialog(props) {
   );
 
   function onSuccess(){
-    console.log("connected")
   }
   client.connect({onSuccess: onSuccess, reconnect: true, timeout:60});
 
@@ -679,13 +656,16 @@ function UnitCard(props) {
   return (
     <Card className={classes.root}>
       <CardContent className={classes.content}>
-        <Typography
-          className={
-            isUnitActive ? classes.unitTitle : classes.unitTitleDisable
-          }
-        >
+
+
+        <Typography className={classes.suptitle} color="textSecondary">
+          {props.config['dashboard.rename'] ? props.config['dashboard.rename'][unitNumber] : ""}
+        </Typography>
+        <Typography className={isUnitActive ? classes.unitTitle : classes.unitTitleDisable} gutterBottom>
           {"pioreactor" + unitNumber}
         </Typography>
+
+
         <div
           id="displaySettings"
           className={
@@ -885,31 +865,19 @@ function UnitCards(props) {
   const [activeUnits, setActiveUnits] = useState([])
 
   useEffect(() => {
-    async function fetchData() {
-      await fetch("/get_config/config.ini")
-        .then((response) => {
-            if (response.ok) {
-              return response.text();
-            } else {
-              throw new Error('Something went wrong');
-            }
-          })
-        .then((config) => {
-          config = parseINIString(config);
-          setActiveUnits(
-            Object.keys(config['network']).map((name) => name.replace("pioreactor", ""))
-          );
-        })
-        .catch((error) => {})
+    if (props.config['inventory']){
+      setActiveUnits(
+        Object.entries(props.config['inventory']).filter(([key, value]) => value === "1").map(([key, value]) => key.replace("pioreactor", ""))
+      );
     }
-    fetchData();
-  }, []);
+  }, [props.config]);
 
 
   return (
     <div>
       {props.units.map((unit) => (
         <UnitCard
+          config={props.config}
           key={"unitCardPioreactor" + unit}
           unit={unit}
           isUnitActive={activeUnits.includes(unit)}

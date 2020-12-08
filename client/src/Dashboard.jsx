@@ -9,15 +9,16 @@ import Chart from "./components/Chart";
 import AllUnitsManagerCard from "./components/AllUnitsManagerCard";
 import ClearChartButton from "./components/ClearChartButton";
 import ClearLogButton from "./components/ClearLogButton";
-
+import {parseINIString} from "./utilities"
 
 
 function Dashboard() {
 
   const [experiment, setExperiment] = React.useState("")
+  const [config, setConfig] = React.useState({})
 
   React.useEffect(() => {
-    async function getData() {
+    async function getLatestExperiment() {
          await fetch("/get_latest_experiment")
         .then((response) => {
           return response.json();
@@ -26,8 +27,26 @@ function Dashboard() {
           setExperiment(data.experiment)
         });
       }
-      getData()
+
+    async function getConfig() {
+      await fetch("/get_config/config.ini")
+        .then((response) => {
+            if (response.ok) {
+              return response.text();
+            } else {
+              throw new Error('Something went wrong');
+            }
+          })
+        .then((config) => {
+          setConfig(parseINIString(config));
+        })
+        .catch((error) => {})
+    }
+    getConfig();
+    getLatestExperiment()
   }, [])
+
+  console.log(config)
 
   return (
       <div>
@@ -44,6 +63,7 @@ function Dashboard() {
 
             <Grid item>
               <Chart
+                config={config}
                 dataFile={"./data/growth_rate_time_series_aggregating.json"}
                 interpolation="stepAfter"
                 title="Implied growth rate"
@@ -55,6 +75,7 @@ function Dashboard() {
 
             <Grid item >
               <Chart
+                config={config}
                 dataFile={"./data/alt_media_fraction_time_series_aggregating.json"}
                 interpolation="stepAfter"
                 title="Fraction of volume that is alternative media"
@@ -66,6 +87,7 @@ function Dashboard() {
 
             <Grid item>
               <Chart
+                config={config}
                 isODReading={true}
                 dataFile={"./data/od_filtered_time_series_aggregating.json"}
                 interpolation="stepAfter"
@@ -78,6 +100,7 @@ function Dashboard() {
 
             <Grid item >
               <Chart
+                config={config}
                 isODReading={true}
                 dataFile={"./data/od_raw_time_series_aggregating.json"}
                 interpolation="stepAfter"
@@ -93,10 +116,10 @@ function Dashboard() {
           <Grid item xs={12} md={4} container direction="column" spacing={2}>
             <Grid container spacing={1}>
               <Grid item xs={6}>
-                <UnitCards experiment={experiment} units={["1", "3", "5"]} />
+                <UnitCards experiment={experiment} config={config} units={["1", "3", "5"]} />
               </Grid>
               <Grid item xs={6}>
-                <UnitCards experiment={experiment} units={["2", "4", "6"]} />
+                <UnitCards experiment={experiment} config={config} units={["2", "4", "6"]} />
               </Grid>
             </Grid>
 

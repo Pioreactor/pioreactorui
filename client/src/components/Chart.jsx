@@ -169,6 +169,26 @@ class Chart extends React.Component {
     return;
   }
 
+  breakString(string){
+    if (string.length > 6){
+      return string.slice(0, 6) + "..."
+    }
+    return string
+
+  }
+
+  renameAndFormatSeries(name){
+    if (name.match(/(\d+)-([ABCD])/g)){
+      const results = name.match(/(\d+)-([ABCD])/)
+      const index = results[1];
+      const sensor = results[2];
+      return this.breakString(this.props.config['dashboard.rename'][index] || index) + sensor
+    }
+    else {
+      return this.breakString(this.props.config['dashboard.rename'][name] || name)
+    }
+  }
+
 
   createXTickValues(minTimestamp, maxTimestamp){
     const delta_ts = moment(maxTimestamp, "x").diff(
@@ -217,7 +237,7 @@ class Chart extends React.Component {
               voronoiBlacklist={['parent']}
               labels={(d) => {
                 return `${moment(d.datum.x, 'x').format(tooltip_display_ts_format)}
-${d.datum.childName}: ${Math.round(d.datum.y * 1000) / 1000}`
+${this.renameAndFormatSeries(d.datum.childName)}: ${Math.round(d.datum.y * 1000) / 1000}`
               }}
               labelComponent={
                 <VictoryTooltip
@@ -278,9 +298,9 @@ ${d.datum.childName}: ${Math.round(d.datum.y * 1000) / 1000}`
             }}
           />
           <VictoryLegend
-            x={527}
-            y={60}
-            itemsPerRow={6}
+            x={505}
+            y={25}
+            itemsPerRow={10}
             name={"legend"}
             borderPadding={{ right: 8 }}
             orientation="vertical"
@@ -293,7 +313,7 @@ ${d.datum.childName}: ${Math.round(d.datum.y * 1000) / 1000}`
             data={this.state.names.map((name) => {
               const line = this.state.seriesMap[name];
               const item = {
-                name: line.name,
+                name: this.renameAndFormatSeries(line.name),
                 symbol: { fill: line.color, type: "square" },
               };
               if (this.state.hiddenSeries.has(name)) {

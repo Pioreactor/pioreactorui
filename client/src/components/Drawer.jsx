@@ -51,8 +51,8 @@ export default function SideDrawer() {
       <img src="grey_color.png" width="40%" style={{marginLeft: "70px", marginTop: "5px"}}/>
       <List>
 
-        <ListItem href="/" component="a" button key={"dashboard"} selected={isSelected("/")}>
-          <ListItemIcon><DashboardIcon color={isSelected("/") ? "primary" : "inherit"}/> </ListItemIcon>
+        <ListItem href="/" component="a" button key={"dashboard"} selected={isSelected("/") || isSelected("/dashboard")}>
+          <ListItemIcon><DashboardIcon color={(isSelected("/") || isSelected("/dashboard")) ? "primary" : "inherit"}/> </ListItemIcon>
           <ListItemText primary={"Dashboard"} />
         </ListItem>
 

@@ -167,6 +167,7 @@ app.post("/update_experiment_desc", function (req, res) {
 
 
 app.get("/get_config/:filename", function(req, res) {
+  console.log("/get_config/")
   var configPath = path.join(process.env.CONFIG_INI_FOLDER, req.params.filename);
   res.send(fs.readFileSync(configPath))
 })
