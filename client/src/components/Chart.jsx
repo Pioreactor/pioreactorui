@@ -178,6 +178,10 @@ class Chart extends React.Component {
   }
 
   renameAndFormatSeries(name){
+    if (this.props.config['dashboard.rename']){
+      return name
+    }
+
     if (name.match(/(\d+)-([ABCD])/g)){
       const results = name.match(/(\d+)-([ABCD])/)
       const index = results[1];
