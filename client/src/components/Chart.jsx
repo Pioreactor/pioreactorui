@@ -178,7 +178,7 @@ class Chart extends React.Component {
   }
 
   renameAndFormatSeries(name){
-    if (this.props.config['dashboard.rename']){
+    if (!this.props.config['dashboard.rename']){
       return name
     }
 
