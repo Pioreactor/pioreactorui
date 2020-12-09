@@ -389,7 +389,6 @@ function ButtonSettingsDialog(props) {
   const grButtons = createUserButtonsBasedOnState(props.growthRateJobState, "growth_rate_calculating")
   const ioButtons = createUserButtonsBasedOnState(props.IOEventsJobState, "io_controlling", "algorithm_controlling")
 
-
   return (
     <div>
     <Button
@@ -580,7 +579,6 @@ function ButtonActionDialog(props) {
     setOpen(false);
   };
 
-
   return (
     <div>
       <Button
@@ -592,12 +590,15 @@ function ButtonActionDialog(props) {
       </Button>
       <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
         <DialogTitle id="form-dialog-title">
+          <Typography className={clsx(classes.suptitle)} color="textSecondary">
+            {props.config['dashboard.rename'] ? props.config['dashboard.rename'][unitNumber] : ""}
+          </Typography>
           <Typography className={classes.unitTitleDialog}>
             {props.title || `pioreactor${props.unitNumber}`}
           </Typography>
         </DialogTitle>
         <DialogContent>
-          <Typography color="textSecondary" gutterBottom>
+          <Typography  gutterBottom>
             Add media
           </Typography>
           <Typography variant="body2" component="p">
@@ -605,7 +606,7 @@ function ButtonActionDialog(props) {
           </Typography>
           <ActionPumpForm action="add_media" unitNumber={unitNumber} />
           <Divider className={classes.divider} />
-          <Typography color="textSecondary" gutterBottom>
+          <Typography gutterBottom>
             Add alternative media
           </Typography>
           <Typography variant="body2" component="p">
@@ -614,7 +615,7 @@ function ButtonActionDialog(props) {
           </Typography>
           <ActionPumpForm action="add_alt_media" unitNumber={unitNumber} />
           <Divider className={classes.divider} />
-          <Typography color="textSecondary" gutterBottom>
+          <Typography  gutterBottom>
             Remove waste
           </Typography>
           <Typography variant="body2" component="p">
@@ -852,6 +853,7 @@ function UnitCard(props) {
           <Grid item xs={5} md={12} lg={5}>
 
             <ButtonActionDialog
+              config={props.config}
               unitNumber={unitNumber}
               disabled={!isUnitActive}
             />

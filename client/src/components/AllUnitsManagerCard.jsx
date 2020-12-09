@@ -46,7 +46,7 @@ const useStyles = makeStyles({
     fontSize: 13,
   },
   divider: {
-    marginTop: 10,
+    marginTop: 20,
     marginBottom: 10,
   },
   actionForm: {
@@ -85,7 +85,6 @@ function ButtonAllUnitSettingsDialog(props) {
         "$state",
         "set",
       ].join("/");
-      console.log(message.destinationName)
       message.qos = 1;
       client.publish(message);
     };
@@ -122,7 +121,6 @@ function ButtonAllUnitSettingsDialog(props) {
 
   function startPioreactorJob(job_attr){
     return function() {
-      console.log("fetching")
       fetch("/run/" + job_attr + "/" + props.unitNumber).then(res => {
       })
     }
@@ -184,7 +182,7 @@ function ButtonAllUnitSettingsDialog(props) {
           </Typography>
         </DialogTitle>
         <DialogContent>
-          <Typography color="textSecondary" gutterBottom>
+          <Typography gutterBottom>
             Optical density reading
           </Typography>
           <Typography variant="body2" component="p">
@@ -196,7 +194,7 @@ function ButtonAllUnitSettingsDialog(props) {
           {odButtons}
 
           <Divider className={classes.divider} />
-          <Typography color="textSecondary" gutterBottom>
+          <Typography  gutterBottom>
             Growth rate calculating
           </Typography>
           <Typography variant="body2" component="p">
@@ -207,7 +205,7 @@ function ButtonAllUnitSettingsDialog(props) {
           {grButtons}
 
           <Divider className={classes.divider} />
-          <Typography color="textSecondary" gutterBottom>
+          <Typography gutterBottom>
             Input/output events
           </Typography>
           <Typography variant="body2" component="p">
@@ -217,7 +215,7 @@ function ButtonAllUnitSettingsDialog(props) {
           {ioButtons}
 
           <Divider className={classes.divider} />
-          <Typography color="textSecondary" gutterBottom>
+          <Typography gutterBottom>
             Volume per dilution
           </Typography>
           <Typography variant="body2" component="p">
@@ -236,7 +234,7 @@ function ButtonAllUnitSettingsDialog(props) {
             className={classes.textField}
           />
           <Divider className={classes.divider} />
-          <Typography color="textSecondary" gutterBottom>
+          <Typography  gutterBottom>
             Target optical density
           </Typography>
           <Typography variant="body2" component="p">
@@ -256,7 +254,7 @@ function ButtonAllUnitSettingsDialog(props) {
           />
 
           <Divider className={classes.divider} />
-          <Typography color="textSecondary" gutterBottom>
+          <Typography  gutterBottom>
             Duration between dilutions
           </Typography>
           <Typography variant="body2" component="p">
@@ -275,7 +273,7 @@ function ButtonAllUnitSettingsDialog(props) {
           />
 
           <Divider className={classes.divider} />
-          <Typography color="textSecondary" gutterBottom>
+          <Typography  gutterBottom>
             Target growth rate
           </Typography>
           <Typography variant="body2" component="p">
@@ -465,6 +463,7 @@ const AllUnitsManagerCard = (props) => {
             unitNumber={"$broadcast"}
             title="All units"
             isPlural={true}
+            config={{}}
             />
           <ButtonConfirmStopProcessDialog/>
         </CardActions>
