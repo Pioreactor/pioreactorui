@@ -170,8 +170,8 @@ class Chart extends React.Component {
   }
 
   breakString(string){
-    if (string.length > 5){
-      return string.slice(0, 4) + "..."
+    if (string.length > 6){
+      return string.slice(0, 5) + "..."
     }
     return string
 
@@ -302,15 +302,15 @@ ${this.renameAndFormatSeries(d.datum.childName)}: ${Math.round(d.datum.y * 1000)
             }}
           />
           <VictoryLegend
-            x={505}
-            y={25}
+            x={515}
+            y={35}
+            symbolSpacer={10}
             itemsPerRow={10}
             name={"legend"}
             borderPadding={{ right: 8 }}
             orientation="vertical"
             cursor={"pointer"}
             style={{
-              border: { stroke: "#90a4ae" },
               labels: { fontSize: 13 },
               data: { stroke: "black", strokeWidth: 1, size: 6 },
             }}
@@ -318,10 +318,10 @@ ${this.renameAndFormatSeries(d.datum.childName)}: ${Math.round(d.datum.y * 1000)
               const line = this.state.seriesMap[name];
               const item = {
                 name: this.renameAndFormatSeries(line.name),
-                symbol: { fill: line.color, type: "square" },
+                symbol: { fill: line.color },
               };
               if (this.state.hiddenSeries.has(name)) {
-                return { ...item, symbol: { fill: "white", type: "square" } };
+                return { ...item, symbol: { fill: "white" } };
               }
               return item;
             })}
