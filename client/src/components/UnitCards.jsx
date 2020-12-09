@@ -44,14 +44,14 @@ const useStyles = makeStyles({
   },
   unitTitle: {
     fontSize: 17,
-    color: "rgba(0, 0, 0, 0.60)",
+    color: "rgba(0, 0, 0, 0.87)",
   },
   unitTitleDialog :{
     fontSize: 20,
-    color: "rgba(0, 0, 0, 0.60)",
+    color: "rgba(0, 0, 0, 0.87)",
   },
   suptitle: {
-    fontSize: "12px",
+    fontSize: "13px",
     color: "rgba(0, 0, 0, 0.60)",
   },
   disabledText: {
@@ -79,7 +79,7 @@ const useStyles = makeStyles({
     margin: "40px auto 0px auto",
   },
   divider: {
-    marginTop: 10,
+    marginTop: 20,
     marginBottom: 10,
   },
   textbox: {
@@ -410,7 +410,7 @@ function ButtonSettingsDialog(props) {
         </Typography>
       </DialogTitle>
       <DialogContent>
-        <Typography color="textSecondary" gutterBottom>
+        <Typography gutterBottom>
           Optical density reading
         </Typography>
         <Typography variant="body2" component="p" gutterBottom>
@@ -422,7 +422,7 @@ function ButtonSettingsDialog(props) {
         {odButtons}
 
         <Divider className={classes.divider} />
-        <Typography color="textSecondary" gutterBottom>
+        <Typography  gutterBottom>
           Growth rate calculating
         </Typography>
         <Typography variant="body2" component="p" gutterBottom>
@@ -433,7 +433,7 @@ function ButtonSettingsDialog(props) {
         {grButtons}
 
         <Divider className={classes.divider} />
-        <Typography color="textSecondary" gutterBottom>
+        <Typography  gutterBottom>
           Input/Output events
         </Typography>
         <Typography variant="body2" component="p" gutterBottom>
@@ -441,7 +441,7 @@ function ButtonSettingsDialog(props) {
         </Typography>
           {ioButtons}
         <Divider className={classes.divider} />
-        <Typography color="textSecondary" gutterBottom>
+        <Typography  gutterBottom>
           Stirring
         </Typography>
         <Typography variant="body2" component="p">
@@ -468,7 +468,7 @@ function ButtonSettingsDialog(props) {
           Default values are defined in the unit's <code>config.ini</code> file.
         </Typography>
         <Divider className={classes.divider} />
-        <Typography color="textSecondary" gutterBottom>
+        <Typography gutterBottom>
           Volume per dilution
         </Typography>
         <Typography variant="body2" component="p">
@@ -489,7 +489,7 @@ function ButtonSettingsDialog(props) {
         />
 
         <Divider className={classes.divider} />
-        <Typography color="textSecondary" gutterBottom>
+        <Typography  gutterBottom>
           Target optical density
         </Typography>
         <Typography variant="body2" component="p">
@@ -510,7 +510,7 @@ function ButtonSettingsDialog(props) {
         />
 
         <Divider className={classes.divider} />
-        <Typography color="textSecondary" gutterBottom>
+        <Typography  gutterBottom>
           Duration between dilutions
         </Typography>
         <Typography variant="body2" component="p">
@@ -530,7 +530,7 @@ function ButtonSettingsDialog(props) {
         />
 
         <Divider className={classes.divider} />
-        <Typography color="textSecondary" gutterBottom>
+        <Typography  gutterBottom>
           Target growth rate
         </Typography>
         <Typography variant="body2" component="p">
@@ -658,7 +658,7 @@ function UnitCard(props) {
       <CardContent className={classes.content}>
 
 
-        <Typography className={clsx(classes.suptitle, {[classes.disabledText]: !isUnitActive})}>
+        <Typography className={clsx(classes.suptitle)} color="textSecondary">
           {props.config['dashboard.rename'] ? props.config['dashboard.rename'][unitNumber] : ""}
         </Typography>
         <Typography className={clsx(classes.unitTitle, {[classes.disabledText]: !isUnitActive})} gutterBottom>
