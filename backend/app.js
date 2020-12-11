@@ -8,10 +8,10 @@ const { exec } = require("child_process");
 const cp = require('child_process');
 const sqlite3 = require('sqlite3').verbose()
 const fs = require('fs')
+var expressStaticGzip = require("express-static-gzip");
 
 const app = express()
 app.use(bodyParser.json());
-app.use('/public', express.static('public'));
 
 var db = new sqlite3.Database(process.env.DB_LOCATION)
 
@@ -29,22 +29,22 @@ app.get('/', function(req, res) {
 })
 
 app.get('/dashboard', function(req, res) {
-    app.use(express.static(path.join(__dirname, 'build')));
+    app.use("/", expressStaticGzip(path.join(__dirname, 'build')));
     res.sendFile(path.join(__dirname, 'build', 'index.html'));
 })
 
 app.get('/download-data', function(req, res) {
-    app.use(express.static(path.join(__dirname, 'build')));
+    app.use("/", expressStaticGzip(path.join(__dirname, 'build')));
     res.sendFile(path.join(__dirname, 'build', 'index.html'));
 })
 
 app.get('/start-new-experiment', function(req, res) {
-    app.use(express.static(path.join(__dirname, 'build')));
+    app.use("/", expressStaticGzip(path.join(__dirname, 'build')));
     res.sendFile(path.join(__dirname, 'build', 'index.html'));
 })
 
 app.get('/edit-config', function(req, res) {
-    app.use(express.static(path.join(__dirname, 'build')));
+    app.use("/", expressStaticGzip(path.join(__dirname, 'build')));
     res.sendFile(path.join(__dirname, 'build', 'index.html'));
 })
 

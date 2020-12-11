@@ -46,7 +46,7 @@ const useStyles = makeStyles({
     fontSize: 13,
   },
   divider: {
-    marginTop: 20,
+    marginTop: 15,
     marginBottom: 10,
   },
   actionForm: {

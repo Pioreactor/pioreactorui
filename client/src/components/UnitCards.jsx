@@ -79,7 +79,7 @@ const useStyles = makeStyles({
     margin: "40px auto 0px auto",
   },
   divider: {
-    marginTop: 20,
+    marginTop: 15,
     marginBottom: 10,
   },
   textbox: {

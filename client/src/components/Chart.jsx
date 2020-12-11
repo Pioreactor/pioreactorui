@@ -282,6 +282,7 @@ ${this.renameAndFormatSeries(d.datum.childName)}: ${Math.round(d.datum.y * 1000)
           <VictoryAxis
             crossAxis={false}
             dependentAxis
+            domain={this.props.domain}
             label={this.props.yAxisLabel}
             axisLabelComponent={
               <VictoryLabel
@@ -312,7 +313,7 @@ ${this.renameAndFormatSeries(d.datum.childName)}: ${Math.round(d.datum.y * 1000)
             cursor={"pointer"}
             style={{
               labels: { fontSize: 13 },
-              data: { stroke: "black", strokeWidth: 1, size: 6 },
+              data: { stroke: "#485157", strokeWidth: 1, size: 6 },
             }}
             data={this.state.names.map((name) => {
               const line = this.state.seriesMap[name];

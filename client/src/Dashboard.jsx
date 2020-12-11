@@ -74,6 +74,7 @@ function Dashboard() {
             <Grid item >
               <Chart
                 config={config}
+                domain={[0, 1]}
                 dataFile={"./data/alt_media_fraction_time_series_aggregating.json"}
                 interpolation="stepAfter"
                 title="Fraction of volume that is alternative media"
