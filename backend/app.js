@@ -30,6 +30,7 @@ app.get('/', function(req, res) {
 
 app.get('/dashboard', function(req, res) {
     app.use("/", expressStaticGzip(path.join(__dirname, 'build')));
+    app.use("/", expressStaticGzip(path.join(__dirname, 'build/data')));
     res.sendFile(path.join(__dirname, 'build', 'index.html'));
 })
 
