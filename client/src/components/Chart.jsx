@@ -17,14 +17,28 @@ const colors = {
   1: "#9C6ADE",
   "1-A": "#9C6ADE",
   "1-D": "#E3D0FF",
+  "1-C": "#50248F",
+  "1-B": "#230051",
 
   2: "#47C1BF",
   "2-A": "#47C1BF",
   "2-D": "#B7ECEC",
+  "2-C": "#00848E",
+  "2-B": "#003135",
+
 
   3: "#F49342",
   "3-A": "#F49342",
   "3-D": "#FFC58B",
+  "3-C": "#C05717"
+  "3-B": "#4A1504"
+
+  4: "#50B83C",
+  "4-A": "#50B83C",
+  "4-B": "#173630",
+  "4-C": "#108043",
+  "4-D": "#BBE5B3",
+
 };
 
 function linspace(startValue, stopValue, cardinality) {
@@ -60,10 +74,18 @@ class Chart extends React.Component {
 
   componentDidMount() {
     this.getData();
-    this.client = new Client(
-      "ws://pioreactorws.ngrok.io/",
-      "client" + Math.random()
-    );
+    if (window.location.href.includes("ngrok")){
+      this.client = new Client(
+        "ws://pioreactorws.ngrok.io/",
+        "client" + Math.random()
+      );
+    } else {
+      this.client = new Client(
+        "leader.local", 9001,
+        "client" + Math.random()
+      );
+    }
+
     this.client.connect({ onSuccess: this.onConnect });
     this.client.onMessageArrived = this.onMessageArrived;
   }
@@ -78,7 +100,7 @@ class Chart extends React.Component {
         for (const [i, v] of data["series"].entries()) {
           if (data["data"][i].length > 0) {
             initialSeriesMap[v] = {
-              data: data["data"][i],
+              data: (data["data"][i]).filter((e, i) =>  i % 4 == 0), //tune this value better.
               name: v,
               color: colors[v],
             };
@@ -171,7 +193,7 @@ class Chart extends React.Component {
 
   breakString(string){
     if (string.length > 6){
-      return string.slice(0, 5) + "..."
+      return string.slice(0, 5)
     }
     return string
 
@@ -312,7 +334,7 @@ ${this.renameAndFormatSeries(d.datum.childName)}: ${Math.round(d.datum.y * 1000)
             orientation="vertical"
             cursor={"pointer"}
             style={{
-              labels: { fontSize: 13 },
+              labels: { fontSize: 12 },
               data: { stroke: "#485157", strokeWidth: 1, size: 6 },
             }}
             data={this.state.names.map((name) => {

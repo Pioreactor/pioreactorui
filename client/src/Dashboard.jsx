@@ -54,7 +54,7 @@ function Dashboard() {
           </Grid>
 
           <Grid item xs={false} md={1}/>
-          <Grid item xs={12} md={6} container direction="column" spacing={2}>
+          <Grid item xs={12} md={6}  style={{height: "100%"}} container direction="column" spacing={2}>
             <Grid item>
               <ExperimentSummary />
             </Grid>

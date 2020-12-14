@@ -22,3 +22,22 @@ Builds the app for production to the `build` folder.<br />
 It correctly bundles React in production mode and optimizes the build for the best performance.
 
 The build is minified and the filenames include the hashes.<br />
+
+
+### Connecting to MQTT on localhost:
+
+```
+client = new Client(
+  "localhost", 9001,
+  "client" + Math.random()
+);
+```
+
+#### via URI
+
+```
+    client = new Client(
+      "ws://pioreactorws.ngrok.io/",
+      "client" + Math.random()
+    );
+```

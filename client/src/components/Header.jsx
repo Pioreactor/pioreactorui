@@ -21,7 +21,7 @@ const Header = () => {
         <Toolbar variant="dense">
           <SideDrawer />
           <Typography variant="h6" className={classes.title}>
-            <Link color="inherit" underline="none" href="/dashboard" className={classes.title}> <img src="white_colour.png" style={{width: "120px", height: "29px"}}/> </Link>
+            <Link color="inherit" underline="none" href="/dashboard" className={classes.title}> <img alt="pioreactor logo" src="white_colour.png" style={{width: "120px", height: "29px"}}/> </Link>
           </Typography>
             <Link color="inherit" underline="none" href="https://github.com/Pioreactor/pioreactor/wiki" target="_blank" rel="noopener">
               <Button color="inherit">Help </Button>

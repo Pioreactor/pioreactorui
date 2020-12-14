@@ -41,12 +41,12 @@ class EditableCodeDiv extends React.Component {
       snackbarMsg: "",
     };
     this.saveCurrentCode = this.saveCurrentCode.bind(this);
-    this.availableConfigs = [
+    this.availableConfigs = [ //needs to be dynamic
       {name: "shared config.ini", filename: "config.ini"},
       {name: "1 unit_config.ini", filename: "config1.ini"},
       {name: "2 unit_config.ini", filename: "config2.ini"},
       {name: "3 unit_config.ini", filename: "config3.ini"},
-
+      {name: "4 unit_config.ini", filename: "config4.ini"},
     ]
   }
 
