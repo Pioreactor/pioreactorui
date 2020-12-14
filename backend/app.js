@@ -168,9 +168,18 @@ app.post("/update_experiment_desc", function (req, res) {
 
 
 app.get("/get_config/:filename", function(req, res) {
-  console.log("/get_config/")
+  // get a specific config.ini files in the .pioreactor folder
   var configPath = path.join(process.env.CONFIG_INI_FOLDER, req.params.filename);
   res.send(fs.readFileSync(configPath))
+})
+
+app.get("/get_config", function(req, res) {
+  // get a list of all config.ini files in the .pioreactor folder
+  var configPath = process.env.CONFIG_INI_FOLDER;
+  fs.readdir(configPath, (err, files) => {
+    files = files.filter(fn => fn.endsWith('.ini'));
+    res.json(files)
+  });
 })
 
 app.post("/save_new_config", function(req, res) {

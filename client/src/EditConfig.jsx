@@ -8,6 +8,7 @@ import Button from '@material-ui/core/Button';
 import {Typography} from '@material-ui/core';
 import Snackbar from '@material-ui/core/Snackbar';
 import Select from '@material-ui/core/Select';
+import CircularProgress from '@material-ui/core/CircularProgress';
 
 import { CodeFlaskReact } from "react-codeflask"
 
@@ -39,18 +40,15 @@ class EditableCodeDiv extends React.Component {
       openSnackbar: false,
       filename: "config.ini",
       snackbarMsg: "",
+      isRunning: false,
+      availableConfigs: [
+        {name: "shared config.ini", filename: "config.ini"},
+      ]
     };
     this.saveCurrentCode = this.saveCurrentCode.bind(this);
-    this.availableConfigs = [ //needs to be dynamic
-      {name: "shared config.ini", filename: "config.ini"},
-      {name: "1 unit_config.ini", filename: "config1.ini"},
-      {name: "2 unit_config.ini", filename: "config2.ini"},
-      {name: "3 unit_config.ini", filename: "config3.ini"},
-      {name: "4 unit_config.ini", filename: "config4.ini"},
-    ]
   }
 
-  async getData(filename) {
+  async getConfig(filename) {
     await fetch("/get_config/" + filename)
       .then(response => {
         return response.text();
@@ -60,7 +58,20 @@ class EditableCodeDiv extends React.Component {
       })
   }
 
+  async getListOfConfigFiles(filename) {
+    await fetch("/get_config")
+      .then(response => {
+        return response.json();
+      })
+      .then(json => {
+        this.setState(prevState => ({
+          availableConfigs: [...prevState.availableConfigs, ...json.filter(e => (e !== 'config.ini')).map(e => ({name: e, filename: e}))]
+        }));
+      })
+  }
+
   saveCurrentCode() {
+    this.setState({isRunning: true})
     fetch('/save_new_config',{
         method: "POST",
         body: JSON.stringify({code :this.state.code, filename: this.state.filename}),
@@ -75,17 +86,18 @@ class EditableCodeDiv extends React.Component {
       } else {
         this.setState({snackbarMsg: "Hm. Something when wrong saving or syncing..."})
       }
-      this.setState({openSnackbar: true});
+      this.setState({openSnackbar: true, isRunning: false});
     })
   }
 
   componentDidMount() {
-    this.getData(this.state.filename)
+    this.getConfig(this.state.filename)
+    this.getListOfConfigFiles()
   }
 
   onSelectionChange = (e) => {
     this.setState({filename: e.target.value})
-    this.getData(e.target.value)
+    this.getConfig(e.target.value)
   }
 
   getCodeFlaskRef = (codeFlask) => {
@@ -101,6 +113,7 @@ class EditableCodeDiv extends React.Component {
   };
 
   render() {
+    const runningFeedback = this.state.isRunning ? <CircularProgress color="inherit" size={20}/> : "Save"
     return (
       <div>
         <Select
@@ -113,7 +126,7 @@ class EditableCodeDiv extends React.Component {
             id: 'config',
           }}
         >
-          {this.availableConfigs.map((v) => {
+          {this.state.availableConfigs.map((v) => {
             return <option key={v.filename} value={v.filename}>{v.name}</option>
             }
           )}
@@ -133,7 +146,7 @@ class EditableCodeDiv extends React.Component {
           variant="contained"
           onClick={this.saveCurrentCode}
           disabled={false}>
-          Save
+          {runningFeedback}
         </Button>
         <Snackbar
           anchorOrigin={{vertical: "bottom", horizontal: "center"}}
