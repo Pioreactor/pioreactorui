@@ -14,11 +14,15 @@ import TableRow from '@material-ui/core/TableRow';
 
 const useStyles = theme => ({
   tightCell: {
-    padding: "8px 8px 6px 6px",
+    padding: "8px 2px 6px 4px",
     fontSize: 13,
   },
+  smallText: {
+    fontSize: 12,
+  },
   headerCell: {
-    backgroundColor: "white"
+    backgroundColor: "white",
+    padding: "8px 6px 6px 6px",
   },
   tightRight: {
     textAlign: "right"
@@ -65,6 +69,20 @@ class LogTable extends React.Component {
     });
   }
 
+  breakString(string){
+    if (string.length > 5){
+      return string.slice(0, 4) + "..."
+    }
+    return string
+  }
+
+  renameUnit(name){
+    if (!this.props.config['dashboard.rename']){
+      return name
+    }
+    return (this.props.config['dashboard.rename'][name]) || name
+  }
+
   render(){
     const { classes } = this.props;
     return (
@@ -78,16 +96,16 @@ class LogTable extends React.Component {
               <TableRow>
                 <TableCell className={[classes.headerCell, classes.tightCell].join(" ")}>Timestamp</TableCell>
                 <TableCell className={[classes.headerCell, classes.tightCell].join(" ")}>Message</TableCell>
-                <TableCell className={[classes.headerCell, classes.tightCell].join(" ")}>Unit</TableCell>
+                <TableCell className={[classes.headerCell, classes.tightCell].join(" ")}>Name (unit)</TableCell>
               </TableRow>
             </TableHead>
 
             <TableBody>
               {this.state.listOfLogs.map((log, i) => (
                 <TableRow key={i}>
-                  <TableCell className={classes.tightCell}> {moment(log.timestamp, 'x').format('HH:mm:ss')} </TableCell>
-                  <TableCell className={classes.tightCell}> {log.message} </TableCell>
-                  <TableCell className={[classes.tightCell, classes.tightRight].join(" ")}>{log.unit}</TableCell>
+                  <TableCell className={[classes.tightCell, classes.smallText]}> {moment(log.timestamp, 'x').format('HH:mm:ss')} </TableCell>
+                  <TableCell className={[classes.tightCell, classes.smallText]}> {log.message} </TableCell>
+                  <TableCell className={[classes.tightCell, classes.smallText].join(" ")}>{this.renameUnit(log.unit)}</TableCell>
                 </TableRow>
                 ))
               }

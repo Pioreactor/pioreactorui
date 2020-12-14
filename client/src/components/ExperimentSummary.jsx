@@ -95,24 +95,9 @@ class EditableDescription extends React.Component {
 
 function ExperimentSummary(props){
   const classes = useStyles();
-  const [experiment, setExperiment] = React.useState("")
-  const [startedAt, setStartedAt] = React.useState(moment())
-  const [desc, setDesc] = React.useState("")
-
-  React.useEffect(() => {
-    async function getData() {
-         await fetch("/get_latest_experiment")
-        .then((response) => {
-          return response.json();
-        })
-        .then((data) => {
-          setExperiment(data.experiment)
-          setStartedAt(moment(data.timestamp, 'YYYY-MM-DD HH:mm:SS'))
-          setDesc(data.description)
-        });
-      }
-      getData()
-  }, [])
+  const experiment = props.experimentMetadata.experiment || ""
+  const startedAt = props.experimentMetadata.timestamp || moment()
+  const desc = props.experimentMetadata.description || ""
 
   return(
     <Card className={classes.root}>
@@ -125,12 +110,12 @@ function ExperimentSummary(props){
         </Typography>
         <Typography variant="subtitle2">
           <Box fontWeight="fontWeightRegular">
-            Start date: <span title={startedAt.format("YYYY-MM-DD HH:mm:ss")}>{startedAt.format("YYYY-MM-DD")}</span>
+            Start date: <span title={moment(startedAt).format("YYYY-MM-DD HH:mm:ss")}>{moment(startedAt).format("YYYY-MM-DD")}</span>
           </Box>
         </Typography>
         <Typography variant="subtitle2" >
           <Box fontWeight="fontWeightRegular">
-            Elapsed: {(moment().diff(startedAt, 'H'))}h
+            Elapsed: {(moment().diff(moment(startedAt), 'H'))}h
           </Box>
         </Typography>
         <EditableDescription experiment={experiment} description={desc} />

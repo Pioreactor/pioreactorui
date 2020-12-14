@@ -113,7 +113,7 @@ class EditableCodeDiv extends React.Component {
   };
 
   render() {
-    const runningFeedback = this.state.isRunning ? <CircularProgress color="inherit" size={20}/> : "Save"
+    const runningFeedback = this.state.isRunning ? <CircularProgress color="inherit" size={25}/> : "Save"
     return (
       <div>
         <Select

@@ -15,6 +15,7 @@ import {parseINIString} from "./utilities"
 function Dashboard() {
 
   const [experiment, setExperiment] = React.useState("")
+  const [experimentMetadata, setExperimentMetadata] = React.useState({})
   const [config, setConfig] = React.useState({})
 
   React.useEffect(() => {
@@ -25,6 +26,7 @@ function Dashboard() {
         })
         .then((data) => {
           setExperiment(data.experiment)
+          setExperimentMetadata(data)
         });
       }
 
@@ -56,7 +58,7 @@ function Dashboard() {
           <Grid item xs={false} md={1}/>
           <Grid item xs={12} md={6}  style={{height: "100%"}} container direction="column" spacing={2}>
             <Grid item>
-              <ExperimentSummary />
+              <ExperimentSummary experimentMetadata={experimentMetadata}/>
             </Grid>
 
             <Grid item>
@@ -127,7 +129,7 @@ function Dashboard() {
               </Grid>
 
             <Grid item style={{padding: "10px 0px"}}>
-              <LogTable />
+              <LogTable config={config}/>
             </Grid>
             <Grid item> <ClearLogButton /> </Grid>
           </Grid>

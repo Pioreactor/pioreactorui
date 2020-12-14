@@ -196,7 +196,6 @@ class Chart extends React.Component {
       return string.slice(0, 5)
     }
     return string
-
   }
 
   renameAndFormatSeries(name){

@@ -80,6 +80,10 @@ function ExperimentSummaryForm(props) {
 
   }
 
+  function killExistingJobs(){
+     fetch('/stop')
+  }
+
   function onSubmit(e) {
     e.preventDefault();
     if (expName === ""){
@@ -97,6 +101,7 @@ function ExperimentSummaryForm(props) {
         if (res.status === 200){
           setFormError(false);
           setOpenSnackbar(true);
+          killExistingJobs()
           publishExpNameToMQTT()
         }
         else{
