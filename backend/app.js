@@ -183,15 +183,23 @@ app.get("/get_config", function(req, res) {
 })
 
 app.post("/save_new_config", function(req, res) {
-  // this will get too slow as more and more units are added.
-  // need to extract out unit number and ship to only that unit.
+  // if the config file is unit specific, we only need to run sync-config on that unit.
+  const regex = /config(\d{1,})?\.ini/
+  const filename = req.body.filename
+  if (filename.match(regex)){
+    var units = filename.match(regex)[1]
+  }
+  else{
+    var units = "$broadcast"
+  }
+
   var configPath = path.join(process.env.CONFIG_INI_FOLDER, req.body.filename);
   fs.writeFile(configPath, req.body.code, function (err) {
     if (err) {
       res.sendStatus(500)
     }
     else {
-      command = (["pios", "sync-configs"]).join(" ")
+      command = (["pios", "sync-configs", "--units", `'${units}'`]).join(" ")
       exec(command, (error, stdout, stderr) => {
           if (error) {
               console.log(error)
