@@ -23,6 +23,9 @@ import DialogTitle from '@material-ui/core/DialogTitle';
 import Snackbar from '@material-ui/core/Snackbar';
 import Grid from '@material-ui/core/Grid';
 import CircularProgress from '@material-ui/core/CircularProgress';
+import FormLabel from '@material-ui/core/FormLabel';
+import FormControl from '@material-ui/core/FormControl';
+import Select from '@material-ui/core/Select';
 
 import {parseINIString} from "../utilities"
 import ActionPumpForm from "./ActionPumpForm"
@@ -31,7 +34,7 @@ const onlineGreen = "#4caf50"
 const offlineGrey = "grey"
 const errorRed = "#DE3618"
 
-const useStyles = makeStyles({
+const useStyles = makeStyles((theme) => ({
   root: {
     minWidth: 100,
     marginTop: "15px",
@@ -99,11 +102,20 @@ const useStyles = makeStyles({
     marginTop: "15px",
     maxWidth: "180px",
   },
+  textFieldCompact: {
+    marginTop: theme.spacing(3),
+    marginRight: theme.spacing(2),
+    marginBottom: theme.spacing(0),
+    width: "30ch",
+  },
   displaySettingsHidden: {
     height: "60px",
     overflow: "hidden",
   },
-});
+  formControl: {
+    marginTop: theme.spacing(2)
+  }
+}));
 
 
 function PatientButton(props) {
@@ -227,6 +239,272 @@ class UnitSettingDisplay extends React.Component {
   }
 }
 
+function SilentForm(props){
+  const classes = useStyles();
+  const defaults = {duration: 60}
+
+  useEffect(() => {
+    props.updateParent(defaults)
+  }, [])
+
+
+  const onSettingsChange = (e) => {
+    props.updateParent({[e.target.id]: e.target.value})
+  }
+
+  return (
+    <div>
+        <TextField
+          size="small"
+          id="duration"
+          label="Duration between events"
+          defaultValue={defaults.duration}
+          InputProps={{
+            endAdornment: <InputAdornment position="end">min</InputAdornment>,
+          }}
+          variant="outlined"
+          onChange={onSettingsChange}
+          className={classes.textFieldCompact}
+        />
+    </div>
+)}
+
+function PIDTurbodstatForm(props){
+  const classes = useStyles();
+  const defaults = {duration: 60, volume: 2, target_od: 1.5}
+
+  useEffect(() => {
+    props.updateParent(defaults)
+  }, [])
+
+
+  const onSettingsChange = (e) => {
+    props.updateParent({[e.target.id]: e.target.value})
+  }
+
+  return (
+      <div>
+        <TextField
+          size="small"
+          id="duration"
+          defaultValue={defaults.duration}
+          InputProps={{
+            endAdornment: <InputAdornment position="end">min</InputAdornment>,
+          }}
+          variant="outlined"
+          onChange={onSettingsChange}
+          className={classes.textFieldCompact}
+          label="Duration between events"
+        />
+        <TextField
+          size="small"
+          id="volume"
+          label="Max volume"
+          defaultValue={defaults.volume}
+          InputProps={{
+            endAdornment: <InputAdornment position="end">mL</InputAdornment>,
+          }}
+          variant="outlined"
+          onChange={onSettingsChange}
+          className={classes.textFieldCompact}
+        />
+        <TextField
+          size="small"
+          id="target_od"
+          label="Target OD"
+          defaultValue={defaults.target_od}
+          InputProps={{
+            endAdornment: <InputAdornment position="end">AU</InputAdornment>,
+          }}
+          variant="outlined"
+          onChange={onSettingsChange}
+          className={classes.textFieldCompact}
+        />
+    </div>
+)}
+
+function PIDMorbidostatForm(props){
+  const classes = useStyles();
+  const defaults = {duration: 60, target_growth_rate: 0.1, target_od: 1.5}
+
+  useEffect(() => {
+    props.updateParent(defaults)
+  }, [])
+
+  const onSettingsChange = (e) => {
+    props.updateParent({[e.target.id]: e.target.value})
+  }
+
+  return (
+      <div>
+        <TextField
+          size="small"
+          id="duration"
+          label="Duration between events"
+          defaultValue={defaults.duration}
+          InputProps={{
+            endAdornment: <InputAdornment position="end">min</InputAdornment>,
+          }}
+          variant="outlined"
+          onChange={onSettingsChange}
+          className={classes.textFieldCompact}
+        />
+        <TextField
+          size="small"
+          id="target_od"
+          label="Target OD"
+          defaultValue={defaults.target_od}
+          InputProps={{
+            endAdornment: <InputAdornment position="end">AU</InputAdornment>,
+          }}
+          variant="outlined"
+          onChange={onSettingsChange}
+          className={classes.textFieldCompact}
+        />
+        <TextField
+          size="small"
+          id="target_growth_rate"
+          label="Target growth rate"
+          defaultValue={defaults.target_growth_rate}
+          InputProps={{
+            endAdornment: <InputAdornment position="end">h⁻¹</InputAdornment>,
+          }}
+          variant="outlined"
+          onChange={onSettingsChange}
+          className={classes.textFieldCompact}
+        />
+    </div>
+)}
+
+
+
+function ButtonChangeIODialog(props) {
+  const classes = useStyles();
+  const [open, setOpen] = useState(false);
+  const [algoSettings, setAlgoSettings] = useState({io_algorithm: "silent"})
+  const algos = [
+    {name: "Silent", key: "silent"},
+    {name: "PID Morbidostat",  key: "pid_morbidostat"},
+    {name: "PID Turbodistat",  key: "pid_turbodistat"},
+    {name: "Chemostat", key: "chemostat"},
+  ]
+
+  var client = new Client(
+    "ws://pioreactorws.ngrok.io/",
+    "webui" + Math.random()
+  );
+  client.connect({reconnect: true, timeout:60});
+
+
+
+  const handleClickOpen = () => {
+    setOpen(true);
+  };
+
+  const handleClose = () => {
+    setOpen(false);
+  };
+
+  const handleAlgoSelectionChange = (e) => {
+    setAlgoSettings({io_algorithm: e.target.value})
+  }
+
+  const updateFromChild = (setting) => {
+    setAlgoSettings(prevState => ({...prevState, ...setting}))
+  }
+
+  const switchToForm = () => {
+    switch(algoSettings.io_algorithm) {
+      case "silent":
+        return <SilentForm updateParent={updateFromChild}/>
+      case "pid_turbodistat":
+        return <PIDTurbodstatForm updateParent={updateFromChild}/>
+      case "pid_morbidostat":
+        return <PIDMorbidostatForm updateParent={updateFromChild}/>
+      default:
+        return <div><p>Not implemented</p></div>
+    }
+  }
+
+  const onSubmit = (event) => {
+    event.preventDefault()
+
+    var message = new Message(JSON.stringify(algoSettings));
+    message.destinationName = [
+      "pioreactor",
+      props.unitNumber,
+      props.experiment,
+      "algorithm_controlling",
+      "io_algorithm",
+      "set",
+    ].join("/");
+    message.qos = 2;
+    try{
+      client.publish(message);
+    }
+    catch (e){
+      console.log(e)
+    }
+  }
+
+  console.log(algoSettings)
+  return (
+    <div>
+    <Button
+      style={{marginTop: "10px"}}
+      size="small"
+      color="primary"
+      onClick={handleClickOpen}
+    >
+      Change IO algorithm
+    </Button>
+    <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title" PaperProps={{style: {height: "100%"}}}>
+      <DialogTitle>
+        <Typography className={classes.suptitle}>
+          {(props.config['dashboard.rename'] &&  props.config['dashboard.rename'][props.unitNumber]) ? `pioreactor${props.unitNumber} (${props.config['dashboard.rename'][props.unitNumber]})` : `pioreactor${props.unitNumber}`}
+        </Typography>
+        <Typography className={classes.unitTitleDialog}>
+          IO Algorithm
+        </Typography>
+      </DialogTitle>
+      <DialogContent>
+        <Typography variant="body2" component="p" gutterBottom>
+          IO algorithms control when and how much media to add to the Pioreactor. The settings below can be changed later.  <a target="_blank" href="https://github.com/Pioreactor/pioreactor/wiki/Configuration">Learn more about IO algorithms</a>
+        </Typography>
+
+        <form>
+          <FormControl component="fieldset" className={classes.formControl}>
+          <FormLabel component="legend">Algorithm</FormLabel>
+            <Select
+              native
+              value={algoSettings.mode}
+              onChange={handleAlgoSelectionChange}
+              style={{maxWidth: "200px"}}
+            >
+              {algos.map((v) => {
+                return <option id={v.key} value={v.key}>{v.name}</option>
+                }
+              )}
+            </Select>
+            {switchToForm()}
+            <Button
+              type="submit"
+              variant="contained"
+              color="primary"
+              onClick={onSubmit}
+              style={{width: "120px", marginTop: "20px"}}
+            >
+              Submit
+            </Button>
+          </FormControl>
+        </form>
+
+
+      </DialogContent>
+    </Dialog>
+    </div>
+)}
+
 function ButtonSettingsDialog(props) {
   const classes = useStyles();
   const [defaultStirring, setDefaultStirring] = useState(0);
@@ -261,9 +539,7 @@ function ButtonSettingsDialog(props) {
     "webui" + Math.random()
   );
 
-  function onSuccess(){
-  }
-  client.connect({onSuccess: onSuccess, reconnect: true, timeout:60});
+  client.connect({reconnect: true, timeout:60});
 
 
   function setPioreactorJobState(job, state) {
@@ -402,10 +678,10 @@ function ButtonSettingsDialog(props) {
     <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
       <DialogTitle>
         <Typography className={classes.suptitle}>
-          {props.config['dashboard.rename'] ? props.config['dashboard.rename'][props.unitNumber] : ""}
+          {(props.config['dashboard.rename'] &&  props.config['dashboard.rename'][props.unitNumber]) ? `pioreactor${props.unitNumber} (${props.config['dashboard.rename'][props.unitNumber]})` : `pioreactor${props.unitNumber}`}
         </Typography>
         <Typography className={classes.unitTitleDialog}>
-          pioreactor{props.unitNumber}
+          Settings
         </Typography>
       </DialogTitle>
       <DialogContent>
@@ -550,6 +826,20 @@ function ButtonSettingsDialog(props) {
           className={classes.textField}
         />
         <Divider className={classes.divider} />
+
+        <Typography  gutterBottom>
+          IO algorithm
+        </Typography>
+        <Typography variant="body2" component="p">
+          Change which IO algorithm is running on this unit, and set the initial settings. <a target="_blank" href="https://github.com/Pioreactor/pioreactor/wiki/Configuration">Learn more about IO algorithms</a>.
+        </Typography>
+
+        <ButtonChangeIODialog
+          unitNumber={props.unitNumber}
+          config={props.config}
+          experiment={props.experiment}
+        />
+        <Divider className={classes.divider} />
       </DialogContent>
     </Dialog>
     <Snackbar
@@ -579,6 +869,9 @@ function ButtonActionDialog(props) {
     setOpen(false);
   };
 
+  const title = props.title ? props.title :
+    (props.config['dashboard.rename'] &&  props.config['dashboard.rename'][props.unitNumber]) ? `pioreactor${props.unitNumber} (${props.config['dashboard.rename'][props.unitNumber]})` : `pioreactor${props.unitNumber}`
+
   return (
     <div>
       <Button
@@ -591,10 +884,10 @@ function ButtonActionDialog(props) {
       <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
         <DialogTitle id="form-dialog-title">
           <Typography className={clsx(classes.suptitle)} color="textSecondary">
-            {props.config['dashboard.rename'] ? props.config['dashboard.rename'][unitNumber] : ""}
+            {title}
           </Typography>
           <Typography className={classes.unitTitleDialog}>
-            {props.title || `pioreactor${props.unitNumber}`}
+            Actions
           </Typography>
         </DialogTitle>
         <DialogContent>

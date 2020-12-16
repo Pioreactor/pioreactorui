@@ -1,7 +1,9 @@
 import React from 'react'
 
+import clsx from 'clsx';
 import {Client} from 'paho-mqtt';
 import moment from 'moment';
+
 
 import {withStyles} from '@material-ui/styles';
 import Card from '@material-ui/core/Card';
@@ -94,18 +96,18 @@ class LogTable extends React.Component {
                 <TableCell align="center" colSpan={3} className={[classes.headerCell, classes.tightCell].join(" ")}> Event logs </TableCell>
               </TableRow>
               <TableRow>
-                <TableCell className={[classes.headerCell, classes.tightCell].join(" ")}>Timestamp</TableCell>
-                <TableCell className={[classes.headerCell, classes.tightCell].join(" ")}>Message</TableCell>
-                <TableCell className={[classes.headerCell, classes.tightCell].join(" ")}>Name (unit)</TableCell>
+                <TableCell className={clsx(classes.headerCell, classes.tightCell)}>Timestamp</TableCell>
+                <TableCell className={clsx(classes.headerCell, classes.tightCell)}>Message</TableCell>
+                <TableCell className={clsx(classes.headerCell, classes.tightCell)}>Name of unit</TableCell>
               </TableRow>
             </TableHead>
 
             <TableBody>
               {this.state.listOfLogs.map((log, i) => (
                 <TableRow key={i}>
-                  <TableCell className={[classes.tightCell, classes.smallText]}> {moment(log.timestamp, 'x').format('HH:mm:ss')} </TableCell>
-                  <TableCell className={[classes.tightCell, classes.smallText]}> {log.message} </TableCell>
-                  <TableCell className={[classes.tightCell, classes.smallText].join(" ")}>{this.renameUnit(log.unit)}</TableCell>
+                  <TableCell className={clsx(classes.tightCell, classes.smallText)}> {moment(log.timestamp, 'x').format('HH:mm:ss')} </TableCell>
+                  <TableCell className={clsx(classes.tightCell, classes.smallText)}> {log.message} </TableCell>
+                  <TableCell className={clsx(classes.tightCell, classes.smallText)}>{this.renameUnit(log.unit)}</TableCell>
                 </TableRow>
                 ))
               }

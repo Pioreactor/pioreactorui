@@ -39,7 +39,7 @@ const useStyles = makeStyles({
   },
   unitTitleDialog: {
     fontSize: 20,
-    color: "rgba(0, 0, 0, 0.54)",
+    color: "rgba(0, 0, 0, 0.88)",
   },
   textbox: {
     display: "flex",
@@ -54,6 +54,10 @@ const useStyles = makeStyles({
   },
   actionTextField: {
     padding: "0px 10px 0px 0px",
+  },
+  suptitle: {
+    fontSize: "13px",
+    color: "rgba(0, 0, 0, 0.60)",
   },
 })
 
@@ -177,8 +181,11 @@ function ButtonAllUnitSettingsDialog(props) {
         aria-describedby="alert-dialog-description"
       >
         <DialogTitle>
-          <Typography className={classes.unitTitleDialog}>
+          <Typography className={classes.suptitle} color="textSecondary">
             All units
+          </Typography>
+          <Typography className={classes.unitTitleDialog}>
+            Settings
           </Typography>
         </DialogTitle>
         <DialogContent>
