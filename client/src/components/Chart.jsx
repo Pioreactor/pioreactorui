@@ -94,7 +94,7 @@ class Chart extends React.Component {
         for (const [i, v] of data["series"].entries()) {
           if (data["data"][i].length > 0) {
             initialSeriesMap[v] = {
-              data: (data["data"][i]).filter((e, i) =>  i % 4 == 0), //tune this value better.
+              data: (data["data"][i]).filter((e, i) =>  i % 4 === 0), //tune this value better.
               name: v,
               color: colors[v],
             };

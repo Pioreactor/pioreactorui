@@ -382,6 +382,7 @@ function ButtonChangeIODialog(props) {
   const classes = useStyles();
   const [open, setOpen] = useState(false);
   const [algoSettings, setAlgoSettings] = useState({io_algorithm: "silent"})
+  const [isClicked, setIsClicked] = useState(false)
   const algos = [
     {name: "Silent", key: "silent"},
     {name: "PID Morbidostat",  key: "pid_morbidostat"},
@@ -428,7 +429,7 @@ function ButtonChangeIODialog(props) {
 
   const onSubmit = (event) => {
     event.preventDefault()
-
+    setIsClicked(true)
     var message = new Message(JSON.stringify(algoSettings));
     message.destinationName = [
       "pioreactor",
@@ -447,7 +448,6 @@ function ButtonChangeIODialog(props) {
     }
   }
 
-  console.log(algoSettings)
   return (
     <div>
     <Button
@@ -482,7 +482,7 @@ function ButtonChangeIODialog(props) {
               style={{maxWidth: "200px"}}
             >
               {algos.map((v) => {
-                return <option id={v.key} value={v.key}>{v.name}</option>
+                return <option id={v.key} value={v.key} key={"change-io" + v.key}>{v.name}</option>
                 }
               )}
             </Select>
@@ -490,7 +490,7 @@ function ButtonChangeIODialog(props) {
             <Button
               type="submit"
               variant="contained"
-              color="primary"
+              color={isClicked ? "default" : "primary" }
               onClick={onSubmit}
               style={{width: "120px", marginTop: "20px"}}
             >
@@ -733,9 +733,9 @@ function ButtonSettingsDialog(props) {
             key={"stirring/duty_cycle" + props.unitNumber}
             onChangeCommitted={setPioreactorStirring}
             marks={[
-              { value: 0, label: "0" },
-              { value: defaultStirring, label: "Default: " + defaultStirring },
-              { value: 100, label: "100" },
+              { value: 0, label: "0", key: "slider-0" },
+              { value: defaultStirring, label: "Default: " + defaultStirring, key: "slider-default"},
+              { value: 100, label: "100", key: "slider-100" },
             ]}
           />
         </div>
