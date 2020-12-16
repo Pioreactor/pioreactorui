@@ -74,17 +74,11 @@ class Chart extends React.Component {
 
   componentDidMount() {
     this.getData();
-    if (window.location.href.includes("ngrok")){
-      this.client = new Client(
-        "ws://pioreactorws.ngrok.io/",
-        "client" + Math.random()
-      );
-    } else {
-      this.client = new Client(
-        "leader.local", 9001,
-        "client" + Math.random()
-      );
-    }
+    this.client = new Client(
+      "ws://pioreactorws.ngrok.io/",
+      "client" + Math.random()
+    );
+
 
     this.client.connect({ onSuccess: this.onConnect });
     this.client.onMessageArrived = this.onMessageArrived;
@@ -192,8 +186,8 @@ class Chart extends React.Component {
   }
 
   breakString(string){
-    if (string.length > 6){
-      return string.slice(0, 5)
+    if (string.length > 7){
+      return string.slice(0, 7)
     }
     return string
   }

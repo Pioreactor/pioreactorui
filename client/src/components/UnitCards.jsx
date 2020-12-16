@@ -461,7 +461,7 @@ function ButtonChangeIODialog(props) {
     <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title" PaperProps={{style: {height: "100%"}}}>
       <DialogTitle>
         <Typography className={classes.suptitle}>
-          {(props.config['dashboard.rename'] &&  props.config['dashboard.rename'][props.unitNumber]) ? `pioreactor${props.unitNumber} (${props.config['dashboard.rename'][props.unitNumber]})` : `pioreactor${props.unitNumber}`}
+          {props.title || ((props.config['dashboard.rename'] &&  props.config['dashboard.rename'][props.unitNumber]) ? `pioreactor${props.unitNumber} (${props.config['dashboard.rename'][props.unitNumber]})` : `pioreactor${props.unitNumber}`)}
         </Typography>
         <Typography className={classes.unitTitleDialog}>
           IO Algorithm
@@ -469,7 +469,7 @@ function ButtonChangeIODialog(props) {
       </DialogTitle>
       <DialogContent>
         <Typography variant="body2" component="p" gutterBottom>
-          IO algorithms control when and how much media to add to the Pioreactor. The settings below can be changed later.  <a target="_blank" href="https://github.com/Pioreactor/pioreactor/wiki/Configuration">Learn more about IO algorithms</a>
+          IO algorithms control when and how much media to add to the Pioreactor. The settings below can be changed later.  <a target="_blank" href="https://github.com/Pioreactor/pioreactor/wiki/io-algorithms">Learn more about IO algorithms</a>
         </Typography>
 
         <form>
@@ -831,7 +831,7 @@ function ButtonSettingsDialog(props) {
           IO algorithm
         </Typography>
         <Typography variant="body2" component="p">
-          Change which IO algorithm is running on this unit, and set the initial settings. <a target="_blank" href="https://github.com/Pioreactor/pioreactor/wiki/Configuration">Learn more about IO algorithms</a>.
+          Change which IO algorithm is running on this unit, and set the initial settings.
         </Typography>
 
         <ButtonChangeIODialog
@@ -1184,4 +1184,4 @@ function UnitCards(props) {
   );
 }
 
-export {UnitCards, ButtonActionDialog};
+export {UnitCards, ButtonActionDialog, ButtonChangeIODialog};

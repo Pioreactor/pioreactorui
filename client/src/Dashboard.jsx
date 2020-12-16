@@ -44,8 +44,8 @@ function Dashboard() {
         })
         .catch((error) => {})
     }
-    getConfig();
     getLatestExperiment()
+    getConfig();
   }, [])
 
   return (

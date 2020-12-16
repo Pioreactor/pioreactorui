@@ -14,7 +14,7 @@ import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import TextField from '@material-ui/core/TextField';
 import InputAdornment from "@material-ui/core/InputAdornment";
-import {ButtonActionDialog} from "./UnitCards"
+import {ButtonActionDialog, ButtonChangeIODialog} from "./UnitCards"
 
 const dividerStyle = {
   marginTop: 4,
@@ -298,6 +298,20 @@ function ButtonAllUnitSettingsDialog(props) {
             variant="outlined"
             onKeyPress={setPioreactorJobStateOnEnter}
             className={classes.textField}
+          />
+          <Divider className={classes.divider} />
+          <Typography  gutterBottom>
+            IO algorithm
+          </Typography>
+          <Typography variant="body2" component="p">
+            Change which IO algorithm is running on this unit, and set the initial settings.
+          </Typography>
+
+          <ButtonChangeIODialog
+            unitNumber={'$broadcast'}
+            title="All units"
+            config={{}}
+            experiment={props.experiment}
           />
           <Divider className={classes.divider} />
       </DialogContent>
