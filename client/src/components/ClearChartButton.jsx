@@ -25,7 +25,7 @@ function ClearChartButton(props){
           "set",
         ].join("/");
 
-        message.qos = 2;
+        message.qos = 1;
         client.publish(message);
       }
 

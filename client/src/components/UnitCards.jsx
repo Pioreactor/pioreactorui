@@ -171,7 +171,7 @@ class UnitSettingDisplay extends React.Component {
       "ws://pioreactorws.ngrok.io/",
       "webui" + Math.random()
     );
-    this.client.connect({ onSuccess: this.onConnect });
+    this.client.connect({ onSuccess: this.onConnect});
     this.client.onMessageArrived = this.onMessageArrived;
   }
 
@@ -183,6 +183,7 @@ class UnitSettingDisplay extends React.Component {
   }
 
   onConnect() {
+    console.log("connected: " + this.props.unitNumber + " " + this.props.topic)
     this.client.subscribe(
       [
         "pioreactor",
@@ -383,6 +384,8 @@ function ButtonChangeIODialog(props) {
   const [open, setOpen] = useState(false);
   const [algoSettings, setAlgoSettings] = useState({io_algorithm: "silent"})
   const [isClicked, setIsClicked] = useState(false)
+  const [client, setClient] = useState(null)
+
   const algos = [
     {name: "Silent", key: "silent"},
     {name: "PID Morbidostat",  key: "pid_morbidostat"},
@@ -390,13 +393,15 @@ function ButtonChangeIODialog(props) {
     {name: "Chemostat", key: "chemostat"},
   ]
 
-  var client = new Client(
-    "ws://pioreactorws.ngrok.io/",
-    "webui" + Math.random()
-  );
-  client.connect({reconnect: true, timeout:60});
-
-
+  useEffect(() => {
+    // MQTT - client ids should be unique
+    const client = new Client(
+      "ws://pioreactorws.ngrok.io/",
+      "webui" + Math.random()
+    );
+    client.connect({onSuccess: () => {console.log("connected")}});
+    setClient(client)
+  },[])
 
   const handleClickOpen = () => {
     setOpen(true);
@@ -509,6 +514,7 @@ function ButtonSettingsDialog(props) {
   const classes = useStyles();
   const [defaultStirring, setDefaultStirring] = useState(0);
   const [open, setOpen] = useState(false);
+  const [client, setClient] = useState(null);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
 
   useEffect(() => {
@@ -534,12 +540,15 @@ function ButtonSettingsDialog(props) {
     }
   }, [props.disabled, props.unitNumber]);
 
-  var client = new Client(
-    "ws://pioreactorws.ngrok.io/",
-    "webui" + Math.random()
-  );
-
-  client.connect({reconnect: true, timeout:60});
+  useEffect(() => {
+    // MQTT - client ids should be unique
+    const client = new Client(
+      "ws://pioreactorws.ngrok.io/",
+      "webui" + Math.random()
+    );
+    client.connect();
+    setClient(client)
+  },[])
 
 
   function setPioreactorJobState(job, state) {

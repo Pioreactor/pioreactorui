@@ -64,9 +64,13 @@ class Chart extends React.Component {
     };
     this.onConnect = this.onConnect.bind(this);
     this.onMessageArrived = this.onMessageArrived.bind(this);
+    this.selectLegendData = this.selectLegendData.bind(this);
+    this.selectVictoryLines = this.selectVictoryLines.bind(this);
+
   }
 
   onConnect() {
+    console.log("chart connected")
     this.client.subscribe(
       ["pioreactor", "+", this.props.experiment, this.props.topic].join("/")
     );
@@ -94,7 +98,7 @@ class Chart extends React.Component {
         for (const [i, v] of data["series"].entries()) {
           if (data["data"][i].length > 0) {
             initialSeriesMap[v] = {
-              data: (data["data"][i]),
+              data: (data["data"][i]).filter(this.filterDataPoints(data["data"][i].length)),
               name: v,
               color: colors[v],
             };
@@ -214,7 +218,7 @@ class Chart extends React.Component {
       if ((index === 0) || (index === (totalLength - 1))){
         return true
       }
-      else if (index % Math.round(totalLength/50) === 0){
+      else if (index % Math.round(totalLength/80) === 0){
         return true
       } else {
         return false
@@ -238,21 +242,64 @@ class Chart extends React.Component {
 
   }
 
+  createToolTip = (d) => {
+      return `${moment(d.datum.x, 'x').format("dd HH:mm")}
+${this.renameAndFormatSeries(d.datum.childName)}: ${Math.round(d.datum.y * 1000) / 1000}`
+  }
+
+  formatTs(format){
+    return function(mt){
+      return mt.format(format)
+  }}
+
+  selectLegendData(name){
+    if (!this.state.seriesMap) {
+      return {}
+    }
+    const line = this.state.seriesMap[name];
+    const item = {
+      name: this.renameAndFormatSeries(line.name),
+      symbol: { fill: line.color },
+    };
+    if (this.state.hiddenSeries.has(name)) {
+      return { ...item, symbol: { fill: "white" } };
+    }
+    return item;
+  }
+
+  selectVictoryLines(name) {
+    if (this.state.hiddenSeries.has(name)) {
+      return undefined;
+    }
+    return (
+      <VictoryLine
+        interpolation={this.props.interpolation}
+        key={"line-" + name + this.props.title}
+        name={name}
+        style={{
+          labels: {fill: this.state.seriesMap[name].color},
+          data: {
+            stroke: this.state.seriesMap[name].color,
+            strokeWidth: 2,
+          },
+          parent: { border: "1px solid #ccc" },
+        }}
+        data={this.state.seriesMap[name].data}
+        x="x"
+        y="y"
+      />
+    );
+  }
+
   render() {
-    let delta_ts = moment(this.state.maxTimestamp, "x").diff(
+    const delta_ts = moment(this.state.maxTimestamp, "x").diff(
       moment(this.state.minTimestamp, "x"),
       "hours"
     );
-    let axis_display_ts_format =
-      delta_ts >= 16 ? (delta_ts >= 5 * 24 ? "MMM DD" : "dd HH:mm") : "H:mm";
-    let tooltip_display_ts_format =
-      delta_ts >= 16
-        ? delta_ts >= 5 * 24
-          ? "MMM DD HH:mm"
-          : "dd HH:mm"
-        : "H:mm";
-    const ts = this.createXTickValues(this.state.minTimestamp, this.state.maxTimestamp)
     const VictoryVoronoiContainer = createContainer("voronoi");
+    const axis_display_ts_format =
+      delta_ts >= 16 ? (delta_ts >= 5 * 24 ? "MMM DD" : "dd HH:mm") : "H:mm";
+    const ts = this.createXTickValues(this.state.minTimestamp, this.state.maxTimestamp)
     return (
       <Card style={{width: "100%", "height": "100%"}}>
         <VictoryChart
@@ -267,10 +314,7 @@ class Chart extends React.Component {
           containerComponent={
             <VictoryVoronoiContainer
               voronoiBlacklist={['parent']}
-              labels={(d) => {
-                return `${moment(d.datum.x, 'x').format(tooltip_display_ts_format)}
-${this.renameAndFormatSeries(d.datum.childName)}: ${Math.round(d.datum.y * 1000) / 1000}`
-              }}
+              labels={this.createToolTip}
               labelComponent={
                 <VictoryTooltip
                   cornerRadius={0}
@@ -295,7 +339,7 @@ ${this.renameAndFormatSeries(d.datum.childName)}: ${Math.round(d.datum.y * 1000)
             }}
           />
           <VictoryAxis
-            tickFormat={(mt) => mt.format(axis_display_ts_format)}
+            tickFormat={this.formatTs(axis_display_ts_format)}
             tickValues={ts}
             style={{
               tickLabels: {
@@ -343,41 +387,9 @@ ${this.renameAndFormatSeries(d.datum.childName)}: ${Math.round(d.datum.y * 1000)
               labels: { fontSize: 12 },
               data: { stroke: "#485157", strokeWidth: 1, size: 6 },
             }}
-            data={this.state.names.map((name) => {
-              const line = this.state.seriesMap[name];
-              const item = {
-                name: this.renameAndFormatSeries(line.name),
-                symbol: { fill: line.color },
-              };
-              if (this.state.hiddenSeries.has(name)) {
-                return { ...item, symbol: { fill: "white" } };
-              }
-              return item;
-            })}
+            data={this.state.names.map(this.selectLegendData)}
           />
-          {Object.keys(this.state.seriesMap).map((name) => {
-            if (this.state.hiddenSeries.has(name)) {
-              return undefined;
-            }
-            return (
-              <VictoryLine
-                interpolation={this.props.interpolation}
-                key={"line-" + name}
-                name={name}
-                style={{
-                  labels: {fill: this.state.seriesMap[name].color},
-                  data: {
-                    stroke: this.state.seriesMap[name].color,
-                    strokeWidth: 2,
-                  },
-                  parent: { border: "1px solid #ccc" },
-                }}
-                data={this.state.seriesMap[name].data.filter(this.filterDataPoints(this.state.seriesMap[name].data.length))}
-                x="x"
-                y="y"
-              />
-            );
-          })}
+          {Object.keys(this.state.seriesMap).map(this.selectVictoryLines)}
         </VictoryChart>
       </Card>
     );

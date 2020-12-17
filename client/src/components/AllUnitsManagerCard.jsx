@@ -1,4 +1,4 @@
-import React, {useState} from 'react'
+import React, {useState, useEffect} from 'react'
 import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/CardContent';
 import CardActions from "@material-ui/core/CardActions";
@@ -65,18 +65,18 @@ const useStyles = makeStyles({
 function ButtonAllUnitSettingsDialog(props) {
   const classes = useStyles();
   const [open, setOpen] = useState(false);
+  const [client, setClient] = useState(null);
 
 
-  // MQTT - client ids should be unique
-  var client = new Client(
-    "ws://pioreactorws.ngrok.io/",
-    "webui" + Math.random()
-  );
-
-  client.connect({ onSuccess: onConnect });
-
-  function onConnect() {
-  }
+  useEffect(() => {
+    // MQTT - client ids should be unique
+    const client = new Client(
+      "ws://pioreactorws.ngrok.io/",
+      "webui" + Math.random()
+    );
+    client.connect();
+    setClient(client)
+  },[])
 
   function setJobState(job, state) {
     return function sendMessage() {
