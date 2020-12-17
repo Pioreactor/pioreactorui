@@ -94,7 +94,7 @@ class Chart extends React.Component {
         for (const [i, v] of data["series"].entries()) {
           if (data["data"][i].length > 0) {
             initialSeriesMap[v] = {
-              data: (data["data"][i]).filter((e, i) =>  i % 4 === 0), //tune this value better.
+              data: (data["data"][i]),
               name: v,
               color: colors[v],
             };
@@ -208,6 +208,19 @@ class Chart extends React.Component {
     }
   }
 
+
+  filterDataPoints(totalLength){
+    return function(value, index){
+      if ((index === 0) || (index === (totalLength - 1))){
+        return true
+      }
+      else if (index % Math.round(totalLength/50) === 0){
+        return true
+      } else {
+        return false
+      }
+    }
+  }
 
   createXTickValues(minTimestamp, maxTimestamp){
     const delta_ts = moment(maxTimestamp, "x").diff(
@@ -359,7 +372,7 @@ ${this.renameAndFormatSeries(d.datum.childName)}: ${Math.round(d.datum.y * 1000)
                   },
                   parent: { border: "1px solid #ccc" },
                 }}
-                data={this.state.seriesMap[name].data}
+                data={this.state.seriesMap[name].data.filter(this.filterDataPoints(this.state.seriesMap[name].data.length))}
                 x="x"
                 y="y"
               />

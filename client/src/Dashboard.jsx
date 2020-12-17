@@ -65,7 +65,6 @@ function Dashboard() {
               <Chart
                 config={config}
                 dataFile={"./data/growth_rate_time_series_aggregating.json"}
-                interpolation="stepAfter"
                 title="Implied growth rate"
                 topic="growth_rate"
                 yAxisLabel="Growth rate, h⁻¹"
@@ -91,7 +90,6 @@ function Dashboard() {
                 config={config}
                 isODReading={true}
                 dataFile={"./data/od_filtered_time_series_aggregating.json"}
-                interpolation="stepAfter"
                 title="Filtered 135° optical density"
                 topic="od_filtered/135/+"
                 yAxisLabel="Current OD / initial OD"
@@ -104,7 +102,6 @@ function Dashboard() {
                 config={config}
                 isODReading={true}
                 dataFile={"./data/od_raw_time_series_aggregating.json"}
-                interpolation="stepAfter"
                 title="Raw 135° optical density"
                 topic="od_raw/135/+"
                 yAxisLabel="Voltage"

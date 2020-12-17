@@ -79,7 +79,7 @@ function ButtonAllUnitSettingsDialog(props) {
   }
 
   function setJobState(job, state) {
-    return function () {
+    return function sendMessage() {
       var message = new Message(String(state));
       message.destinationName = [
         "pioreactor",
@@ -90,7 +90,13 @@ function ButtonAllUnitSettingsDialog(props) {
         "set",
       ].join("/");
       message.qos = 1;
-      client.publish(message);
+      try{
+        client.publish(message);
+      }
+      catch (e){
+        console.log(e)
+        setTimeout(() => sendMessage(), 750)
+      }
     };
   }
 
