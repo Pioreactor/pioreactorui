@@ -168,7 +168,7 @@ class UnitSettingDisplay extends React.Component {
   MQTTConnect() {
     // need to have unique clientIds
     this.client = new Client(
-      "ws://pioreactorws.ngrok.io/",
+      "leader.local", 9001,
       "webui" + Math.random()
     );
     this.client.connect({ onSuccess: this.onConnect});
@@ -183,7 +183,6 @@ class UnitSettingDisplay extends React.Component {
   }
 
   onConnect() {
-    console.log("connected: " + this.props.unitNumber + " " + this.props.topic)
     this.client.subscribe(
       [
         "pioreactor",
@@ -254,20 +253,18 @@ function SilentForm(props){
   }
 
   return (
-    <div>
-        <TextField
-          size="small"
-          id="duration"
-          label="Duration between events"
-          defaultValue={defaults.duration}
-          InputProps={{
-            endAdornment: <InputAdornment position="end">min</InputAdornment>,
-          }}
-          variant="outlined"
-          onChange={onSettingsChange}
-          className={classes.textFieldCompact}
-        />
-    </div>
+      <TextField
+        size="small"
+        id="duration"
+        label="Duration between events"
+        defaultValue={defaults.duration}
+        InputProps={{
+          endAdornment: <InputAdornment position="end">min</InputAdornment>,
+        }}
+        variant="outlined"
+        onChange={onSettingsChange}
+        className={classes.textFieldCompact}
+      />
 )}
 
 function PIDTurbodstatForm(props){
@@ -284,7 +281,7 @@ function PIDTurbodstatForm(props){
   }
 
   return (
-      <div>
+      <>
         <TextField
           size="small"
           id="duration"
@@ -321,7 +318,7 @@ function PIDTurbodstatForm(props){
           onChange={onSettingsChange}
           className={classes.textFieldCompact}
         />
-    </div>
+    </>
 )}
 
 function PIDMorbidostatForm(props){
@@ -337,7 +334,7 @@ function PIDMorbidostatForm(props){
   }
 
   return (
-      <div>
+      <>
         <TextField
           size="small"
           id="duration"
@@ -374,7 +371,7 @@ function PIDMorbidostatForm(props){
           onChange={onSettingsChange}
           className={classes.textFieldCompact}
         />
-    </div>
+    </>
 )}
 
 
@@ -396,7 +393,7 @@ function ButtonChangeIODialog(props) {
   useEffect(() => {
     // MQTT - client ids should be unique
     const client = new Client(
-      "ws://pioreactorws.ngrok.io/",
+      "leader.local", 9001,
       "webui" + Math.random()
     );
     client.connect({onSuccess: () => {console.log("connected")}});
@@ -428,7 +425,7 @@ function ButtonChangeIODialog(props) {
       case "pid_morbidostat":
         return <PIDMorbidostatForm updateParent={updateFromChild}/>
       default:
-        return <div><p>Not implemented</p></div>
+        return <><p>Not implemented</p></>
     }
   }
 
@@ -459,9 +456,10 @@ function ButtonChangeIODialog(props) {
       style={{marginTop: "10px"}}
       size="small"
       color="primary"
+      disabled={!props.currentIOAlgorithm}
       onClick={handleClickOpen}
     >
-      Change IO algorithm
+      {props.currentIOAlgorithm ? props.currentIOAlgorithm : "Start Input/Output events first"}
     </Button>
     <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title" PaperProps={{style: {height: "100%"}}}>
       <DialogTitle>
@@ -543,7 +541,7 @@ function ButtonSettingsDialog(props) {
   useEffect(() => {
     // MQTT - client ids should be unique
     const client = new Client(
-      "ws://pioreactorws.ngrok.io/",
+      "leader.local", 9001,
       "webui" + Math.random()
     );
     client.connect();
@@ -629,16 +627,17 @@ function ButtonSettingsDialog(props) {
     switch (jobState){
       case "lost":
       case "disconnected":
-       return (<div><PatientButton
+       return (<>
+               <PatientButton
                 color="primary"
                 variant="contained"
                 onClick={startPioreactorJob(job)}
                 buttonText="Start"
-              />
-              </div>)
+               />
+              </>)
       case "init":
       case "ready":
-        return (<div>
+        return (<>
           <PatientButton
             color="secondary"
             variant="contained"
@@ -650,23 +649,25 @@ function ButtonSettingsDialog(props) {
             onClick={setPioreactorJobState(parentJob, "disconnected")}
             buttonText="Stop"
           />
-        </div>)
+        </>)
       case "sleeping":
-        return (<div>
-          <PatientButton
-            color="primary"
-            variant="contained"
-            onClick={setPioreactorJobState(job, "ready")}
-            buttonText="Resume"
-          />
-          <PatientButton
-            color="secondary"
-            onClick={setPioreactorJobState(parentJob, "disconnected")}
-            buttonText="Stop"
-          />
-        </div>)
+        return (
+          <>
+            <PatientButton
+              color="primary"
+              variant="contained"
+              onClick={setPioreactorJobState(job, "ready")}
+              buttonText="Resume"
+            />
+            <PatientButton
+              color="secondary"
+              onClick={setPioreactorJobState(parentJob, "disconnected")}
+              buttonText="Stop"
+            />
+          </>
+          )
       default:
-        return(<div></div>)
+        return(<></>)
     }
    }
 
@@ -675,7 +676,7 @@ function ButtonSettingsDialog(props) {
   const ioButtons = createUserButtonsBasedOnState(props.IOEventsJobState, "io_controlling", "algorithm_controlling")
 
   return (
-    <div>
+    <>
     <Button
       size="small"
       color="primary"
@@ -847,6 +848,7 @@ function ButtonSettingsDialog(props) {
           unitNumber={props.unitNumber}
           config={props.config}
           experiment={props.experiment}
+          currentIOAlgorithm={props.ioAlgorithm}
         />
         <Divider className={classes.divider} />
       </DialogContent>
@@ -859,7 +861,7 @@ function ButtonSettingsDialog(props) {
       autoHideDuration={7000}
       key={"snackbar" + props.unitNumber + "settings"}
     />
-    </div>
+    </>
   );
 }
 
@@ -882,7 +884,7 @@ function ButtonActionDialog(props) {
     (props.config['dashboard.rename'] &&  props.config['dashboard.rename'][props.unitNumber]) ? `pioreactor${props.unitNumber} (${props.config['dashboard.rename'][props.unitNumber]})` : `pioreactor${props.unitNumber}`
 
   return (
-    <div>
+    <>
       <Button
         onClick={handleClickOpen}
         disabled={props.disabled}
@@ -927,7 +929,7 @@ function ButtonActionDialog(props) {
           <Divider className={classes.divider} />
         </DialogContent>
       </Dialog>
-    </div>
+    </>
   );
 }
 
@@ -948,6 +950,7 @@ function UnitCard(props) {
   const [durationState, setDurationState] = useState(0);
   const [targetGrowthRateState, setTargetGrowthRateState] = useState(0);
   const [volumeState, setVolumeState] = useState(0);
+  const [ioAlgorithm, setIoAlgorithm] = useState(null);
 
 
   const handleShowAllSettingsClick = () => {
@@ -1118,6 +1121,7 @@ function UnitCard(props) {
             <Typography className={textSettingsClasses}>IO mode:</Typography>
             <UnitSettingDisplay
               experiment={experiment}
+              passChildData={setIoAlgorithm}
               isUnitActive={isUnitActive}
               default={"-"}
               className={classes.alignRight}
@@ -1147,6 +1151,7 @@ function UnitCard(props) {
               volumeState={volumeState}
               durationState={durationState}
               targetODState={targetODState}
+              ioAlgorithm={ioAlgorithm}
               experiment={experiment}
               unitNumber={unitNumber}
               disabled={!isUnitActive}
@@ -1179,7 +1184,7 @@ function UnitCards(props) {
 
 
   return (
-    <div>
+    <>
       {props.units.map((unit) => (
         <UnitCard
           config={props.config}
@@ -1189,7 +1194,7 @@ function UnitCards(props) {
           experiment={props.experiment}
         />
       ))}
-    </div>
+    </>
   );
 }
 

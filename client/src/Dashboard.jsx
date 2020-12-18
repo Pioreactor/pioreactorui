@@ -14,7 +14,6 @@ import {parseINIString} from "./utilities"
 
 function Dashboard() {
 
-  const [experiment, setExperiment] = React.useState("")
   const [experimentMetadata, setExperimentMetadata] = React.useState({})
   const [config, setConfig] = React.useState({})
 
@@ -25,7 +24,6 @@ function Dashboard() {
           return response.json();
         })
         .then((data) => {
-          setExperiment(data.experiment)
           setExperimentMetadata(data)
         });
       }
@@ -49,7 +47,7 @@ function Dashboard() {
   }, [])
 
   return (
-      <div>
+      <>
         <Grid container spacing={4}>
           <Grid item xs={12}>
             <Header />
@@ -68,7 +66,7 @@ function Dashboard() {
                 title="Implied growth rate"
                 topic="growth_rate"
                 yAxisLabel="Growth rate, h⁻¹"
-                experiment={experiment}
+                experiment={experimentMetadata.experiment}
               />
             </Grid>
 
@@ -81,7 +79,7 @@ function Dashboard() {
                 title="Fraction of volume that is alternative media"
                 topic="alt_media_calculating/alt_media_fraction"
                 yAxisLabel="Fraction"
-                experiment={experiment}
+                experiment={experimentMetadata.experiment}
               />
             </Grid>
 
@@ -93,7 +91,7 @@ function Dashboard() {
                 title="Filtered 135° optical density"
                 topic="od_filtered/135/+"
                 yAxisLabel="Current OD / initial OD"
-                experiment={experiment}
+                experiment={experimentMetadata.experiment}
               />
             </Grid>
 
@@ -108,21 +106,21 @@ function Dashboard() {
                 experiment="+"
               />
             </Grid>
-            <Grid item> <ClearChartButton experiment={experiment}/> </Grid>
+            <Grid item> <ClearChartButton experiment={experimentMetadata.experiment}/> </Grid>
           </Grid>
 
           <Grid item xs={12} md={4} container direction="column" spacing={2}>
             <Grid container spacing={1}>
               <Grid item xs={6}>
-                <UnitCards experiment={experiment} config={config} units={["1", "3", "5"]} />
+                <UnitCards experiment={experimentMetadata.experiment} config={config} units={["1", "3", "5"]} />
               </Grid>
               <Grid item xs={6}>
-                <UnitCards experiment={experiment} config={config} units={["2", "4", "6"]} />
+                <UnitCards experiment={experimentMetadata.experiment} config={config} units={["2", "4", "6"]} />
               </Grid>
             </Grid>
 
               <Grid item style={{padding: "10px 0px"}}>
-                <AllUnitsManagerCard experiment={experiment}/>
+                <AllUnitsManagerCard experiment={experimentMetadata.experiment}/>
               </Grid>
 
             <Grid item style={{padding: "10px 0px"}}>
@@ -132,7 +130,7 @@ function Dashboard() {
           </Grid>
           <Grid item xs={false} md={1}/>
         </Grid>
-      </div>
+      </>
   );
 }
 export default Dashboard;

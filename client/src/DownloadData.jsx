@@ -243,7 +243,7 @@ function DownloadData() {
 
           <Grid item md={3} xs={false}/>
           <Grid item md={6} xs={12}>
-            <div> <DownloadDataFormContainer/> </div>
+            <DownloadDataFormContainer/>
           </Grid>
           <Grid item md={3} xs={false}/>
 

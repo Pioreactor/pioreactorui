@@ -9,7 +9,7 @@ function ClearChartButton(props){
 
   function onClick() {
     var client = new Client(
-      "ws://pioreactorws.ngrok.io/",
+      "leader.local", 9001,
       "client" + Math.random()
     );
     client.connect({onSuccess: () => {

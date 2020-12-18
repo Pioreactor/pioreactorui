@@ -115,7 +115,7 @@ class EditableCodeDiv extends React.Component {
   render() {
     const runningFeedback = this.state.isRunning ? <CircularProgress color="inherit" size={25}/> : "Save"
     return (
-      <div>
+      <>
         <Select
           style={{margin: "10px 10px 10px 10px"}}
           native
@@ -156,7 +156,7 @@ class EditableCodeDiv extends React.Component {
           autoHideDuration={2000}
           key={"snackbar"}
         />
-      </div>
+      </>
     )
   }
 }

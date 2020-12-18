@@ -158,7 +158,6 @@ export default function VerticalLinearStepper() {
             <StepContent>
               <Typography>{getStepContent(index)}</Typography>
               <div className={classes.actionsContainer}>
-                <div>
                   <Button
                     disabled={activeStep === 0}
                     onClick={handleBack}
@@ -173,7 +172,6 @@ export default function VerticalLinearStepper() {
                   >
                     {activeStep === steps.length - 1 ? 'Finish' : 'Next'}
                   </Button>
-                </div>
               </div>
             </StepContent>
           </Step>

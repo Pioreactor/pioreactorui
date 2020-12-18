@@ -70,7 +70,6 @@ class Chart extends React.Component {
   }
 
   onConnect() {
-    console.log("chart connected")
     this.client.subscribe(
       ["pioreactor", "+", this.props.experiment, this.props.topic].join("/")
     );
@@ -79,7 +78,7 @@ class Chart extends React.Component {
   componentDidMount() {
     this.getData();
     this.client = new Client(
-      "ws://pioreactorws.ngrok.io/",
+      "leader.local", 9001,
       "client" + Math.random()
     );
 

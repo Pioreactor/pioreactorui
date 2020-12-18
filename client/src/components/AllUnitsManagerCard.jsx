@@ -71,7 +71,7 @@ function ButtonAllUnitSettingsDialog(props) {
   useEffect(() => {
     // MQTT - client ids should be unique
     const client = new Client(
-      "ws://pioreactorws.ngrok.io/",
+      "localhost", 9001,
       "webui" + Math.random()
     );
     client.connect();
@@ -403,7 +403,9 @@ class VolumeThroughputTally extends React.Component {
   }
 
   componentDidMount() {
-    this.client = new Client("ws://pioreactorws.ngrok.io/", "client-throughput");
+    this.client = new Client(
+      "leader.local", 9001,
+      "client-throughput");
     this.client.connect({'onSuccess': this.onConnect});
     this.client.onMessageArrived = this.onMessageArrived;
   }

@@ -82,7 +82,6 @@ export default function SideDrawer() {
   );
 
   return (
-    <div>
       <React.Fragment key={"leftDrawer"}>
         <IconButton
           color="inherit"
@@ -102,6 +101,5 @@ export default function SideDrawer() {
           {list()}
         </Drawer>
       </React.Fragment>
-    </div>
   );
 }
