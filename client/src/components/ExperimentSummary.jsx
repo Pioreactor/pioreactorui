@@ -69,7 +69,7 @@ class EditableDescription extends React.Component {
 
   render = () => {
     return (
-      <>
+      <div>
         <ContentEditable
             innerRef={this.contentEditable}
             html={this.state.desc} // innerHTML of the editable div
@@ -87,7 +87,7 @@ class EditableDescription extends React.Component {
             autoHideDuration={2500}
             key={"snackbarEditDesc"}
           />
-      </>
+      </div>
     )
   };
 };

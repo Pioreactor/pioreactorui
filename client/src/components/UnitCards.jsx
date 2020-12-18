@@ -138,7 +138,7 @@ function PatientButton(props) {
   return (
     <Button
       disableElevation
-      style={{width: "70px"}}
+      style={{width: "70px", marginTop: "5px"}}
       color={props.color}
       variant={props.variant}
       size="small"
@@ -281,7 +281,7 @@ function PIDTurbodstatForm(props){
   }
 
   return (
-      <>
+      <div>
         <TextField
           size="small"
           id="duration"
@@ -318,7 +318,7 @@ function PIDTurbodstatForm(props){
           onChange={onSettingsChange}
           className={classes.textFieldCompact}
         />
-    </>
+    </div>
 )}
 
 function PIDMorbidostatForm(props){
@@ -334,7 +334,7 @@ function PIDMorbidostatForm(props){
   }
 
   return (
-      <>
+      <div>
         <TextField
           size="small"
           id="duration"
@@ -371,7 +371,7 @@ function PIDMorbidostatForm(props){
           onChange={onSettingsChange}
           className={classes.textFieldCompact}
         />
-    </>
+    </div>
 )}
 
 
@@ -425,7 +425,7 @@ function ButtonChangeIODialog(props) {
       case "pid_morbidostat":
         return <PIDMorbidostatForm updateParent={updateFromChild}/>
       default:
-        return <><p>Not implemented</p></>
+        return <div><p>Not implemented</p></div>
     }
   }
 
@@ -459,7 +459,7 @@ function ButtonChangeIODialog(props) {
       disabled={!props.currentIOAlgorithm}
       onClick={handleClickOpen}
     >
-      {props.currentIOAlgorithm ? props.currentIOAlgorithm : "Start Input/Output events first"}
+      {"Change IO algorithm"}
     </Button>
     <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title" PaperProps={{style: {height: "100%"}}}>
       <DialogTitle>
@@ -472,7 +472,7 @@ function ButtonChangeIODialog(props) {
       </DialogTitle>
       <DialogContent>
         <Typography variant="body2" component="p" gutterBottom>
-          IO algorithms control when and how much media to add to the Pioreactor. The settings below can be changed later.  <a target="_blank" href="https://github.com/Pioreactor/pioreactor/wiki/io-algorithms">Learn more about IO algorithms</a>
+          IO algorithms control when and how much media to add to the Pioreactor. The settings below can be changed later. Learn more about <a target="_blank" href="https://github.com/Pioreactor/pioreactor/wiki/io-algorithms">IO algorithms</a>.
         </Typography>
 
         <form>
@@ -627,17 +627,17 @@ function ButtonSettingsDialog(props) {
     switch (jobState){
       case "lost":
       case "disconnected":
-       return (<>
+       return (<div>
                <PatientButton
                 color="primary"
                 variant="contained"
                 onClick={startPioreactorJob(job)}
                 buttonText="Start"
                />
-              </>)
+              </div>)
       case "init":
       case "ready":
-        return (<>
+        return (<div>
           <PatientButton
             color="secondary"
             variant="contained"
@@ -649,10 +649,10 @@ function ButtonSettingsDialog(props) {
             onClick={setPioreactorJobState(parentJob, "disconnected")}
             buttonText="Stop"
           />
-        </>)
+        </div>)
       case "sleeping":
         return (
-          <>
+          <div>
             <PatientButton
               color="primary"
               variant="contained"
@@ -664,10 +664,10 @@ function ButtonSettingsDialog(props) {
               onClick={setPioreactorJobState(parentJob, "disconnected")}
               buttonText="Stop"
             />
-          </>
+          </div>
           )
       default:
-        return(<></>)
+        return(<div></div>)
     }
    }
 
@@ -676,7 +676,7 @@ function ButtonSettingsDialog(props) {
   const ioButtons = createUserButtonsBasedOnState(props.IOEventsJobState, "io_controlling", "algorithm_controlling")
 
   return (
-    <>
+    <div>
     <Button
       size="small"
       color="primary"
@@ -722,9 +722,29 @@ function ButtonSettingsDialog(props) {
           Input/Output events
         </Typography>
         <Typography variant="body2" component="p" gutterBottom>
-          By default, IO events will start in <span className={"underlineSpan"} title="Silent mode performs no IO operations.">Silent</span> mode.
+          {props.IOEventsJobState === "ready" &&
+            <>
+            Currently running algorithm mode <code>{props.ioAlgorithm}</code>.
+            Learn more about <a target="_blank" href="https://github.com/Pioreactor/pioreactor/wiki/io-algorithms">IO algorithms</a>.
+            </>
+          }
+          {props.IOEventsJobState !== "ready" &&
+
+            <>
+            IO events will initially start in <span className={"underlineSpan"} title="silent mode performs no IO operations."><code>silent</code></span> mode, and can be changed after.
+            Learn more about <a target="_blank" href="https://github.com/Pioreactor/pioreactor/wiki/io-algorithms">IO algorithms</a>.
+            </>
+          }
         </Typography>
+
           {ioButtons}
+
+        <ButtonChangeIODialog
+          unitNumber={props.unitNumber}
+          config={props.config}
+          experiment={props.experiment}
+          currentIOAlgorithm={props.ioAlgorithm}
+        />
         <Divider className={classes.divider} />
         <Typography  gutterBottom>
           Stirring
@@ -836,21 +856,6 @@ function ButtonSettingsDialog(props) {
           className={classes.textField}
         />
         <Divider className={classes.divider} />
-
-        <Typography  gutterBottom>
-          IO algorithm
-        </Typography>
-        <Typography variant="body2" component="p">
-          Change which IO algorithm is running on this unit, and set the initial settings. <a target="_blank" href="https://github.com/Pioreactor/pioreactor/wiki/io-algorithms">Learn more about IO algorithms</a>
-        </Typography>
-
-        <ButtonChangeIODialog
-          unitNumber={props.unitNumber}
-          config={props.config}
-          experiment={props.experiment}
-          currentIOAlgorithm={props.ioAlgorithm}
-        />
-        <Divider className={classes.divider} />
       </DialogContent>
     </Dialog>
     <Snackbar
@@ -861,7 +866,7 @@ function ButtonSettingsDialog(props) {
       autoHideDuration={7000}
       key={"snackbar" + props.unitNumber + "settings"}
     />
-    </>
+    </div>
   );
 }
 
@@ -884,7 +889,7 @@ function ButtonActionDialog(props) {
     (props.config['dashboard.rename'] &&  props.config['dashboard.rename'][props.unitNumber]) ? `pioreactor${props.unitNumber} (${props.config['dashboard.rename'][props.unitNumber]})` : `pioreactor${props.unitNumber}`
 
   return (
-    <>
+    <div>
       <Button
         onClick={handleClickOpen}
         disabled={props.disabled}
@@ -929,7 +934,7 @@ function ButtonActionDialog(props) {
           <Divider className={classes.divider} />
         </DialogContent>
       </Dialog>
-    </>
+    </div>
   );
 }
 
@@ -1184,7 +1189,7 @@ function UnitCards(props) {
 
 
   return (
-    <>
+    <div>
       {props.units.map((unit) => (
         <UnitCard
           config={props.config}
@@ -1194,7 +1199,7 @@ function UnitCards(props) {
           experiment={props.experiment}
         />
       ))}
-    </>
+    </div>
   );
 }
 

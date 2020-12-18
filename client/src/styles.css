@@ -18,3 +18,7 @@ p[contenteditable="true"]:hover {
     border-bottom: 1px dotted rgba(0, 0, 0, 0.87);
     text-decoration: none;
 }
+
+a, u {
+    text-decoration: none;
+}
