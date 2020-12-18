@@ -78,7 +78,7 @@ class Chart extends React.Component {
   componentDidMount() {
     this.getData();
     this.client = new Client(
-      "leader.local", 9001,
+      "ws://pioreactorws.ngrok.io/",
       "client" + Math.random()
     );
 

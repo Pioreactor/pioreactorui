@@ -404,7 +404,7 @@ class VolumeThroughputTally extends React.Component {
 
   componentDidMount() {
     this.client = new Client(
-      "leader.local", 9001,
+      "ws://pioreactorws.ngrok.io/",
       "client-throughput");
     this.client.connect({'onSuccess': this.onConnect});
     this.client.onMessageArrived = this.onMessageArrived;

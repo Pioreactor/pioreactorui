@@ -33,7 +33,7 @@ function StartGrowthRate(props){
     }
 
     var client = new Client(
-      "leader.local", 9001,
+      "ws://pioreactorws.ngrok.io/",
       "webui" + Math.random()
     );
     client.onMessageArrived = onMessageArrived
