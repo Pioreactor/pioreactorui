@@ -841,7 +841,7 @@ function ButtonSettingsDialog(props) {
           IO algorithm
         </Typography>
         <Typography variant="body2" component="p">
-          Change which IO algorithm is running on this unit, and set the initial settings.
+          Change which IO algorithm is running on this unit, and set the initial settings. <a target="_blank" href="https://github.com/Pioreactor/pioreactor/wiki/io-algorithms">Learn more about IO algorithms</a>
         </Typography>
 
         <ButtonChangeIODialog
