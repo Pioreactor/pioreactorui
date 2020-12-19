@@ -44,7 +44,9 @@ class EditableDescription extends React.Component {
   };
 
   onBlur = evt => {
+    console.log("blur")
     if (this.state.desc !== this.state.originalDesc) {
+      console.log("delta")
       this.setState({originalDesc: this.state.desc})
       return fetch('update_experiment_desc', {
           method: "POST",

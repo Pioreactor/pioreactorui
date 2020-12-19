@@ -386,7 +386,7 @@ function ButtonChangeIODialog(props) {
   const algos = [
     {name: "Silent", key: "silent"},
     {name: "PID Morbidostat",  key: "pid_morbidostat"},
-    {name: "PID Turbodistat",  key: "pid_turbodistat"},
+    {name: "PID Turbodistat",  key: "pid_turbidostat"},
     {name: "Chemostat", key: "chemostat"},
   ]
 
