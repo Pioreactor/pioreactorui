@@ -267,7 +267,7 @@ function SilentForm(props){
       />
 )}
 
-function PIDTurbodstatForm(props){
+function PIDTurbidostatForm(props){
   const classes = useStyles();
   const defaults = {duration: 60, volume: 2, target_od: 1.5}
 
@@ -386,7 +386,7 @@ function ButtonChangeIODialog(props) {
   const algos = [
     {name: "Silent", key: "silent"},
     {name: "PID Morbidostat",  key: "pid_morbidostat"},
-    {name: "PID Turbodistat",  key: "pid_turbidostat"},
+    {name: "PID Turbidostat",  key: "pid_turbidostat"},
     {name: "Chemostat", key: "chemostat"},
   ]
 
@@ -420,8 +420,8 @@ function ButtonChangeIODialog(props) {
     switch(algoSettings.io_algorithm) {
       case "silent":
         return <SilentForm updateParent={updateFromChild}/>
-      case "pid_turbodistat":
-        return <PIDTurbodstatForm updateParent={updateFromChild}/>
+      case "pid_turbidostat":
+        return <PIDTurbidostatForm updateParent={updateFromChild}/>
       case "pid_morbidostat":
         return <PIDMorbidostatForm updateParent={updateFromChild}/>
       default:
