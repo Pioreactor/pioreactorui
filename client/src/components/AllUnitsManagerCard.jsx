@@ -59,6 +59,10 @@ const useStyles = makeStyles({
     fontSize: "13px",
     color: "rgba(0, 0, 0, 0.60)",
   },
+  jobButton:{
+    width: "70px",
+    marginTop: "5px"
+  }
 })
 
 
@@ -71,7 +75,7 @@ function ButtonAllUnitSettingsDialog(props) {
   useEffect(() => {
     // MQTT - client ids should be unique
     const client = new Client(
-      "localhost", 9001,
+      "ws://pioreactorws.ngrok.io/",
       "webui" + Math.random()
     );
     client.connect();
@@ -109,7 +113,7 @@ function ButtonAllUnitSettingsDialog(props) {
       job_attr,
       "set",
     ].join("/");
-    message.qos = 1;
+    message.qos = 2;
     client.publish(message);
   }
 
@@ -140,6 +144,7 @@ function ButtonAllUnitSettingsDialog(props) {
     parentJob = parentJob || job
     return (<div>
         <Button
+          className={classes.jobButton}
           disableElevation
           color="primary"
           onClick={startPioreactorJob(job)}
@@ -147,6 +152,7 @@ function ButtonAllUnitSettingsDialog(props) {
           Start
         </Button>
         <Button
+          className={classes.jobButton}
           disableElevation
           color="primary"
           onClick={setJobState(job, "sleeping")}
@@ -154,6 +160,7 @@ function ButtonAllUnitSettingsDialog(props) {
           Pause
         </Button>
         <Button
+          className={classes.jobButton}
           disableElevation
           color="primary"
           onClick={setJobState(job, "ready")}
@@ -161,6 +168,7 @@ function ButtonAllUnitSettingsDialog(props) {
           Resume
         </Button>
         <Button
+          className={classes.jobButton}
           disableElevation
           color="secondary"
           onClick={setJobState(parentJob, "disconnected")}

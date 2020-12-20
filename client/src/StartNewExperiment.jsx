@@ -73,7 +73,7 @@ function ExperimentSummaryForm(props) {
     }
 
     var client = new Client(
-      "localhost", 9001,
+      "ws://pioreactorws.ngrok.io/",
       "webui" + Math.random()
     );
     client.connect({ onSuccess: onConnect });

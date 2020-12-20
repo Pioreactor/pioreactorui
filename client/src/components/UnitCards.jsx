@@ -269,7 +269,7 @@ function SilentForm(props){
 
 function PIDTurbidostatForm(props){
   const classes = useStyles();
-  const defaults = {duration: 60, volume: 2, target_od: 1.5}
+  const defaults = {duration: 30, volume: 0.75, target_od: 1.5}
 
   useEffect(() => {
     props.updateParent(defaults)
@@ -277,7 +277,7 @@ function PIDTurbidostatForm(props){
 
 
   const onSettingsChange = (e) => {
-    props.updateParent({[e.target.id]: e.target.value})
+    props.updateParent({[e.target.id]: parseFloat(e.target.value)})
   }
 
   return (
@@ -448,6 +448,7 @@ function ButtonChangeIODialog(props) {
     catch (e){
       console.log(e)
     }
+    setOpen(false);
   }
 
   return (
@@ -591,7 +592,8 @@ function ButtonSettingsDialog(props) {
     try{
       client.publish(message);
     }
-    catch{
+    catch (e) {
+      console.log(e)
       client.connect({onSuccess: () => setPioreactorJobAttr(job_attr, value)});
     }
   }
@@ -724,7 +726,7 @@ function ButtonSettingsDialog(props) {
         <Typography variant="body2" component="p" gutterBottom>
           {props.IOEventsJobState === "ready" &&
             <>
-            Currently running algorithm mode <code>{props.ioAlgorithm}</code>.
+            Currently running IO algorithm <code>{props.ioAlgorithm}</code>.
             Learn more about <a target="_blank" href="https://github.com/Pioreactor/pioreactor/wiki/io-algorithms">IO algorithms</a>.
             </>
           }
@@ -778,7 +780,7 @@ function ButtonSettingsDialog(props) {
         </Typography>
         <Typography variant="body2" component="p">
           Change the volume per dilution. Typical values are between 0.0mL and
-          1.5mL.
+          1.0mL.
         </Typography>
         <TextField
           size="small"
@@ -1123,7 +1125,7 @@ function UnitCard(props) {
           </div>
 
           <div className={classes.textbox}>
-            <Typography className={textSettingsClasses}>IO mode:</Typography>
+            <Typography className={textSettingsClasses}>IO:</Typography>
             <UnitSettingDisplay
               experiment={experiment}
               passChildData={setIoAlgorithm}
