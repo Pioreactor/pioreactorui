@@ -139,7 +139,7 @@ function DownloadDataFormContainer() {
     datasetCheckbox: {
       growth_rates: false,
       io_events: false,
-      experiments: false
+      experiments: false,
       od_readings_raw: false,
       od_readings_filtered: false,
       logs: false,
