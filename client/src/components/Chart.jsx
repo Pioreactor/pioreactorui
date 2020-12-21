@@ -220,7 +220,7 @@ class Chart extends React.Component {
       if ((index === 0) || (index === (totalLength - 1))){
         return true
       }
-      else if (index % Math.round(totalLength/160) === 0){
+      else if (index % Math.round(totalLength/200) === 0){
         return true
       } else {
         return false

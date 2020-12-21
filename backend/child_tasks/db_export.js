@@ -13,6 +13,7 @@ process.on('message', function(options) {
         console.log(stdout)
         console.log(stderr)
         if ((error) || (stderr)) {
+            console.log(error, stderr)
             process.send(false);
         } else {
             process.send(filename);

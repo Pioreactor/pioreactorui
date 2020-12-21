@@ -104,6 +104,10 @@ const CheckboxesGroup = (props) => {
             label="Input/output events"
           />
           <FormControlLabel
+            control={<Checkbox checked={props.isChecked.experiment} onChange={props.handleChange} name="experiments" />}
+            label="Experiment description"
+          />
+          <FormControlLabel
             control={<Checkbox checked={props.isChecked.od_readings_raw} onChange={props.handleChange} name="od_readings_raw" />}
             label="Raw optical density"
           />
@@ -139,6 +143,7 @@ function DownloadDataFormContainer() {
       od_readings_filtered: false,
       logs: false,
       alt_media_fraction: false,
+      experiment: false,
     }
   });
 

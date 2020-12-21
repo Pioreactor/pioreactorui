@@ -67,6 +67,7 @@ function Dashboard() {
                 topic="growth_rate"
                 yAxisLabel="Growth rate, h⁻¹"
                 experiment={experimentMetadata.experiment}
+                interpolation="stepAfter"
               />
             </Grid>
 
@@ -80,6 +81,7 @@ function Dashboard() {
                 topic="alt_media_calculating/alt_media_fraction"
                 yAxisLabel="Fraction"
                 experiment={experimentMetadata.experiment}
+                interpolation="stepAfter"
               />
             </Grid>
 
@@ -92,6 +94,7 @@ function Dashboard() {
                 topic="od_filtered/135/+"
                 yAxisLabel="Current OD / initial OD"
                 experiment={experimentMetadata.experiment}
+                interpolation="stepAfter"
               />
             </Grid>
 
@@ -104,6 +107,7 @@ function Dashboard() {
                 topic="od_raw/135/+"
                 yAxisLabel="Voltage"
                 experiment="+"
+                interpolation="stepAfter"
               />
             </Grid>
             <Grid item> <ClearChartButton experiment={experimentMetadata.experiment}/> </Grid>

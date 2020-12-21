@@ -59,6 +59,7 @@ app.post('/query_datasets', function(req, res) {
           res.json({filename: m})
       }
       else{
+        console.log(m)
         res.sendStatus(500)
       }
     });
