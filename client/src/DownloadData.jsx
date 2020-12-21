@@ -104,7 +104,7 @@ const CheckboxesGroup = (props) => {
             label="Input/output events"
           />
           <FormControlLabel
-            control={<Checkbox checked={props.isChecked.experiment} onChange={props.handleChange} name="experiments" />}
+            control={<Checkbox checked={props.isChecked.experiments} onChange={props.handleChange} name="experiments" />}
             label="Experiment description"
           />
           <FormControlLabel
@@ -139,11 +139,11 @@ function DownloadDataFormContainer() {
     datasetCheckbox: {
       growth_rates: false,
       io_events: false,
+      experiments: false
       od_readings_raw: false,
       od_readings_filtered: false,
       logs: false,
       alt_media_fraction: false,
-      experiment: false,
     }
   });
 
