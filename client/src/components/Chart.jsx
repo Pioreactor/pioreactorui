@@ -214,7 +214,7 @@ class Chart extends React.Component {
 
   filterDataPoints(totalLength){
     return function(value, index){
-      if (totalLength < 80){
+      if (totalLength < 200){
         return true
       }
       if ((index === 0) || (index === (totalLength - 1))){
