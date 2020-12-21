@@ -168,7 +168,7 @@ function DownloadDataFormContainer() {
       .then(res => {
       var link = document.createElement("a");
       link.setAttribute('download', res['filename']);
-      link.href = "/public/" + res['filename'];
+      link.href = "/static/exports/" + res['filename'];
       document.body.appendChild(link);
       link.click();
       link.remove();
