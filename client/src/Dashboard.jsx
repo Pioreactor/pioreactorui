@@ -90,7 +90,7 @@ function Dashboard() {
                 config={config}
                 isODReading={true}
                 dataFile={"./data/od_filtered_time_series_aggregating.json"}
-                title="Filtered 135° optical density"
+                title="Normalized 135° optical density"
                 topic="od_filtered/135/+"
                 yAxisLabel="Current OD / initial OD"
                 experiment={experimentMetadata.experiment}
