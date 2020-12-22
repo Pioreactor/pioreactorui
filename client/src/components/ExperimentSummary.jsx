@@ -11,7 +11,7 @@ import ContentEditable from 'react-contenteditable'
 
 const useStyles = makeStyles({
   root: {
-    minWidth: 100,
+    maxWidth: "600px"
   },
   title: {
     fontSize: 14,

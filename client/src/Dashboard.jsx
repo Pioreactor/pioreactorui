@@ -49,7 +49,7 @@ function Dashboard() {
   return (
       <>
         <Grid container spacing={4}>
-          <Grid item xs={12}>
+          <Grid item xs={12} style={{paddingRight: "0px"}}>
             <Header />
           </Grid>
 
