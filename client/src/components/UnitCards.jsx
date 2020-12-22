@@ -168,7 +168,7 @@ class UnitSettingDisplay extends React.Component {
   MQTTConnect() {
     // need to have unique clientIds
     this.client = new Client(
-      "leader.local", 9001,
+      "ws://pioreactorws.ngrok.io/",
       "webui" + Math.random()
     );
     this.client.connect({ onSuccess: this.onConnect});
@@ -393,7 +393,7 @@ function ButtonChangeIODialog(props) {
   useEffect(() => {
     // MQTT - client ids should be unique
     const client = new Client(
-      "leader.local", 9001,
+      "ws://pioreactorws.ngrok.io/",
       "webui" + Math.random()
     );
     client.connect({onSuccess: () => {console.log("connected")}});
@@ -542,7 +542,7 @@ function ButtonSettingsDialog(props) {
   useEffect(() => {
     // MQTT - client ids should be unique
     const client = new Client(
-      "leader.local", 9001,
+      "ws://pioreactorws.ngrok.io/",
       "webui" + Math.random()
     );
     client.connect();

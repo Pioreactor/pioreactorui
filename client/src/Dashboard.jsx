@@ -38,7 +38,7 @@ function Dashboard() {
             }
           })
         .then((config) => {
-          setConfig(parseINIString(config));
+          setConfig(parseINIString(config)); // TODO: parse on server side and send a json object
         })
         .catch((error) => {})
     }
@@ -59,6 +59,7 @@ function Dashboard() {
               <ExperimentSummary experimentMetadata={experimentMetadata}/>
             </Grid>
 
+            {( config['dashboard.charts'] && (config['dashboard.charts']['implied_growth_rate'] === "1")) &&
             <Grid item>
               <Chart
                 config={config}
@@ -70,7 +71,9 @@ function Dashboard() {
                 interpolation="stepAfter"
               />
             </Grid>
+            }
 
+            {( config['dashboard.charts'] && (config['dashboard.charts']['fraction_of_volume_that_is_alternative_media'] === "1")) &&
             <Grid item >
               <Chart
                 config={config}
@@ -84,7 +87,9 @@ function Dashboard() {
                 interpolation="stepAfter"
               />
             </Grid>
+            }
 
+            {( config['dashboard.charts'] && (config['dashboard.charts']['normalized_135_optical_density'] === "1")) &&
             <Grid item>
               <Chart
                 config={config}
@@ -97,7 +102,9 @@ function Dashboard() {
                 interpolation="stepAfter"
               />
             </Grid>
+            }
 
+            {( config['dashboard.charts'] && (config['dashboard.charts']['raw_135_optical_density'] === "1")) &&
             <Grid item >
               <Chart
                 config={config}
@@ -110,6 +117,7 @@ function Dashboard() {
                 interpolation="stepAfter"
               />
             </Grid>
+           }
             <Grid item> <ClearChartButton experiment={experimentMetadata.experiment}/> </Grid>
           </Grid>
 

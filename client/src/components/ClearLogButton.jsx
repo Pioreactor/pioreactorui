@@ -9,7 +9,7 @@ function ClearLogButton(props){
 
   function onClick() {
     var client = new Client(
-      "leader.local", 9001,
+      "ws://pioreactorws.ngrok.io/",
       "client" + Math.random()
     );
     client.connect({onSuccess: () => {
