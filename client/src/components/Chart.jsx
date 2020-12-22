@@ -78,7 +78,7 @@ class Chart extends React.Component {
   componentDidMount() {
     this.getData();
     this.client = new Client(
-      "ws://pioreactorws.ngrok.io/",
+      "leader.local", 9001,
       "client" + Math.random()
     );
 
@@ -214,13 +214,13 @@ class Chart extends React.Component {
 
   filterDataPoints(totalLength){
     return function(value, index){
-      if (totalLength < 200){
+      if (totalLength < 500){
         return true
       }
       if ((index === 0) || (index === (totalLength - 1))){
         return true
       }
-      else if (index % Math.round(totalLength/200) === 0){
+      else if (index % Math.round(totalLength/500) === 0){
         return true
       } else {
         return false

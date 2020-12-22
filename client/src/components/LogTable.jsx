@@ -52,7 +52,7 @@ class LogTable extends React.Component {
   componentDidMount() {
     this.getData()
     this.client = new Client(
-      "ws://pioreactorws.ngrok.io/",
+      "leader.local", 9001,
       "client-log-table");
     this.client.connect({'onSuccess': this.onConnect});
     this.client.onMessageArrived = this.onMessageArrived;
