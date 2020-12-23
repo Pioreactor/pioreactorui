@@ -465,7 +465,7 @@ function ButtonChangeIODialog(props) {
     <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title" PaperProps={{style: {height: "100%"}}}>
       <DialogTitle>
         <Typography className={classes.suptitle}>
-          {props.title || ((props.config['dashboard.rename'] &&  props.config['dashboard.rename'][props.unitNumber]) ? `pioreactor${props.unitNumber} (${props.config['dashboard.rename'][props.unitNumber]})` : `pioreactor${props.unitNumber}`)}
+          {props.title || ((props.config['dashboard.rename'] && props.config['dashboard.rename'][props.unitNumber]) ? `${props.config['dashboard.rename'][props.unitNumber]} (pioreactor${props.unitNumber})` : `pioreactor${props.unitNumber}`)}
         </Typography>
         <Typography className={classes.unitTitleDialog}>
           IO Algorithm
@@ -690,7 +690,7 @@ function ButtonSettingsDialog(props) {
     <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
       <DialogTitle>
         <Typography className={classes.suptitle}>
-          {(props.config['dashboard.rename'] &&  props.config['dashboard.rename'][props.unitNumber]) ? `pioreactor${props.unitNumber} (${props.config['dashboard.rename'][props.unitNumber]})` : `pioreactor${props.unitNumber}`}
+          {(props.config['dashboard.rename'] &&  props.config['dashboard.rename'][props.unitNumber]) ? `${props.config['dashboard.rename'][props.unitNumber]} (pioreactor${props.unitNumber})` : `pioreactor${props.unitNumber}`}
         </Typography>
         <Typography className={classes.unitTitleDialog}>
           Settings
@@ -888,7 +888,7 @@ function ButtonActionDialog(props) {
   };
 
   const title = props.title ? props.title :
-    (props.config['dashboard.rename'] &&  props.config['dashboard.rename'][props.unitNumber]) ? `pioreactor${props.unitNumber} (${props.config['dashboard.rename'][props.unitNumber]})` : `pioreactor${props.unitNumber}`
+    (props.config['dashboard.rename'] &&  props.config['dashboard.rename'][props.unitNumber]) ? `${props.config['dashboard.rename'][props.unitNumber]} (pioreactor${props.unitNumber})` : `pioreactor${props.unitNumber}`
 
   return (
     <div>
@@ -972,10 +972,10 @@ function UnitCard(props) {
 
 
         <Typography className={clsx(classes.suptitle)} color="textSecondary">
-          {props.config['dashboard.rename'] ? props.config['dashboard.rename'][unitNumber] : ""}
+          {(props.config['dashboard.rename'] && props.config['dashboard.rename'][unitNumber]) ? ("pioreactor" + unitNumber) : ""}
         </Typography>
         <Typography className={clsx(classes.unitTitle, {[classes.disabledText]: !isUnitActive})} gutterBottom>
-          {"pioreactor" + unitNumber}
+          {(props.config['dashboard.rename'] && props.config['dashboard.rename'][unitNumber]) ? props.config['dashboard.rename'][unitNumber] : ("pioreactor" + unitNumber) }
         </Typography>
 
 
