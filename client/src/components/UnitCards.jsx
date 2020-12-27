@@ -231,7 +231,7 @@ class UnitSettingDisplay extends React.Component {
             {(typeof this.state.msg === "string"
               ? this.state.msg
               : +this.state.msg.toFixed(this.props.precision)) +
-              (this.props.unit ? this.props.unit : "")}
+              (this.props.measurementUnit ? this.props.measurementUnit : "")}
           </div>
         );
       }
@@ -1077,7 +1077,7 @@ function UnitCard(props) {
             </Typography>
             <UnitSettingDisplay
               precision={2}
-              unit="h⁻¹"
+              measurementUnit="h⁻¹"
               experiment={experiment}
               passChildData={setTargetGrowthRateState}
               isUnitActive={isUnitActive}
@@ -1095,7 +1095,7 @@ function UnitCard(props) {
             </Typography>
             <UnitSettingDisplay
               precision={2}
-              unit="mL"
+              measurementUnit="mL"
               experiment={experiment}
               passChildData={setVolumeState}
               isUnitActive={isUnitActive}
@@ -1113,7 +1113,7 @@ function UnitCard(props) {
             </Typography>
             <UnitSettingDisplay
               precision={0}
-              unit="m"
+              measurementUnit="m"
               experiment={experiment}
               passChildData={setDurationState}
               isUnitActive={isUnitActive}
@@ -1184,7 +1184,7 @@ function UnitCards(props) {
   useEffect(() => {
     if (props.config['inventory']){
       setActiveUnits(
-        Object.entries(props.config['inventory']).filter(([key, value]) => value === "1")
+        Object.entries(props.config['inventory']).filter(([key, value]) => value === "1").map(([key, value]) => key)
       );
     }
   }, [props.config]);

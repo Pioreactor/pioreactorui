@@ -86,7 +86,6 @@ function Dashboard() {
                 topic="alt_media_calculating/alt_media_fraction"
                 yAxisLabel="Fraction"
                 experiment={experimentMetadata.experiment}
-                interpolation="stepAfter"
               />
             </Grid>
             }
