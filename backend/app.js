@@ -185,7 +185,7 @@ app.get("/get_config", function(req, res) {
 
 app.post("/save_new_config", function(req, res) {
   // if the config file is unit specific, we only need to run sync-config on that unit.
-  const regex = /config(\d{1,})?\.ini/
+  const regex = /config_?(.*)?\.ini/
   const filename = req.body.filename
   if (filename.match(regex)[1]){
     var units = filename.match(regex)[1]
