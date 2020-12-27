@@ -186,7 +186,7 @@ class UnitSettingDisplay extends React.Component {
     this.client.subscribe(
       [
         "pioreactor",
-        this.props.unitNumber,
+        this.props.unit,
         this.props.experiment,
         this.props.topic,
       ].join("/"),
@@ -435,7 +435,7 @@ function ButtonChangeIODialog(props) {
     var message = new Message(JSON.stringify(algoSettings));
     message.destinationName = [
       "pioreactor",
-      props.unitNumber,
+      props.unit,
       props.experiment,
       "algorithm_controlling",
       "io_algorithm",
@@ -465,7 +465,7 @@ function ButtonChangeIODialog(props) {
     <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title" PaperProps={{style: {height: "100%"}}}>
       <DialogTitle>
         <Typography className={classes.suptitle}>
-          {props.title || ((props.config['dashboard.rename'] && props.config['dashboard.rename'][props.unitNumber]) ? `${props.config['dashboard.rename'][props.unitNumber]} (pioreactor${props.unitNumber})` : `pioreactor${props.unitNumber}`)}
+          {props.title || ((props.config['dashboard.rename'] && props.config['dashboard.rename'][props.unit]) ? `${props.config['dashboard.rename'][props.unit]} (${props.unit})` : `${props.unit}`)}
         </Typography>
         <Typography className={classes.unitTitleDialog}>
           IO Algorithm
@@ -518,7 +518,7 @@ function ButtonSettingsDialog(props) {
 
   useEffect(() => {
     async function fetchData() {
-      await fetch("/get_config/config" + props.unitNumber + ".ini")
+      await fetch("/get_config/config_" + props.unit + ".ini")
         .then((response) => {
             if (response.ok) {
               return response.text();
@@ -529,7 +529,7 @@ function ButtonSettingsDialog(props) {
         .then((config) => {
           config = parseINIString(config);
           setDefaultStirring(
-            config["stirring"]["duty_cycle" + props.unitNumber]
+            config["stirring"]["duty_cycle_" + props.unit]
           );
         })
         .catch((error) => {})
@@ -537,7 +537,7 @@ function ButtonSettingsDialog(props) {
     if (!props.disabled) {
       fetchData();
     }
-  }, [props.disabled, props.unitNumber]);
+  }, [props.disabled, props.unit]);
 
   useEffect(() => {
     // MQTT - client ids should be unique
@@ -555,7 +555,7 @@ function ButtonSettingsDialog(props) {
       var message = new Message(String(state));
       message.destinationName = [
         "pioreactor",
-        props.unitNumber,
+        props.unit,
         props.experiment,
         job,
         "$state",
@@ -574,7 +574,7 @@ function ButtonSettingsDialog(props) {
 
   function startPioreactorJob(job_attr){
     return function() {
-      fetch("/run/" + job_attr + "/" + props.unitNumber).then(res => {
+      fetch("/run/" + job_attr + "/" + props.unit).then(res => {
       })
     }
   }
@@ -583,7 +583,7 @@ function ButtonSettingsDialog(props) {
     var message = new Message(String(value));
     message.destinationName = [
       "pioreactor",
-      props.unitNumber,
+      props.unit,
       props.experiment,
       job_attr,
       "set",
@@ -690,7 +690,7 @@ function ButtonSettingsDialog(props) {
     <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
       <DialogTitle>
         <Typography className={classes.suptitle}>
-          {(props.config['dashboard.rename'] &&  props.config['dashboard.rename'][props.unitNumber]) ? `${props.config['dashboard.rename'][props.unitNumber]} (pioreactor${props.unitNumber})` : `pioreactor${props.unitNumber}`}
+          {(props.config['dashboard.rename'] &&  props.config['dashboard.rename'][props.unit]) ? `${props.config['dashboard.rename'][props.unit]} (${props.unit})` : `${props.unit}`}
         </Typography>
         <Typography className={classes.unitTitleDialog}>
           Settings
@@ -724,13 +724,13 @@ function ButtonSettingsDialog(props) {
           Input/Output events
         </Typography>
         <Typography variant="body2" component="p" gutterBottom>
-          {props.IOEventsJobState === "ready" &&
+          {props.IOEventsJobState !== "disconnected" &&
             <>
             Currently running IO algorithm <code>{props.ioAlgorithm}</code>.
             Learn more about <a target="_blank" href="https://github.com/Pioreactor/pioreactor/wiki/io-algorithms">IO algorithms</a>.
             </>
           }
-          {props.IOEventsJobState !== "ready" &&
+          {props.IOEventsJobState === "disconnected" &&
 
             <>
             IO events will initially start in <span className={"underlineSpan"} title="silent mode performs no IO operations."><code>silent</code></span> mode, and can be changed after.
@@ -742,7 +742,7 @@ function ButtonSettingsDialog(props) {
           {ioButtons}
 
         <ButtonChangeIODialog
-          unitNumber={props.unitNumber}
+          unit={props.unit}
           config={props.config}
           experiment={props.experiment}
           currentIOAlgorithm={props.ioAlgorithm}
@@ -761,8 +761,8 @@ function ButtonSettingsDialog(props) {
             aria-labelledby="discrete-slider-custom"
             step={1}
             valueLabelDisplay="on"
-            id={"stirring/duty_cycle" + props.unitNumber}
-            key={"stirring/duty_cycle" + props.unitNumber}
+            id={"stirring/duty_cycle_" + props.unit}
+            key={"stirring/duty_cycle_" + props.unit}
             onChangeCommitted={setPioreactorStirring}
             marks={[
               { value: 0, label: "0", key: "slider-0" },
@@ -866,7 +866,7 @@ function ButtonSettingsDialog(props) {
       onClose={handleSnackbarClose}
       message={"Updated"}
       autoHideDuration={7000}
-      key={"snackbar" + props.unitNumber + "settings"}
+      key={"snackbar" + props.unit + "settings"}
     />
     </div>
   );
@@ -876,7 +876,7 @@ function ButtonSettingsDialog(props) {
 function ButtonActionDialog(props) {
   const classes = useStyles();
   const [open, setOpen] = useState(false);
-  const unitNumber = props.unitNumber
+  const unit = props.unit
   const isPlural = props.isPlural
 
   const handleClickOpen = () => {
@@ -888,7 +888,7 @@ function ButtonActionDialog(props) {
   };
 
   const title = props.title ? props.title :
-    (props.config['dashboard.rename'] &&  props.config['dashboard.rename'][props.unitNumber]) ? `${props.config['dashboard.rename'][props.unitNumber]} (pioreactor${props.unitNumber})` : `pioreactor${props.unitNumber}`
+    (props.config['dashboard.rename'] &&  props.config['dashboard.rename'][props.unit]) ? `${props.config['dashboard.rename'][props.unit]} (${props.unit})` : `${props.unit}`
 
   return (
     <div>
@@ -915,7 +915,7 @@ function ButtonActionDialog(props) {
           <Typography variant="body2" component="p">
             Run the media pump{isPlural ? "s" : ""} for a set duration (seconds), or a set volume (mL).
           </Typography>
-          <ActionPumpForm action="add_media" unitNumber={unitNumber} />
+          <ActionPumpForm action="add_media" unit={unit} />
           <Divider className={classes.divider} />
           <Typography gutterBottom>
             Add alternative media
@@ -924,7 +924,7 @@ function ButtonActionDialog(props) {
             Run the alternative media pump{isPlural ? "s" : ""} for a set duration (seconds), or a set
             volume (mL).
           </Typography>
-          <ActionPumpForm action="add_alt_media" unitNumber={unitNumber} />
+          <ActionPumpForm action="add_alt_media" unit={unit} />
           <Divider className={classes.divider} />
           <Typography  gutterBottom>
             Remove waste
@@ -932,7 +932,7 @@ function ButtonActionDialog(props) {
           <Typography variant="body2" component="p">
             Run the waste pump{isPlural ? "s" : ""} for a set duration (seconds), or a set volume (mL).
           </Typography>
-          <ActionPumpForm action="remove_waste" unitNumber={unitNumber} />
+          <ActionPumpForm action="remove_waste" unit={unit} />
           <Divider className={classes.divider} />
         </DialogContent>
       </Dialog>
@@ -943,7 +943,7 @@ function ButtonActionDialog(props) {
 
 function UnitCard(props) {
   const classes = useStyles();
-  const unitNumber = props.unit;
+  const unit = props.unit;
   const isUnitActive = props.isUnitActive;
   const experiment = props.experiment;
 
@@ -972,10 +972,10 @@ function UnitCard(props) {
 
 
         <Typography className={clsx(classes.suptitle)} color="textSecondary">
-          {(props.config['dashboard.rename'] && props.config['dashboard.rename'][unitNumber]) ? ("pioreactor" + unitNumber) : ""}
+          {(props.config['dashboard.rename'] && props.config['dashboard.rename'][unit]) ? unit : ""}
         </Typography>
         <Typography className={clsx(classes.unitTitle, {[classes.disabledText]: !isUnitActive})} gutterBottom>
-          {(props.config['dashboard.rename'] && props.config['dashboard.rename'][unitNumber]) ? props.config['dashboard.rename'][unitNumber] : ("pioreactor" + unitNumber) }
+          {(props.config['dashboard.rename'] && props.config['dashboard.rename'][unit]) ? props.config['dashboard.rename'][unit] : unit }
         </Typography>
 
 
@@ -1001,7 +1001,7 @@ function UnitCard(props) {
               className={classes.alignRight}
               isStateSetting
               topic="od_reading/$state"
-              unitNumber={unitNumber}
+              unit={unit}
             />
           </div>
 
@@ -1017,7 +1017,7 @@ function UnitCard(props) {
               className={classes.alignRight}
               isStateSetting
               topic="growth_rate_calculating/$state"
-              unitNumber={unitNumber}
+              unit={unit}
             />
           </div>
 
@@ -1033,7 +1033,7 @@ function UnitCard(props) {
               className={classes.alignRight}
               isStateSetting
               topic="io_controlling/$state"
-              unitNumber={unitNumber}
+              unit={unit}
             />
           </div>
 
@@ -1049,7 +1049,7 @@ function UnitCard(props) {
               default={"-"}
               className={classes.alignRight}
               topic="stirring/duty_cycle"
-              unitNumber={unitNumber}
+              unit={unit}
             />
           </div>
 
@@ -1066,7 +1066,7 @@ function UnitCard(props) {
               default={"-"}
               className={classes.alignRight}
               topic="io_controlling/target_od"
-              unitNumber={unitNumber}
+              unit={unit}
             />
           </div>
 
@@ -1084,7 +1084,7 @@ function UnitCard(props) {
               default={"-"}
               className={classes.alignRight}
               topic="io_controlling/target_growth_rate"
-              unitNumber={unitNumber}
+              unit={unit}
             />
           </div>
 
@@ -1102,7 +1102,7 @@ function UnitCard(props) {
               default={"-"}
               className={classes.alignRight}
               topic="io_controlling/volume"
-              unitNumber={unitNumber}
+              unit={unit}
             />
           </div>
 
@@ -1120,7 +1120,7 @@ function UnitCard(props) {
               default={"-"}
               className={classes.alignRight}
               topic="io_controlling/duration"
-              unitNumber={unitNumber}
+              unit={unit}
             />
           </div>
 
@@ -1133,7 +1133,7 @@ function UnitCard(props) {
               default={"-"}
               className={classes.alignRight}
               topic="algorithm_controlling/io_algorithm"
-              unitNumber={unitNumber}
+              unit={unit}
             />
           </div>
 
@@ -1160,7 +1160,7 @@ function UnitCard(props) {
               targetODState={targetODState}
               ioAlgorithm={ioAlgorithm}
               experiment={experiment}
-              unitNumber={unitNumber}
+              unit={unit}
               disabled={!isUnitActive}
             />
           </Grid>
@@ -1168,7 +1168,7 @@ function UnitCard(props) {
 
             <ButtonActionDialog
               config={props.config}
-              unitNumber={unitNumber}
+              unit={unit}
               disabled={!isUnitActive}
             />
           </Grid>
@@ -1184,7 +1184,7 @@ function UnitCards(props) {
   useEffect(() => {
     if (props.config['inventory']){
       setActiveUnits(
-        Object.entries(props.config['inventory']).filter(([key, value]) => value === "1").map(([key, value]) => key.replace("pioreactor", ""))
+        Object.entries(props.config['inventory']).filter(([key, value]) => value === "1")
       );
     }
   }, [props.config]);

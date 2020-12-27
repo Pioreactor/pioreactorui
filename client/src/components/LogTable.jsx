@@ -28,7 +28,7 @@ const useStyles = theme => ({
   },
   tightRight: {
     textAlign: "right"
-  }
+  },
 });
 
 class LogTable extends React.Component {
@@ -100,7 +100,7 @@ class LogTable extends React.Component {
               <TableRow>
                 <TableCell className={clsx(classes.headerCell, classes.tightCell)}>Timestamp</TableCell>
                 <TableCell className={clsx(classes.headerCell, classes.tightCell)}>Message</TableCell>
-                <TableCell className={clsx(classes.headerCell, classes.tightCell)}>Name of unit</TableCell>
+                <TableCell className={clsx(classes.headerCell, classes.tightCell)}>Unit</TableCell>
               </TableRow>
             </TableHead>
 

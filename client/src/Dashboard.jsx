@@ -46,6 +46,8 @@ function Dashboard() {
     getConfig();
   }, [])
 
+  const keys = (a) => Object.keys(a)
+
   return (
       <>
         <Grid container spacing={4}>
@@ -124,10 +126,10 @@ function Dashboard() {
           <Grid item xs={12} md={4} container direction="column" spacing={2}>
             <Grid container spacing={1}>
               <Grid item xs={6}>
-                <UnitCards experiment={experimentMetadata.experiment} config={config} units={["1", "3", "5"]} />
+                <UnitCards experiment={experimentMetadata.experiment} config={config} units={config['inventory'] ? keys(config['inventory']).filter((e, i) => (i % 2) === 0) : [] }/>
               </Grid>
               <Grid item xs={6}>
-                <UnitCards experiment={experimentMetadata.experiment} config={config} units={["2", "4", "6"]} />
+                <UnitCards experiment={experimentMetadata.experiment} config={config} units={config['inventory'] ? keys(config['inventory']).filter((e, i) => (i % 2) === 1)  : [] }/>
               </Grid>
             </Grid>
 

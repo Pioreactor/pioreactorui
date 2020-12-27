@@ -14,30 +14,30 @@ import moment from "moment";
 import Card from "@material-ui/core/Card";
 
 const colors = {
-  1: "#9C6ADE",
-  "1-A": "#9C6ADE",
-  "1-D": "#E3D0FF",
-  "1-C": "#50248F",
-  "1-B": "#230051",
+  "pioreactor1": "#9C6ADE",
+  "pioreactor1-A": "#9C6ADE",
+  "pioreactor1-D": "#E3D0FF",
+  "pioreactor1-C": "#50248F",
+  "pioreactor1-B": "#230051",
 
-  2: "#47C1BF",
-  "2-A": "#47C1BF",
-  "2-D": "#B7ECEC",
-  "2-C": "#00848E",
-  "2-B": "#003135",
+  "pioreactor2": "#47C1BF",
+  "pioreactor2-A": "#47C1BF",
+  "pioreactor2-D": "#B7ECEC",
+  "pioreactor2-C": "#00848E",
+  "pioreactor2-B": "#003135",
 
 
-  3: "#F49342",
-  "3-A": "#F49342",
-  "3-D": "#FFC58B",
-  "3-C": "#C05717",
-  "3-B": "#4A1504",
+  "pioreactor3": "#F49342",
+  "pioreactor3-A": "#F49342",
+  "pioreactor3-D": "#FFC58B",
+  "pioreactor3-C": "#C05717",
+  "pioreactor3-B": "#4A1504",
 
-  4: "#50B83C",
-  "4-A": "#50B83C",
-  "4-B": "#173630",
-  "4-C": "#108043",
-  "4-D": "#BBE5B3",
+  "pioreactor4": "#50B83C",
+  "pioreactor4-A": "#50B83C",
+  "pioreactor4-B": "#173630",
+  "pioreactor4-C": "#108043",
+  "pioreactor4-D": "#BBE5B3",
 
 };
 
@@ -190,7 +190,7 @@ class Chart extends React.Component {
 
   breakString(string){
     if (string.length > 7){
-      return string.slice(0, 7)
+      return string.slice(0, 3) + "..." + string.slice(string.length-2, string.length)
     }
     return string
   }
@@ -200,8 +200,8 @@ class Chart extends React.Component {
       return name
     }
 
-    if (name.match(/(\d+)-([ABCD])/g)){
-      const results = name.match(/(\d+)-([ABCD])/)
+    if (name.match(/(.*)-([ABCD])/g)){
+      const results = name.match(/(.*)-([ABCD])/);
       const index = results[1];
       const sensor = results[2];
       return this.breakString(this.props.config['dashboard.rename'][index] || index) + sensor
