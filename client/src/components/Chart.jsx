@@ -190,7 +190,7 @@ class Chart extends React.Component {
 
   breakString(string){
     if (string.length > 7){
-      return string.slice(0, 3) + "..." + string.slice(string.length-2, string.length)
+      return string.slice(0, 5) + "..." + string.slice(string.length-2, string.length)
     }
     return string
   }
@@ -307,11 +307,11 @@ ${this.renameAndFormatSeries(d.datum.childName)}: ${Math.round(d.datum.y * 1000)
         <VictoryChart
           title={this.props.title}
           domainPadding={10}
-          padding={{ left: 70, right: 80, bottom: 50, top: 50 }}
+          padding={{ left: 70, right: 50, bottom: 80, top: 50 }}
           events={this.state.legendEvents}
           responsive={true}
           width={600}
-          height={285}
+          height={315}
           theme={VictoryTheme.material}
           containerComponent={
             <VictoryVoronoiContainer
@@ -350,7 +350,7 @@ ${this.renameAndFormatSeries(d.datum.childName)}: ${Math.round(d.datum.y * 1000)
                 fontFamily: "inherit",
               },
             }}
-            offsetY={50}
+            offsetY={80}
             orientation="bottom"
           />
           <VictoryAxis
@@ -377,14 +377,15 @@ ${this.renameAndFormatSeries(d.datum.childName)}: ${Math.round(d.datum.y * 1000)
             }}
           />
           <VictoryLegend
-            x={515}
-            y={35}
+            x={60}
+            y={267}
             symbolSpacer={10}
-            itemsPerRow={8}
+            itemsPerRow={6}
             name={"legend"}
             borderPadding={{ right: 8 }}
-            orientation="vertical"
+            orientation="horizontal"
             cursor={"pointer"}
+            gutter={15}
             style={{
               labels: { fontSize: 12 },
               data: { stroke: "#485157", strokeWidth: 1, size: 6 },
