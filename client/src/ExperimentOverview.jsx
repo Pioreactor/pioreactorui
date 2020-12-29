@@ -12,7 +12,7 @@ import ClearLogButton from "./components/ClearLogButton";
 import {parseINIString} from "./utilities"
 
 
-function Dashboard() {
+function Overview() {
 
   const [experimentMetadata, setExperimentMetadata] = React.useState({})
   const [config, setConfig] = React.useState({})
@@ -156,4 +156,4 @@ function Dashboard() {
       </>
   );
 }
-export default Dashboard;
+export default Overview;

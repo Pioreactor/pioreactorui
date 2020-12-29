@@ -212,7 +212,7 @@ function StartNewExperimentContainer() {
 
   const handleNext = () => {
     if (activeStep === steps.length - 1){
-      window.location.href = "/dashboard";
+      window.location.href = "/overview";
     } else {
 
       let newSkipped = skipped;
@@ -303,7 +303,7 @@ function StartNewExperimentContainer() {
                   onClick={handleNext}
                   className={classes.button}
                 >
-                  {activeStep === steps.length - 1 ? 'Go to dashboard' : 'Next'}
+                  {activeStep === steps.length - 1 ? 'Go to overview' : 'Next'}
                 </Button>
               </div>
             </div>
