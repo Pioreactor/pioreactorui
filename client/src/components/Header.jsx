@@ -24,7 +24,7 @@ const Header = () => {
             <Link color="inherit" underline="none" href="/" className={classes.title}> <img alt="pioreactor logo" src="white_colour.png" style={{width: "120px", height: "29px"}}/> </Link>
           </Typography>
           <Link color="inherit" underline="none" href="https://github.com/Pioreactor/pioreactor/wiki" target="_blank" rel="noopener">
-            <Button color="inherit">Help </Button>
+            <Button color="inherit" style={{textTransform: "none"}}>Help </Button>
           </Link>
         </Toolbar>
       </AppBar>

@@ -5,6 +5,7 @@ import { makeStyles } from '@material-ui/core/styles';
 import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/Card';
 import Button from '@material-ui/core/Button';
+import Box from '@material-ui/core/Box';
 import {Typography} from '@material-ui/core';
 import Snackbar from '@material-ui/core/Snackbar';
 import Select from '@material-ui/core/Select';
@@ -168,15 +169,23 @@ function EditConfigContainer(){
   const classes = useStyles();
 
   return(
-    <Card className={classes.root}>
-      <CardContent className={classes.cardContent}>
-        <Typography variant="h5" component="h2">
-          Edit config.ini
-        </Typography>
-        <p>Update the <code>config.ini</code> files. The shared <code>config.ini</code> will be deployed to <em>all</em> units, but can be overwritten with a specific unit's <code>config.ini</code>. <a href="https://github.com/Pioreactor/pioreactor/wiki/Configuration-via-config.ini" target="_blank">Learn more about Pioreactor configuration</a>.</p>
-        <EditableCodeDiv/>
-      </CardContent>
-    </Card>
+    <>
+      <div>
+        <div>
+          <Typography variant="h5" component="h2">
+            <Box fontWeight="fontWeightBold">
+              Edit config.ini
+            </Box>
+          </Typography>
+        </div>
+      </div>
+      <Card className={classes.root}>
+        <CardContent className={classes.cardContent}>
+          <p>Update the <code>config.ini</code> files. The shared <code>config.ini</code> will be deployed to <em>all</em> units, but can be overwritten with a specific unit's <code>config.ini</code>. <a href="https://github.com/Pioreactor/pioreactor/wiki/Configuration-via-config.ini" target="_blank">Learn more about Pioreactor configuration</a>.</p>
+          <EditableCodeDiv/>
+        </CardContent>
+      </Card>
+    </>
 )}
 
 
@@ -184,12 +193,14 @@ function EditConfig() {
     return (
         <Grid container spacing={2} >
           <Grid item xs={12}><Header /></Grid>
+          <Grid item md={12} xs={1}/>
+          <Grid item md={12} xs={1}/>
 
-          <Grid item md={2} xs={false}/>
-          <Grid item md={8} xs={12}>
+          <Grid item md={1} xs={1}/>
+          <Grid item md={10} xs={12}>
              <EditConfigContainer/>
           </Grid>
-          <Grid item md={2} xs={false}/>
+          <Grid item md={1} xs={1}/>
 
         </Grid>
     )

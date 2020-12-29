@@ -49,10 +49,6 @@ export default function SideDrawer() {
           <ListItemText primary={"Download experiment data"} />
         </ListItem>
 
-        <ListItem button href="/start-new-experiment"  component="a" key={"start_new_experiment"} selected={isSelected("/start-new-experiment")}>
-          <ListItemIcon> <AddIcon color={isSelected("/start-new-experiment") ? "primary" : "inherit"}/> </ListItemIcon>
-          <ListItemText primary={"Start new experiment"} />
-        </ListItem>
       </List>
       <Divider />
       <List>
