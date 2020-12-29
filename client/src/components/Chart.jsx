@@ -380,7 +380,7 @@ ${this.renameAndFormatSeries(d.datum.childName)}: ${Math.round(d.datum.y * 1000)
             x={515}
             y={35}
             symbolSpacer={10}
-            itemsPerRow={10}
+            itemsPerRow={8}
             name={"legend"}
             borderPadding={{ right: 8 }}
             orientation="vertical"

@@ -112,7 +112,7 @@ app.get("/run/:job/:unit", function(req, res) {
 
 app.get('/get_experiments', function (req, res) {
   db.serialize(function () {
-    db.all('SELECT experiment FROM experiments ORDER BY timestamp DESC;', function (err, rows) {
+    db.all('SELECT * FROM experiments ORDER BY timestamp DESC;', function (err, rows) {
       res.send(rows)
     })
   })

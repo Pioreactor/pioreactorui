@@ -1,4 +1,5 @@
 import React from "react";
+import moment from "moment";
 
 import Grid from '@material-ui/core/Grid';
 import Header from "./components/Header"
@@ -77,7 +78,7 @@ function ExperimentSelection(props) {
           }}
         >
           {experiments.map((v) => {
-            return <option value={v.experiment}>{v.experiment}</option>
+            return <option value={v.experiment}>{`${v.experiment} (started ${moment(v.timestamp).format("MMMM D, YYYY")})`}</option>
             }
           )}
         </Select>
