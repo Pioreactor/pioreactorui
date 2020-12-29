@@ -368,7 +368,7 @@ function ButtonAllUnitSettingsDialog(props) {
   return (
     <div>
       <Button color="secondary" size="small" onClick={handleClickOpen}>
-        Stop all processes
+        Stop all activity
       </Button>
       <Dialog
         open={open}
@@ -376,10 +376,10 @@ function ButtonAllUnitSettingsDialog(props) {
         aria-labelledby="alert-dialog-title"
         aria-describedby="alert-dialog-description"
       >
-        <DialogTitle id="alert-dialog-title">{"Stop all pioreactor processes?"}</DialogTitle>
+        <DialogTitle id="alert-dialog-title">{"Stop all pioreactor activity?"}</DialogTitle>
         <DialogContent>
           <DialogContentText id="alert-dialog-description">
-            This will stop stirring, optical density measuring, and future IO events from occurring for <b>all</b> pioreactor units. It may take a moment to
+            This will stop stirring, optical density measuring, and IO events from occurring in <b>all</b> Pioreactor units. It may take a moment to
             take effect.
           </DialogContentText>
         </DialogContent>

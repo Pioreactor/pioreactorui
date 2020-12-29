@@ -92,6 +92,7 @@ function StartSensors(props){
       <Grid item xs={10}><StartODReading/></Grid>
       <Grid item xs={12}>
         <Chart
+          config={{}}
           isODReading={true}
           fontScale={1.0}
           interpolation="stepAfter"
