@@ -173,7 +173,7 @@ function EditConfigContainer(){
         <Typography variant="h5" component="h2">
           Edit config.ini
         </Typography>
-        <p>Update the <code>config.ini</code> files. The shared <code>config.ini</code> will be deployed to <em>all</em> units, but can be overwritten with a specific unit's <code>config.ini</code>. <a href="https://github.com/Pioreactor/pioreactor/wiki/Configuration" target="_blank">Learn more about Pioreactor configuration</a>.</p>
+        <p>Update the <code>config.ini</code> files. The shared <code>config.ini</code> will be deployed to <em>all</em> units, but can be overwritten with a specific unit's <code>config.ini</code>. <a href="https://github.com/Pioreactor/pioreactor/wiki/Configuration-via-config.ini" target="_blank">Learn more about Pioreactor configuration</a>.</p>
         <EditableCodeDiv/>
       </CardContent>
     </Card>

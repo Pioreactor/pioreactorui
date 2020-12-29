@@ -669,13 +669,14 @@ function ButtonSettingsDialog(props) {
           </div>
           )
       default:
-        return(<div></div>)
+        return(<div>here</div>)
     }
    }
 
   const odButtons = createUserButtonsBasedOnState(props.ODReadingJobState, "od_reading")
   const grButtons = createUserButtonsBasedOnState(props.growthRateJobState, "growth_rate_calculating")
   const ioButtons = createUserButtonsBasedOnState(props.IOEventsJobState, "io_controlling", "algorithm_controlling")
+  const stirringButtons = createUserButtonsBasedOnState(props.stirringState, "stirring")
 
   return (
     <div>
@@ -697,6 +698,16 @@ function ButtonSettingsDialog(props) {
         </Typography>
       </DialogTitle>
       <DialogContent>
+        <Typography gutterBottom>
+          Stirring
+        </Typography>
+        <Typography variant="body2" component="p" gutterBottom>
+          Start, stop or pause the stirring on the Pioreactor. Stirring is needed for homogenous mixing.
+        </Typography>
+
+        {stirringButtons}
+
+        <Divider className={classes.divider} />
         <Typography gutterBottom>
           Optical density reading
         </Typography>
@@ -757,7 +768,7 @@ function ButtonSettingsDialog(props) {
         </Typography>
         <div className={classes.slider}>
           <Slider
-            defaultValue={parseInt(props.stirringState)}
+            defaultValue={parseInt(props.stirringDCState)}
             aria-labelledby="discrete-slider-custom"
             step={1}
             valueLabelDisplay="on"
@@ -949,7 +960,8 @@ function UnitCard(props) {
 
   const [showingAllSettings, setShowingAllSettings] = useState(false);
 
-  const [stirringState, setStirringState] = useState(0);
+  const [stirringDCState, setStirringDCState] = useState(0);
+  const [stirringState, setStirringState] = useState("disconnected");
   const [ODReadingJobState, setODReadingJobState] = useState("disconnected");
   const [growthRateJobState, setGrowthRateJobState] = useState("disconnected");
   const [IOEventsJobState, setIOEventsJobState] = useState("disconnected");
@@ -1037,13 +1049,28 @@ function UnitCard(props) {
             />
           </div>
 
+          <div className={classes.textbox}>
+            <Typography className={textSettingsClasses}>
+              Stirring:
+            </Typography>
+            <UnitSettingDisplay
+              passChildData={setStirringState}
+              experiment={experiment}
+              isUnitActive={isUnitActive}
+              default={"disconnected"}
+              className={classes.alignRight}
+              topic="stirring/$state"
+              isStateSetting
+              unit={unit}
+            />
+          </div>
 
           <div className={classes.textbox}>
             <Typography className={textSettingsClasses}>
               Stirring speed:
             </Typography>
             <UnitSettingDisplay
-              passChildData={setStirringState}
+              passChildData={setStirringDCState}
               experiment={experiment}
               isUnitActive={isUnitActive}
               default={"-"}
@@ -1150,9 +1177,10 @@ function UnitCard(props) {
           <Grid item xs={5} md={12} lg={5}>
             <ButtonSettingsDialog
               config={props.config}
-              stirringState={stirringState}
+              stirringDCState={stirringDCState}
               ODReadingJobState={ODReadingJobState}
               growthRateJobState={growthRateJobState}
+              stirringState={stirringState}
               IOEventsJobState={IOEventsJobState}
               targetGrowthRateState={targetGrowthRateState}
               volumeState={volumeState}

@@ -50,19 +50,27 @@ function Dashboard() {
 
   return (
       <>
-        <Grid container spacing={4}>
+        <Grid container spacing={2} justify="space-between">
           <Grid item xs={12} style={{paddingRight: "0px"}}>
             <Header />
           </Grid>
+          <Grid item xs={1} md={12}/>
+          <Grid item xs={1} md={12}/>
 
-          <Grid item xs={false} md={1}/>
-          <Grid item xs={12} md={6}  style={{height: "100%"}} container direction="column" spacing={2}>
-            <Grid item>
-              <ExperimentSummary experimentMetadata={experimentMetadata}/>
-            </Grid>
+
+          <Grid item xs={12} md={1}/>
+          <Grid item xs={12} md={10}>
+            <ExperimentSummary experimentMetadata={experimentMetadata}/>
+          </Grid>
+          <Grid item xs={12} md={1}/>
+
+
+          <Grid item xs={12} md={1}/>
+          <Grid item xs={12} md={6} container spacing={2} justify="flex-start" style={{paddingLeft: 0, height: "100%"}}>
+
 
             {( config['dashboard.charts'] && (config['dashboard.charts']['implied_growth_rate'] === "1")) &&
-            <Grid item>
+            <Grid item xs={12}>
               <Chart
                 config={config}
                 dataFile={"./data/growth_rate_time_series_aggregating.json"}
@@ -76,7 +84,7 @@ function Dashboard() {
             }
 
             {( config['dashboard.charts'] && (config['dashboard.charts']['fraction_of_volume_that_is_alternative_media'] === "1")) &&
-            <Grid item >
+            <Grid item xs={12}>
               <Chart
                 config={config}
                 domain={[0, 1]}
@@ -91,7 +99,7 @@ function Dashboard() {
             }
 
             {( config['dashboard.charts'] && (config['dashboard.charts']['normalized_135_optical_density'] === "1")) &&
-            <Grid item>
+            <Grid item xs={12}>
               <Chart
                 config={config}
                 isODReading={true}
@@ -106,7 +114,7 @@ function Dashboard() {
             }
 
             {( config['dashboard.charts'] && (config['dashboard.charts']['raw_135_optical_density'] === "1")) &&
-            <Grid item >
+            <Grid item xs={12}>
               <Chart
                 config={config}
                 isODReading={true}
@@ -119,11 +127,15 @@ function Dashboard() {
               />
             </Grid>
            }
-            <Grid item> <ClearChartButton experiment={experimentMetadata.experiment}/> </Grid>
+            <Grid item xs={12}> <ClearChartButton experiment={experimentMetadata.experiment}/> </Grid>
           </Grid>
 
-          <Grid item xs={12} md={4} container direction="column" spacing={2}>
-            <Grid container spacing={1}>
+          <Grid item xs={12} md={4} container spacing={2} justify="flex-end" style={{height: "100%"}}>
+            <Grid item xs={12} style={{padding: "10px 0px"}}>
+              <AllUnitsManagerCard experiment={experimentMetadata.experiment}/>
+            </Grid>
+
+            <Grid container spacing={2}>
               <Grid item xs={6}>
                 <UnitCards experiment={experimentMetadata.experiment} config={config} units={config['inventory'] ? keys(config['inventory']).filter((e, i) => (i % 2) === 0) : [] }/>
               </Grid>
@@ -132,16 +144,14 @@ function Dashboard() {
               </Grid>
             </Grid>
 
-              <Grid item style={{padding: "10px 0px"}}>
-                <AllUnitsManagerCard experiment={experimentMetadata.experiment}/>
-              </Grid>
 
-            <Grid item style={{padding: "10px 0px"}}>
+            <Grid item xs={12} style={{padding: "10px 0px"}}>
               <LogTable config={config}/>
             </Grid>
-            <Grid item> <ClearLogButton /> </Grid>
+            <Grid item xs={12}> <ClearLogButton /> </Grid>
           </Grid>
-          <Grid item xs={false} md={1}/>
+
+          <Grid item xs={1} md={1}/>
         </Grid>
       </>
   );

@@ -303,7 +303,7 @@ ${this.renameAndFormatSeries(d.datum.childName)}: ${Math.round(d.datum.y * 1000)
       delta_ts >= 16 ? (delta_ts >= 5 * 24 ? "MMM DD" : "dd HH:mm") : "H:mm";
     const ts = this.createXTickValues(this.state.minTimestamp, this.state.maxTimestamp)
     return (
-      <Card style={{maxWidth: "600px", maxHeight: "100%"}}>
+      <Card style={{ maxHeight: "100%"}}>
         <VictoryChart
           title={this.props.title}
           domainPadding={10}

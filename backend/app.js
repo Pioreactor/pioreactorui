@@ -25,10 +25,10 @@ var staticUserAuth = basicAuth({
 
 
 app.get('/', function(req, res) {
-    res.redirect(301, '/dashboard');
+    res.redirect(301, '/overview');
 })
 
-app.get('/dashboard', function(req, res) {
+app.get('/overview', function(req, res) {
     app.use("/", expressStaticGzip(path.join(__dirname, 'build')));
     app.use("/", expressStaticGzip(path.join(__dirname, 'build/data')));
     res.sendFile(path.join(__dirname, 'build', 'index.html'));
@@ -142,7 +142,7 @@ app.post("/create_experiment", function (req, res) {
 
 app.get("/recent_media_rates/:experiment", function (req, res) {
   const experiment = req.params.experiment
-  const hours = 12
+  const hours = 6
   db.serialize(function () {
     db.all(`SELECT CASE WHEN event="add_media" THEN "mediaRate" ELSE "altMediaRate" END AS type, SUM(volume_change_ml)/${hours} as rate FROM io_events where datetime(timestamp) >= datetime('now', '-${hours} Hour') and event in ('add_alt_media', 'add_media') and experiment='${experiment}' and source_of_event == 'io_controlling' GROUP BY event;`, function (err, rows) {
       var jsonResult = {}

@@ -39,9 +39,9 @@ export default function SideDrawer() {
       <img alt="pioreactor logo" src="grey_color.png" width="40%" style={{marginLeft: "70px", marginTop: "5px"}}/>
       <List>
 
-        <ListItem href="/" component="a" button key={"dashboard"} selected={isSelected("/") || isSelected("/dashboard")}>
-          <ListItemIcon><DashboardIcon color={(isSelected("/") || isSelected("/dashboard")) ? "primary" : "inherit"}/> </ListItemIcon>
-          <ListItemText primary={"Dashboard"} />
+        <ListItem href="/" component="a" button key={"overview"} selected={isSelected("/") || isSelected("/overview")}>
+          <ListItemIcon><DashboardIcon color={(isSelected("/") || isSelected("/overview")) ? "primary" : "inherit"}/> </ListItemIcon>
+          <ListItemText primary={"Experiment Overview"} />
         </ListItem>
 
         <ListItem href="/download-data" component="a" button key={"download_data"} selected={isSelected("/download-data")}>

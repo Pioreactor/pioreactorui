@@ -6,13 +6,15 @@ import {Typography} from '@material-ui/core';
 import moment from "moment";
 import Box from '@material-ui/core/Box';
 import Snackbar from '@material-ui/core/Snackbar';
+import Divider from '@material-ui/core/Divider';
+import Button from '@material-ui/core/Button';
 import ContentEditable from 'react-contenteditable'
-
+import CalendarTodayIcon from '@material-ui/icons/CalendarToday';
+import TimelapseIcon from '@material-ui/icons/Timelapse';
+import GetAppIcon from '@material-ui/icons/GetApp';
+import AddIcon from '@material-ui/icons/Add';
 
 const useStyles = makeStyles({
-  root: {
-    maxWidth: "600px"
-  },
   title: {
     fontSize: 14,
   },
@@ -69,7 +71,10 @@ class EditableDescription extends React.Component {
 
   render = () => {
     return (
-      <div>
+      <div style={{"padding": "0px 5px 0px 5px"}}>
+        <Box fontWeight="fontWeightBold">
+          Description:
+        </Box>
         <ContentEditable
             innerRef={this.contentEditable}
             html={this.state.desc} // innerHTML of the editable div
@@ -100,27 +105,46 @@ function ExperimentSummary(props){
   const desc = props.experimentMetadata.description || ""
 
   return(
-    <Card className={classes.root}>
-      <CardContent className={classes.cardContent}>
-        <Typography className={classes.title} color="textSecondary" gutterBottom>
-          Experiment
-        </Typography>
-        <Typography variant="h5" component="h2">
-          {experiment}
-        </Typography>
+    <>
+      <div>
+        <div style={{display: "flex", justifyContent: "space-between", marginBottom: "5px"}}>
+          <Typography variant="h5" component="h2">
+            <Box fontWeight="fontWeightBold">
+              {experiment}
+            </Box>
+          </Typography>
+          <div >
+            <Button href="/download-data" style={{textTransform: 'none', marginRight: "10px", float: "right"}} color="primary">
+              <GetAppIcon style={{ fontSize: 15, verticalAlign: "middle" }}/> Download experiment data
+            </Button>
+            <Button href="/start-new-experiment" style={{textTransform: 'none', float: "right", marginRight: "10px"}} color="primary">
+              <AddIcon style={{ fontSize: 15, verticalAlign: "middle" }}/> New Experiment
+            </Button>
+          </div>
+        </div>
+
+        <Divider/>
         <Typography variant="subtitle2">
-          <Box fontWeight="fontWeightRegular">
-            Start date: <span title={moment(startedAt).format("YYYY-MM-DD HH:mm:ss")}>{moment(startedAt).format("YYYY-MM-DD")}</span>
+          <Box fontWeight="fontWeightBold" style={{margin: "10px 2px 10px 2px", display:"inline-block"}}>
+            <CalendarTodayIcon style={{ fontSize: 12, verticalAlign: "middle" }}/> Experiment Started:
+          </Box>
+          <Box fontWeight="fontWeightRegular" style={{marginRight: "20px", display:"inline-block"}}>
+            <span title={moment(startedAt).format("YYYY-MM-DD HH:mm:ss")}>{moment(startedAt).format("dddd, MMMM D YYYY")}</span>
+          </Box>
+          <Box fontWeight="fontWeightBold" style={{display:"inline-block", margin: "10px 2px 10px 0px"}}>
+            <TimelapseIcon style={{ fontSize: 12, verticalAlign: "middle"  }}/>Time Elapsed:
+          </Box>
+          <Box fontWeight="fontWeightRegular" style={{display:"inline-block"}}>
+           {(moment().diff(moment(startedAt), 'H'))}h
           </Box>
         </Typography>
-        <Typography variant="subtitle2" >
-          <Box fontWeight="fontWeightRegular">
-            Elapsed: {(moment().diff(moment(startedAt), 'H'))}h
-          </Box>
-        </Typography>
-        <EditableDescription experiment={experiment} description={desc} />
-      </CardContent>
-    </Card>
+      </div>
+      <Card className={classes.root}>
+        <CardContent className={classes.cardContent}>
+          <EditableDescription experiment={experiment} description={desc} />
+        </CardContent>
+      </Card>
+    </>
   )
 }
 

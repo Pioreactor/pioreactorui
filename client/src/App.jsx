@@ -1,6 +1,6 @@
 import React from "react";
 import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
-import Dashboard from "./Dashboard";
+import ExperimentOverview from "./ExperimentOverview";
 import DownloadData from "./DownloadData";
 import StartNewExperiment from "./StartNewExperiment";
 import EditConfig from "./EditConfig";
@@ -39,14 +39,14 @@ function App() {
             <Route path="/start-new-experiment">
               <StartNewExperiment />
             </Route>
-            <Route path="/dashboard">
-              <Dashboard />
+            <Route path="/overview">
+              <ExperimentOverview />
             </Route>
             <Route path="/edit-config">
               <EditConfig />
             </Route>
             <Route path="/">
-              <Dashboard />
+              <ExperimentOverview />
             </Route>
           </Switch>
         </div>

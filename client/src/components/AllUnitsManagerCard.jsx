@@ -35,7 +35,7 @@ const useStyles = makeStyles({
   },
   unitTitle: {
     fontSize: 17,
-    color: "rgba(0, 0, 0, 0.54)",
+    color: "rgba(0, 0, 0, 0.88)",
   },
   unitTitleDialog: {
     fontSize: 20,
@@ -181,6 +181,7 @@ function ButtonAllUnitSettingsDialog(props) {
   const odButtons = createUserButtonsBasedOnState("od_reading")
   const grButtons = createUserButtonsBasedOnState("growth_rate_calculating")
   const ioButtons = createUserButtonsBasedOnState("io_controlling", "algorithm_controlling")
+  const stirringButtons = createUserButtonsBasedOnState("stirring")
 
 
   return (
@@ -203,6 +204,17 @@ function ButtonAllUnitSettingsDialog(props) {
           </Typography>
         </DialogTitle>
         <DialogContent>
+          <Typography gutterBottom>
+            Stirring
+          </Typography>
+          <Typography variant="body2" component="p">
+            Start, stop or pause the stirring on the Pioreactor. Stirring is needed for homogenous mixing.
+
+          </Typography>
+
+          {stirringButtons}
+
+          <Divider className={classes.divider} />
           <Typography gutterBottom>
             Optical density reading
           </Typography>
@@ -325,6 +337,7 @@ function ButtonAllUnitSettingsDialog(props) {
             unitNumber={'$broadcast'}
             title="All units"
             config={{}}
+            currentIOAlgorithm={true}
             experiment={props.experiment}
           />
           <Divider className={classes.divider} />
@@ -467,7 +480,7 @@ class VolumeThroughputTally extends React.Component {
             Media throughput:
           </Typography>
           <span style={{fontFamily: "courier", flex: 1, textAlign: "right"}}>
-            {Math.round(this.state.mediaThroughput)}mL (<span className={"underlineSpan"} title="Last 12 hour average, automated IO sources">～{this.state.mediaRate.toFixed(1)}mL/h</span>)
+            {Math.round(this.state.mediaThroughput)}mL (<span className={"underlineSpan"} title="Last 6 hour average, automated IO sources">～{this.state.mediaRate.toFixed(1)}mL/h</span>)
           </span>
         </div>
         <Divider style={dividerStyle}/>
