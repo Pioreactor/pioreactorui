@@ -181,7 +181,7 @@ function EditConfigContainer(){
       </div>
       <Card className={classes.root}>
         <CardContent className={classes.cardContent}>
-          <p>Update the <code>config.ini</code> files. The shared <code>config.ini</code> will be deployed to <em>all</em> units, but can be overwritten with a specific unit's <code>config.ini</code>. <a href="https://github.com/Pioreactor/pioreactor/wiki/Configuration-via-config.ini" target="_blank">Learn more about Pioreactor configuration</a>.</p>
+          <p>Update the <code>config.ini</code> files. The shared <code>config.ini</code> will be deployed to <em>all</em> Pioreactors, but can be overwritten with a specific Pioreactor's <code>config.ini</code>. <a href="https://github.com/Pioreactor/pioreactor/wiki/Configuration-via-config.ini" target="_blank">Learn more about Pioreactor configuration</a>.</p>
           <EditableCodeDiv/>
         </CardContent>
       </Card>

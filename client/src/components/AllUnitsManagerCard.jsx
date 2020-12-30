@@ -502,7 +502,7 @@ const AllUnitsManagerCard = (props) => {
       <Card>
         <CardContent>
           <Typography className={classes.unitTitle}>
-            All Units
+            All Pioreactors
           </Typography>
           <VolumeThroughputTally experiment={props.experiment}/>
         </CardContent>

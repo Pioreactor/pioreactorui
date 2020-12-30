@@ -100,7 +100,7 @@ class LogTable extends React.Component {
               <TableRow>
                 <TableCell className={clsx(classes.headerCell, classes.tightCell)}>Timestamp</TableCell>
                 <TableCell className={clsx(classes.headerCell, classes.tightCell)}>Message</TableCell>
-                <TableCell className={clsx(classes.headerCell, classes.tightCell)}>Unit</TableCell>
+                <TableCell className={clsx(classes.headerCell, classes.tightCell)}>Pioreactor</TableCell>
               </TableRow>
             </TableHead>
 
