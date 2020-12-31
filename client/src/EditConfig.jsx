@@ -14,6 +14,7 @@ import CircularProgress from '@material-ui/core/CircularProgress';
 import { CodeFlaskReact } from "react-codeflask"
 
 import Header from "./components/Header"
+import TactileButtonNotification from "./components/TactileButtonNotification";
 
 
 const useStyles = makeStyles((theme) => ({
@@ -155,7 +156,7 @@ class EditableCodeDiv extends React.Component {
           onClose={this.handleSnackbarClose}
           message={this.state.snackbarMsg}
           autoHideDuration={2000}
-          key={"snackbar"}
+          key={"edit-config-snackbar"}
         />
       </>
     )
@@ -201,7 +202,6 @@ function EditConfig() {
              <EditConfigContainer/>
           </Grid>
           <Grid item md={1} xs={1}/>
-
         </Grid>
     )
 }

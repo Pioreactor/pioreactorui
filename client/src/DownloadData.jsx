@@ -18,6 +18,7 @@ import Box from '@material-ui/core/Box';
 import Divider from '@material-ui/core/Divider';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import Button from "@material-ui/core/Button";
+import TactileButtonNotification from "./components/TactileButtonNotification";
 
 
 const useStyles = makeStyles((theme) => ({
@@ -269,7 +270,6 @@ function DownloadData() {
             <DownloadDataFormContainer/>
           </Grid>
           <Grid item md={1} xs={1}/>
-
         </Grid>
     )
 }

@@ -6,6 +6,12 @@ import StartNewExperiment from "./StartNewExperiment";
 import EditConfig from "./EditConfig";
 import { MuiThemeProvider, createMuiTheme } from "@material-ui/core/styles";
 import CssBaseline from "@material-ui/core/CssBaseline";
+import Snackbar from '@material-ui/core/Snackbar';
+import { Client } from "paho-mqtt";
+import { makeStyles } from '@material-ui/core/styles';
+import TactileButtonNotification from "./components/TactileButtonNotification";
+
+
 import "fontsource-roboto/300-normal.css"
 import "fontsource-roboto/400-normal.css"
 import "fontsource-roboto/500-normal.css"
@@ -27,7 +33,10 @@ const theme = createMuiTheme({
   },
 });
 
+
+
 function App() {
+
   return (
     <MuiThemeProvider theme={theme}>
       <CssBaseline />
@@ -51,6 +60,7 @@ function App() {
             </Route>
           </Switch>
         </div>
+        <TactileButtonNotification/>
       </Router>
     </MuiThemeProvider>
   );

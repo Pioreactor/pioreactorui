@@ -14,6 +14,7 @@ import Divider from "@material-ui/core/Divider";
 import Slider from "@material-ui/core/Slider";
 import TextField from "@material-ui/core/TextField";
 import InputAdornment from "@material-ui/core/InputAdornment";
+import FiberManualRecordIcon from '@material-ui/icons/FiberManualRecord';
 import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
 import ExpandLessIcon from "@material-ui/icons/ExpandLess";
 import IconButton from "@material-ui/core/IconButton";
@@ -199,7 +200,7 @@ class UnitSettingDisplay extends React.Component {
     "ready":        {message: "", display: "On", color: onlineGreen},
     "sleeping":     {message: "", display: "Paused", color: offlineGrey},
     "disconnected": {message: "", display: "Off", color: offlineGrey},
-    "lost":         {message: "Check logs for errors.", display: "Error", color: errorRed},
+    "lost":         {message: "Check logs for errors.", display: "Lost", color: errorRed},
   }
 
   onMessageArrived(message) {
@@ -959,6 +960,7 @@ function UnitCard(props) {
   const experiment = props.experiment;
 
   const [showingAllSettings, setShowingAllSettings] = useState(false);
+  const [isOnline, setIsOnline] = useState(null); // TODO: not used!
 
   const [stirringDCState, setStirringDCState] = useState(0);
   const [stirringState, setStirringState] = useState("disconnected");
@@ -971,6 +973,33 @@ function UnitCard(props) {
   const [volumeState, setVolumeState] = useState(0);
   const [ioAlgorithm, setIoAlgorithm] = useState(null);
 
+  useEffect(() => {
+    const onMessageArrived = (msg) => {
+      console.log(msg.payloadString + ". Reminder: not being used")
+      setIsOnline(msg.payloadString)
+    }
+
+    const onSuccess = () => {
+      client.subscribe(
+      [
+        "pioreactor",
+        props.unit,
+        "$experiment",
+        "monitor",
+        "$state"
+      ].join("/"),
+      { qos: 1 }
+      )
+    }
+    // MQTT - client ids should be unique
+    const client = new Client(
+      "ws://pioreactorws.ngrok.io/",
+      "webui" + Math.random()
+    );
+    client.connect({onSuccess: onSuccess});
+    client.onMessageArrived = onMessageArrived;
+  },[])
+
 
   const handleShowAllSettingsClick = () => {
     setShowingAllSettings(!showingAllSettings);
@@ -981,8 +1010,6 @@ function UnitCard(props) {
   return (
     <Card className={classes.root}>
       <CardContent className={classes.content}>
-
-
         <Typography className={clsx(classes.suptitle)} color="textSecondary">
           {(props.config['dashboard.rename'] && props.config['dashboard.rename'][unit]) ? unit : ""}
         </Typography>
