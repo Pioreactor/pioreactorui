@@ -58,8 +58,8 @@ function TactileButtonNotification(props) {
       anchorOrigin={{vertical: "bottom", horizontal: "center"}}
       key={"button-tactile-snackbar"}
     >
-    <Alert severity="info" variant="filled">
-      <AlertTitle>{unit + (renamedUnit ? " / " + renamedUnit : "")}</AlertTitle>
+    <Alert severity="info" variant="filled" icon={false}>
+      <AlertTitle style={{fontSize: 25}}>{unit + (renamedUnit ? " / " + renamedUnit : "")}</AlertTitle>
       Holding <b>{unit}</b>'s button down
     </Alert>
     </Snackbar>
