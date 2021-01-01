@@ -251,7 +251,7 @@ function StartNewExperimentContainer() {
   return (
     <Card className={classes.root}>
       <CardContent className={classes.cardContent}>
-        <Typography variant="h5" component="h2">
+        <Typography variant="h5" component="h1">
           Start a new experiment
         </Typography>
         <Stepper activeStep={activeStep}>

@@ -1,16 +1,16 @@
 import React from "react";
 import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
-import ExperimentOverview from "./ExperimentOverview";
-import DownloadData from "./DownloadData";
-import StartNewExperiment from "./StartNewExperiment";
-import EditConfig from "./EditConfig";
 import { MuiThemeProvider, createMuiTheme } from "@material-ui/core/styles";
 import CssBaseline from "@material-ui/core/CssBaseline";
 import Snackbar from '@material-ui/core/Snackbar';
-import { Client } from "paho-mqtt";
 import { makeStyles } from '@material-ui/core/styles';
-import TactileButtonNotification from "./components/TactileButtonNotification";
 
+import TactileButtonNotification from "./components/TactileButtonNotification";
+import ExperimentOverview from "./ExperimentOverview";
+import DownloadData from "./DownloadData";
+import Pioreactors from "./Pioreactors";
+import StartNewExperiment from "./StartNewExperiment";
+import EditConfig from "./EditConfig";
 
 import "fontsource-roboto/300-normal.css"
 import "fontsource-roboto/400-normal.css"
@@ -54,6 +54,9 @@ function App() {
             </Route>
             <Route path="/edit-config">
               <EditConfig />
+            </Route>
+            <Route path="/pioreactors">
+              <Pioreactors />
             </Route>
             <Route path="/">
               <ExperimentOverview />

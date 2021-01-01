@@ -24,6 +24,11 @@ const useStyles = makeStyles({
   pos: {
     marginBottom: 0,
   },
+  textIcon: {
+    fontSize: 15,
+    verticalAlign: "middle",
+    margin: "0px 3px"
+  },
 });
 
 
@@ -108,17 +113,17 @@ function ExperimentSummary(props){
     <>
       <div>
         <div style={{display: "flex", justifyContent: "space-between", marginBottom: "5px"}}>
-          <Typography variant="h5" component="h2">
+          <Typography variant="h5" component="h1">
             <Box fontWeight="fontWeightBold">
               {experiment}
             </Box>
           </Typography>
           <div >
-            <Button href="/download-data" style={{textTransform: 'none', marginRight: "10px", float: "right"}} color="primary">
-              <GetAppIcon style={{ fontSize: 15, verticalAlign: "middle" }}/> Download experiment data
+            <Button href="/download-data" style={{textTransform: 'none', marginRight: "0px", float: "right"}} color="primary">
+              <GetAppIcon className={classes.textIcon}/> Download experiment data
             </Button>
             <Button href="/start-new-experiment" style={{textTransform: 'none', float: "right", marginRight: "10px"}} color="primary">
-              <AddIcon style={{ fontSize: 15, verticalAlign: "middle" }}/> New Experiment
+              <AddIcon className={classes.textIcon}/> New Experiment
             </Button>
           </div>
         </div>

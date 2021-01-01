@@ -6,7 +6,7 @@ import {UnitCards} from "./components/UnitCards";
 import LogTable from "./components/LogTable";
 import ExperimentSummary from "./components/ExperimentSummary";
 import Chart from "./components/Chart";
-import AllUnitsManagerCard from "./components/AllUnitsManagerCard";
+import MediaCard from "./components/MediaCard";
 import ClearChartButton from "./components/ClearChartButton";
 import ClearLogButton from "./components/ClearLogButton";
 import {parseINIString} from "./utilities"
@@ -49,7 +49,7 @@ function Overview() {
   const keys = (a) => Object.keys(a)
 
   return (
-      <>
+      <React.Fragment>
         <Grid container spacing={2} justify="space-between">
           <Grid item xs={12} style={{paddingRight: "0px"}}>
             <Header />
@@ -132,16 +132,7 @@ function Overview() {
 
           <Grid item xs={12} md={4} container spacing={2} justify="flex-end" style={{height: "100%"}}>
             <Grid item xs={12} style={{padding: "10px 0px"}}>
-              <AllUnitsManagerCard experiment={experimentMetadata.experiment}/>
-            </Grid>
-
-            <Grid container spacing={2}>
-              <Grid item xs={6}>
-                <UnitCards experiment={experimentMetadata.experiment} config={config} units={config['inventory'] ? keys(config['inventory']).filter((e, i) => (i % 2) === 0) : [] }/>
-              </Grid>
-              <Grid item xs={6}>
-                <UnitCards experiment={experimentMetadata.experiment} config={config} units={config['inventory'] ? keys(config['inventory']).filter((e, i) => (i % 2) === 1)  : [] }/>
-              </Grid>
+              <MediaCard experiment={experimentMetadata.experiment}/>
             </Grid>
 
 
@@ -156,7 +147,7 @@ function Overview() {
 
           <Grid item xs={1} md={1}/>
         </Grid>
-      </>
+      </React.Fragment>
   );
 }
 export default Overview;

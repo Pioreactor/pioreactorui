@@ -960,7 +960,6 @@ function UnitCard(props) {
   const experiment = props.experiment;
 
   const [showingAllSettings, setShowingAllSettings] = useState(false);
-  const [isOnline, setIsOnline] = useState(null); // TODO: not used!
 
   const [stirringDCState, setStirringDCState] = useState(0);
   const [stirringState, setStirringState] = useState("disconnected");
@@ -973,32 +972,6 @@ function UnitCard(props) {
   const [volumeState, setVolumeState] = useState(0);
   const [ioAlgorithm, setIoAlgorithm] = useState(null);
 
-  useEffect(() => {
-    const onMessageArrived = (msg) => {
-      console.log(msg.payloadString + ". Reminder: not being used")
-      setIsOnline(msg.payloadString)
-    }
-
-    const onSuccess = () => {
-      client.subscribe(
-      [
-        "pioreactor",
-        props.unit,
-        "$experiment",
-        "monitor",
-        "$state"
-      ].join("/"),
-      { qos: 1 }
-      )
-    }
-    // MQTT - client ids should be unique
-    const client = new Client(
-      "ws://pioreactorws.ngrok.io/",
-      "webui" + Math.random()
-    );
-    client.connect({onSuccess: onSuccess});
-    client.onMessageArrived = onMessageArrived;
-  },[])
 
 
   const handleShowAllSettingsClick = () => {

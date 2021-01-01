@@ -14,7 +14,6 @@ import CircularProgress from '@material-ui/core/CircularProgress';
 import { CodeFlaskReact } from "react-codeflask"
 
 import Header from "./components/Header"
-import TactileButtonNotification from "./components/TactileButtonNotification";
 
 
 const useStyles = makeStyles((theme) => ({
@@ -117,7 +116,7 @@ class EditableCodeDiv extends React.Component {
   render() {
     const runningFeedback = this.state.isRunning ? <CircularProgress color="inherit" size={25}/> : "Save"
     return (
-      <>
+      <React.Fragment>
         <Select
           style={{margin: "10px 10px 10px 10px"}}
           native
@@ -158,7 +157,7 @@ class EditableCodeDiv extends React.Component {
           autoHideDuration={2000}
           key={"edit-config-snackbar"}
         />
-      </>
+      </React.Fragment>
     )
   }
 }
@@ -170,7 +169,7 @@ function EditConfigContainer(){
   const classes = useStyles();
 
   return(
-    <>
+    <React.Fragment>
       <div>
         <div>
           <Typography variant="h5" component="h2">
@@ -186,7 +185,7 @@ function EditConfigContainer(){
           <EditableCodeDiv/>
         </CardContent>
       </Card>
-    </>
+    </React.Fragment>
 )}
 
 

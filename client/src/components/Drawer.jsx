@@ -8,9 +8,7 @@ import ListItemText from '@material-ui/core/ListItemText';
 import MenuIcon from '@material-ui/icons/Menu';
 import IconButton from '@material-ui/core/IconButton';
 import EditIcon from '@material-ui/icons/Edit';
-import AddIcon from '@material-ui/icons/Add';
 import SaveAltIcon from '@material-ui/icons/SaveAlt';
-import SettingsIcon from '@material-ui/icons/Settings';
 import DashboardIcon from '@material-ui/icons/Dashboard';
 import BatteryStdIcon from '@material-ui/icons/BatteryStd';
 
@@ -43,11 +41,11 @@ export default function SideDrawer() {
           <ListItemIcon><DashboardIcon color={(isSelected("/") || isSelected("/overview")) ? "primary" : "inherit"}/> </ListItemIcon>
           <ListItemText primary={"Experiment Overview"} />
         </ListItem>
-
-        <ListItem href="/download-data" component="a" button key={"download_data"} selected={isSelected("/download-data")}>
-          <ListItemIcon><SaveAltIcon color={isSelected("/download-data") ? "primary" : "inherit"}/> </ListItemIcon>
-          <ListItemText primary={"Download experiment data"} />
+        <ListItem button href="/pioreactors"  component="a" key={"pioreactors"} selected={isSelected("/pioreactors")}>
+          <ListItemIcon> <BatteryStdIcon color={isSelected("/pioreactors") ? "primary" : "inherit"}/> </ListItemIcon>
+          <ListItemText primary={"Pioreactors"} />
         </ListItem>
+
 
       </List>
       <Divider />
@@ -56,15 +54,11 @@ export default function SideDrawer() {
           <ListItemIcon> <EditIcon color={isSelected("/edit-config") ? "primary" : "inherit"}/> </ListItemIcon>
           <ListItemText primary={"Edit config.ini"} />
         </ListItem>
-        <ListItem button href="/calibrate"  component="a" key={"calibrate"} selected={isSelected("/calibrate")}>
-          <ListItemIcon> <SettingsIcon color={isSelected("/calibrate") ? "primary" : "inherit"}/> </ListItemIcon>
-          <ListItemText primary={"Calibrate unit"} />
+        <ListItem href="/download-data" component="a" button key={"download_data"} selected={isSelected("/download-data")}>
+          <ListItemIcon><SaveAltIcon color={isSelected("/download-data") ? "primary" : "inherit"}/> </ListItemIcon>
+          <ListItemText primary={"Download experiment data"} />
         </ListItem>
 
-        <ListItem button href="/add-new-pioreactor"  component="a" key={"add-new-pioreactor"} selected={isSelected("/add-new-pioreactor")}>
-          <ListItemIcon> <BatteryStdIcon color={isSelected("/add-new-pioreactor") ? "primary" : "inherit"}/> </ListItemIcon>
-          <ListItemText primary={"Add new Pioreactor"} />
-        </ListItem>
       </List>
       <Divider />
       <List>

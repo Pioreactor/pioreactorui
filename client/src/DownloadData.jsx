@@ -15,10 +15,8 @@ import CardContent from '@material-ui/core/Card';
 import {Typography} from '@material-ui/core';
 import Select from '@material-ui/core/Select';
 import Box from '@material-ui/core/Box';
-import Divider from '@material-ui/core/Divider';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import Button from "@material-ui/core/Button";
-import TactileButtonNotification from "./components/TactileButtonNotification";
 
 
 const useStyles = makeStyles((theme) => ({
@@ -209,7 +207,7 @@ function DownloadDataFormContainer() {
     <>
       <div>
         <div>
-          <Typography variant="h5" component="h2">
+          <Typography variant="h5" component="h1">
             <Box fontWeight="fontWeightBold">
               Download Experiment Data
             </Box>
