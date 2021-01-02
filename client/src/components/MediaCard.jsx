@@ -54,8 +54,7 @@ class MediaCard extends React.Component {
         altMediaThroughputPerUnit: {},
         mediaThroughput: 0,
         altMediaThroughput: 0,
-        mediaRate: 0,
-        altMediaRate: 0,
+        rates: {all: {mediaRate: 0, altMediaRate: 0}},
       };
     this.onConnect = this.onConnect.bind(this);
     this.onMessageArrived = this.onMessageArrived.bind(this);
@@ -67,7 +66,7 @@ class MediaCard extends React.Component {
       return response.json();
     })
     .then((data) => {
-      this.setState(data)
+      this.setState(prevState => ({...prevState, rates: data}))
     });
   }
 
@@ -141,19 +140,19 @@ class MediaCard extends React.Component {
             <TableBody>
               <TableRow key="all">
                 <TableCell style={{padding: "6px 0px"}} component="th" scope="row">
-                  All
+                  All Pioreactors
                 </TableCell>
-                <TableCell align="right" style={{fontFamily: "courier", fontSize: 14, padding: "6px 0px"}}>{this.state.mediaThroughput}mL    (<span className={"underlineSpan"} title="Last 6 hour average, automated IO sources">~{this.state.mediaRate}mL/h</span>)</TableCell>
-                <TableCell align="right" style={{fontFamily: "courier", fontSize: 14, padding: "6px 0px"}}>{this.state.altMediaThroughput}mL (<span className={"underlineSpan"} title="Last 6 hour average, automated IO sources">~{this.state.altMediaRate}mL/h</span>)</TableCell>
+                <TableCell align="right" style={{fontFamily: "courier", fontSize: 14, padding: "6px 0px"}}>{this.state.mediaThroughput}mL(~{this.state.rates.all.mediaRate}mL/h)</TableCell>
+                <TableCell align="right" style={{fontFamily: "courier", fontSize: 14, padding: "6px 0px"}}>{this.state.altMediaThroughput}mL(~{this.state.rates.all.altMediaRate}mL/h)</TableCell>
               </TableRow>
 
               {Object.keys(this.state.mediaThroughputPerUnit).map((unit) => (
                 <TableRow key={unit}>
                   <TableCell style={{padding: "6px 0px"}} component="th" scope="row">
-                    <PioreactorIcon style={{ fontSize: 14, verticalAlign: "middle" }} color="black"/> {unit}
+                    <PioreactorIcon style={{ fontSize: 14, verticalAlign: "middle" }} color="black"/> {(this.props.config['ui.overview.rename'] &&  this.props.config['ui.overview.rename'][unit]) ? this.props.config['ui.overview.rename'][unit] : unit}
                   </TableCell>
-                  <TableCell align="right" style={{fontFamily: "courier", fontSize: 14, padding: "6px 0px"}}>{this.state.mediaThroughputPerUnit[unit]}mL</TableCell>
-                  <TableCell align="right" style={{fontFamily: "courier", fontSize: 14, padding: "6px 0px"}}>{this.state.altMediaThroughputPerUnit[unit]}mL</TableCell>
+                  <TableCell align="right" style={{fontFamily: "courier", fontSize: 14, padding: "6px 0px"}}>{this.state.mediaThroughputPerUnit[unit]}mL(~{this.state.rates[unit] ? this.state.rates[unit].mediaRate : 0}mL/h)</TableCell>
+                  <TableCell align="right" style={{fontFamily: "courier", fontSize: 14, padding: "6px 0px"}}>{this.state.altMediaThroughputPerUnit[unit]}mL(~{this.state.rates[unit] ? this.state.rates[unit].altMediaRate: 0}mL/h)</TableCell>
                 </TableRow>
               ))}
             </TableBody>
