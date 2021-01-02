@@ -15,30 +15,6 @@ function StartGrowthRate(props){
   const [isClicked, setIsClicked] = React.useState(false);
 
 
-  React.useEffect(() => {
-
-    function onConnect(experiment) {
-      function onConnectWithExp() {
-        client.subscribe(["pioreactor", "+", experiment, "od_normalization", "variance"].join("/"))
-      }
-      return onConnectWithExp
-    }
-
-    function onMessageArrived(msg) {
-      setSnackbarMessage("OD normalization complete")
-      setOpenSnackbar(true)
-    }
-
-    var client = new Client(
-      "ws://pioreactorws.ngrok.io/",
-      "webui" + Math.random()
-    );
-    client.onMessageArrived = onMessageArrived
-    client.connect({ onSuccess: onConnect(props.experiment) });
-
-  }, [props.experiment]);
-
-
   const onClick = (e) => {
     fetch("/run/growth_rate_calculating/$broadcast").then(r => {
       setSnackbarMessage("Growth rate calculating starting")

@@ -43,7 +43,6 @@ function SilentForm(props){
   const defaults = {duration: 60}
 
   useEffect(() => {
-    //does this next line need to be in useEffects?
     props.updateParent(defaults)
   }, [])
 
@@ -250,7 +249,6 @@ function ButtonChangeIODialog(props) {
     }
     setOpen(false);
   }
-
   return (
     <div>
     <Button

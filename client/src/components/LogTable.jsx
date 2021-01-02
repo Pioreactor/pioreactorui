@@ -104,9 +104,9 @@ class LogTable extends React.Component {
             <Table stickyHeader size="small" aria-label="log table">
                <TableHead>
                 <TableRow>
-                  <TableCell className={clsx(classes.headerCell, classes.tightCell)}>Timestamp</TableCell>
-                  <TableCell className={clsx(classes.headerCell, classes.tightCell)}>Message</TableCell>
-                  <TableCell className={clsx(classes.headerCell, classes.tightCell)}>Pioreactor</TableCell>
+                  <TableCell className={clsx(classes.headerCell)}>Timestamp</TableCell>
+                  <TableCell className={clsx(classes.headerCell)}>Message</TableCell>
+                  <TableCell className={clsx(classes.headerCell)}>Pioreactor</TableCell>
                 </TableRow>
               </TableHead>
 

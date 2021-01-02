@@ -1,7 +1,6 @@
 import React from "react";
 import { Client } from "paho-mqtt";
 import { Alert, AlertTitle } from '@material-ui/lab';
-import { makeStyles } from '@material-ui/core/styles';
 
 import Snackbar from '@material-ui/core/Snackbar';
 
@@ -10,7 +9,6 @@ function TactileButtonNotification(props) {
   var [renamedUnit, setRenamedUnit] = React.useState("")
   var [open, setOpen] = React.useState(false)
 
-  const handleClose = () => {setOpen(false)}
 
   React.useEffect(() => {
     const onMessageArrived = (msg) => {

@@ -3,7 +3,6 @@ import React from "react";
 import Grid from "@material-ui/core/Grid";
 import Button from "@material-ui/core/Button";
 import Header from "./components/Header";
-import {UnitCards} from "./components/UnitCards";
 import LogTable from "./components/LogTable";
 import ExperimentSummary from "./components/ExperimentSummary";
 import Chart from "./components/Chart";
@@ -47,8 +46,6 @@ function Overview() {
     getLatestExperiment()
     getConfig();
   }, [])
-
-  const keys = (a) => Object.keys(a)
 
   return (
       <React.Fragment>

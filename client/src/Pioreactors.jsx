@@ -26,13 +26,10 @@ import InputAdornment from '@material-ui/core/InputAdornment';
 import Tabs from '@material-ui/core/Tabs';
 import Tab from '@material-ui/core/Tab';
 import Button from "@material-ui/core/Button";
-import BuildIcon from '@material-ui/icons/Build';
 import AddIcon from '@material-ui/icons/Add';
 import ClearIcon from '@material-ui/icons/Clear';
 import EditIcon from '@material-ui/icons/Edit';
 import IconButton from '@material-ui/core/IconButton';
-import DoneIcon from '@material-ui/icons/Done';
-import SettingsIcon from '@material-ui/icons/Settings';
 
 import {parseINIString} from "./utilities"
 import ButtonChangeIODialog from "./components/ButtonChangeIODialog"
@@ -718,7 +715,7 @@ function SettingsActionsDialog(props) {
           </Typography>
           <Typography variant="body2" component="p" gutterBottom>
             Pausing the optical density readings will also pause
-            downstream jobs that rely on optical density readings, like growth
+            downstream activities that rely on optical density readings, like growth
             rates.
           </Typography>
 
@@ -730,7 +727,7 @@ function SettingsActionsDialog(props) {
           </Typography>
           <Typography variant="body2" component="p" gutterBottom>
             Pausing the growth rate calculating will also pause
-            downstream jobs that rely on it, like IO events.
+            downstream activities that rely on it, like IO events.
           </Typography>
 
           {grButtons}
@@ -922,6 +919,7 @@ function SettingsActionsDialogAll(props) {
       <Tabs value={tabValue} onChange={handleTabChange} indicatorColor="primary" textColor="primary">
         <Tab label="Activities"/>
         <Tab label="Settings"/>
+        <Tab label="Dosing"/>
       </Tabs>
       </DialogTitle>
       <DialogContent>
@@ -1020,7 +1018,7 @@ function SettingsActionsDialogAll(props) {
             unit={props.unit}
             config={props.config}
             experiment={props.experiment}
-            currentIOAlgorithm={props.ioAlgorithm}
+            currentIOAlgorithm={true}
           />
           <Divider className={classes.divider} />
 
@@ -1042,7 +1040,7 @@ function SettingsActionsDialogAll(props) {
           </Typography>
           <Typography variant="body2" component="p" gutterBottom>
             Pausing the optical density readings will also pause
-            downstream jobs that rely on optical density readings, like growth
+            downstream activities that rely on optical density readings, like growth
             rates.
           </Typography>
 
@@ -1054,7 +1052,7 @@ function SettingsActionsDialogAll(props) {
           </Typography>
           <Typography variant="body2" component="p" gutterBottom>
             Pausing the growth rate calculating will also pause
-            downstream jobs that rely on it, like IO events.
+            downstream activities that rely on it, like IO events.
           </Typography>
 
           {grButtons}
@@ -1069,8 +1067,9 @@ function SettingsActionsDialogAll(props) {
           </Typography>
 
             {ioButtons}
-
           <Divider className={classes.divider} />
+        </TabPanel>
+        <TabPanel value={tabValue} index={2}>
           <Typography  gutterBottom>
             Add media
           </Typography>
@@ -1113,8 +1112,6 @@ function SettingsActionsDialogAll(props) {
 
 
 function ActiveUnits(props){
-  const classes = useStyles();
-
   return (
   <React.Fragment>
     <div style={{display: "flex", justifyContent: "space-between", marginBottom: "5px", marginTop: "25px"}}>
@@ -1323,7 +1320,7 @@ function PioreactorCard(props){
         </div>
         <div className={classes.textbox}>
           <Typography variant="body2" style={{fontSize: "0.85rem"}}>
-            Volume/dilution
+            Volume / dilution
           </Typography>
           <UnitSettingDisplay
             precision={2}

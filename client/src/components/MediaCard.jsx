@@ -1,17 +1,9 @@
-import React, {useState, useEffect} from 'react'
+import React from 'react'
 import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/CardContent';
-import CardActions from "@material-ui/core/CardActions";
-import Button from '@material-ui/core/Button';
-import {Client, Message} from 'paho-mqtt';
+import {Client} from 'paho-mqtt';
 import Typography from "@material-ui/core/Typography";
-import Divider from "@material-ui/core/Divider";
-import CardHeader from "@material-ui/core/CardHeader";
-import { makeStyles } from "@material-ui/styles";
-import TextField from '@material-ui/core/TextField';
-import InputAdornment from "@material-ui/core/InputAdornment";
 import Box from "@material-ui/core/Box";
-import ClearIcon from '@material-ui/icons/Clear';
 import {withStyles} from '@material-ui/styles';
 
 import Table from '@material-ui/core/Table';
@@ -20,9 +12,7 @@ import TableCell from '@material-ui/core/TableCell';
 import TableContainer from '@material-ui/core/TableContainer';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
-import Paper from '@material-ui/core/Paper';
 
-import {ButtonActionDialog, ButtonChangeIODialog} from "./UnitCards"
 import PioreactorIcon from "./PioreactorIcon"
 
 
@@ -119,7 +109,6 @@ class MediaCard extends React.Component {
 
   }
   render(){
-    const { classes } = this.props;
     return (
     <Card>
       <CardContent>
@@ -132,7 +121,7 @@ class MediaCard extends React.Component {
           <Table size="small" aria-label="media throughput">
             <TableHead>
               <TableRow>
-                <TableCell style={{padding: "6px 0px"}}>Pioreactor</TableCell>
+                <TableCell style={{padding: "6px 0px"}}></TableCell>
                 <TableCell style={{padding: "6px 0px"}} align="right">Media</TableCell>
                 <TableCell style={{padding: "6px 0px"}} align="right">Alt. Media</TableCell>
               </TableRow>
@@ -142,17 +131,17 @@ class MediaCard extends React.Component {
                 <TableCell style={{padding: "6px 0px"}} component="th" scope="row">
                   All Pioreactors
                 </TableCell>
-                <TableCell align="right" style={{fontFamily: "courier", fontSize: 14, padding: "6px 0px"}}>{this.state.mediaThroughput}mL(~{this.state.rates.all.mediaRate}mL/h)</TableCell>
-                <TableCell align="right" style={{fontFamily: "courier", fontSize: 14, padding: "6px 0px"}}>{this.state.altMediaThroughput}mL(~{this.state.rates.all.altMediaRate}mL/h)</TableCell>
+                <TableCell align="right" style={{fontFamily: "courier", fontSize: 14, padding: "6px 0px"}}>{this.state.mediaThroughput}mL (~{this.state.rates.all.mediaRate}mL/h)</TableCell>
+                <TableCell align="right" style={{fontFamily: "courier", fontSize: 14, padding: "6px 0px"}}>{this.state.altMediaThroughput}mL (~{this.state.rates.all.altMediaRate}mL/h)</TableCell>
               </TableRow>
 
               {Object.keys(this.state.mediaThroughputPerUnit).map((unit) => (
                 <TableRow key={unit}>
                   <TableCell style={{padding: "6px 0px"}} component="th" scope="row">
-                    <PioreactorIcon style={{ fontSize: 14, verticalAlign: "middle" }} color="black"/> {(this.props.config['ui.overview.rename'] &&  this.props.config['ui.overview.rename'][unit]) ? this.props.config['ui.overview.rename'][unit] : unit}
+                      <PioreactorIcon style={{ fontSize: 14, verticalAlign: "middle" }} color="black"/> {(this.props.config['ui.overview.rename'] &&  this.props.config['ui.overview.rename'][unit]) ? this.props.config['ui.overview.rename'][unit] : unit}
                   </TableCell>
-                  <TableCell align="right" style={{fontFamily: "courier", fontSize: 14, padding: "6px 0px"}}>{this.state.mediaThroughputPerUnit[unit]}mL(~{this.state.rates[unit] ? this.state.rates[unit].mediaRate : 0}mL/h)</TableCell>
-                  <TableCell align="right" style={{fontFamily: "courier", fontSize: 14, padding: "6px 0px"}}>{this.state.altMediaThroughputPerUnit[unit]}mL(~{this.state.rates[unit] ? this.state.rates[unit].altMediaRate: 0}mL/h)</TableCell>
+                  <TableCell align="right" style={{fontFamily: "courier", fontSize: 14, padding: "6px 0px"}}>{this.state.mediaThroughputPerUnit[unit]}mL (~{this.state.rates[unit] ? this.state.rates[unit].mediaRate : 0}mL/h)</TableCell>
+                  <TableCell align="right" style={{fontFamily: "courier", fontSize: 14, padding: "6px 0px"}}>{this.state.altMediaThroughputPerUnit[unit]}mL (~{this.state.rates[unit] ? this.state.rates[unit].altMediaRate: 0}mL/h)</TableCell>
                 </TableRow>
               ))}
             </TableBody>
