@@ -1,6 +1,7 @@
 import React from "react";
 
 import Grid from "@material-ui/core/Grid";
+import Button from "@material-ui/core/Button";
 import Header from "./components/Header";
 import {UnitCards} from "./components/UnitCards";
 import LogTable from "./components/LogTable";
@@ -9,6 +10,7 @@ import Chart from "./components/Chart";
 import MediaCard from "./components/MediaCard";
 import ClearChartButton from "./components/ClearChartButton";
 import ClearLogButton from "./components/ClearLogButton";
+import PioreactorIcon from './components/PioreactorIcon';
 import {parseINIString} from "./utilities"
 
 
@@ -69,7 +71,7 @@ function Overview() {
           <Grid item xs={12} md={6} container spacing={2} justify="flex-start" style={{paddingLeft: 0, height: "100%"}}>
 
 
-            {( config['dashboard.charts'] && (config['dashboard.charts']['implied_growth_rate'] === "1")) &&
+            {( config['ui.overview.charts'] && (config['ui.overview.charts']['implied_growth_rate'] === "1")) &&
             <Grid item xs={12}>
               <Chart
                 config={config}
@@ -83,7 +85,7 @@ function Overview() {
             </Grid>
             }
 
-            {( config['dashboard.charts'] && (config['dashboard.charts']['fraction_of_volume_that_is_alternative_media'] === "1")) &&
+            {( config['ui.overview.charts'] && (config['ui.overview.charts']['fraction_of_volume_that_is_alternative_media'] === "1")) &&
             <Grid item xs={12}>
               <Chart
                 config={config}
@@ -98,7 +100,7 @@ function Overview() {
             </Grid>
             }
 
-            {( config['dashboard.charts'] && (config['dashboard.charts']['normalized_135_optical_density'] === "1")) &&
+            {( config['ui.overview.charts'] && (config['ui.overview.charts']['normalized_135_optical_density'] === "1")) &&
             <Grid item xs={12}>
               <Chart
                 config={config}
@@ -113,7 +115,7 @@ function Overview() {
             </Grid>
             }
 
-            {( config['dashboard.charts'] && (config['dashboard.charts']['raw_135_optical_density'] === "1")) &&
+            {( config['ui.overview.charts'] && (config['ui.overview.charts']['raw_135_optical_density'] === "1")) &&
             <Grid item xs={12}>
               <Chart
                 config={config}
@@ -131,10 +133,16 @@ function Overview() {
           </Grid>
 
           <Grid item xs={12} md={4} container spacing={2} justify="flex-end" style={{height: "100%"}}>
-            <Grid item xs={12} style={{padding: "10px 0px"}}>
-              <MediaCard experiment={experimentMetadata.experiment}/>
-            </Grid>
 
+
+            {( config['ui.overview.cards'] && (config['ui.overview.cards']['dosings'] === "1")) &&
+              <Grid item xs={12} style={{padding: "10px 0px"}}>
+                <MediaCard experiment={experimentMetadata.experiment} config={config}/>
+              </Grid>
+            }
+            <Grid item xs={12}>
+              <Button href="/pioreactors" color="primary" style={{textTransform: "none", verticalAlign: "middle", margin: "0px 3px"}}> <PioreactorIcon style={{ fontSize: 17 }} color="primary"/> See all Pioreactor details </Button>
+            </Grid>
 
             <Grid item xs={12} style={{padding: "10px 0px"}}>
               <LogTable config={config}/>

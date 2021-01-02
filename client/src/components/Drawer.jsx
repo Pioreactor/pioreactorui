@@ -10,7 +10,7 @@ import IconButton from '@material-ui/core/IconButton';
 import EditIcon from '@material-ui/icons/Edit';
 import SaveAltIcon from '@material-ui/icons/SaveAlt';
 import DashboardIcon from '@material-ui/icons/Dashboard';
-import BatteryStdIcon from '@material-ui/icons/BatteryStd';
+import PioreactorIcon from './PioreactorIcon';
 
 export default function SideDrawer() {
   const [isOpen, setIsOpen] = React.useState(false)
@@ -42,7 +42,7 @@ export default function SideDrawer() {
           <ListItemText primary={"Experiment Overview"} />
         </ListItem>
         <ListItem button href="/pioreactors"  component="a" key={"pioreactors"} selected={isSelected("/pioreactors")}>
-          <ListItemIcon> <BatteryStdIcon color={isSelected("/pioreactors") ? "primary" : "inherit"}/> </ListItemIcon>
+          <ListItemIcon> <PioreactorIcon color={isSelected("/pioreactors") ? "primary" : "inherit"}/> </ListItemIcon>
           <ListItemText primary={"Pioreactors"} />
         </ListItem>
 

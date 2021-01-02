@@ -17,8 +17,8 @@ function TactileButtonNotification(props) {
       var unit = msg.topic.split("/")[1]
       if (msg.payloadString === "1"){
         setUnit(unit)
-        if ((props.config) && (props.config['dashboard.rename']) && (props.config['dashboard.rename'][unit])){
-          setRenamedUnit(props.config['dashboard.rename'][unit])
+        if ((props.config) && (props.config['ui.overview.rename']) && (props.config['ui.overview.rename'][unit])){
+          setRenamedUnit(props.config['ui.overview.rename'][unit])
         }
         setOpen(true)
       }

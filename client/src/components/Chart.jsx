@@ -196,7 +196,7 @@ class Chart extends React.Component {
   }
 
   renameAndFormatSeries(name){
-    if (!this.props.config['dashboard.rename']){
+    if (!this.props.config['ui.overview.rename']){
       return name
     }
 
@@ -204,10 +204,10 @@ class Chart extends React.Component {
       const results = name.match(/(.*)-([ABCD])/);
       const index = results[1];
       const sensor = results[2];
-      return this.breakString(this.props.config['dashboard.rename'][index] || index) + sensor
+      return this.breakString(this.props.config['ui.overview.rename'][index] || index) + sensor
     }
     else {
-      return this.breakString(this.props.config['dashboard.rename'][name] || name)
+      return this.breakString(this.props.config['ui.overview.rename'][name] || name)
     }
   }
 

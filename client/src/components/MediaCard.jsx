@@ -6,406 +6,47 @@ import Button from '@material-ui/core/Button';
 import {Client, Message} from 'paho-mqtt';
 import Typography from "@material-ui/core/Typography";
 import Divider from "@material-ui/core/Divider";
+import CardHeader from "@material-ui/core/CardHeader";
 import { makeStyles } from "@material-ui/styles";
-import Dialog from '@material-ui/core/Dialog';
-import DialogActions from '@material-ui/core/DialogActions';
-import DialogContent from '@material-ui/core/DialogContent';
-import DialogContentText from '@material-ui/core/DialogContentText';
-import DialogTitle from '@material-ui/core/DialogTitle';
 import TextField from '@material-ui/core/TextField';
 import InputAdornment from "@material-ui/core/InputAdornment";
+import Box from "@material-ui/core/Box";
 import ClearIcon from '@material-ui/icons/Clear';
+import {withStyles} from '@material-ui/styles';
+
+import Table from '@material-ui/core/Table';
+import TableBody from '@material-ui/core/TableBody';
+import TableCell from '@material-ui/core/TableCell';
+import TableContainer from '@material-ui/core/TableContainer';
+import TableHead from '@material-ui/core/TableHead';
+import TableRow from '@material-ui/core/TableRow';
+import Paper from '@material-ui/core/Paper';
+
 import {ButtonActionDialog, ButtonChangeIODialog} from "./UnitCards"
-
-const dividerStyle = {
-  marginTop: 4,
-  marginBottom: 4,
-};
+import PioreactorIcon from "./PioreactorIcon"
 
 
-const useStyles = makeStyles({
-  root: {
-    minWidth: 100,
-    marginTop: "15px",
-  },
-  textIcon: {
-    fontSize: 15,
-    verticalAlign: "middle",
-    margin: "0px 3px"
-  },
-  content: {
-    paddingLeft: "15px",
-    paddingRight: "15px",
-    paddingTop: "10px",
-    paddingBottom: "0px",
-  },
-  unitTitle: {
-    fontSize: 17,
-    color: "rgba(0, 0, 0, 0.88)",
-  },
-  unitTitleDialog: {
-    fontSize: 20,
-    color: "rgba(0, 0, 0, 0.88)",
-  },
-  textbox: {
-    display: "flex",
+
+const useStyles = theme => ({
+  tightCell: {
+    padding: "8px 2px 6px 4px",
     fontSize: 13,
   },
-  divider: {
-    marginTop: 15,
-    marginBottom: 10,
+  smallText: {
+    fontSize: 12,
   },
-  actionForm: {
-    padding: "20px 0px 0px 0px",
+  headerCell: {
+    backgroundColor: "white",
+    padding: "8px 6px 6px 6px",
   },
-  actionTextField: {
-    padding: "0px 10px 0px 0px",
+  tightRight: {
+    textAlign: "right"
   },
-  suptitle: {
-    fontSize: "13px",
-    color: "rgba(0, 0, 0, 0.60)",
-  },
-  jobButton:{
-    width: "70px",
-    marginTop: "5px"
-  }
-})
-
-
-function ButtonAllUnitSettingsDialog(props) {
-  const classes = useStyles();
-  const [open, setOpen] = useState(false);
-  const [client, setClient] = useState(null);
-
-
-  useEffect(() => {
-    // MQTT - client ids should be unique
-    const client = new Client(
-      "ws://pioreactorws.ngrok.io/",
-      "webui" + Math.random()
-    );
-    client.connect();
-    setClient(client)
-  },[])
-
-  function setJobState(job, state) {
-    return function sendMessage() {
-      var message = new Message(String(state));
-      message.destinationName = [
-        "pioreactor",
-        props.unitNumber,
-        props.experiment,
-        job,
-        "$state",
-        "set",
-      ].join("/");
-      message.qos = 1;
-      try{
-        client.publish(message);
-      }
-      catch (e){
-        console.log(e)
-        setTimeout(() => sendMessage(), 750)
-      }
-    };
-  }
-
-  function setPioreactorJobState(job_attr, value) {
-    var message = new Message(String(value));
-    message.destinationName = [
-      "pioreactor",
-      props.unitNumber,
-      props.experiment,
-      job_attr,
-      "set",
-    ].join("/");
-    message.qos = 2;
-    client.publish(message);
-  }
-
-  function setPioreactorJobStateOnEnter(e) {
-    if (e.key === "Enter") {
-      setPioreactorJobState(e.target.id, e.target.value);
-      e.target.value = "";
-    }
-  }
-
-  const handleClickOpen = () => {
-    setOpen(true);
-  };
-
-  const handleClose = () => {
-    setOpen(false);
-  };
-
-
-  function startPioreactorJob(job_attr){
-    return function() {
-      fetch("/run/" + job_attr + "/" + props.unitNumber).then(res => {
-      })
-    }
-  }
-
-  function createUserButtonsBasedOnState(job, parentJob=null){
-    parentJob = parentJob || job
-    return (<div>
-        <Button
-          className={classes.jobButton}
-          disableElevation
-          color="primary"
-          onClick={startPioreactorJob(job)}
-        >
-          Start
-        </Button>
-        <Button
-          className={classes.jobButton}
-          disableElevation
-          color="primary"
-          onClick={setJobState(job, "sleeping")}
-        >
-          Pause
-        </Button>
-        <Button
-          className={classes.jobButton}
-          disableElevation
-          color="primary"
-          onClick={setJobState(job, "ready")}
-        >
-          Resume
-        </Button>
-        <Button
-          className={classes.jobButton}
-          disableElevation
-          color="secondary"
-          onClick={setJobState(parentJob, "disconnected")}
-        >
-          Stop
-        </Button>
-      </div>
-  )}
-
-  const odButtons = createUserButtonsBasedOnState("od_reading")
-  const grButtons = createUserButtonsBasedOnState("growth_rate_calculating")
-  const ioButtons = createUserButtonsBasedOnState("io_controlling", "algorithm_controlling")
-  const stirringButtons = createUserButtonsBasedOnState("stirring")
-
-
-  return (
-    <div>
-      <Button color="primary" size="small" onClick={handleClickOpen}>
-        Settings
-      </Button>
-      <Dialog
-        open={open}
-        onClose={handleClose}
-        aria-labelledby="alert-dialog-title"
-        aria-describedby="alert-dialog-description"
-      >
-        <DialogTitle>
-          <Typography className={classes.suptitle} color="textSecondary">
-            All units
-          </Typography>
-          <Typography className={classes.unitTitleDialog}>
-            Settings
-          </Typography>
-        </DialogTitle>
-        <DialogContent>
-          <Typography gutterBottom>
-            Stirring
-          </Typography>
-          <Typography variant="body2" component="p">
-            Start, stop or pause the stirring on the Pioreactor. Stirring is needed for homogenous mixing.
-
-          </Typography>
-
-          {stirringButtons}
-
-          <Divider className={classes.divider} />
-          <Typography gutterBottom>
-            Optical density reading
-          </Typography>
-          <Typography variant="body2" component="p">
-            Pause or restart the optical density reading. This will also pause
-            downstream jobs that rely on optical density readings, like growth
-            rates.
-          </Typography>
-
-          {odButtons}
-
-          <Divider className={classes.divider} />
-          <Typography  gutterBottom>
-            Growth rate calculating
-          </Typography>
-          <Typography variant="body2" component="p">
-            Pause or start the calculating the implied growth rate and smooted
-            optical densities.
-          </Typography>
-
-          {grButtons}
-
-          <Divider className={classes.divider} />
-          <Typography gutterBottom>
-            Input/output events
-          </Typography>
-          <Typography variant="body2" component="p">
-            Pause media input/output events from occuring, or restart them.
-          </Typography>
-
-          {ioButtons}
-
-          <Divider className={classes.divider} />
-          <Typography gutterBottom>
-            Volume per dilution
-          </Typography>
-          <Typography variant="body2" component="p">
-            Change the volume per dilution. Typical values are between 0.0mL and
-            1.5mL.
-          </Typography>
-          <TextField
-            size="small"
-            id="io_controlling/volume"
-            label="Volume per dilution"
-            InputProps={{
-              endAdornment: <InputAdornment position="end">mL</InputAdornment>,
-            }}
-            variant="outlined"
-            onKeyPress={setPioreactorJobStateOnEnter}
-            className={classes.textField}
-          />
-          <Divider className={classes.divider} />
-          <Typography  gutterBottom>
-            Target optical density
-          </Typography>
-          <Typography variant="body2" component="p">
-            Change the target optical density. Typical values are between 1.0 and
-            2.5 (arbitrary units)
-          </Typography>
-          <TextField
-            size="small"
-            id="io_controlling/target_od"
-            label="Target optical density"
-            InputProps={{
-              endAdornment: <InputAdornment position="end">AU</InputAdornment>,
-            }}
-            variant="outlined"
-            onKeyPress={setPioreactorJobStateOnEnter}
-            className={classes.textField}
-          />
-
-          <Divider className={classes.divider} />
-          <Typography  gutterBottom>
-            Duration between dilutions
-          </Typography>
-          <Typography variant="body2" component="p">
-            Change how long to wait between dilutions. Typically between 5 and 90 minutes.
-          </Typography>
-          <TextField
-            size="small"
-            id="io_controlling/duration"
-            label="Duration"
-            InputProps={{
-              endAdornment: <InputAdornment position="end">min</InputAdornment>,
-            }}
-            variant="outlined"
-            onKeyPress={setPioreactorJobStateOnEnter}
-            className={classes.textField}
-          />
-
-          <Divider className={classes.divider} />
-          <Typography  gutterBottom>
-            Target growth rate
-          </Typography>
-          <Typography variant="body2" component="p">
-            Change the target hourly growth rate - only applicable in{" "}
-            <code>morbidostat</code> mode. Typical values are between 0.05h⁻¹ and
-            0.4h⁻¹.
-          </Typography>
-          <TextField
-            size="small"
-            id="io_controlling/target_growth_rate"
-            label="Target growth rate"
-            InputProps={{
-              endAdornment: <InputAdornment position="end">h⁻¹</InputAdornment>,
-            }}
-            variant="outlined"
-            onKeyPress={setPioreactorJobStateOnEnter}
-            className={classes.textField}
-          />
-          <Divider className={classes.divider} />
-          <Typography  gutterBottom>
-            IO algorithm
-          </Typography>
-          <Typography variant="body2" component="p">
-            Change which IO algorithm is running on this unit, and set the initial settings.
-          </Typography>
-
-          <ButtonChangeIODialog
-            unitNumber={'$broadcast'}
-            title="All units"
-            config={{}}
-            currentIOAlgorithm={true}
-            experiment={props.experiment}
-          />
-          <Divider className={classes.divider} />
-      </DialogContent>
-    </Dialog>
-  </div>
-  );
-}
-
-
- function ButtonConfirmStopProcessDialog() {
-  const classes = useStyles();
-  const [open, setOpen] = useState(false);
-
-  const handleClickOpen = () => {
-    setOpen(true);
-  };
-
-  const onConfirm = () => {
-      fetch("/stop")
-      handleClose()
-  }
-
-
-  const handleClose = () => {
-    setOpen(false);
-  };
-
-  return (
-    <div>
-      <Button style={{textTransform: 'none', marginRight: "10px", float: "right"}} color="secondary" onClick={handleClickOpen}>
-        <ClearIcon className={classes.textIcon}/> Stop all activity
-      </Button>
-      <Dialog
-        open={open}
-        onClose={handleClose}
-        aria-labelledby="alert-dialog-title"
-        aria-describedby="alert-dialog-description"
-      >
-        <DialogTitle id="alert-dialog-title">{"Stop all Pioreactor activity?"}</DialogTitle>
-        <DialogContent>
-          <DialogContentText id="alert-dialog-description">
-            This will stop stirring, optical density measuring, and IO events from occurring in <b>all</b> Pioreactor units. It may take a moment to
-            take effect.
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={onConfirm} color="primary">
-            OK
-          </Button>
-          <Button onClick={handleClose} color="primary" autoFocus>
-            Cancel
-          </Button>
-        </DialogActions>
-      </Dialog>
-    </div>
-  );
-}
+});
 
 
 
-class VolumeThroughputTally extends React.Component {
+class MediaCard extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -479,45 +120,48 @@ class VolumeThroughputTally extends React.Component {
 
   }
   render(){
+    const { classes } = this.props;
     return (
-    <div>
-        <Divider style={dividerStyle}/>
-        <div style={{display: "flex", "fontSize": 14}}>
-          <Typography style={{display: "flex", "fontSize": 14, flex: 1, textAlign: "left"}}>
-            Media throughput:
-          </Typography>
-          <span style={{fontFamily: "courier", flex: 1, textAlign: "right"}}>
-            {Math.round(this.state.mediaThroughput)}mL (<span className={"underlineSpan"} title="Last 6 hour average, automated IO sources">～{this.state.mediaRate.toFixed(1)}mL/h</span>)
-          </span>
-        </div>
-        <Divider style={dividerStyle}/>
-        <div style={{display: "flex", "fontSize": 14}}>
-          <Typography style={{display: "flex", "fontSize": 14, flex: 1, textAlign: "left"}}>
-            Alt. Media throughput:
-          </Typography>
-          <span style={{fontFamily: "courier", flex: 1, textAlign: "right"}}>{Math.round(this.state.altMediaThroughput)}mL (<span className={"underlineSpan"} title="Last 12 hour average, automated IO sources">～{this.state.altMediaRate.toFixed(1)}mL/h</span>)</span>
-        </div>
-      <Divider style={dividerStyle}/>
-    </div>
+    <Card>
+      <CardContent>
+        <Typography variant="h6" component="h2">
+          <Box fontWeight="fontWeightRegular">
+            Dosing
+          </Box>
+        </Typography>
+       <TableContainer style={{ width: "100%"}}>
+          <Table size="small" aria-label="media throughput">
+            <TableHead>
+              <TableRow>
+                <TableCell style={{padding: "6px 0px"}}>Pioreactor</TableCell>
+                <TableCell style={{padding: "6px 0px"}} align="right">Media</TableCell>
+                <TableCell style={{padding: "6px 0px"}} align="right">Alt. Media</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              <TableRow key="all">
+                <TableCell style={{padding: "6px 0px"}} component="th" scope="row">
+                  All
+                </TableCell>
+                <TableCell align="right" style={{fontFamily: "courier", fontSize: 14, padding: "6px 0px"}}>{this.state.mediaThroughput}mL    (<span className={"underlineSpan"} title="Last 6 hour average, automated IO sources">~{this.state.mediaRate}mL/h</span>)</TableCell>
+                <TableCell align="right" style={{fontFamily: "courier", fontSize: 14, padding: "6px 0px"}}>{this.state.altMediaThroughput}mL (<span className={"underlineSpan"} title="Last 6 hour average, automated IO sources">~{this.state.altMediaRate}mL/h</span>)</TableCell>
+              </TableRow>
+
+              {Object.keys(this.state.mediaThroughputPerUnit).map((unit) => (
+                <TableRow key={unit}>
+                  <TableCell style={{padding: "6px 0px"}} component="th" scope="row">
+                    <PioreactorIcon style={{ fontSize: 14, verticalAlign: "middle" }} color="black"/> {unit}
+                  </TableCell>
+                  <TableCell align="right" style={{fontFamily: "courier", fontSize: 14, padding: "6px 0px"}}>{this.state.mediaThroughputPerUnit[unit]}mL</TableCell>
+                  <TableCell align="right" style={{fontFamily: "courier", fontSize: 14, padding: "6px 0px"}}>{this.state.altMediaThroughputPerUnit[unit]}mL</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </CardContent>
+    </Card>
   )}
 }
 
-
-const MediaCard = (props) => {
-    const classes = useStyles();
-    return (
-      <Card>
-        <CardContent>
-          <Typography className={classes.unitTitle}>
-            Dosing
-          </Typography>
-          <VolumeThroughputTally experiment={props.experiment}/>
-        </CardContent>
-        <CardActions>
-          <ButtonConfirmStopProcessDialog/>
-        </CardActions>
-      </Card>
-    )
-}
-
-export default MediaCard;
+export default  withStyles(useStyles)(MediaCard);

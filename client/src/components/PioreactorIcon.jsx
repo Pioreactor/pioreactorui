@@ -1,0 +1,26 @@
+import React from 'react'
+
+import SvgIcon from '@material-ui/core/SvgIcon';
+
+
+function PioreactorIcon(props) {
+  const colors = {
+    primary: "#5331CA",
+    disabled: "rgba(0, 0, 0, 0.38)",
+    black: "black"
+  }
+  return (
+    <SvgIcon {...props}>
+        <g id="Page-1" stroke="none" strokeWidth="1" fill="none" fillRule="evenodd">
+            <g id="Experiment-Page-1" transform="translate(-728.000000, -1502.000000)" stroke={colors[props.color] || "rgba(0, 0, 0, 0.54)"} strokeWidth="1.8">
+                <g id="pioreactor" transform="translate(729.000000, 1503.000000)">
+                    <path d="M1.4,18.9 L1.4,14.7 L0,14.7 L0,11.2 L2.799,11.2 L2.8,0 L14,0 L13.999,11.2 L16.8,11.2 L16.8,14.7 L15.399,14.7 L15.4,18.9 L1.4,18.9 Z" id="Combined-Shape"></path>
+                    <circle id="Oval" cx="8.4" cy="13.3" r="2.1"></circle>
+                </g>
+            </g>
+        </g>
+    </SvgIcon>
+  );
+}
+
+export default PioreactorIcon;

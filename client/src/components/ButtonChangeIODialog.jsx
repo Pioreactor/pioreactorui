@@ -265,7 +265,7 @@ function ButtonChangeIODialog(props) {
     <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title" PaperProps={{style: {height: "100%"}}}>
       <DialogTitle>
         <Typography className={classes.suptitle}>
-          {props.title || ((props.config['dashboard.rename'] && props.config['dashboard.rename'][props.unit]) ? `${props.config['dashboard.rename'][props.unit]} (${props.unit})` : `${props.unit}`)}
+          {props.title || ((props.config['ui.overview.rename'] && props.config['ui.overview.rename'][props.unit]) ? `${props.config['ui.overview.rename'][props.unit]} (${props.unit})` : `${props.unit}`)}
         </Typography>
         <Typography className={classes.unitTitleDialog}>
           IO Algorithm

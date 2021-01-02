@@ -37,6 +37,8 @@ import SettingsIcon from '@material-ui/icons/Settings';
 import {parseINIString} from "./utilities"
 import ButtonChangeIODialog from "./components/ButtonChangeIODialog"
 import ActionPumpForm from "./components/ActionPumpForm"
+import PioreactorIcon from "./components/PioreactorIcon"
+
 
 const onlineGreen = "#4caf50"
 const offlineGrey = "grey"
@@ -439,6 +441,7 @@ function SettingsActionsDialog(props) {
   };
 
   const handleClose = () => {
+    setTabValue(0)
     setOpen(false);
   };
 
@@ -510,16 +513,44 @@ function SettingsActionsDialog(props) {
     <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
       <DialogTitle>
         <Typography className={classes.suptitle}>
-          {(props.config['dashboard.rename'] &&  props.config['dashboard.rename'][props.unit]) ? `${props.config['dashboard.rename'][props.unit]} / ${props.unit}` : `${props.unit}`}
+          {(props.config['ui.overview.rename'] &&  props.config['ui.overview.rename'][props.unit]) ? `${props.config['ui.overview.rename'][props.unit]} / ${props.unit}` : `${props.unit}`}
         </Typography>
-      <Tabs value={tabValue} onChange={handleTabChange} indicatorColor="primary" textColor="primary">
-        <Tab label="Actions"/>
+      <Tabs variant="fullWidth" value={tabValue} onChange={handleTabChange} indicatorColor="primary" textColor="primary">
+        <Tab label="Activities"/>
         <Tab label="Settings"/>
+        <Tab label="Dosing"/>
         <Tab label="Calibrate"/>
       </Tabs>
       </DialogTitle>
       <DialogContent>
         <TabPanel value={tabValue} index={2}>
+          <Typography  gutterBottom>
+            Add media
+          </Typography>
+          <Typography variant="body2" component="p">
+            Run the media pump{props.isPlural ? "s" : ""} for a set duration (seconds), or a set volume (mL).
+          </Typography>
+          <ActionPumpForm action="add_media" unit={props.unit} />
+          <Divider className={classes.divider} />
+          <Typography gutterBottom>
+            Add alternative media
+          </Typography>
+          <Typography variant="body2" component="p">
+            Run the alternative media pump{props.isPlural ? "s" : ""} for a set duration (seconds), or a set
+            volume (mL).
+          </Typography>
+          <ActionPumpForm action="add_alt_media" unit={props.unit} />
+          <Divider className={classes.divider} />
+          <Typography  gutterBottom>
+            Remove waste
+          </Typography>
+          <Typography variant="body2" component="p">
+            Run the waste pump{props.isPlural ? "s" : ""} for a set duration (seconds), or a set volume (mL).
+          </Typography>
+          <ActionPumpForm action="remove_waste" unit={props.unit} />
+          <Divider className={classes.divider} />
+        </TabPanel>
+        <TabPanel value={tabValue} index={3}>
           <Typography  gutterBottom>
             Pump calibration
           </Typography>
@@ -561,9 +592,6 @@ function SettingsActionsDialog(props) {
               ]}
             />
           </div>
-          <Typography className={classes.footnote} color="textSecondary">
-            Default values are defined in the unit's <code>config.ini</code> file.
-          </Typography>
           <Divider className={classes.divider} />
           <Typography gutterBottom>
             Volume per dilution
@@ -673,9 +701,7 @@ function SettingsActionsDialog(props) {
             currentIOAlgorithm={props.ioAlgorithm}
           />
           <Divider className={classes.divider} />
-
         </TabPanel>
-
         <TabPanel value={tabValue} index={0}>
           <Typography gutterBottom>
             Stirring
@@ -731,31 +757,6 @@ function SettingsActionsDialog(props) {
 
             {ioButtons}
 
-          <Divider className={classes.divider} />
-          <Typography  gutterBottom>
-            Add media
-          </Typography>
-          <Typography variant="body2" component="p">
-            Run the media pump{props.isPlural ? "s" : ""} for a set duration (seconds), or a set volume (mL).
-          </Typography>
-          <ActionPumpForm action="add_media" unit={props.unit} />
-          <Divider className={classes.divider} />
-          <Typography gutterBottom>
-            Add alternative media
-          </Typography>
-          <Typography variant="body2" component="p">
-            Run the alternative media pump{props.isPlural ? "s" : ""} for a set duration (seconds), or a set
-            volume (mL).
-          </Typography>
-          <ActionPumpForm action="add_alt_media" unit={props.unit} />
-          <Divider className={classes.divider} />
-          <Typography  gutterBottom>
-            Remove waste
-          </Typography>
-          <Typography variant="body2" component="p">
-            Run the waste pump{props.isPlural ? "s" : ""} for a set duration (seconds), or a set volume (mL).
-          </Typography>
-          <ActionPumpForm action="remove_waste" unit={props.unit} />
           <Divider className={classes.divider} />
         </TabPanel>
       </DialogContent>
@@ -856,6 +857,7 @@ function SettingsActionsDialogAll(props) {
   };
 
   const handleClose = () => {
+    setTabValue(0)
     setOpen(false);
   };
 
@@ -918,7 +920,7 @@ function SettingsActionsDialogAll(props) {
           Active Pioreactors
         </Typography>
       <Tabs value={tabValue} onChange={handleTabChange} indicatorColor="primary" textColor="primary">
-        <Tab label="Actions"/>
+        <Tab label="Activities"/>
         <Tab label="Settings"/>
       </Tabs>
       </DialogTitle>
@@ -1029,7 +1031,7 @@ function SettingsActionsDialogAll(props) {
             Stirring
           </Typography>
           <Typography variant="body2" component="p" gutterBottom>
-            Start, stop or pause the stirring on the Pioreactor. Stirring is needed for homogenous mixing.
+            Start, stop or pause the stirring on all the Pioreactors. Stirring is needed for homogenous mixing.
           </Typography>
 
           {stirringButtons}
@@ -1154,39 +1156,41 @@ function PioreactorCard(props){
     <Card className={classes.pioreactorCard} id={unit}>
 
       <CardContent className={classes.cardContent}>
-        <Typography className={clsx(classes.suptitle)} color="textSecondary">
-          {(props.config['dashboard.rename'] && props.config['dashboard.rename'][unit]) ? unit : ""}
-        </Typography>
-      <div style={{display: "flex", justifyContent: "space-between"}}>
-        <Typography className={clsx(classes.unitTitle, {[classes.disabledText]: !isUnitActive})} gutterBottom>
-          {(props.config['dashboard.rename'] && props.config['dashboard.rename'][unit]) ? props.config['dashboard.rename'][unit] : unit }
-        </Typography>
-        <SettingsActionsDialog
-          config={props.config}
-          stirringDCState={stirringDCState}
-          ODReadingJobState={ODReadingJobState}
-          growthRateJobState={growthRateJobState}
-          stirringJobState={stirringJobState}
-          IOEventsJobState={IOEventsJobState}
-          temperatureControllingJobState={temperatureControllingJobState}
-          targetGrowthRateState={targetGrowthRateState}
-          volumeState={volumeState}
-          durationState={durationState}
-          targetODState={targetODState}
-          ioAlgorithm={ioAlgorithm}
-          temperature={temperature}
-          experiment={experiment}
-          unit={unit}
-          disabled={!isUnitActive}
-        />
-      </div>
+        <div className={"fixme"}>
+          <Typography className={clsx(classes.suptitle)} color="textSecondary">
+            {(props.config['ui.overview.rename'] && props.config['ui.overview.rename'][unit]) ? unit : ""}
+          </Typography>
+          <div style={{display: "flex", justifyContent: "space-between"}}>
+            <Typography className={clsx(classes.unitTitle, {[classes.disabledText]: !isUnitActive})} gutterBottom>
+              <PioreactorIcon color={isUnitActive ? "black" : "disabled"} style={{verticalAlign: "middle"}}/> {(props.config['ui.overview.rename'] && props.config['ui.overview.rename'][unit]) ? props.config['ui.overview.rename'][unit] : unit }
+            </Typography>
+            <SettingsActionsDialog
+              config={props.config}
+              stirringDCState={stirringDCState}
+              ODReadingJobState={ODReadingJobState}
+              growthRateJobState={growthRateJobState}
+              stirringJobState={stirringJobState}
+              IOEventsJobState={IOEventsJobState}
+              temperatureControllingJobState={temperatureControllingJobState}
+              targetGrowthRateState={targetGrowthRateState}
+              volumeState={volumeState}
+              durationState={durationState}
+              targetODState={targetODState}
+              ioAlgorithm={ioAlgorithm}
+              temperature={temperature}
+              experiment={experiment}
+              unit={unit}
+              disabled={!isUnitActive}
+            />
+          </div>
+        </div>
 
 
       <div style={{display: "flex", margin: "15px 20px 20px 0px"}}>
         <div className={classes.textboxLabel}>
           <Typography variant="body2" component="body1">
             <Box fontWeight="fontWeightBold">
-              Actions:
+              Activities:
             </Box>
           </Typography>
         </div>

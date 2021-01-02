@@ -466,7 +466,7 @@ function ButtonChangeIODialog(props) {
     <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title" PaperProps={{style: {height: "100%"}}}>
       <DialogTitle>
         <Typography className={classes.suptitle}>
-          {props.title || ((props.config['dashboard.rename'] && props.config['dashboard.rename'][props.unit]) ? `${props.config['dashboard.rename'][props.unit]} (${props.unit})` : `${props.unit}`)}
+          {props.title || ((props.config['ui.overview.rename'] && props.config['ui.overview.rename'][props.unit]) ? `${props.config['ui.overview.rename'][props.unit]} (${props.unit})` : `${props.unit}`)}
         </Typography>
         <Typography className={classes.unitTitleDialog}>
           IO Algorithm
@@ -692,7 +692,7 @@ function ButtonSettingsDialog(props) {
     <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
       <DialogTitle>
         <Typography className={classes.suptitle}>
-          {(props.config['dashboard.rename'] &&  props.config['dashboard.rename'][props.unit]) ? `${props.config['dashboard.rename'][props.unit]} (${props.unit})` : `${props.unit}`}
+          {(props.config['ui.overview.rename'] &&  props.config['ui.overview.rename'][props.unit]) ? `${props.config['ui.overview.rename'][props.unit]} (${props.unit})` : `${props.unit}`}
         </Typography>
         <Typography className={classes.unitTitleDialog}>
           Settings
@@ -900,7 +900,7 @@ function ButtonActionDialog(props) {
   };
 
   const title = props.title ? props.title :
-    (props.config['dashboard.rename'] &&  props.config['dashboard.rename'][props.unit]) ? `${props.config['dashboard.rename'][props.unit]} (${props.unit})` : `${props.unit}`
+    (props.config['ui.overview.rename'] &&  props.config['ui.overview.rename'][props.unit]) ? `${props.config['ui.overview.rename'][props.unit]} (${props.unit})` : `${props.unit}`
 
   return (
     <div>
@@ -984,10 +984,10 @@ function UnitCard(props) {
     <Card className={classes.root}>
       <CardContent className={classes.content}>
         <Typography className={clsx(classes.suptitle)} color="textSecondary">
-          {(props.config['dashboard.rename'] && props.config['dashboard.rename'][unit]) ? unit : ""}
+          {(props.config['ui.overview.rename'] && props.config['ui.overview.rename'][unit]) ? unit : ""}
         </Typography>
         <Typography className={clsx(classes.unitTitle, {[classes.disabledText]: !isUnitActive})} gutterBottom>
-          {(props.config['dashboard.rename'] && props.config['dashboard.rename'][unit]) ? props.config['dashboard.rename'][unit] : unit }
+          {(props.config['ui.overview.rename'] && props.config['ui.overview.rename'][unit]) ? props.config['ui.overview.rename'][unit] : unit }
         </Typography>
 
 

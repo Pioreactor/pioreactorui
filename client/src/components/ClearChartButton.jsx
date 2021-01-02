@@ -35,7 +35,7 @@ function ClearChartButton(props){
   }
 
   return (
-    <Button onClick={onClick}> Clear chart data </Button>
+    <Button color="primary" style={{textTransform: "none"}} onClick={onClick}> Clear chart data </Button>
 )}
 
 

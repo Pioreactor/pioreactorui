@@ -30,7 +30,7 @@ function ClearLogButton(props){
   }
 
   return (
-    <Button onClick={onClick}> Clear log table </Button>
+    <Button color="primary" style={{textTransform: "none"}} onClick={onClick}> Clear log table </Button>
 )}
 
 

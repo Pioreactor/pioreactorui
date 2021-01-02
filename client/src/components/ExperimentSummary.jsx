@@ -110,7 +110,7 @@ function ExperimentSummary(props){
   const desc = props.experimentMetadata.description || ""
 
   return(
-    <>
+    <React.Fragment>
       <div>
         <div style={{display: "flex", justifyContent: "space-between", marginBottom: "5px"}}>
           <Typography variant="h5" component="h1">
@@ -123,7 +123,7 @@ function ExperimentSummary(props){
               <GetAppIcon className={classes.textIcon}/> Download experiment data
             </Button>
             <Button href="/start-new-experiment" style={{textTransform: 'none', float: "right", marginRight: "10px"}} color="primary">
-              <AddIcon className={classes.textIcon}/> New Experiment
+              <AddIcon className={classes.textIcon}/> New experiment
             </Button>
           </div>
         </div>
@@ -149,7 +149,7 @@ function ExperimentSummary(props){
           <EditableDescription experiment={experiment} description={desc} />
         </CardContent>
       </Card>
-    </>
+    </React.Fragment>
   )
 }
 

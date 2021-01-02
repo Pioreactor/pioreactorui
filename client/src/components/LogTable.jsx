@@ -7,6 +7,9 @@ import moment from 'moment';
 
 import {withStyles} from '@material-ui/styles';
 import Card from '@material-ui/core/Card';
+import CardContent from '@material-ui/core/CardContent';
+import Typography from '@material-ui/core/Typography';
+import Box from '@material-ui/core/Box';
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
@@ -81,41 +84,45 @@ class LogTable extends React.Component {
   }
 
   renameUnit(name){
-    if (!this.props.config['dashboard.rename']){
+    if (!this.props.config['ui.overview.rename']){
       return name
     }
-    return (this.props.config['dashboard.rename'][name]) || name
+    return (this.props.config['ui.overview.rename'][name]) || name
   }
 
   render(){
     const { classes } = this.props;
     return (
       <Card>
-        <TableContainer style={{ height: "700px", width: "100%", overflowY: "scroll"}}>
-          <Table stickyHeader size="small" aria-label="log table">
-             <TableHead>
-              <TableRow>
-                <TableCell align="center" colSpan={3} className={[classes.headerCell, classes.tightCell].join(" ")}> Event logs </TableCell>
-              </TableRow>
-              <TableRow>
-                <TableCell className={clsx(classes.headerCell, classes.tightCell)}>Timestamp</TableCell>
-                <TableCell className={clsx(classes.headerCell, classes.tightCell)}>Message</TableCell>
-                <TableCell className={clsx(classes.headerCell, classes.tightCell)}>Pioreactor</TableCell>
-              </TableRow>
-            </TableHead>
-
-            <TableBody>
-              {this.state.listOfLogs.map((log, i) => (
-                <TableRow key={i}>
-                  <TableCell className={clsx(classes.tightCell, classes.smallText)}> {moment(log.timestamp, 'x').format('HH:mm:ss')} </TableCell>
-                  <TableCell className={clsx(classes.tightCell, classes.smallText)}> {log.message} </TableCell>
-                  <TableCell className={clsx(classes.tightCell, classes.smallText)}>{this.renameUnit(log.unit)}</TableCell>
+        <CardContent>
+          <Typography variant="h6" component="h2">
+            <Box fontWeight="fontWeightRegular">
+              Event Logs
+            </Box>
+          </Typography>
+          <TableContainer style={{ height: "700px", width: "100%", overflowY: "scroll"}}>
+            <Table stickyHeader size="small" aria-label="log table">
+               <TableHead>
+                <TableRow>
+                  <TableCell className={clsx(classes.headerCell, classes.tightCell)}>Timestamp</TableCell>
+                  <TableCell className={clsx(classes.headerCell, classes.tightCell)}>Message</TableCell>
+                  <TableCell className={clsx(classes.headerCell, classes.tightCell)}>Pioreactor</TableCell>
                 </TableRow>
-                ))
-              }
-            </TableBody>
-          </Table>
-        </TableContainer>
+              </TableHead>
+
+              <TableBody>
+                {this.state.listOfLogs.map((log, i) => (
+                  <TableRow key={i}>
+                    <TableCell className={clsx(classes.tightCell, classes.smallText)}> {moment(log.timestamp, 'x').format('HH:mm:ss')} </TableCell>
+                    <TableCell className={clsx(classes.tightCell, classes.smallText)}> {log.message} </TableCell>
+                    <TableCell className={clsx(classes.tightCell, classes.smallText)}>{this.renameUnit(log.unit)}</TableCell>
+                  </TableRow>
+                  ))
+                }
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </CardContent>
       </Card>
   )}
 }
