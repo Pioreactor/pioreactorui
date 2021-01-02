@@ -10,6 +10,7 @@ import MediaCard from "./components/MediaCard";
 import ClearChartButton from "./components/ClearChartButton";
 import ClearLogButton from "./components/ClearLogButton";
 import PioreactorIcon from './components/PioreactorIcon';
+import TactileButtonNotification from "./components/TactileButtonNotification";
 import {parseINIString} from "./utilities"
 
 
@@ -152,6 +153,7 @@ function Overview() {
 
           <Grid item xs={1} md={1}/>
         </Grid>
+        {config['ui.overview.rename'] ? <TactileButtonNotification config={config}/> : null}
       </React.Fragment>
   );
 }

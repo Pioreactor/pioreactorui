@@ -45,18 +45,22 @@ function App() {
           <Switch>
             <Route path="/download-data">
               <DownloadData />
+              <TactileButtonNotification/>
             </Route>
             <Route path="/start-new-experiment">
               <StartNewExperiment />
+              <TactileButtonNotification/>
             </Route>
             <Route path="/overview">
               <ExperimentOverview />
             </Route>
             <Route path="/edit-config">
               <EditConfig />
+              <TactileButtonNotification/>
             </Route>
             <Route path="/pioreactors">
               <Pioreactors />
+              <TactileButtonNotification/>
             </Route>
             <Route path="/">
               <ExperimentOverview />
