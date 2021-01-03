@@ -7,7 +7,7 @@ function PioreactorIcon(props) {
   const colors = {
     primary: "#5331CA",
     disabled: "rgba(0, 0, 0, 0.38)",
-    black: "black"
+    black: "rgba(0, 0, 0, 0.87)"
   }
   return (
     <SvgIcon {...props}>

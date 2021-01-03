@@ -9,13 +9,16 @@ function TactileButtonNotification(props) {
   var [renamedUnit, setRenamedUnit] = React.useState("")
   var [open, setOpen] = React.useState(false)
 
-
   React.useEffect(() => {
     const onMessageArrived = (msg) => {
-      var unit = msg.topic.split("/")[1]
       if (msg.payloadString === "1"){
+        console.log("here")
+        var unit = msg.topic.split("/")[1]
         setUnit(unit)
-        setRenamedUnit(props.config['ui.overview.rename'][unit])
+        try {
+          setRenamedUnit(props.config['ui.overview.rename'][unit])
+        }
+        catch {}
         setOpen(true)
       }
       else {

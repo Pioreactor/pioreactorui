@@ -144,10 +144,9 @@ function Overview() {
 
             <Grid item xs={12} style={{padding: "10px 0px"}}>
               <LogTable config={config}/>
-            </Grid>
-            <Grid item xs={12}>
               <ClearLogButton />
             </Grid>
+
 
           </Grid>
 

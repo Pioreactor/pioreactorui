@@ -151,7 +151,6 @@ app.get("/recent_media_rates/:experiment", function (req, res) {
   db.serialize(function () {
     db.all(`SELECT pioreactor_unit, SUM(CASE     WHEN event="add_media" THEN volume_change_ml     ELSE 0 END) / ${hours} AS mediaRate, SUM(CASE     WHEN event="add_alt_media" THEN volume_change_ml ELSE 0 END) / ${hours} AS altMediaRate FROM io_events where datetime(timestamp) >= datetime('now', '-${hours} Hour') and event in ('add_alt_media', 'add_media') and     experiment='${experiment}' and source_of_event == 'io_controlling' GROUP BY pioreactor_unit;`,
       function(err, rows) {
-        console.log(rows)
         var jsonResult = {}
         var aggregate = {altMediaRate: 0, mediaRate: 0}
         for (const row of rows){

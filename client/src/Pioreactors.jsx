@@ -35,6 +35,7 @@ import {parseINIString} from "./utilities"
 import ButtonChangeIODialog from "./components/ButtonChangeIODialog"
 import ActionPumpForm from "./components/ActionPumpForm"
 import PioreactorIcon from "./components/PioreactorIcon"
+import TactileButtonNotification from "./components/TactileButtonNotification";
 
 
 const onlineGreen = "#4caf50"
@@ -1186,7 +1187,7 @@ function PioreactorCard(props){
       <div style={{display: "flex", margin: "15px 20px 20px 0px"}}>
         <div className={classes.textboxLabel}>
           <Typography variant="body2" component="body1">
-            <Box fontWeight="fontWeightBold">
+            <Box fontWeight="fontWeightBold" className={clsx({[classes.disabledText]: !isUnitActive})}>
               Activities:
             </Box>
           </Typography>
@@ -1268,7 +1269,7 @@ function PioreactorCard(props){
       <div style={{display: "flex", margin: "20px 20px 20px 0px"}}>
         <div className={classes.textboxLabel}>
           <Typography variant="body2" component="body1">
-            <Box fontWeight="fontWeightBold">
+            <Box fontWeight="fontWeightBold"  className={clsx({[classes.disabledText]: !isUnitActive})}>
               Settings:
             </Box>
           </Typography>
@@ -1453,6 +1454,7 @@ function Pioreactors() {
             <InactiveUnits experiment={experimentMetadata.experiment} config={config} units={config['inventory'] ? entries(config['inventory']).filter((v) => v[1] === "0").map((v) => v[0]) : [] }/>
           </Grid>
           <Grid item md={1} xs={1}/>
+          {config['ui.overview.rename'] ? <TactileButtonNotification config={config}/> : null}
         </Grid>
     )
 }

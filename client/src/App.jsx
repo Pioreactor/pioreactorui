@@ -60,14 +60,12 @@ function App() {
             </Route>
             <Route path="/pioreactors">
               <Pioreactors />
-              <TactileButtonNotification/>
             </Route>
             <Route path="/">
               <ExperimentOverview />
             </Route>
           </Switch>
         </div>
-        <TactileButtonNotification/>
       </Router>
     </MuiThemeProvider>
   );
