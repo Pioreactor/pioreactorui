@@ -675,19 +675,19 @@ function SettingsActionsDialog(props) {
           />
           <Divider className={classes.divider} />
           <Typography  gutterBottom>
-            Input/Output events
+            Dosing events
           </Typography>
           <Typography variant="body2" component="p" gutterBottom>
             {props.IOEventsJobState !== "disconnected" &&
               <React.Fragment>
-              Currently running IO algorithm <code>{props.ioAlgorithm}</code>.
-              Learn more about <a target="_blank" href="https://github.com/Pioreactor/pioreactor/wiki/io-algorithms">IO algorithms</a>.
+              Currently running dosing algorithm <code>{props.dosingAlgorithm}</code>.
+              Learn more about <a target="_blank" href="https://github.com/Pioreactor/pioreactor/wiki/dosing-algorithms">dosing algorithms</a>.
               </React.Fragment>
             }
             {props.IOEventsJobState === "disconnected" &&
 
               <React.Fragment>
-              You can change the IO Algorthm after starting the job.
+              You can change the Dosing algorthm after starting the job.
               </React.Fragment>
             }
           </Typography>
@@ -696,7 +696,7 @@ function SettingsActionsDialog(props) {
             unit={props.unit}
             config={props.config}
             experiment={props.experiment}
-            currentIOAlgorithm={props.ioAlgorithm}
+            currentIOAlgorithm={props.dosingAlgorithm}
           />
           <Divider className={classes.divider} />
         </TabPanel>
@@ -728,27 +728,27 @@ function SettingsActionsDialog(props) {
           </Typography>
           <Typography variant="body2" component="p" gutterBottom>
             Pausing the growth rate calculating will also pause
-            downstream activities that rely on it, like IO events.
+            downstream activities that rely on it, like dosing events.
           </Typography>
 
           {grButtons}
 
           <Divider className={classes.divider} />
           <Typography  gutterBottom>
-            Input/Output events
+            Dosing events
           </Typography>
           <Typography variant="body2" component="p" gutterBottom>
             {props.IOEventsJobState !== "disconnected" &&
               <React.Fragment>
-              Currently running IO algorithm <code>{props.ioAlgorithm}</code>.
-              Learn more about <a target="_blank" href="https://github.com/Pioreactor/pioreactor/wiki/io-algorithms">IO algorithms</a>.
+              Currently running dosing algorithm <code>{props.dosingAlgorithm}</code>.
+              Learn more about <a target="_blank" href="https://github.com/Pioreactor/pioreactor/wiki/dosing-algorithms">dosing algorithms</a>.
               </React.Fragment>
             }
             {props.IOEventsJobState === "disconnected" &&
 
               <React.Fragment>
-              IO events will initially start in <span className={"underlineSpan"} title="silent mode performs no IO operations."><code>silent</code></span> mode, and can be changed after.
-              Learn more about <a target="_blank" href="https://github.com/Pioreactor/pioreactor/wiki/io-algorithms">IO algorithms</a>.
+              Dosing events will initially start in <span className={"underlineSpan"} title="silent mode performs no dosing operations."><code>silent</code></span> mode, and can be changed after.
+              Learn more about <a target="_blank" href="https://github.com/Pioreactor/pioreactor/wiki/dosing-algorithms">dosing algorithms</a>.
               </React.Fragment>
             }
           </Typography>
@@ -915,7 +915,7 @@ function SettingsActionsDialogAll(props) {
     <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
       <DialogTitle>
         <Typography className={classes.suptitle}>
-          Active Pioreactors
+          All active Pioreactors
         </Typography>
       <Tabs value={tabValue} onChange={handleTabChange} indicatorColor="primary" textColor="primary">
         <Tab label="Activities"/>
@@ -1009,10 +1009,10 @@ function SettingsActionsDialogAll(props) {
           />
           <Divider className={classes.divider} />
           <Typography  gutterBottom>
-            Input/Output events
+            Dosing events
           </Typography>
           <Typography variant="body2" component="p" gutterBottom>
-              Learn more about <a target="_blank" href="https://github.com/Pioreactor/pioreactor/wiki/io-algorithms">IO algorithms</a>.
+              Learn more about <a target="_blank" href="https://github.com/Pioreactor/pioreactor/wiki/dosing-algorithms">dosing algorithms</a>.
           </Typography>
 
           <ButtonChangeIODialog
@@ -1020,6 +1020,7 @@ function SettingsActionsDialogAll(props) {
             config={props.config}
             experiment={props.experiment}
             currentIOAlgorithm={true}
+            title="All active Pioreactors"
           />
           <Divider className={classes.divider} />
 
@@ -1053,18 +1054,18 @@ function SettingsActionsDialogAll(props) {
           </Typography>
           <Typography variant="body2" component="p" gutterBottom>
             Pausing the growth rate calculating will also pause
-            downstream activities that rely on it, like IO events.
+            downstream activities that rely on it, like dosing events.
           </Typography>
 
           {grButtons}
 
           <Divider className={classes.divider} />
           <Typography  gutterBottom>
-            Input/Output events
+            Dosing events
           </Typography>
           <Typography variant="body2" component="p" gutterBottom>
-            IO events will initially start in <span className={"underlineSpan"} title="silent mode performs no IO operations."><code>silent</code></span> mode, and can be changed after.
-            Learn more about <a target="_blank" href="https://github.com/Pioreactor/pioreactor/wiki/io-algorithms">IO algorithms</a>.
+            Dosing events will initially start in <span className={"underlineSpan"} title="silent mode performs no IO operations."><code>silent</code></span> mode, and can be changed after.
+            Learn more about <a target="_blank" href="https://github.com/Pioreactor/pioreactor/wiki/dosing-algorithms">dosing algorithms</a>.
           </Typography>
 
             {ioButtons}
@@ -1147,7 +1148,7 @@ function PioreactorCard(props){
   const [durationState, setDurationState] = useState(0);
   const [targetGrowthRateState, setTargetGrowthRateState] = useState(0);
   const [volumeState, setVolumeState] = useState(0);
-  const [ioAlgorithm, setIoAlgorithm] = useState(null);
+  const [dosingAlgorithm, setDosingAlgorithm] = useState(null);
   const [temperature, setTemperature] = useState(0);
 
   return (
@@ -1174,7 +1175,7 @@ function PioreactorCard(props){
               volumeState={volumeState}
               durationState={durationState}
               targetODState={targetODState}
-              ioAlgorithm={ioAlgorithm}
+              dosingAlgorithm={dosingAlgorithm}
               temperature={temperature}
               experiment={experiment}
               unit={unit}
@@ -1337,7 +1338,7 @@ function PioreactorCard(props){
         </div>
         <div className={classes.textbox}>
           <Typography variant="body2" style={{fontSize: "0.85rem"}}>
-            Time between IO
+            Time between dosing events
           </Typography>
           <UnitSettingDisplay
             precision={0}
@@ -1353,11 +1354,11 @@ function PioreactorCard(props){
         </div>
         <div className={classes.textbox}>
           <Typography variant="body2" style={{fontSize: "0.85rem"}}>
-            IO algorithm
+            Dosing algorithm
           </Typography>
           <UnitSettingDisplay
             experiment={experiment}
-            passChildData={setIoAlgorithm}
+            passChildData={setDosingAlgorithm}
             isUnitActive={isUnitActive}
             default={"—"}
             className={classes.alignRight}

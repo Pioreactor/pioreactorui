@@ -142,10 +142,12 @@ function Overview() {
               <Button href="/pioreactors" color="primary" style={{textTransform: "none", verticalAlign: "middle", margin: "0px 3px"}}> <PioreactorIcon style={{ fontSize: 17 }} color="primary"/> See all Pioreactor details </Button>
             </Grid>
 
-            <Grid item xs={12} style={{padding: "10px 0px"}}>
-              <LogTable config={config}/>
-              <ClearLogButton />
-            </Grid>
+            {( config['ui.overview.cards'] && (config['ui.overview.cards']['event_logs'] === "1")) &&
+              <Grid item xs={12} style={{padding: "10px 0px"}}>
+                <LogTable config={config}/>
+                <ClearLogButton />
+              </Grid>
+            }
 
 
           </Grid>

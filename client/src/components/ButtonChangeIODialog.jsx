@@ -258,7 +258,7 @@ function ButtonChangeIODialog(props) {
       disabled={!props.currentIOAlgorithm}
       onClick={handleClickOpen}
     >
-      {"Change IO algorithm"}
+      Change dosing algorithm
     </Button>
     <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title" PaperProps={{style: {height: "100%"}}}>
       <DialogTitle>
@@ -266,12 +266,12 @@ function ButtonChangeIODialog(props) {
           {props.title || ((props.config['ui.overview.rename'] && props.config['ui.overview.rename'][props.unit]) ? `${props.config['ui.overview.rename'][props.unit]} (${props.unit})` : `${props.unit}`)}
         </Typography>
         <Typography className={classes.unitTitleDialog}>
-          IO Algorithm
+          Dosing Algorithm
         </Typography>
       </DialogTitle>
       <DialogContent>
         <Typography variant="body2" component="p" gutterBottom>
-          IO algorithms control when and how much media to add to the Pioreactor. The settings below can be changed later. Learn more about <a target="_blank" href="https://github.com/Pioreactor/pioreactor/wiki/io-algorithms">IO algorithms</a>.
+          Dosing algorithms control when and how much media to add to the Pioreactor. The settings below can be changed later. Learn more about <a target="_blank" href="https://github.com/Pioreactor/pioreactor/wiki/io-algorithms">dosing algorithms</a>.
         </Typography>
 
         <form>

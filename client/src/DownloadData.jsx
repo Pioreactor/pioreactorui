@@ -103,7 +103,7 @@ const CheckboxesGroup = (props) => {
           />
           <FormControlLabel
             control={<Checkbox checked={props.isChecked.io_events} onChange={props.handleChange} name="io_events" />}
-            label="Input/output (dosing) events log"
+            label="Dosing events log"
           />
           <FormControlLabel
             control={<Checkbox checked={props.isChecked.experiments} onChange={props.handleChange} name="experiments" />}
@@ -119,7 +119,7 @@ const CheckboxesGroup = (props) => {
           />
           <FormControlLabel
             control={<Checkbox checked={props.isChecked.logs} onChange={props.handleChange} name="logs" />}
-            label="Logs"
+            label="Event logs"
           />
           <FormControlLabel
             control={<Checkbox checked={props.isChecked.alt_media_fraction} onChange={props.handleChange} name="alt_media_fraction" />}
@@ -127,7 +127,7 @@ const CheckboxesGroup = (props) => {
           />
           <FormControlLabel
             control={<Checkbox checked={props.isChecked.io_algorithm_settings} onChange={props.handleChange} name="io_algorithm_settings" />}
-            label="IO algorithm change log"
+            label="Dosing algorithm change log"
           />
         </FormGroup>
       </FormControl>

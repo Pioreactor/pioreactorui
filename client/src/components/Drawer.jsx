@@ -10,6 +10,7 @@ import IconButton from '@material-ui/core/IconButton';
 import EditIcon from '@material-ui/icons/Edit';
 import SaveAltIcon from '@material-ui/icons/SaveAlt';
 import DashboardIcon from '@material-ui/icons/Dashboard';
+import HelpOutlineIcon from '@material-ui/icons/HelpOutline';
 import PioreactorIcon from './PioreactorIcon';
 
 export default function SideDrawer() {
@@ -62,10 +63,9 @@ export default function SideDrawer() {
       </List>
       <Divider />
       <List>
-        <ListItem>
-          <ListItemText
-            primary={<span style={{fontSize: ".9em"}}>Questions? Feedback? Email us at<br/><code><a href="mailto:support@pioreactor.com">support@pioreactor.com</a></code></span>}
-          />
+        <ListItem href="https://github.com/Pioreactor/pioreactor/wiki" component="a" button key="help">
+          <ListItemIcon><HelpOutlineIcon/> </ListItemIcon>
+          <ListItemText primary={"Documentation and help"} />
         </ListItem>
       </List>
     </div>
