@@ -188,7 +188,7 @@ app.get("/get_config", function(req, res) {
   // get a list of all config.ini files in the .pioreactor folder
   var configPath = process.env.CONFIG_INI_FOLDER;
   fs.readdir(configPath, (err, files) => {
-    files = files.filter(fn => fn.endsWith('.ini'));
+    files = files.filter(fn => fn.endsWith('.ini')).filter(fn => fn !== "unit_config.ini");
     res.json(files)
   });
 })

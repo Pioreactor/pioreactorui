@@ -32,10 +32,11 @@ import EditIcon from '@material-ui/icons/Edit';
 import IconButton from '@material-ui/core/IconButton';
 
 import {parseINIString} from "./utilities"
-import ButtonChangeIODialog from "./components/ButtonChangeIODialog"
+import ButtonChangeDosingDialog from "./components/ButtonChangeDosingDialog"
 import ActionPumpForm from "./components/ActionPumpForm"
 import PioreactorIcon from "./components/PioreactorIcon"
 import TactileButtonNotification from "./components/TactileButtonNotification";
+import BlinkLED from "./components/BlinkLED";
 
 
 const onlineGreen = "#4caf50"
@@ -170,12 +171,13 @@ class UnitSettingDisplay extends React.Component {
   }
 
   stateDisplay = {
-    "init":         {display: "Starting", color: onlineGreen},
-    "ready":        {display: "On", color: onlineGreen},
-    "sleeping":     {display: "Paused", color: offlineGrey},
-    "disconnected": {display: "Off", color: offlineGrey},
-    "lost":         {display: "Lost", color: errorRed},
-    "Not available":         {display: "Not available", color: offlineGrey},
+    "init":          {display: "Starting", color: onlineGreen},
+    "ready":         {display: "On", color: onlineGreen},
+    "sleeping":      {display: "Paused", color: offlineGrey},
+    "disconnected":  {display: "Off", color: offlineGrey},
+    "lost":          {display: "Lost", color: errorRed},
+    "NA":            {display: "Not available", color: offlineGrey},
+    "—":             {display: "—", color: offlineGrey},
   }
 
   onMessageArrived(message) {
@@ -692,11 +694,11 @@ function SettingsActionsDialog(props) {
             }
           </Typography>
 
-          <ButtonChangeIODialog
+          <ButtonChangeDosingDialog
             unit={props.unit}
             config={props.config}
             experiment={props.experiment}
-            currentIOAlgorithm={props.dosingAlgorithm}
+            currentDosingAlgorithm={props.dosingAlgorithm}
           />
           <Divider className={classes.divider} />
         </TabPanel>
@@ -1015,11 +1017,11 @@ function SettingsActionsDialogAll(props) {
               Learn more about <a target="_blank" href="https://github.com/Pioreactor/pioreactor/wiki/dosing-algorithms">dosing algorithms</a>.
           </Typography>
 
-          <ButtonChangeIODialog
+          <ButtonChangeDosingDialog
             unit={props.unit}
             config={props.config}
             experiment={props.experiment}
-            currentIOAlgorithm={true}
+            currentDosingAlgorithm={true}
             title="All active Pioreactors"
           />
           <Divider className={classes.divider} />
@@ -1163,24 +1165,26 @@ function PioreactorCard(props){
             <Typography className={clsx(classes.unitTitle, {[classes.disabledText]: !isUnitActive})} gutterBottom>
               <PioreactorIcon color={isUnitActive ? "black" : "disabled"} style={{verticalAlign: "middle"}}/> {(props.config['ui.overview.rename'] && props.config['ui.overview.rename'][unit]) ? props.config['ui.overview.rename'][unit] : unit }
             </Typography>
-            <SettingsActionsDialog
-              config={props.config}
-              stirringDCState={stirringDCState}
-              ODReadingJobState={ODReadingJobState}
-              growthRateJobState={growthRateJobState}
-              stirringJobState={stirringJobState}
-              IOEventsJobState={IOEventsJobState}
-              temperatureControllingJobState={temperatureControllingJobState}
-              targetGrowthRateState={targetGrowthRateState}
-              volumeState={volumeState}
-              durationState={durationState}
-              targetODState={targetODState}
-              dosingAlgorithm={dosingAlgorithm}
-              temperature={temperature}
-              experiment={experiment}
-              unit={unit}
-              disabled={!isUnitActive}
-            />
+            <div>
+              <SettingsActionsDialog
+                config={props.config}
+                stirringDCState={stirringDCState}
+                ODReadingJobState={ODReadingJobState}
+                growthRateJobState={growthRateJobState}
+                stirringJobState={stirringJobState}
+                IOEventsJobState={IOEventsJobState}
+                temperatureControllingJobState={temperatureControllingJobState}
+                targetGrowthRateState={targetGrowthRateState}
+                volumeState={volumeState}
+                durationState={durationState}
+                targetODState={targetODState}
+                dosingAlgorithm={dosingAlgorithm}
+                temperature={temperature}
+                experiment={experiment}
+                unit={unit}
+                disabled={!isUnitActive}
+              />
+            </div>
           </div>
         </div>
 
@@ -1201,7 +1205,7 @@ function PioreactorCard(props){
             passChildData={setStirringJobState}
             experiment={experiment}
             isUnitActive={isUnitActive}
-            default={"disconnected"}
+            default="—"
             isStateSetting
             topic="stirring/$state"
             unit={unit}
@@ -1215,7 +1219,7 @@ function PioreactorCard(props){
             passChildData={setODReadingJobState}
             experiment={experiment}
             isUnitActive={isUnitActive}
-            default={"disconnected"}
+            default="—"
             isStateSetting
             topic="od_reading/$state"
             unit={unit}
@@ -1229,7 +1233,7 @@ function PioreactorCard(props){
             passChildData={setGrowthRateJobState}
             experiment={experiment}
             isUnitActive={isUnitActive}
-            default={"disconnected"}
+            default="—"
             isStateSetting
             topic="growth_rate_calculating/$state"
             unit={unit}
@@ -1243,7 +1247,7 @@ function PioreactorCard(props){
             passChildData={setIOEventsJobState}
             experiment={experiment}
             isUnitActive={isUnitActive}
-            default={"disconnected"}
+            default="—"
             isStateSetting
             topic="io_controlling/$state"
             unit={unit}
@@ -1257,7 +1261,7 @@ function PioreactorCard(props){
             passChildData={setTemperatureControllingJobState}
             experiment={experiment}
             isUnitActive={isUnitActive}
-            default={"Not available"}
+            default="NA"
             isStateSetting
             topic="temperature_controlling/$state"
             unit={unit}
@@ -1283,7 +1287,7 @@ function PioreactorCard(props){
             passChildData={setStirringDCState}
             experiment={experiment}
             isUnitActive={isUnitActive}
-            default={"—"}
+            default="—"
             className={classes.alignRight}
             topic="stirring/duty_cycle"
             unit={unit}
@@ -1314,9 +1318,23 @@ function PioreactorCard(props){
             experiment={experiment}
             passChildData={setTargetGrowthRateState}
             isUnitActive={isUnitActive}
-            default={"—"}
+            default="—"
             className={classes.alignRight}
             topic="io_controlling/target_growth_rate"
+            unit={unit}
+          />
+        </div>
+        <div className={classes.textbox}>
+          <Typography variant="body2" style={{fontSize: "0.85rem"}}>
+            Dosing algorithm
+          </Typography>
+          <UnitSettingDisplay
+            experiment={experiment}
+            passChildData={setDosingAlgorithm}
+            isUnitActive={isUnitActive}
+            default="—"
+            className={classes.alignRight}
+            topic="algorithm_controlling/io_algorithm"
             unit={unit}
           />
         </div>
@@ -1330,7 +1348,7 @@ function PioreactorCard(props){
             experiment={experiment}
             passChildData={setVolumeState}
             isUnitActive={isUnitActive}
-            default={"—"}
+            default="—"
             className={classes.alignRight}
             topic="io_controlling/volume"
             unit={unit}
@@ -1346,23 +1364,9 @@ function PioreactorCard(props){
             experiment={experiment}
             passChildData={setDurationState}
             isUnitActive={isUnitActive}
-            default={"—"}
+            default="—"
             className={classes.alignRight}
             topic="io_controlling/duration"
-            unit={unit}
-          />
-        </div>
-        <div className={classes.textbox}>
-          <Typography variant="body2" style={{fontSize: "0.85rem"}}>
-            Dosing algorithm
-          </Typography>
-          <UnitSettingDisplay
-            experiment={experiment}
-            passChildData={setDosingAlgorithm}
-            isUnitActive={isUnitActive}
-            default={"—"}
-            className={classes.alignRight}
-            topic="algorithm_controlling/io_algorithm"
             unit={unit}
           />
         </div>
@@ -1374,7 +1378,7 @@ function PioreactorCard(props){
             experiment={experiment}
             passChildData={setTemperature}
             isUnitActive={isUnitActive}
-            default={"—"}
+            default="—"
             className={classes.alignRight}
             topic="temperature_controlling/temperature"
             unit={unit}

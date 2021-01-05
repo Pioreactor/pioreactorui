@@ -40,7 +40,7 @@ function TactileButtonNotification(props) {
     }
 
     const client = new Client(
-      "ws://pioreactorws.ngrok.io/",
+      "leader.local", 9001,
       "webui" + Math.random()
     );
     client.connect({onSuccess: onSuccess});
