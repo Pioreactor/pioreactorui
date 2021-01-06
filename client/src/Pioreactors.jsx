@@ -1271,7 +1271,7 @@ function PioreactorCard(props){
         </div>
         <div className={classes.textbox}>
           <Typography variant="body2" style={{fontSize: "0.85rem"}}>
-            IO control
+            Dosing
           </Typography>
           <UnitSettingDisplay
             passChildData={setIOEventsJobState}
