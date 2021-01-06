@@ -10,6 +10,10 @@ function TactileButtonNotification(props) {
   var [open, setOpen] = React.useState(false)
 
   React.useEffect(() => {
+    if (!props.config['network.topology']){
+      return
+    }
+
     const onMessageArrived = (msg) => {
       if (msg.payloadString === "1"){
         var unit = msg.topic.split("/")[1]
@@ -45,6 +49,7 @@ function TactileButtonNotification(props) {
         "webui" + Math.random()
       )}
     else {
+      console.log(props.config)
       client = new Client(
         `${props.config['network.topology']['leader_hostname']}.local`, 9001,
         "webui" + Math.random()
@@ -53,7 +58,7 @@ function TactileButtonNotification(props) {
     client.connect({onSuccess: onSuccess});
     client.onMessageArrived = onMessageArrived;
 
-  },[])
+  },[props.config])
 
 
   return (

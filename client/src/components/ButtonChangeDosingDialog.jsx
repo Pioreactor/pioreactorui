@@ -191,9 +191,13 @@ function ButtonChangeDosingDialog(props) {
 
   useEffect(() => {
     // MQTT - client ids should be unique
+    if (!props.config['network.topology']){
+      return
+    }
+
     if (props.config.remote) {
       var client = new Client(
-        `ws://${this.props.config.remote.ws_url}/`,
+        `ws://${props.config.remote.ws_url}/`,
         "webui" + Math.random()
       )}
     else {

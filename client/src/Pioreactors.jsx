@@ -373,7 +373,10 @@ function SettingsActionsDialog(props) {
   }, [props.disabled, props.unit]);
 
   useEffect(() => {
-    // MQTT - client ids should be unique
+    if (!props.config['network.topology']){
+      return
+    }
+
     if (props.config.remote) {
       var client = new Client(
         `ws://${props.config.remote.ws_url}/`,
@@ -387,7 +390,7 @@ function SettingsActionsDialog(props) {
     }
     client.connect();
     setClient(client)
-  },[])
+  },[props.config])
 
 
   function setPioreactorJobState(job, state) {
