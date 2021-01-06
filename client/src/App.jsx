@@ -17,6 +17,7 @@ import "fontsource-roboto/400-normal.css"
 import "fontsource-roboto/500-normal.css"
 import "fontsource-roboto/700-normal.css"
 import './styles.css';
+import {parseINIString} from "./utilities"
 
 
 const theme = createMuiTheme({
@@ -37,6 +38,27 @@ const theme = createMuiTheme({
 
 function App() {
 
+  const [config, setConfig] = React.useState({})
+
+  React.useEffect(() => {
+
+    async function getConfig() {
+      await fetch("/get_config/config.ini")
+        .then((response) => {
+            if (response.ok) {
+              return response.text();
+            } else {
+              throw new Error('Something went wrong');
+            }
+          })
+        .then((config) => {
+          setConfig(parseINIString(config)); // TODO: parse on server side and send a json object
+        })
+        .catch((error) => {})
+    }
+    getConfig();
+  }, [])
+
   return (
     <MuiThemeProvider theme={theme}>
       <CssBaseline />
@@ -44,25 +66,25 @@ function App() {
         <div className="pageContainer">
           <Switch>
             <Route path="/download-data">
-              <DownloadData />
-              <TactileButtonNotification/>
+              <DownloadData config={config}/>
+              <TactileButtonNotification config={config}/>
             </Route>
             <Route path="/start-new-experiment">
-              <StartNewExperiment />
-              <TactileButtonNotification/>
+              <StartNewExperiment config={config}/>
+              <TactileButtonNotification config={config}/>
             </Route>
             <Route path="/overview">
-              <ExperimentOverview />
+              <ExperimentOverview config={config}/>
             </Route>
             <Route path="/edit-config">
-              <EditConfig />
-              <TactileButtonNotification/>
+              <EditConfig config={config}/>
+              <TactileButtonNotification config={config}/>
             </Route>
             <Route path="/pioreactors">
-              <Pioreactors />
+              <Pioreactors config={config}/>
             </Route>
             <Route path="/">
-              <ExperimentOverview />
+              <ExperimentOverview config={config}/>
             </Route>
           </Switch>
         </div>

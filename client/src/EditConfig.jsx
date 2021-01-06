@@ -60,7 +60,7 @@ class EditableCodeDiv extends React.Component {
   }
 
   async getListOfConfigFiles(filename) {
-    await fetch("/get_config")
+    await fetch("/get_configs")
       .then(response => {
         return response.json();
       })

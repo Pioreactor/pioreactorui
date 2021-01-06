@@ -150,10 +150,17 @@ class UnitSettingDisplay extends React.Component {
 
   MQTTConnect() {
     // need to have unique clientIds
-    this.client = new Client(
-      "ws://pioreactorws.ngrok.io/",
-      "webui" + Math.random()
-    );
+    if (this.props.config.remote) {
+      this.client = new Client(
+        `ws://${this.props.config.remote.ws_url}/`,
+        "webui" + Math.random()
+      )}
+    else {
+      this.client = new Client(
+        `${this.props.config['network.topology']['leader_hostname']}.local`, 9001,
+        "webui" + Math.random()
+      );
+    }
     this.client.connect({ onSuccess: this.onConnect});
     this.client.onMessageArrived = this.onMessageArrived;
   }
@@ -367,10 +374,17 @@ function SettingsActionsDialog(props) {
 
   useEffect(() => {
     // MQTT - client ids should be unique
-    const client = new Client(
-      "ws://pioreactorws.ngrok.io/",
-      "webui" + Math.random()
-    );
+    if (props.config.remote) {
+      var client = new Client(
+        `ws://${props.config.remote.ws_url}/`,
+        "webui" + Math.random()
+      )}
+    else {
+      var client = new Client(
+        `${props.config['network.topology']['leader_hostname']}.local`, 9001,
+        "webui" + Math.random()
+      );
+    }
     client.connect();
     setClient(client)
   },[])
@@ -787,14 +801,24 @@ function SettingsActionsDialogAll(props) {
   };
 
   useEffect(() => {
-    // MQTT - client ids should be unique
-    const client = new Client(
-      "ws://pioreactorws.ngrok.io/",
-      "webui" + Math.random()
-    );
+    if (!props.config['network.topology']){
+      return
+    }
+
+    if (props.config.remote) {
+      var client = new Client(
+        `ws://${props.config.remote.ws_url}/`,
+        "webui" + Math.random()
+      )}
+    else {
+      var client = new Client(
+        `${props.config['network.topology']['leader_hostname']}.local`, 9001,
+        "webui" + Math.random()
+      );
+    }
     client.connect();
     setClient(client)
-  },[])
+  },[props.config])
 
 
   function setPioreactorJobState(job, state) {
@@ -1125,12 +1149,12 @@ function ActiveUnits(props){
         </Box>
       </Typography>
       <div >
-        <SettingsActionsDialogAll unit={'$broadcast'} config={props.config} experiment={props.experiment}/>
+        <SettingsActionsDialogAll config={props.config} unit={'$broadcast'} config={props.config} experiment={props.experiment}/>
         <ButtonConfirmStopProcessDialog/>
       </div>
     </div>
     {props.units.map(unit =>
-      <PioreactorCard isUnitActive={true} key={unit} unit={unit} config={props.config} experiment={props.experiment}/>
+      <PioreactorCard config={props.config} isUnitActive={true} key={unit} unit={unit} config={props.config} experiment={props.experiment}/>
   )}
   </React.Fragment>
 )}
@@ -1152,7 +1176,6 @@ function PioreactorCard(props){
   const [volumeState, setVolumeState] = useState(0);
   const [dosingAlgorithm, setDosingAlgorithm] = useState(null);
   const [temperature, setTemperature] = useState(0);
-
   return (
     <Card className={classes.pioreactorCard} id={unit}>
 
@@ -1183,6 +1206,7 @@ function PioreactorCard(props){
                 experiment={experiment}
                 unit={unit}
                 disabled={!isUnitActive}
+                config={props.config}
               />
             </div>
           </div>
@@ -1209,6 +1233,7 @@ function PioreactorCard(props){
             isStateSetting
             topic="stirring/$state"
             unit={unit}
+            config={props.config}
           />
         </div>
         <div className={classes.textbox}>
@@ -1223,6 +1248,7 @@ function PioreactorCard(props){
             isStateSetting
             topic="od_reading/$state"
             unit={unit}
+            config={props.config}
           />
         </div>
         <div className={classes.textbox}>
@@ -1237,6 +1263,7 @@ function PioreactorCard(props){
             isStateSetting
             topic="growth_rate_calculating/$state"
             unit={unit}
+            config={props.config}
           />
         </div>
         <div className={classes.textbox}>
@@ -1251,6 +1278,7 @@ function PioreactorCard(props){
             isStateSetting
             topic="io_controlling/$state"
             unit={unit}
+            config={props.config}
           />
         </div>
         <div className={classes.textbox}>
@@ -1265,6 +1293,7 @@ function PioreactorCard(props){
             isStateSetting
             topic="temperature_controlling/$state"
             unit={unit}
+            config={props.config}
           />
         </div>
       </div>
@@ -1291,6 +1320,7 @@ function PioreactorCard(props){
             className={classes.alignRight}
             topic="stirring/duty_cycle"
             unit={unit}
+            config={props.config}
           />
         </div>
         <div className={classes.textbox}>
@@ -1306,6 +1336,7 @@ function PioreactorCard(props){
             className={classes.alignRight}
             topic="io_controlling/target_od"
             unit={unit}
+            config={props.config}
           />
         </div>
         <div className={classes.textbox}>
@@ -1322,6 +1353,7 @@ function PioreactorCard(props){
             className={classes.alignRight}
             topic="io_controlling/target_growth_rate"
             unit={unit}
+            config={props.config}
           />
         </div>
         <div className={classes.textbox}>
@@ -1336,6 +1368,7 @@ function PioreactorCard(props){
             className={classes.alignRight}
             topic="algorithm_controlling/io_algorithm"
             unit={unit}
+            config={props.config}
           />
         </div>
         <div className={classes.textbox}>
@@ -1352,6 +1385,7 @@ function PioreactorCard(props){
             className={classes.alignRight}
             topic="io_controlling/volume"
             unit={unit}
+            config={props.config}
           />
         </div>
         <div className={classes.textbox}>
@@ -1368,6 +1402,7 @@ function PioreactorCard(props){
             className={classes.alignRight}
             topic="io_controlling/duration"
             unit={unit}
+            config={props.config}
           />
         </div>
         <div className={classes.textbox}>
@@ -1382,6 +1417,7 @@ function PioreactorCard(props){
             className={classes.alignRight}
             topic="temperature_controlling/temperature"
             unit={unit}
+            config={props.config}
           />
         </div>
       </div>
@@ -1409,10 +1445,8 @@ function InactiveUnits(props){
     </React.Fragment>
 )}
 
-function Pioreactors() {
-
+function Pioreactors(props) {
     const [experimentMetadata, setExperimentMetadata] = React.useState({})
-    const [config, setConfig] = React.useState({})
 
     React.useEffect(() => {
       async function getLatestExperiment() {
@@ -1424,23 +1458,7 @@ function Pioreactors() {
             setExperimentMetadata(data)
           });
         }
-
-      async function getConfig() {
-        await fetch("/get_config/config.ini")
-          .then((response) => {
-              if (response.ok) {
-                return response.text();
-              } else {
-                throw new Error('Something went wrong');
-              }
-            })
-          .then((config) => {
-            setConfig(parseINIString(config)); // TODO: parse on server side and send a json object
-          })
-          .catch((error) => {})
-      }
       getLatestExperiment()
-      getConfig();
     }, [])
 
     const entries = (a) => Object.entries(a)
@@ -1455,11 +1473,11 @@ function Pioreactors() {
           <Grid item md={10} xs={12}>
             <PioreactorHeader/>
             <Summary/>
-            <ActiveUnits experiment={experimentMetadata.experiment} config={config} units={config['inventory'] ? entries(config['inventory']).filter((v) => v[1] === "1").map((v) => v[0]) : [] }/>
-            <InactiveUnits experiment={experimentMetadata.experiment} config={config} units={config['inventory'] ? entries(config['inventory']).filter((v) => v[1] === "0").map((v) => v[0]) : [] }/>
+            <ActiveUnits experiment={experimentMetadata.experiment} config={props.config} units={props.config['inventory'] ? entries(props.config['inventory']).filter((v) => v[1] === "1").map((v) => v[0]) : [] }/>
+            <InactiveUnits experiment={experimentMetadata.experiment} config={props.config} units={props.config['inventory'] ? entries(props.config['inventory']).filter((v) => v[1] === "0").map((v) => v[0]) : [] }/>
           </Grid>
           <Grid item md={1} xs={1}/>
-          {config['ui.overview.rename'] ? <TactileButtonNotification config={config}/> : null}
+          {props.config['ui.overview.rename'] ? <TactileButtonNotification config={props.config}/> : null}
         </Grid>
     )
 }

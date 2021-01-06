@@ -191,13 +191,21 @@ function ButtonChangeDosingDialog(props) {
 
   useEffect(() => {
     // MQTT - client ids should be unique
-    const client = new Client(
-      "ws://pioreactorws.ngrok.io/",
-      "webui" + Math.random()
-    );
+    if (props.config.remote) {
+      var client = new Client(
+        `ws://${this.props.config.remote.ws_url}/`,
+        "webui" + Math.random()
+      )}
+    else {
+      var client = new Client(
+        `${props.config['network.topology']['leader_hostname']}.local`, 9001,
+        "webui" + Math.random()
+      );
+    }
+
     client.connect();
     setClient(client)
-  },[])
+  },[props.config])
 
   const handleClickOpen = () => {
     setOpen(true);

@@ -12,7 +12,6 @@ function TactileButtonNotification(props) {
   React.useEffect(() => {
     const onMessageArrived = (msg) => {
       if (msg.payloadString === "1"){
-        console.log("here")
         var unit = msg.topic.split("/")[1]
         setUnit(unit)
         try {
@@ -39,10 +38,18 @@ function TactileButtonNotification(props) {
       )
     }
 
-    const client = new Client(
-      "leader.local", 9001,
-      "webui" + Math.random()
-    );
+    var client = null
+    if (props.config.remote) {
+      client = new Client(
+        `ws://${props.config.remote.ws_url}/`,
+        "webui" + Math.random()
+      )}
+    else {
+      client = new Client(
+        `${props.config['network.topology']['leader_hostname']}.local`, 9001,
+        "webui" + Math.random()
+      );
+    }
     client.connect({onSuccess: onSuccess});
     client.onMessageArrived = onMessageArrived;
 

@@ -72,10 +72,17 @@ function ExperimentSummaryForm(props) {
       client.publish(message);
     }
 
-    var client = new Client(
-      "ws://pioreactorws.ngrok.io/",
-      "webui" + Math.random()
-    );
+    if (props.config.remote) {
+      var client = new Client(
+        `ws://${this.props.config.remote.ws_url}/`,
+        "webui" + Math.random()
+      )}
+    else {
+      var client = new Client(
+        `${props.config['network.topology']['leader_hostname']}.local`, 9001,
+        "webui" + Math.random()
+      );
+    }
     client.connect({ onSuccess: onConnect });
 
   }
@@ -182,22 +189,22 @@ function ExperimentSummaryForm(props) {
 
 
 
-function getSteps() {
+function getSteps(config) {
   return [
-    {title: 'Experiment summary', content: <ExperimentSummaryForm/>, optional: true},
-    {title: 'Cleaning and preparation', content: <CleaningScript/>, optional: true},
-    {title: 'Start sensors', content: <StartSensors/>, optional: true},
-    {title: 'Start calculations', content: <StartCalculations/>, optional: false},
+    {title: 'Experiment summary', content: <ExperimentSummaryForm config={config} />, optional: true},
+    {title: 'Cleaning and preparation', content: <CleaningScript config={config}/>, optional: true},
+    {title: 'Start sensors', content: <StartSensors config={config}/>, optional: true},
+    {title: 'Start calculations', content: <StartCalculations config={config}/>, optional: false},
   ];
 }
 
 
 
-function StartNewExperimentContainer() {
+function StartNewExperimentContainer(props) {
   const classes = useStyles();
   const [activeStep, setActiveStep] = React.useState(0);
   const [skipped, setSkipped] = React.useState(new Set());
-  const steps = getSteps();
+  const steps = getSteps(props.config);
 
   const getStepContent = (index) => {
     return steps[index].content

@@ -184,7 +184,7 @@ app.get("/get_config/:filename", function(req, res) {
   res.send(fs.readFileSync(configPath))
 })
 
-app.get("/get_config", function(req, res) {
+app.get("/get_configs", function(req, res) {
   // get a list of all config.ini files in the .pioreactor folder
   var configPath = process.env.CONFIG_INI_FOLDER;
   fs.readdir(configPath, (err, files) => {
