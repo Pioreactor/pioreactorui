@@ -323,14 +323,14 @@ function StartNewExperimentContainer(props) {
 
 
 
-function StartNewExperiment() {
+function StartNewExperiment(props) {
     return (
         <Grid container spacing={2} >
           <Grid item xs={12}><Header /></Grid>
 
           <Grid item xs={1}/>
           <Grid item xs={10}>
-            <div><StartNewExperimentContainer/></div>
+            <div><StartNewExperimentContainer config={props.config}/></div>
           </Grid>
           <Grid item xs={1}/>
         </Grid>
