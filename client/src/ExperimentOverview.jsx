@@ -110,7 +110,7 @@ function Overview(props) {
               />
             </Grid>
            }
-            <Grid item xs={12}> <ClearChartButton experiment={experimentMetadata.experiment}/> </Grid>
+            <Grid item xs={12}> <ClearChartButton config={props.config} experiment={experimentMetadata.experiment}/> </Grid>
           </Grid>
 
           <Grid item xs={12} md={4} container spacing={2} justify="flex-end" style={{height: "100%"}}>
@@ -128,7 +128,7 @@ function Overview(props) {
             {( props.config['ui.overview.cards'] && (props.config['ui.overview.cards']['event_logs'] === "1")) &&
               <Grid item xs={12} style={{padding: "10px 0px"}}>
                 <LogTable config={props.config}/>
-                <ClearLogButton />
+                <ClearLogButton config={props.config} />
               </Grid>
             }
 

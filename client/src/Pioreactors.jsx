@@ -587,7 +587,7 @@ function SettingsActionsDialog(props) {
         </TabPanel>
         <TabPanel value={tabValue} index={1}>
           <Typography  gutterBottom>
-            Stirring
+            Stirring speed
           </Typography>
           <Typography variant="body2" component="p">
             Modify the stirring speed (arbitrary units). This will effect the
@@ -632,7 +632,7 @@ function SettingsActionsDialog(props) {
 
           <Divider className={classes.divider} />
           <Typography  gutterBottom>
-            Target optical density
+            Target OD
           </Typography>
           <Typography variant="body2" component="p">
             Change the target optical density. Typical values are between 1.0 and
@@ -731,7 +731,7 @@ function SettingsActionsDialog(props) {
 
           <Divider className={classes.divider} />
           <Typography gutterBottom>
-            Optical density reading
+            Optical density
           </Typography>
           <Typography variant="body2" component="p" gutterBottom>
             Pausing the optical density readings will also pause
@@ -976,7 +976,7 @@ function SettingsActionsDialogAll(props) {
 
           <Divider className={classes.divider} />
           <Typography  gutterBottom>
-            Target optical density
+            Target OD
           </Typography>
           <Typography variant="body2" component="p">
             Change the target optical density. Typical values are between 1.0 and
@@ -1067,7 +1067,7 @@ function SettingsActionsDialogAll(props) {
 
           <Divider className={classes.divider} />
           <Typography gutterBottom>
-            Optical density reading
+            Optical density
           </Typography>
           <Typography variant="body2" component="p" gutterBottom>
             Pausing the optical density readings will also pause
@@ -1256,7 +1256,7 @@ function PioreactorCard(props){
         </div>
         <div className={classes.textbox}>
           <Typography variant="body2" style={{fontSize: "0.85rem"}}>
-            Growth rate
+            Growth rate calculating
           </Typography>
           <UnitSettingDisplay
             passChildData={setGrowthRateJobState}
@@ -1271,7 +1271,7 @@ function PioreactorCard(props){
         </div>
         <div className={classes.textbox}>
           <Typography variant="body2" style={{fontSize: "0.85rem"}}>
-            Dosing
+            Dosing events
           </Typography>
           <UnitSettingDisplay
             passChildData={setIOEventsJobState}
