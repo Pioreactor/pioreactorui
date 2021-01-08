@@ -743,7 +743,7 @@ function SettingsActionsDialog(props) {
 
           <Divider className={classes.divider} />
           <Typography  gutterBottom>
-            Growth rate calculating
+            Growth rate
           </Typography>
           <Typography variant="body2" component="p" gutterBottom>
             Pausing the growth rate calculating will also pause
@@ -773,6 +773,14 @@ function SettingsActionsDialog(props) {
           </Typography>
 
             {ioButtons}
+
+          <Divider className={classes.divider} />
+          <Typography  gutterBottom>
+            Temperature controlling
+          </Typography>
+          <Typography variant="body2" component="p" gutterBottom>
+            Us at Pioreactor are working on including per-reactor temperature control. Stay tuned!
+          </Typography>
 
           <Divider className={classes.divider} />
         </TabPanel>
@@ -1079,7 +1087,7 @@ function SettingsActionsDialogAll(props) {
 
           <Divider className={classes.divider} />
           <Typography  gutterBottom>
-            Growth rate calculating
+            Growth rate
           </Typography>
           <Typography variant="body2" component="p" gutterBottom>
             Pausing the growth rate calculating will also pause
@@ -1256,7 +1264,7 @@ function PioreactorCard(props){
         </div>
         <div className={classes.textbox}>
           <Typography variant="body2" style={{fontSize: "0.85rem"}}>
-            Growth rate calculating
+            Growth rate
           </Typography>
           <UnitSettingDisplay
             passChildData={setGrowthRateJobState}

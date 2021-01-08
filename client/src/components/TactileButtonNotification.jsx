@@ -49,7 +49,6 @@ function TactileButtonNotification(props) {
         "webui" + Math.random()
       )}
     else {
-      console.log(props.config)
       client = new Client(
         `${props.config['network.topology']['leader_hostname']}.local`, 9001,
         "webui" + Math.random()

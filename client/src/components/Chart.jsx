@@ -136,7 +136,7 @@ class Chart extends React.Component {
               {
                 childName: ["line-" + name],
                 target: "data",
-                mutation: () => {
+                mutation: () => { //this is dumb! I shouldn't mutate this way!
                   if (!this.state.hiddenSeries.delete(name)) {
                     // Was not already hidden => add to set
                     this.state.hiddenSeries.add(name);

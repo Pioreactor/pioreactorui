@@ -45,6 +45,7 @@ class MediaCard extends React.Component {
         mediaThroughput: 0,
         altMediaThroughput: 0,
         rates: {all: {mediaRate: 0, altMediaRate: 0}},
+        activeUnits: []
       };
     this.onConnect = this.onConnect.bind(this);
     this.onMessageArrived = this.onMessageArrived.bind(this);
@@ -75,6 +76,8 @@ class MediaCard extends React.Component {
 
     this.client.connect({'onSuccess': this.onConnect});
     this.client.onMessageArrived = this.onMessageArrived;
+    this.setState({activeUnits: Object.entries(this.props.config['inventory']).filter((v) => v[1] === "1").map((v) => v[0])})
+    console.log(Object.entries(this.props.config['inventory']).filter((v) => v[1] === "1").map((v) => v[0]))
   }
 
   componentDidUpdate(prevProps) {
@@ -144,13 +147,13 @@ class MediaCard extends React.Component {
                 <TableCell align="right" style={{fontFamily: "courier", fontSize: 14, padding: "6px 0px"}}>{this.state.altMediaThroughput}mL (~{this.state.rates.all.altMediaRate}mL/h)</TableCell>
               </TableRow>
 
-              {Object.keys(this.state.mediaThroughputPerUnit).map((unit) => (
+              {this.state.activeUnits.map((unit) => (
                 <TableRow key={unit}>
                   <TableCell style={{padding: "6px 0px"}} component="th" scope="row">
-                      <PioreactorIcon style={{ fontSize: 14, verticalAlign: "middle" }} color="black"/> {(this.props.config['ui.overview.rename'] &&  this.props.config['ui.overview.rename'][unit]) ? this.props.config['ui.overview.rename'][unit] : unit}
+                      <PioreactorIcon style={{ fontSize: 14, verticalAlign: "middle" }} color="black"/> <span className={"underlineSpan"} title={unit}>{(this.props.config['ui.overview.rename'] && this.props.config['ui.overview.rename'][unit]) ? this.props.config['ui.overview.rename'][unit] : unit}</span>
                   </TableCell>
-                  <TableCell align="right" style={{fontFamily: "courier", fontSize: 14, padding: "6px 0px"}}>{this.state.mediaThroughputPerUnit[unit]}mL (~{this.state.rates[unit] ? this.state.rates[unit].mediaRate : 0}mL/h)</TableCell>
-                  <TableCell align="right" style={{fontFamily: "courier", fontSize: 14, padding: "6px 0px"}}>{this.state.altMediaThroughputPerUnit[unit]}mL (~{this.state.rates[unit] ? this.state.rates[unit].altMediaRate: 0}mL/h)</TableCell>
+                  <TableCell align="right" style={{fontFamily: "courier", fontSize: 14, padding: "6px 0px"}}>{this.state.mediaThroughputPerUnit[unit] || 0}mL (~{this.state.rates[unit] ? this.state.rates[unit].mediaRate : 0}mL/h)</TableCell>
+                  <TableCell align="right" style={{fontFamily: "courier", fontSize: 14, padding: "6px 0px"}}>{this.state.altMediaThroughputPerUnit[unit] || 0}mL (~{this.state.rates[unit] ? this.state.rates[unit].altMediaRate: 0}mL/h)</TableCell>
                 </TableRow>
               ))}
             </TableBody>

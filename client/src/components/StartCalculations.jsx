@@ -75,7 +75,7 @@ function StartCalculations(props){
       <Grid item xs={10}><StartGrowthRate experiment={experiment}/></Grid>
       <Grid item xs={12}>
       <Chart
-        config={{}}
+        config={props.config}
         interpolation="stepAfter"
         fontScale={1}
         title="Implied growth rate"
