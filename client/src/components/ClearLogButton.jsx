@@ -21,7 +21,7 @@ function ClearLogButton(props){
   function onClick() {
     if (props.config.remote) {
       var client = new Client(
-        `ws://${this.props.config.remote.ws_url}/`,
+        `ws://${props.config.remote.ws_url}/`,
         "webui" + Math.random()
       )}
     else {

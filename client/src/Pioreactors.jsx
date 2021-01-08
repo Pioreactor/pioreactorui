@@ -611,7 +611,7 @@ function SettingsActionsDialog(props) {
           </div>
           <Divider className={classes.divider} />
           <Typography gutterBottom>
-            Volume per dilution
+            Volume / dosing
           </Typography>
           <Typography variant="body2" component="p">
             Change the volume per dilution. Typical values are between 0.0mL and
@@ -620,7 +620,7 @@ function SettingsActionsDialog(props) {
           <TextField
             size="small"
             id="io_controlling/volume"
-            label="Volume per dilution"
+            label="Volume / dosing"
             defaultValue={props.volumeState}
             InputProps={{
               endAdornment: <InputAdornment position="end">mL</InputAdornment>,
@@ -653,7 +653,7 @@ function SettingsActionsDialog(props) {
 
           <Divider className={classes.divider} />
           <Typography  gutterBottom>
-            Duration between dilutions
+            Duration between dosing events
           </Typography>
           <Typography variant="body2" component="p">
             Change how long to wait between dilutions. Typically between 5 and 90 minutes.
@@ -694,7 +694,7 @@ function SettingsActionsDialog(props) {
           />
           <Divider className={classes.divider} />
           <Typography  gutterBottom>
-            Dosing events
+            Dosing algorithm
           </Typography>
           <Typography variant="body2" component="p" gutterBottom>
             {props.IOEventsJobState !== "disconnected" &&
@@ -963,7 +963,7 @@ function SettingsActionsDialogAll(props) {
       <DialogContent>
         <TabPanel value={tabValue} index={1}>
           <Typography gutterBottom>
-            Volume per dilution
+            Volume / dosing
           </Typography>
           <Typography variant="body2" component="p">
             Change the volume per dilution. Typical values are between 0.0mL and
@@ -972,7 +972,7 @@ function SettingsActionsDialogAll(props) {
           <TextField
             size="small"
             id="io_controlling/volume"
-            label="Volume per dilution"
+            label="Volume / dosing"
             defaultValue={props.volumeState}
             InputProps={{
               endAdornment: <InputAdornment position="end">mL</InputAdornment>,
@@ -1005,7 +1005,7 @@ function SettingsActionsDialogAll(props) {
 
           <Divider className={classes.divider} />
           <Typography  gutterBottom>
-            Duration between dilutions
+            Duration between dosing events
           </Typography>
           <Typography variant="body2" component="p">
             Change how long to wait between dilutions. Typically between 5 and 90 minutes.
@@ -1046,7 +1046,7 @@ function SettingsActionsDialogAll(props) {
           />
           <Divider className={classes.divider} />
           <Typography  gutterBottom>
-            Dosing events
+            Dosing algorithm
           </Typography>
           <Typography variant="body2" component="p" gutterBottom>
               Learn more about <a target="_blank" href="https://github.com/Pioreactor/pioreactor/wiki/dosing-algorithms">dosing algorithms</a>.
@@ -1336,6 +1336,23 @@ function PioreactorCard(props){
         </div>
         <div className={classes.textbox}>
           <Typography variant="body2" style={{fontSize: "0.85rem"}}>
+            Volume / dosing
+          </Typography>
+          <UnitSettingDisplay
+            precision={2}
+            measurementUnit="mL"
+            experiment={experiment}
+            passChildData={setVolumeState}
+            isUnitActive={isUnitActive}
+            default="—"
+            className={classes.alignRight}
+            topic="io_controlling/volume"
+            unit={unit}
+            config={props.config}
+          />
+        </div>
+        <div className={classes.textbox}>
+          <Typography variant="body2" style={{fontSize: "0.85rem"}}>
             Target OD
           </Typography>
           <UnitSettingDisplay
@@ -1378,23 +1395,6 @@ function PioreactorCard(props){
             default="—"
             className={classes.alignRight}
             topic="algorithm_controlling/io_algorithm"
-            unit={unit}
-            config={props.config}
-          />
-        </div>
-        <div className={classes.textbox}>
-          <Typography variant="body2" style={{fontSize: "0.85rem"}}>
-            Volume / dilution
-          </Typography>
-          <UnitSettingDisplay
-            precision={2}
-            measurementUnit="mL"
-            experiment={experiment}
-            passChildData={setVolumeState}
-            isUnitActive={isUnitActive}
-            default="—"
-            className={classes.alignRight}
-            topic="io_controlling/volume"
             unit={unit}
             config={props.config}
           />
