@@ -31,8 +31,6 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-
-
 class EditableCodeDiv extends React.Component {
   constructor(props) {
     super(props);
