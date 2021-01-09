@@ -184,7 +184,6 @@ class UnitSettingDisplay extends React.Component {
     "disconnected":  {display: "Off", color: offlineGrey},
     "lost":          {display: "Lost", color: errorRed},
     "NA":            {display: "Not available", color: offlineGrey},
-    "—":             {display: "—", color: offlineGrey},
   }
 
   onMessageArrived(message) {
@@ -199,7 +198,7 @@ class UnitSettingDisplay extends React.Component {
   render() {
     if (this.props.isStateSetting) {
       if (!this.props.isUnitActive) {
-        return <div style={{ color: offlineGrey}}> Off </div>;
+        return <div style={{ color: offlineGrey, fontWeight: 500}}> {this.stateDisplay[this.state.msg].display} </div>;
       } else {
         var displaySettings = this.stateDisplay[this.state.msg]
         return (
@@ -1240,7 +1239,7 @@ function PioreactorCard(props){
             passChildData={setStirringJobState}
             experiment={experiment}
             isUnitActive={isUnitActive}
-            default="—"
+            default="disconnected"
             isStateSetting
             topic="stirring/$state"
             unit={unit}
@@ -1255,7 +1254,7 @@ function PioreactorCard(props){
             passChildData={setODReadingJobState}
             experiment={experiment}
             isUnitActive={isUnitActive}
-            default="—"
+            default="disconnected"
             isStateSetting
             topic="od_reading/$state"
             unit={unit}
@@ -1270,7 +1269,7 @@ function PioreactorCard(props){
             passChildData={setGrowthRateJobState}
             experiment={experiment}
             isUnitActive={isUnitActive}
-            default="—"
+            default="disconnected"
             isStateSetting
             topic="growth_rate_calculating/$state"
             unit={unit}
@@ -1285,7 +1284,7 @@ function PioreactorCard(props){
             passChildData={setIOEventsJobState}
             experiment={experiment}
             isUnitActive={isUnitActive}
-            default="—"
+            default="disconnected"
             isStateSetting
             topic="io_controlling/$state"
             unit={unit}
