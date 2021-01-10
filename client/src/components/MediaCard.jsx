@@ -77,7 +77,6 @@ class MediaCard extends React.Component {
     this.client.connect({'onSuccess': this.onConnect});
     this.client.onMessageArrived = this.onMessageArrived;
     this.setState({activeUnits: Object.entries(this.props.config['inventory']).filter((v) => v[1] === "1").map((v) => v[0])})
-    console.log(Object.entries(this.props.config['inventory']).filter((v) => v[1] === "1").map((v) => v[0]))
   }
 
   componentDidUpdate(prevProps) {

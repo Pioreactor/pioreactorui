@@ -81,14 +81,14 @@ function Overview(props) {
             </Grid>
             }
 
-            {( props.config['ui.overview.charts'] && (props.config['ui.overview.charts']['normalized_135_optical_density'] === "1")) &&
+            {( props.config['ui.overview.charts'] && (props.config['ui.overview.charts']['normalized_optical_density'] === "1")) &&
             <Grid item xs={12}>
               <Chart
                 config={props.config}
                 isODReading={true}
                 dataFile={"./data/od_filtered_time_series_aggregating.json"}
-                title="Normalized 135° optical density"
-                topic="od_filtered/135/+"
+                title="Normalized optical density"
+                topic="od_filtered/+/+"
                 yAxisLabel="Current OD / initial OD"
                 experiment={experimentMetadata.experiment}
                 interpolation="stepAfter"
@@ -96,14 +96,14 @@ function Overview(props) {
             </Grid>
             }
 
-            {( props.config['ui.overview.charts'] && (props.config['ui.overview.charts']['raw_135_optical_density'] === "1")) &&
+            {( props.config['ui.overview.charts'] && (props.config['ui.overview.charts']['raw_optical_density'] === "1")) &&
             <Grid item xs={12}>
               <Chart
                 config={props.config}
                 isODReading={true}
                 dataFile={"./data/od_raw_time_series_aggregating.json"}
-                title="Raw 135° optical density"
-                topic="od_raw/135/+"
+                title="Raw optical density"
+                topic="od_raw/+/+"
                 yAxisLabel="Voltage"
                 experiment="+"
                 interpolation="stepAfter"
