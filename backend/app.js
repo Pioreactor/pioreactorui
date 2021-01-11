@@ -73,21 +73,19 @@ app.post('/query_datasets', function(req, res) {
 
 
 app.get('/stop', function (req, res) {
-    exec("pios kill python -y", (error, stdout, stderr) => {
+  for (const job of ['stirring', 'od_reading', 'io_controlling', 'growth_rate_calculting']) {
+    exec(`pios kill ${job} -y`, (error, stdout, stderr) => {
         if (error) {
             console.log(error)
-            res.send(`error: ${error.message}`);
-            return;
         }
         if (stderr) {
             console.log(stderr)
-            res.send(`stderr: ${stderr}`);
-            return;
         }
         console.log(`stdout: ${stdout}`);
-        res.sendStatus(200)
-    });
-})
+    })
+  }
+  res.sendStatus(200)
+});
 
 
 app.get("/run/:job/:unit", function(req, res) {

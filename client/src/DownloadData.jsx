@@ -201,7 +201,7 @@ function DownloadDataFormContainer() {
     }));
   };
 
-  const runningFeedback = isRunning ? <CircularProgress color="white" size={22}/> : "Download"
+  const runningFeedback = isRunning ? <CircularProgress color="white" size={24}/> : "Download"
   const errorFeedbackOrDefault = isError ? errorMsg : "Querying large tables may take up to a minute or so."
   return (
     <>
