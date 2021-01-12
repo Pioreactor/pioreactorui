@@ -30,6 +30,7 @@ import AddIcon from '@material-ui/icons/Add';
 import ClearIcon from '@material-ui/icons/Clear';
 import EditIcon from '@material-ui/icons/Edit';
 import IconButton from '@material-ui/core/IconButton';
+import DashboardIcon from '@material-ui/icons/Dashboard';
 
 import {parseINIString} from "./utilities"
 import ButtonChangeDosingDialog from "./components/ButtonChangeDosingDialog"
@@ -274,7 +275,7 @@ function ButtonConfirmStopProcessDialog() {
 
 
 
-function PioreactorHeader() {
+function PioreactorHeader(props) {
   const classes = useStyles();
 
   return (
@@ -292,6 +293,14 @@ function PioreactorHeader() {
         </div>
       </div>
       <Divider/>
+      <Typography variant="subtitle2">
+        <Box fontWeight="fontWeightBold" style={{margin: "10px 2px 10px 2px", display:"inline-block"}}>
+          <DashboardIcon style={{ fontSize: 12, verticalAlign: "middle" }}/> Current experiment:
+        </Box>
+        <Box fontWeight="fontWeightRegular" style={{marginRight: "20px", display:"inline-block"}}>
+          {props.experiment}
+        </Box>
+      </Typography>
     </div>
   )
 }
@@ -1152,7 +1161,7 @@ function SettingsActionsDialogAll(props) {
 function ActiveUnits(props){
   return (
   <React.Fragment>
-    <div style={{display: "flex", justifyContent: "space-between", marginBottom: "5px", marginTop: "25px"}}>
+    <div style={{display: "flex", justifyContent: "space-between", marginBottom: "5px", marginTop: "15px"}}>
       <Typography variant="h5" component="h2">
         <Box fontWeight="fontWeightRegular">
           Active Pioreactors
@@ -1442,7 +1451,7 @@ function InactiveUnits(props){
 
   return (
   <React.Fragment>
-    <div style={{display: "flex", justifyContent: "space-between", marginBottom: "5px", marginTop: "25px"}}>
+    <div style={{display: "flex", justifyContent: "space-between", marginBottom: "5px", marginTop: "15px"}}>
       <Typography variant="h5" component="h2">
         <Box fontWeight="fontWeightRegular">
           Inactive Pioreactors
@@ -1481,7 +1490,7 @@ function Pioreactors(props) {
 
           <Grid item md={1} xs={1}/>
           <Grid item md={10} xs={12}>
-            <PioreactorHeader/>
+            <PioreactorHeader experiment={experimentMetadata.experiment}/>
             <Summary/>
             <ActiveUnits experiment={experimentMetadata.experiment} config={props.config} units={props.config['inventory'] ? entries(props.config['inventory']).filter((v) => v[1] === "1").map((v) => v[0]) : [] }/>
             <InactiveUnits experiment={experimentMetadata.experiment} config={props.config} units={props.config['inventory'] ? entries(props.config['inventory']).filter((v) => v[1] === "0").map((v) => v[0]) : [] }/>
