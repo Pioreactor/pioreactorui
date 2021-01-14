@@ -26,7 +26,6 @@ const colors = {
   "pioreactor2-C": "#00848E",
   "pioreactor2-B": "#003135",
 
-
   "pioreactor3": "#F49342",
   "pioreactor3-A": "#F49342",
   "pioreactor3-D": "#FFC58B",

@@ -30,7 +30,6 @@ import AddIcon from '@material-ui/icons/Add';
 import ClearIcon from '@material-ui/icons/Clear';
 import EditIcon from '@material-ui/icons/Edit';
 import IconButton from '@material-ui/core/IconButton';
-import DashboardIcon from '@material-ui/icons/Dashboard';
 
 import {parseINIString} from "./utilities"
 import ButtonChangeDosingDialog from "./components/ButtonChangeDosingDialog"
@@ -274,6 +273,149 @@ function ButtonConfirmStopProcessDialog() {
 }
 
 
+function AddNewPioreactor(props){
+  const classes = useStyles();
+  const [open, setOpen] = useState(false);
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [name, setName] = React.useState("");
+  const [isRunning, setIsRunning] = React.useState(false)
+  const [errorMsg, setErrorMsg] = React.useState("")
+
+  const handleClickOpen = () => {
+    setOpen(true);
+  };
+
+  const handleClose = () => {
+    setOpen(false);
+  };
+
+  const handleSnackbarClose = () => {
+    setSnackbarOpen(false)
+  }
+
+  const handleNameChange = evt => {
+    setName(evt.target.value)
+  }
+
+  const onSubmit = (event) =>{
+    event.preventDefault()
+    if (!name) {
+      setErrorMsg("Fill in the new name.")
+      return
+    }
+
+    setIsRunning(true)
+    fetch('add_new_pioreactor',{
+        method: "POST",
+        body: JSON.stringify({newPioreactorName: name}),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        },
+    }).then(res => res.json())
+    .then(res => {
+      if (!res){
+        console.log("error")
+      }
+      else {
+
+      }
+    })
+    .catch(e => {
+      setIsRunning(false)
+    });
+  }
+
+  const runningFeedback = isRunning ? <CircularProgress color="inherit" size={24}/> : "Install and connect"
+
+  return (
+    <React.Fragment>
+    <Button onClick={handleClickOpen} style={{textTransform: 'none', float: "right", marginRight: "0px"}} color="primary">
+      <AddIcon className={classes.textIcon}/> Add new Pioreactor
+    </Button>
+    <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
+      <DialogTitle>
+        <Typography className={classes.unitTitleDialog}>
+        Add new Pioreactor
+        </Typography>
+      </DialogTitle>
+      <DialogContent>
+      <p> To add a new Pioreactor, you'll need the following: </p>
+      <ul>
+        <li>A RaspberryPi, with power cord</li>
+        <li>A microSD card</li>
+        <li>A computer with internet access that can read & write to the microSD card</li>
+        <li>The Pioreactor hardware hat</li>
+      </ul>
+      <p> With that all ready, let's begin: </p>
+      <ol>
+        <li>Flash the Raspberry Pi OS Lite onto the microSD card. Here's a <a href="https://www.youtube.com/watch?v=J024soVgEeM">short video</a> on how.</li>
+        <li>Remove the microSD card, and put it <b>back in</b>.</li>
+        <li>Onto the microSD card, create an empty file named <code>ssh</code>.</li>
+        <li>Also onto the microSD card, create a file named <code>wpa_supplicant.conf</code>, with the following contents:</li>
+        <pre style={{border: "1px #b9b9b9 solid", padding: "5px 10px"}}>
+{`country=CA # Your 2-digit country code, ex: US, GB, CA
+ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
+network={
+    ssid="your network name"
+    psk="your network password"
+    key_mgmt=WPA-PSK
+}`}
+       </pre>
+        <li>Unmount the microSD, insert it into the RaspberryPi, and attach the Pioreactor hat to the RaspberryPi.</li>
+        <li>Turn on the RaspberryPi by inserting the power cord.</li>
+      </ol>
+
+      <p>We're pretty much done at this point. Below, provide a unique name for your new Pioreactor, and
+      we'll automatically install the required software and connect it to the other Pioreactors.
+      </p>
+
+      <p>It will take up to 5 minutes to install the software. When finished, the new Pioreactor
+      will show up on on this page.</p>
+
+      <div >
+        <TextField
+          size="small"
+          id="new-pioreactor-name"
+          label="New Pioreactor's name"
+          variant="outlined"
+          className={classes.textFieldWide}
+          onChange={handleNameChange}
+          helperText={errorMsg}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <PioreactorIcon style={{fontSize: "1.1em"}}/>
+              </InputAdornment>
+            ),
+          }}
+        />
+      </div>
+
+      <Button
+        variant="contained"
+        color="primary"
+        style={{marginTop: "15px"}}
+        onClick={onSubmit}
+        type="submit"
+      >
+        {runningFeedback}
+      </Button>
+
+      </DialogContent>
+    </Dialog>
+    <Snackbar
+      anchorOrigin={{vertical: "bottom", horizontal: "center"}}
+      open={snackbarOpen}
+      onClose={handleSnackbarClose}
+      message={"Installing new Pioreactor"}
+      autoHideDuration={7000}
+      key={"snackbar-add-new"}
+    />
+    </React.Fragment>
+)}
+
+
 
 function PioreactorHeader(props) {
   const classes = useStyles();
@@ -287,29 +429,14 @@ function PioreactorHeader(props) {
           </Box>
         </Typography>
         <div >
-          <Button href="/add-new-pioreactor" style={{textTransform: 'none', float: "right", marginRight: "10px"}} color="primary">
-            <AddIcon className={classes.textIcon}/> Add New Pioreactor
-          </Button>
+          <AddNewPioreactor config={props.config}/>
         </div>
       </div>
       <Divider/>
-      <Typography variant="subtitle2">
-        <Box fontWeight="fontWeightBold" style={{margin: "10px 2px 10px 2px", display:"inline-block"}}>
-          <DashboardIcon style={{ fontSize: 12, verticalAlign: "middle" }}/> Current experiment:
-        </Box>
-        <Box fontWeight="fontWeightRegular" style={{marginRight: "20px", display:"inline-block"}}>
-          {props.experiment}
-        </Box>
-      </Typography>
     </div>
   )
 }
 
-function Summary(){
-  return (
-    <div>
-    </div>
-)}
 
 
 function PatientButton(props) {
@@ -538,7 +665,7 @@ function SettingsActionsDialog(props) {
     <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
       <DialogTitle>
         <Typography className={classes.suptitle}>
-          {(props.config['ui.overview.rename'] &&  props.config['ui.overview.rename'][props.unit]) ? `${props.config['ui.overview.rename'][props.unit]} / ${props.unit}` : `${props.unit}`}
+          <PioreactorIcon style={{verticalAlign: "middle", fontSize: "1.2em"}}/> {(props.config['ui.overview.rename'] &&  props.config['ui.overview.rename'][props.unit]) ? `${props.config['ui.overview.rename'][props.unit]} / ${props.unit}` : `${props.unit}`}
         </Typography>
       <Tabs variant="fullWidth" value={tabValue} onChange={handleTabChange} indicatorColor="primary" textColor="primary">
         <Tab label="Activities"/>
@@ -1168,12 +1295,12 @@ function ActiveUnits(props){
         </Box>
       </Typography>
       <div >
-        <SettingsActionsDialogAll config={props.config} unit={'$broadcast'} config={props.config} experiment={props.experiment}/>
+        <SettingsActionsDialogAll unit={'$broadcast'} config={props.config} experiment={props.experiment}/>
         <ButtonConfirmStopProcessDialog/>
       </div>
     </div>
     {props.units.map(unit =>
-      <PioreactorCard config={props.config} isUnitActive={true} key={unit} unit={unit} config={props.config} experiment={props.experiment}/>
+      <PioreactorCard isUnitActive={true} key={unit} unit={unit} config={props.config} experiment={props.experiment}/>
   )}
   </React.Fragment>
 )}
@@ -1195,6 +1322,7 @@ function PioreactorCard(props){
   const [volumeState, setVolumeState] = useState(0);
   const [dosingAlgorithm, setDosingAlgorithm] = useState(null);
   const [temperature, setTemperature] = useState(0);
+
   return (
     <Card className={classes.pioreactorCard} id={unit}>
 
@@ -1225,7 +1353,6 @@ function PioreactorCard(props){
                 experiment={experiment}
                 unit={unit}
                 disabled={!isUnitActive}
-                config={props.config}
               />
             </div>
           </div>
@@ -1491,7 +1618,6 @@ function Pioreactors(props) {
           <Grid item md={1} xs={1}/>
           <Grid item md={10} xs={12}>
             <PioreactorHeader experiment={experimentMetadata.experiment}/>
-            <Summary/>
             <ActiveUnits experiment={experimentMetadata.experiment} config={props.config} units={props.config['inventory'] ? entries(props.config['inventory']).filter((v) => v[1] === "1").map((v) => v[0]) : [] }/>
             <InactiveUnits experiment={experimentMetadata.experiment} config={props.config} units={props.config['inventory'] ? entries(props.config['inventory']).filter((v) => v[1] === "0").map((v) => v[0]) : [] }/>
           </Grid>

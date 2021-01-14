@@ -11,7 +11,6 @@ import ClearChartButton from "./components/ClearChartButton";
 import ClearLogButton from "./components/ClearLogButton";
 import PioreactorIcon from './components/PioreactorIcon';
 import TactileButtonNotification from "./components/TactileButtonNotification";
-import {parseINIString} from "./utilities"
 
 
 function Overview(props) {

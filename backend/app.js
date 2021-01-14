@@ -88,6 +88,8 @@ app.get('/stop', function (req, res) {
 });
 
 
+
+
 app.get("/run/:job/:unit", function(req, res) {
     const queryObject = url.parse(req.url, true).query;
     // assume that all query params are optional args for the job
@@ -189,6 +191,23 @@ app.get("/get_configs", function(req, res) {
     files = files.filter(fn => fn.endsWith('.ini')).filter(fn => fn !== "unit_config.ini");
     res.json(files)
   });
+})
+
+
+app.post("/add_new_pioreactor", function (req, res) {
+    const newName = req.body.newPioreactorName
+    var child = cp.fork('./child_tasks/add_new_pioreactor');
+
+    child.on('message', function(m) {
+      if (m) {
+          res.json({filename: m})
+      }
+      else{
+        console.log(m)
+        res.sendStatus(500)
+      }
+    });
+    child.send(newName);
 })
 
 app.post("/save_new_config", function(req, res) {
