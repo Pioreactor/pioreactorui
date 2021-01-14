@@ -13,5 +13,6 @@ process.on('message', function(newPioreactorName) {
         } else {
             process.send(true);
         }
+        process.exit(0)
     });
 });

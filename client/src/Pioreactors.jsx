@@ -373,6 +373,8 @@ network={
       <p>It will take up to 5 minutes to install the software. When finished, the new Pioreactor
       will show up on on this page.</p>
 
+      {isRunning? <p><b>Installation is occuring in the background. You may navigate away from this page. </b></p> : <p></p>}
+
       <div >
         <TextField
           size="small"
@@ -391,7 +393,6 @@ network={
           }}
         />
       </div>
-
       <Button
         variant="contained"
         color="primary"

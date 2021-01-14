@@ -18,5 +18,6 @@ process.on('message', function(options) {
         } else {
             process.send(filename);
         }
+        process.exit(0)
     });
 });
