@@ -207,7 +207,7 @@ function ButtonChangeDosingDialog(props) {
       );
     }
 
-    client.connect();
+    client.connect({timeout: 180});
     setClient(client)
   },[props.config])
 

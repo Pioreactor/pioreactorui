@@ -105,7 +105,7 @@ export default function ActionPumpForm(props) {
         anchorOrigin={{vertical: "bottom", horizontal: "center"}}
         open={openSnackbar}
         onClose={handleSnackbarClose}
-        message={actionToAct[props.action] + " for " + (duration !== emptyState ? (duration + " seconds") : (mL + "mL"))}
+        message={actionToAct[props.action] + (duration !== emptyState ? (" for " +  duration + " seconds.") : (" until " + mL + "mL."))}
         autoHideDuration={7000}
         key={"snackbar" + props.unitNumber + props.action}
       />

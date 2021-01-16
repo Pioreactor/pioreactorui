@@ -30,7 +30,7 @@ function ClearChartButton(props){
         "webui" + Math.random()
       );
     }
-    client.connect({onSuccess: () => {
+    client.connect({timeout: 180, onSuccess: () => {
       for (var jobName of ['od_raw', 'od_filtered', 'growth_rate', 'alt_media_fraction']) {
         var message = new Message("");
 
@@ -43,7 +43,6 @@ function ClearChartButton(props){
           "set",
         ].join("/");
 
-        message.qos = 1;
         client.publish(message);
       }
 

@@ -68,7 +68,7 @@ class LogTable extends React.Component {
         "webui" + Math.random()
       );
     }
-    this.client.connect({'onSuccess': this.onConnect});
+    this.client.connect({timeout: 180, 'onSuccess': this.onConnect});
     this.client.onMessageArrived = this.onMessageArrived;
   }
 

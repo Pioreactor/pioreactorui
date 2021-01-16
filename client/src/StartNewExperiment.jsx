@@ -83,7 +83,7 @@ function ExperimentSummaryForm(props) {
         "webui" + Math.random()
       );
     }
-    client.connect({ onSuccess: onConnect });
+    client.connect({ onSuccess: onConnect, timeout: 180});
 
   }
 

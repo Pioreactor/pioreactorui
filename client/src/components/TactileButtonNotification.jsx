@@ -54,7 +54,7 @@ function TactileButtonNotification(props) {
         "webui" + Math.random()
       );
     }
-    client.connect({onSuccess: onSuccess});
+    client.connect({onSuccess: onSuccess, timeout: 180});
     client.onMessageArrived = onMessageArrived;
 
   },[props.config])

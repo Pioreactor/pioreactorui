@@ -161,7 +161,7 @@ class UnitSettingDisplay extends React.Component {
         "webui" + Math.random()
       );
     }
-    this.client.connect({ onSuccess: this.onConnect});
+    this.client.connect({ onSuccess: this.onConnect, timeout: 180});
     this.client.onMessageArrived = this.onMessageArrived;
   }
 
@@ -277,9 +277,11 @@ function AddNewPioreactor(props){
   const classes = useStyles();
   const [open, setOpen] = useState(false);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState("");
   const [name, setName] = React.useState("");
   const [isRunning, setIsRunning] = React.useState(false)
   const [errorMsg, setErrorMsg] = React.useState("")
+  const [isError, setIsError] = React.useState("")
 
   const handleClickOpen = () => {
     setOpen(true);
@@ -300,10 +302,11 @@ function AddNewPioreactor(props){
   const onSubmit = (event) =>{
     event.preventDefault()
     if (!name) {
+      setIsError(true)
       setErrorMsg("Fill in the new name.")
       return
     }
-
+    setIsError(false)
     setIsRunning(true)
     fetch('add_new_pioreactor',{
         method: "POST",
@@ -312,16 +315,20 @@ function AddNewPioreactor(props){
           'Accept': 'application/json',
           'Content-Type': 'application/json'
         },
-    }).then(res => res.json())
-    .then(res => {
-      if (!res){
-        console.log("error")
-      }
-      else {
-
-      }
     })
-    .catch(e => {
+    .then(response => {
+        if(response.ok)
+        {
+          return response.json();
+        }
+        throw new Error('Something went wrong.');
+    })
+    .then(text => {
+      console.log('Request successful', text);
+    })
+    .catch(error => {
+      setIsError(true)
+      setErrorMsg("Unable to complete installation. Check server logs.")
       setIsRunning(false)
     });
   }
@@ -353,7 +360,7 @@ function AddNewPioreactor(props){
         <li>Remove the microSD card, and put it <b>back in</b>.</li>
         <li>Onto the microSD card, create an empty file named <code>ssh</code>.</li>
         <li>Also onto the microSD card, create a file named <code>wpa_supplicant.conf</code>, with the following contents:</li>
-        <pre style={{border: "1px #b9b9b9 solid", padding: "5px 10px"}}>
+        <pre style={{border: "1px #b9b9b9 solid", padding: "5px 10px", maxWidth: "85%"}}>
 {`country=CA # Your 2-digit country code, ex: US, GB, CA
 ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
 network={
@@ -371,9 +378,10 @@ network={
       </p>
 
       <p>It will take up to 5 minutes to install the software. When finished, the new Pioreactor
-      will show up on on this page.</p>
+      will show up on on this page. You don't need to stay on this page while it's installing.</p>
 
       {isRunning? <p><b>Installation is occuring in the background. You may navigate away from this page. </b></p> : <p></p>}
+      {isError? <p><b>{errorMsg}</b></p> : <p></p>}
 
       <div >
         <TextField
@@ -383,7 +391,6 @@ network={
           variant="outlined"
           className={classes.textFieldWide}
           onChange={handleNameChange}
-          helperText={errorMsg}
           InputProps={{
             startAdornment: (
               <InputAdornment position="start">
@@ -479,6 +486,7 @@ function SettingsActionsDialog(props) {
   const [open, setOpen] = useState(false);
   const [client, setClient] = useState(null);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState("");
   const [tabValue, setTabValue] = React.useState(0);
 
   const handleTabChange = (event, newValue) => {
@@ -524,7 +532,7 @@ function SettingsActionsDialog(props) {
         "webui" + Math.random()
       );
     }
-    client.connect();
+    client.connect({timeout: 180});
     setClient(client)
   },[props.config])
 
@@ -580,6 +588,7 @@ function SettingsActionsDialog(props) {
   function setPioreactorJobAttrOnEnter(e) {
     if (e.key === "Enter") {
       setPioreactorJobAttr(e.target.id, e.target.value);
+      setSnackbarMessage(`Updated to ${e.target.value}.`)
       setSnackbarOpen(true)
     }
   }
@@ -926,7 +935,7 @@ function SettingsActionsDialog(props) {
       anchorOrigin={{vertical: "bottom", horizontal: "center"}}
       open={snackbarOpen}
       onClose={handleSnackbarClose}
-      message={"Updated"}
+      message={snackbarMessage}
       autoHideDuration={7000}
       key={"snackbar" + props.unit + "settings"}
     />
@@ -941,7 +950,15 @@ function SettingsActionsDialogAll(props) {
   const [open, setOpen] = useState(false);
   const [client, setClient] = useState(null);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState("");
   const [tabValue, setTabValue] = React.useState(0);
+
+  const hrJobs = {
+    "od_reading":  "optical density reading",
+    "growth_rate_calculating":  "growth rate activity",
+    "stirring":  "stirring",
+    "io_controlling":  "dosing events",
+  }
 
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue);
@@ -963,7 +980,7 @@ function SettingsActionsDialogAll(props) {
         "webui" + Math.random()
       );
     }
-    client.connect();
+    client.connect({timeout: 180});
     setClient(client)
   },[props.config])
 
@@ -987,12 +1004,23 @@ function SettingsActionsDialogAll(props) {
         console.log(e)
         setTimeout(function(){sendMessage()}, 750)
       }
+      finally {
+        const verbs = {
+          "sleeping":  "Pausing",
+          "disconnected":  "Stopping",
+          "ready":  "Resuming",
+        }
+        setSnackbarMessage(`${verbs[state]} ${hrJobs[job]} on all active Pioreactors`)
+        setSnackbarOpen(true)
+      }
     };
   }
 
-  function startPioreactorJob(job_attr){
+  function startPioreactorJob(job){
     return function() {
-      fetch("/run/" + job_attr + "/" + props.unit).then(res => {
+      fetch("/run/" + job + "/" + props.unit).then(res => {
+          setSnackbarMessage(`Starting ${hrJobs[job]} on all active Pioreactors`)
+          setSnackbarOpen(true)
       })
     }
   }
@@ -1008,7 +1036,7 @@ function SettingsActionsDialogAll(props) {
     ].join("/");
     message.qos = 1;
     try{
-      client.publish(message);
+      setSnackbarOpen(true)
     }
     catch (e) {
       console.log(e)
@@ -1019,6 +1047,7 @@ function SettingsActionsDialogAll(props) {
   function setPioreactorJobAttrOnEnter(e) {
     if (e.key === "Enter") {
       setPioreactorJobAttr(e.target.id, e.target.value);
+      setSnackbarMessage(`Updated to ${e.target.value}.`)
       setSnackbarOpen(true)
     }
   }
@@ -1277,7 +1306,7 @@ function SettingsActionsDialogAll(props) {
       anchorOrigin={{vertical: "bottom", horizontal: "center"}}
       open={snackbarOpen}
       onClose={handleSnackbarClose}
-      message={"Updated"}
+      message={snackbarMessage}
       autoHideDuration={7000}
       key={"snackbar" + props.unit + "settings"}
     />
@@ -1368,6 +1397,7 @@ function PioreactorCard(props){
             </Box>
           </Typography>
         </div>
+
         <div className={classes.textbox}>
           <Typography variant="body2" style={{fontSize: "0.85rem"}}>
             Stirring

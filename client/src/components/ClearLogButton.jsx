@@ -30,7 +30,7 @@ function ClearLogButton(props){
         "webui" + Math.random()
       );
     }
-    client.connect({onSuccess: () => {
+    client.connect({timeout: 180, onSuccess: () => {
       var message = new Message("");
       message.destinationName = [
         "pioreactor",
@@ -40,7 +40,6 @@ function ClearLogButton(props){
         "aggregated_log_table",
         "set",
       ].join("/");
-      message.qos = 2;
       client.publish(message);
       window.location.reload();
       return false
