@@ -211,7 +211,7 @@ class UnitSettingDisplay extends React.Component {
         return <div style={{ color: offlineGrey}}> {this.props.default} </div>;
       } else {
         return (
-          <div style={{ color: "rgba(0, 0, 0, 0.87)", fontFamily: "courier", fontSize: "14px" }}>
+          <div style={{ color: "rgba(0, 0, 0, 0.87)", fontFamily: "courier", fontSize: "13px" }}>
             {(typeof this.state.msg === "string"
               ? this.state.msg
               : +this.state.msg.toFixed(this.props.precision)) +
