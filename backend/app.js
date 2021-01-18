@@ -6,14 +6,14 @@ require('dotenv').config()
 const url = require('url');
 const { exec } = require("child_process");
 const cp = require('child_process');
-const sqlite3 = require('sqlite3').verbose()
+var dblite = require('dblite')
 const fs = require('fs')
 var expressStaticGzip = require("express-static-gzip");
 
 const app = express()
 app.use(bodyParser.json());
 
-var db = new sqlite3.Database(process.env.DB_LOCATION)
+var db = dblite(process.env.DB_LOCATION)
 
 // this is not secure, and I know it. It's fine for now, as the app isn't exposed to the internet.
 var staticUserAuth = basicAuth({
@@ -116,25 +116,27 @@ app.get("/run/:job/:unit", function(req, res) {
 
 
 app.get('/get_experiments', function (req, res) {
-  db.serialize(function () {
-    db.all('SELECT * FROM experiments ORDER BY timestamp DESC;', function (err, rows) {
-      res.send(rows)
-    })
-  })
+    db.query(
+      'SELECT * FROM experiments ORDER BY timestamp DESC;',
+      ["experiment", "timestamp", "description"],
+      function (err, rows) {
+        res.send(rows)
+      })
 })
 
 app.get('/get_latest_experiment', function (req, res) {
-  db.serialize(function () {
-    db.all('SELECT * FROM experiments ORDER BY timestamp DESC LIMIT 1;', function (err, rows) {
+  db.query(
+    'SELECT * FROM experiments ORDER BY timestamp DESC LIMIT 1;',
+    ["experiment", "timestamp", "description"],
+    function (err, rows) {
       res.send(rows[0])
-    })
   })
 })
 
 
 app.post("/create_experiment", function (req, res) {
     var insert = 'INSERT INTO experiments (timestamp, experiment, description) VALUES (?,?,?)'
-    db.run(insert, [req.body.timestamp, req.body.experiment, req.body.description], function(err){
+    db.query(insert, [req.body.timestamp, req.body.experiment, req.body.description], function(err){
         if (err){
             console.log(err)
             res.sendStatus(500)
@@ -148,26 +150,26 @@ app.post("/create_experiment", function (req, res) {
 app.get("/recent_media_rates/:experiment", function (req, res) {
   const experiment = req.params.experiment
   const hours = 6
-  db.serialize(function () {
-    db.all(`SELECT pioreactor_unit, SUM(CASE     WHEN event="add_media" THEN volume_change_ml     ELSE 0 END) / ${hours} AS mediaRate, SUM(CASE     WHEN event="add_alt_media" THEN volume_change_ml ELSE 0 END) / ${hours} AS altMediaRate FROM io_events where datetime(timestamp) >= datetime('now', '-${hours} Hour') and event in ('add_alt_media', 'add_media') and     experiment='${experiment}' and source_of_event == 'io_controlling' GROUP BY pioreactor_unit;`,
-      function(err, rows) {
-        var jsonResult = {}
-        var aggregate = {altMediaRate: 0, mediaRate: 0}
-        for (const row of rows){
-          jsonResult[row.pioreactor_unit] = {altMediaRate: row.altMediaRate, mediaRate: row.mediaRate}
-          aggregate[mediaRate] = aggregate[mediaRate] + row.mediaRate
-          aggregate[altMediaRate] = aggregate[altMediaRate] + row.altMediaRate
-        }
-        jsonResult["all"] = aggregate
-        res.json(jsonResult)
-    })
+  db.query(`SELECT pioreactor_unit, SUM(CASE WHEN event="add_media" THEN volume_change_ml ELSE 0 END) / :hours AS mediaRate, SUM(CASE WHEN event="add_alt_media" THEN volume_change_ml ELSE 0 END) / :hours AS altMediaRate FROM io_events where datetime(timestamp) >= datetime('now', '-:hours Hour') and event in ('add_alt_media', 'add_media') and experiment=:experiment and source_of_event == 'io_controlling' GROUP BY pioreactor_unit;`,
+    {experiment: experiment, hours: hours},
+    {pioreactor_unit: String, mediaRate: Number, altMediaRate: Number},
+    function(err, rows) {
+      var jsonResult = {}
+      var aggregate = {altMediaRate: 0, mediaRate: 0}
+      for (const row of rows){
+        jsonResult[row.pioreactor_unit] = {altMediaRate: row.altMediaRate, mediaRate: row.mediaRate}
+        aggregate.mediaRate = aggregate.mediaRate + row.mediaRate
+        aggregate.altMediaRate = aggregate.altMediaRate + row.altMediaRate
+      }
+      jsonResult["all"] = aggregate
+      res.json(jsonResult)
   })
 })
 
 
 app.post("/update_experiment_desc", function (req, res) {
     var update = 'UPDATE experiments SET description = (?) WHERE experiment=(?)'
-    db.run(update, [req.body.description, req.body.experiment], function(err){
+    db.query(update, [req.body.description, req.body.experiment], function(err){
         if (err){
             console.log(err)
             res.sendStatus(500)

@@ -957,7 +957,7 @@ function SettingsActionsDialogAll(props) {
     "od_reading":  "optical density reading",
     "growth_rate_calculating":  "growth rate activity",
     "stirring":  "stirring",
-    "io_controlling":  "dosing events",
+    "algorithm_controlling":  "dosing events",
   }
 
   const handleTabChange = (event, newValue) => {
@@ -1018,10 +1018,9 @@ function SettingsActionsDialogAll(props) {
 
   function startPioreactorJob(job){
     return function() {
-      fetch("/run/" + job + "/" + props.unit).then(res => {
-          setSnackbarMessage(`Starting ${hrJobs[job]} on all active Pioreactors`)
-          setSnackbarOpen(true)
-      })
+      setSnackbarMessage(`Starting ${hrJobs[job]} on all active Pioreactors`)
+      setSnackbarOpen(true)
+      fetch("/run/" + job + "/" + props.unit)
     }
   }
 
