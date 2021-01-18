@@ -36,7 +36,7 @@ function ClearChartButton(props){
 
         message.destinationName = [
           "pioreactor",
-          "leader",
+          props.config['network.topology']['leader_hostname'],
           "$experiment",
           `${jobName}_time_series_aggregating`,
           "aggregated_time_series",

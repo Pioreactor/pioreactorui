@@ -958,6 +958,7 @@ function SettingsActionsDialogAll(props) {
     "growth_rate_calculating":  "growth rate activity",
     "stirring":  "stirring",
     "algorithm_controlling":  "dosing events",
+    "io_controlling":  "dosing events",
   }
 
   const handleTabChange = (event, newValue) => {

@@ -34,7 +34,7 @@ function ClearLogButton(props){
       var message = new Message("");
       message.destinationName = [
         "pioreactor",
-        "leader",
+        props.config['network.topology']['leader_hostname'],
         "$experiment",
         "log_aggregating",
         "aggregated_log_table",
