@@ -83,7 +83,7 @@ class LogTable extends React.Component {
     const unit = message.topic.split("/")[1]
     const payload = message.payloadString
     this.state.listOfLogs.unshift(
-      {timestamp: moment().format("x"), unit: unit, message: payload, is_error: (payload.includes("error") ||  payload.includes("failed"))}
+      {timestamp: moment().format("x"), unit: unit, message: payload, is_error: payload.includes("Error")}
     )
     this.setState({
       listOfLogs: this.state.listOfLogs

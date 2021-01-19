@@ -178,7 +178,7 @@ function ExperimentSummaryForm(props) {
               onClose={handleSnackbarClose}
               message={"Created new experiment"}
               autoHideDuration={7000}
-              key={"snackbar" + props.unitNumber + props.action}
+              key={"snackbar" + props.unit + props.action}
             />
           </Grid>
         </Grid>

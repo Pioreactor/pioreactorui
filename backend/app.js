@@ -73,7 +73,7 @@ app.post('/query_datasets', function(req, res) {
 
 
 app.get('/stop', function (req, res) {
-  for (const job of ['stirring', 'od_reading', 'io_controlling', 'growth_rate_calculting']) {
+  for (const job of ['stirring', 'od_reading', 'io_controlling', 'growth_rate_calculating']) {
     exec(`pios kill ${job} -y`, (error, stdout, stderr) => {
         if (error) {
             console.log(error)

@@ -9,6 +9,7 @@ import {
   VictoryLegend,
   createContainer,
   VictoryTooltip,
+  VictoryVoronoiContainer
 } from "victory";
 import moment from "moment";
 import Card from "@material-ui/core/Card";
@@ -54,12 +55,9 @@ class Chart extends React.Component {
     super(props);
     this.state = {
       seriesMap: {},
-      maxTimestamp: parseInt(moment().format("x")),
       hiddenSeries: new Set(),
-      lastMsgRecievedAt: parseInt(moment().format("x")),
       names: [],
       legendEvents: [],
-      minTimestamp: parseInt(moment().subtract(30, 'seconds').format("x")),
     };
     this.onConnect = this.onConnect.bind(this);
     this.onMessageArrived = this.onMessageArrived.bind(this);
@@ -104,21 +102,17 @@ class Chart extends React.Component {
         for (const [i, v] of data["series"].entries()) {
           if (data["data"][i].length > 0) {
             initialSeriesMap[v] = {
-              data: (data["data"][i]).filter(this.filterDataPoints(data["data"][i].length)),
+              data: (data["data"][i]).filter(this.filterDataPoints(data["data"][i].length)).map(item => ({y: item.y, x: moment(item.x, 'x')})),
               name: v,
               color: colors[v],
             };
           }
         }
         let names = Object.keys(initialSeriesMap);
-        let mts = Math.min(
-          ...Object.values(initialSeriesMap).map((s) => parseInt(s.data[0].x))
-        );
         this.setState({
           seriesMap: initialSeriesMap,
           legendEvents: this.createLegendEvents(names),
           names: names,
-          minTimestamp: mts,
         });
       });
   }
@@ -157,7 +151,7 @@ class Chart extends React.Component {
     if (message.retained){
       return
     }
-    const currentTime = parseInt(moment().format("x"));
+    const currentTime = moment()
 
     var key = this.props.isODReading
       ? message.topic.split("/")[1] + "-" + message.topic.split("/")[5]
@@ -183,11 +177,6 @@ class Chart extends React.Component {
         });
         this.setState({ seriesMap: this.state.seriesMap })
       }
-
-      this.setState({
-        maxTimestamp: currentTime,
-        lastMsgRecievedAt: currentTime,
-      });
     }
     catch (error) {
       console.log(error)
@@ -235,31 +224,11 @@ class Chart extends React.Component {
     }
   }
 
-  createXTickValues(minTimestamp, maxTimestamp){
-    const delta_ts = moment(maxTimestamp, "x").diff(
-      moment(minTimestamp, "x"),
-      "hours"
-    );
-    const v = linspace(
-      minTimestamp,
-      maxTimestamp + 100000,
-      7
-    ).map((x) =>
-      moment(Math.round(x), "x").startOf(delta_ts >= 16 ? "hour" : "minute")
-    );
-    return v
-
-  }
-
   createToolTip = (d) => {
-      return `${moment(d.datum.x, 'x').format("dd HH:mm")}
+      return `${d.datum.x.format("MMM DD HH:mm")}
 ${this.renameAndFormatSeries(d.datum.childName)}: ${Math.round(d.datum.y * 1000) / 1000}`
   }
 
-  formatTs(format){
-    return function(mt){
-      return mt.format(format)
-  }}
 
   selectLegendData(name){
     if (!this.state.seriesMap) {
@@ -301,14 +270,7 @@ ${this.renameAndFormatSeries(d.datum.childName)}: ${Math.round(d.datum.y * 1000)
   }
 
   render() {
-    const delta_ts = moment(this.state.maxTimestamp, "x").diff(
-      moment(this.state.minTimestamp, "x"),
-      "hours"
-    );
     const VictoryVoronoiContainer = createContainer("voronoi");
-    const axis_display_ts_format =
-      delta_ts >= 16 ? (delta_ts >= 5 * 24 ? "MMM DD" : "dd HH:mm") : "H:mm";
-    const ts = this.createXTickValues(this.state.minTimestamp, this.state.maxTimestamp)
     return (
       <Card style={{ maxHeight: "100%"}}>
         <VictoryChart
@@ -319,6 +281,7 @@ ${this.renameAndFormatSeries(d.datum.childName)}: ${Math.round(d.datum.y * 1000)
           responsive={true}
           width={600}
           height={315}
+          scale={{x: 'time'}}
           theme={VictoryTheme.material}
           containerComponent={
             <VictoryVoronoiContainer
@@ -348,8 +311,6 @@ ${this.renameAndFormatSeries(d.datum.childName)}: ${Math.round(d.datum.y * 1000)
             }}
           />
           <VictoryAxis
-            tickFormat={this.formatTs(axis_display_ts_format)}
-            tickValues={ts}
             style={{
               tickLabels: {
                 fontSize: 13,

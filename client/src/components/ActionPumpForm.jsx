@@ -38,7 +38,7 @@ export default function ActionPumpForm(props) {
         "/run/" +
           props.action +
           "/" +
-          props.unitNumber +
+          props.unit +
           "?" +
           new URLSearchParams(params)
       );
@@ -107,7 +107,7 @@ export default function ActionPumpForm(props) {
         onClose={handleSnackbarClose}
         message={actionToAct[props.action] + (duration !== emptyState ? (" for " +  duration + " seconds.") : (" until " + mL + "mL."))}
         autoHideDuration={7000}
-        key={"snackbar" + props.unitNumber + props.action}
+        key={"snackbar" + props.unit + props.action}
       />
     </form>
   );
