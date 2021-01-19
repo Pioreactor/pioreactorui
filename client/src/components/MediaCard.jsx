@@ -77,7 +77,7 @@ class MediaCard extends React.Component {
     this.client.connect({timeout: 180, 'onSuccess': this.onConnect});
     this.client.onMessageArrived = this.onMessageArrived;
     this.setState({activeUnits: Object.entries(this.props.config['inventory']).filter((v) => v[1] === "1").map((v) => v[0])})
-    this.getRecentRates()
+    this.getRecentRates() // TODO: this isn't working
   }
 
 
@@ -138,8 +138,8 @@ class MediaCard extends React.Component {
                 <TableCell style={{padding: "6px 0px"}} component="th" scope="row">
                   All Pioreactors
                 </TableCell>
-                <TableCell align="right" style={{fontFamily: "courier", fontSize: 14, padding: "6px 0px"}}>{this.state.mediaThroughput.toFixed(1)}mL (~{this.state.rates.all.mediaRate.toFixed(1)}mL/h)</TableCell>
-                <TableCell align="right" style={{fontFamily: "courier", fontSize: 14, padding: "6px 0px"}}>{this.state.altMediaThroughput.toFixed(1)}mL (~{this.state.rates.all.altMediaRate.toFixed(1)}mL/h)</TableCell>
+                <TableCell align="right" style={{ fontSize: 14, padding: "6px 0px"}}>{this.state.mediaThroughput.toFixed(1)}mL (~{this.state.rates.all.mediaRate.toFixed(1)}mL/h)</TableCell>
+                <TableCell align="right" style={{ fontSize: 14, padding: "6px 0px"}}>{this.state.altMediaThroughput.toFixed(1)}mL (~{this.state.rates.all.altMediaRate.toFixed(1)}mL/h)</TableCell>
               </TableRow>
 
               {this.state.activeUnits.map((unit) => (
@@ -147,8 +147,8 @@ class MediaCard extends React.Component {
                   <TableCell style={{padding: "6px 0px"}} component="th" scope="row">
                       <PioreactorIcon style={{ fontSize: 14, verticalAlign: "middle" }} color="black"/> <span className={"underlineSpan"} title={unit}>{(this.props.config['ui.overview.rename'] && this.props.config['ui.overview.rename'][unit]) ? this.props.config['ui.overview.rename'][unit] : unit}</span>
                   </TableCell>
-                  <TableCell align="right" style={{fontFamily: "courier", fontSize: 14, padding: "6px 0px"}}>{(this.state.mediaThroughputPerUnit[unit] || 0).toFixed(1)}mL (~{this.state.rates[unit] ? this.state.rates[unit].mediaRate.toFixed(1) : "0.0"}mL/h)</TableCell>
-                  <TableCell align="right" style={{fontFamily: "courier", fontSize: 14, padding: "6px 0px"}}>{(this.state.altMediaThroughputPerUnit[unit] || 0).toFixed(1)}mL (~{this.state.rates[unit] ? this.state.rates[unit].altMediaRate.toFixed(1): "0.0"}mL/h)</TableCell>
+                  <TableCell align="right" style={{ fontSize: 14, padding: "6px 0px"}}>{(this.state.mediaThroughputPerUnit[unit] || 0).toFixed(1)}mL (~{this.state.rates[unit] ? this.state.rates[unit].mediaRate.toFixed(1) : "0.0"}mL/h)</TableCell>
+                  <TableCell align="right" style={{ fontSize: 14, padding: "6px 0px"}}>{(this.state.altMediaThroughputPerUnit[unit] || 0).toFixed(1)}mL (~{this.state.rates[unit] ? this.state.rates[unit].altMediaRate.toFixed(1): "0.0"}mL/h)</TableCell>
                 </TableRow>
               ))}
             </TableBody>
