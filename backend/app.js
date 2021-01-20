@@ -9,9 +9,12 @@ const cp = require('child_process');
 var dblite = require('dblite')
 const fs = require('fs')
 var expressStaticGzip = require("express-static-gzip");
+const compression = require('compression');
 
 const app = express()
 app.use(bodyParser.json());
+app.use(compression());
+
 
 var db = dblite(process.env.DB_LOCATION)
 
@@ -30,7 +33,6 @@ app.get('/', function(req, res) {
 
 app.get('/overview', function(req, res) {
     app.use("/", expressStaticGzip(path.join(__dirname, 'build')));
-    app.use("/", expressStaticGzip(path.join(__dirname, 'build/data')));
     res.sendFile(path.join(__dirname, 'build', 'index.html'));
 })
 

@@ -34,6 +34,9 @@ const useStyles = theme => ({
   },
   errorLog: {
     backgroundColor: "#ff7961"
+  },
+  warningLog: {
+    backgroundColor: "#FFEA8A"
   }
 });
 
@@ -83,7 +86,7 @@ class LogTable extends React.Component {
     const unit = message.topic.split("/")[1]
     const payload = message.payloadString
     this.state.listOfLogs.unshift(
-      {timestamp: moment().format("x"), unit: unit, message: payload, is_error: payload.includes("Error")}
+      {timestamp: moment().format("x"), unit: unit, message: payload, is_error: payload.includes("Error"), is_warning: payload.includes("Warning")}
     )
     this.setState({
       listOfLogs: this.state.listOfLogs
@@ -127,9 +130,9 @@ class LogTable extends React.Component {
               <TableBody>
                 {this.state.listOfLogs.map((log, i) => (
                   <TableRow key={i}>
-                    <TableCell className={clsx(classes.tightCell, classes.smallText, {[classes.errorLog]: log.is_error})}> {moment(log.timestamp, 'x').format('HH:mm:ss')} </TableCell>
-                    <TableCell className={clsx(classes.tightCell, classes.smallText, {[classes.errorLog]: log.is_error})}> {log.message} </TableCell>
-                    <TableCell className={clsx(classes.tightCell, classes.smallText, {[classes.errorLog]: log.is_error})}> {this.renameUnit(log.unit)}</TableCell>
+                    <TableCell className={clsx(classes.tightCell, classes.smallText, {[classes.errorLog]: log.is_error, [classes.warningLog]: log.is_warning})}> {moment(log.timestamp, 'x').format('HH:mm:ss')} </TableCell>
+                    <TableCell className={clsx(classes.tightCell, classes.smallText, {[classes.errorLog]: log.is_error, [classes.warningLog]: log.is_warning})}> {log.message} </TableCell>
+                    <TableCell className={clsx(classes.tightCell, classes.smallText, {[classes.errorLog]: log.is_error, [classes.warningLog]: log.is_warning})}> {this.renameUnit(log.unit)}</TableCell>
                   </TableRow>
                   ))
                 }

@@ -772,7 +772,7 @@ function SettingsActionsDialog(props) {
             }}
             variant="outlined"
             onKeyPress={setPioreactorJobAttrOnEnter}
-            className={classes.textField}
+            className={classes.textFieldWide}
           />
 
           <Divider className={classes.divider} />
@@ -793,7 +793,7 @@ function SettingsActionsDialog(props) {
             }}
             variant="outlined"
             onKeyPress={setPioreactorJobAttrOnEnter}
-            className={classes.textField}
+            className={classes.textFieldWide}
           />
 
           <Divider className={classes.divider} />
@@ -801,7 +801,8 @@ function SettingsActionsDialog(props) {
             Duration between dosing events
           </Typography>
           <Typography variant="body2" component="p">
-            Change how long to wait between dilutions. Typically between 5 and 90 minutes.
+            Change how long to wait between dilutions. Typically between 5 and 90 minutes. Changing this will immediately trigger
+            a dosing event.
           </Typography>
           <TextField
             size="small"
@@ -813,7 +814,7 @@ function SettingsActionsDialog(props) {
             }}
             variant="outlined"
             onKeyPress={setPioreactorJobAttrOnEnter}
-            className={classes.textField}
+            className={classes.textFieldWide}
           />
 
           <Divider className={classes.divider} />
@@ -835,7 +836,7 @@ function SettingsActionsDialog(props) {
             }}
             variant="outlined"
             onKeyPress={setPioreactorJobAttrOnEnter}
-            className={classes.textField}
+            className={classes.textFieldWide}
           />
           <Divider className={classes.divider} />
           <Typography  gutterBottom>
@@ -1173,7 +1174,8 @@ function SettingsActionsDialogAll(props) {
             Duration between dosing events
           </Typography>
           <Typography variant="body2" component="p">
-            Change how long to wait between dilutions. Typically between 5 and 90 minutes.
+            Change how long to wait between dilutions. Typically between 15 and 90 minutes. Changing this will immediately trigger
+            a dosing event.
           </Typography>
           <TextField
             size="small"
