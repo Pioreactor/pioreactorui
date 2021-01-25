@@ -30,13 +30,13 @@ import AddIcon from '@material-ui/icons/Add';
 import ClearIcon from '@material-ui/icons/Clear';
 import EditIcon from '@material-ui/icons/Edit';
 import IconButton from '@material-ui/core/IconButton';
+import FlareIcon from '@material-ui/icons/Flare';
 
 import {parseINIString} from "./utilities"
 import ButtonChangeDosingDialog from "./components/ButtonChangeDosingDialog"
 import ActionPumpForm from "./components/ActionPumpForm"
 import PioreactorIcon from "./components/PioreactorIcon"
 import TactileButtonNotification from "./components/TactileButtonNotification";
-import BlinkLED from "./components/BlinkLED";
 
 
 const onlineGreen = "#4caf50"
@@ -157,7 +157,7 @@ class UnitSettingDisplay extends React.Component {
       )}
     else {
       this.client = new Client(
-        `${this.props.config['network.topology']['leader_hostname']}.local`, 9001,
+        `${this.props.config['network.topology']['leader_hostname']}`, 9001,
         "webui" + Math.random()
       );
     }
@@ -166,6 +166,7 @@ class UnitSettingDisplay extends React.Component {
   }
 
   onConnect() {
+    console.log(this.client.clientId)
     this.client.subscribe(
       [
         "pioreactor",
@@ -520,7 +521,6 @@ function SettingsActionsDialog(props) {
     if (!props.config['network.topology']){
       return
     }
-
     if (props.config.remote) {
       var client = new Client(
         `ws://${props.config.remote.ws_url}/`,
@@ -528,7 +528,7 @@ function SettingsActionsDialog(props) {
       )}
     else {
       var client = new Client(
-        `${props.config['network.topology']['leader_hostname']}.local`, 9001,
+        `${props.config['network.topology']['leader_hostname']}`, 9001,
         "webui" + Math.random()
       );
     }
@@ -554,7 +554,7 @@ function SettingsActionsDialog(props) {
       }
       catch (e){
         console.log(e)
-        setTimeout(function(){sendMessage()}, 750)
+        setTimeout(() => {sendMessage()}, 750)
       }
     };
   }
@@ -970,7 +970,6 @@ function SettingsActionsDialogAll(props) {
     if (!props.config['network.topology']){
       return
     }
-
     if (props.config.remote) {
       var client = new Client(
         `ws://${props.config.remote.ws_url}/`,
@@ -978,7 +977,7 @@ function SettingsActionsDialogAll(props) {
       )}
     else {
       var client = new Client(
-        `${props.config['network.topology']['leader_hostname']}.local`, 9001,
+        `${props.config['network.topology']['leader_hostname']}`, 9001,
         "webui" + Math.random()
       );
     }
@@ -1004,7 +1003,7 @@ function SettingsActionsDialogAll(props) {
       }
       catch (e){
         console.log(e)
-        setTimeout(function(){sendMessage()}, 750)
+        setTimeout(() => {sendMessage()}, 750)
       }
       finally {
         const verbs = {
@@ -1216,7 +1215,7 @@ function SettingsActionsDialogAll(props) {
             Dosing algorithm
           </Typography>
           <Typography variant="body2" component="p" gutterBottom>
-              Learn more about <a target="_blank" href="https://github.com/Pioreactor/pioreactor/wiki/dosing-algorithms">dosing algorithms</a>.
+              Learn more about <a target="_blank" href="https://github.com/Pioreactor/pioreactor/.ex/dosing-algorithms">dosing algorithms</a>.
           </Typography>
 
           <ButtonChangeDosingDialog
@@ -1337,6 +1336,56 @@ function ActiveUnits(props){
   </React.Fragment>
 )}
 
+function FlashLEDButton(props){
+  const [color, setColor] = useState("#5331CA")
+  const [client, setClient] = useState(null)
+
+  useEffect(() => {
+    if (!props.config['network.topology']){
+      return
+    }
+    if (props.config.remote) {
+      var client = new Client(
+        `ws://${props.config.remote.ws_url}/`,
+        "webui" + Math.random()
+      )}
+    else {
+      var client = new Client(
+        `${props.config['network.topology']['leader_hostname']}`, 9001,
+        "webui" + Math.random()
+      );
+    }
+    client.connect({timeout: 180});
+    setClient(client)
+  },[props.config])
+
+
+  const onClick = () => {
+    var message = new Message("1");
+    message.destinationName = [
+      "pioreactor",
+      props.unit,
+      "$experiment",
+      "monitor",
+      "flicker_led",
+    ].join("/");
+    message.qos = 0;
+    try{
+      client.publish(message);
+    }
+    catch (e){
+      console.log(e)
+      setTimeout(() => {onClick()}, 1000)
+    }
+  }
+
+  return (
+    <IconButton onClick={onClick} aria-label="flask LED on Pioreactor" style={{marginTop: "-8px"}}>
+      <FlareIcon style={{fill: color}}/>
+    </IconButton>
+)}
+
+
 function PioreactorCard(props){
   const classes = useStyles();
   const unit = props.unit
@@ -1365,27 +1414,32 @@ function PioreactorCard(props){
           </Typography>
           <div style={{display: "flex", justifyContent: "space-between"}}>
             <Typography className={clsx(classes.unitTitle, {[classes.disabledText]: !isUnitActive})} gutterBottom>
-              <PioreactorIcon color={isUnitActive ? "black" : "disabled"} style={{verticalAlign: "middle"}}/> {(props.config['ui.overview.rename'] && props.config['ui.overview.rename'][unit]) ? props.config['ui.overview.rename'][unit] : unit }
+              <PioreactorIcon color={isUnitActive ? "inherit" : "disabled"} style={{verticalAlign: "middle"}}/> {(props.config['ui.overview.rename'] && props.config['ui.overview.rename'][unit]) ? props.config['ui.overview.rename'][unit] : unit }
             </Typography>
-            <div>
-              <SettingsActionsDialog
-                config={props.config}
-                stirringDCState={stirringDCState}
-                ODReadingJobState={ODReadingJobState}
-                growthRateJobState={growthRateJobState}
-                stirringJobState={stirringJobState}
-                IOEventsJobState={IOEventsJobState}
-                temperatureControllingJobState={temperatureControllingJobState}
-                targetGrowthRateState={targetGrowthRateState}
-                volumeState={volumeState}
-                durationState={durationState}
-                targetODState={targetODState}
-                dosingAlgorithm={dosingAlgorithm}
-                temperature={temperature}
-                experiment={experiment}
-                unit={unit}
-                disabled={!isUnitActive}
-              />
+            <div style={{display: "flex", justifyContent: "right"}}>
+              <div>
+                <FlashLEDButton config={props.config} unit={unit}/>
+              </div>
+                <SettingsActionsDialog
+                  config={props.config}
+                  stirringDCState={stirringDCState}
+                  ODReadingJobState={ODReadingJobState}
+                  growthRateJobState={growthRateJobState}
+                  stirringJobState={stirringJobState}
+                  IOEventsJobState={IOEventsJobState}
+                  temperatureControllingJobState={temperatureControllingJobState}
+                  targetGrowthRateState={targetGrowthRateState}
+                  volumeState={volumeState}
+                  durationState={durationState}
+                  targetODState={targetODState}
+                  dosingAlgorithm={dosingAlgorithm}
+                  temperature={temperature}
+                  experiment={experiment}
+                  unit={unit}
+                  disabled={!isUnitActive}
+                />
+              <div>
+              </div>
             </div>
           </div>
         </div>

@@ -52,6 +52,10 @@ class MediaCard extends React.Component {
   }
 
   async getRecentRates() {
+    if (!this.props.experiment){
+      return
+    }
+
      await fetch("/recent_media_rates/" + this.props.experiment)
     .then((response) => {
       return response.json();
@@ -59,6 +63,7 @@ class MediaCard extends React.Component {
     .then((data) => {
       this.setState(prevState => ({...prevState, rates: data}))
     });
+    return
   }
 
   componentDidUpdate(prevProps) {

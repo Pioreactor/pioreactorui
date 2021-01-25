@@ -50,7 +50,7 @@ function TactileButtonNotification(props) {
       )}
     else {
       client = new Client(
-        `${props.config['network.topology']['leader_hostname']}.local`, 9001,
+        `${props.config['network.topology']['leader_hostname']}`, 9001,
         "webui" + Math.random()
       );
     }
@@ -67,6 +67,7 @@ function TactileButtonNotification(props) {
       onClose={() => {}}
       anchorOrigin={{vertical: "bottom", horizontal: "center"}}
       key={"button-tactile-snackbar"}
+      transitionDuration={{enter: 10}}
     >
     <Alert severity="info" variant="filled" icon={false}>
       <AlertTitle style={{fontSize: 25}}>{unit + (renamedUnit ? " / " + renamedUnit : "")}</AlertTitle>

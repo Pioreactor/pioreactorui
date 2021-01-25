@@ -283,7 +283,7 @@ function ButtonChangeDosingDialog(props) {
       </DialogTitle>
       <DialogContent>
         <Typography variant="body2" component="p" gutterBottom>
-          Dosing algorithms control when and how much media to add to the Pioreactor. The settings below can be changed later. Learn more about <a target="_blank" href="https://github.com/Pioreactor/pioreactor/wiki/io-algorithms">dosing algorithms</a>.
+          Dosing algorithms control when and how much media to add to the Pioreactor. The settings below can be changed later. Learn more about <a target="_blank" href="https://github.com/Pioreactor/pioreactor/wiki/Dosing-Algorithms">dosing algorithms</a>.
         </Typography>
 
         <form>
