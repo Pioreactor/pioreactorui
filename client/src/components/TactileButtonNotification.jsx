@@ -15,7 +15,6 @@ function TactileButtonNotification(props) {
     }
 
     const onMessageArrived = (msg) => {
-      console.log("ping arrived")
       if (msg.payloadString === "1"){
         var unit = msg.topic.split("/")[1]
         setUnit(unit)
@@ -24,7 +23,6 @@ function TactileButtonNotification(props) {
         }
         catch {}
         setOpen(true)
-        console.log("set open")
 
       }
       else {
@@ -33,7 +31,6 @@ function TactileButtonNotification(props) {
     }
 
     const onSuccess = () => {
-      console.log("tb success")
       client.subscribe(
       [
         "pioreactor",
@@ -50,12 +47,12 @@ function TactileButtonNotification(props) {
     if (props.config.remote) {
       client = new Client(
         `ws://${props.config.remote.ws_url}/`,
-        "webui" + Math.random()
+        "webui_TactileButtonNotification" + Math.random()
       )}
     else {
       client = new Client(
         `${props.config['network.topology']['leader_hostname']}.local`, 9001,
-        "webui" + Math.random()
+        "webui_TactileButtonNotification" + Math.random()
       );
     }
     client.connect({onSuccess: onSuccess, timeout: 180});

@@ -75,12 +75,12 @@ function ExperimentSummaryForm(props) {
     if (props.config.remote) {
       var client = new Client(
         `ws://${props.config.remote.ws_url}/`,
-        "webui" + Math.random()
+        "webui_publishExpNameToMQTT" + Math.random()
       )}
     else {
       var client = new Client(
         `${props.config['network.topology']['leader_hostname']}.local`, 9001,
-        "webui" + Math.random()
+        "webui_publishExpNameToMQTT" + Math.random()
       );
     }
     client.connect({ onSuccess: onConnect, timeout: 180});

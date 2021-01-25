@@ -153,12 +153,12 @@ class UnitSettingDisplay extends React.Component {
     if (this.props.config.remote) {
       this.client = new Client(
         `ws://${this.props.config.remote.ws_url}/`,
-        "webui" + Math.random()
+        "webui_UnitSettingDisplay" + Math.random()
       )}
     else {
       this.client = new Client(
         `${this.props.config['network.topology']['leader_hostname']}.local`, 9001,
-        "webui" + Math.random()
+        "webui_UnitSettingDisplay" + Math.random()
       );
     }
     this.client.connect({ onSuccess: this.onConnect, timeout: 180});
@@ -524,12 +524,12 @@ function SettingsActionsDialog(props) {
     if (props.config.remote) {
       var client = new Client(
         `ws://${props.config.remote.ws_url}/`,
-        "webui" + Math.random()
+        "webui_SettingsActionsDialog" + Math.random()
       )}
     else {
       var client = new Client(
         `${props.config['network.topology']['leader_hostname']}.local`, 9001,
-        "webui" + Math.random()
+        "webui_SettingsActionsDialog" + Math.random()
       );
     }
     client.connect({timeout: 180});
@@ -973,12 +973,12 @@ function SettingsActionsDialogAll(props) {
     if (props.config.remote) {
       var client = new Client(
         `ws://${props.config.remote.ws_url}/`,
-        "webui" + Math.random()
+        "webui_SettingsActionsDialogAll" + Math.random()
       )}
     else {
       var client = new Client(
         `${props.config['network.topology']['leader_hostname']}.local`, 9001,
-        "webui" + Math.random()
+        "webui_SettingsActionsDialogAll" + Math.random()
       );
     }
     client.connect({timeout: 180});
@@ -1347,12 +1347,12 @@ function FlashLEDButton(props){
     if (props.config.remote) {
       var client = new Client(
         `ws://${props.config.remote.ws_url}/`,
-        "webui" + Math.random()
+        "webui_FlashLEDButton" + Math.random()
       )}
     else {
       var client = new Client(
         `${props.config['network.topology']['leader_hostname']}.local`, 9001,
-        "webui" + Math.random()
+        "webui_FlashLEDButton" + Math.random()
       );
     }
     client.connect({timeout: 180});

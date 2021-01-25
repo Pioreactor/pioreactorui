@@ -198,12 +198,12 @@ function ButtonChangeDosingDialog(props) {
     if (props.config.remote) {
       var client = new Client(
         `ws://${props.config.remote.ws_url}/`,
-        "webui" + Math.random()
+        "webui_ButtonChangeDosingDialog" + Math.random()
       )}
     else {
       var client = new Client(
         `${props.config['network.topology']['leader_hostname']}.local`, 9001,
-        "webui" + Math.random()
+        "webui_ButtonChangeDosingDialog" + Math.random()
       );
     }
 
