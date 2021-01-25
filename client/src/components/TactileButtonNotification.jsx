@@ -15,6 +15,7 @@ function TactileButtonNotification(props) {
     }
 
     const onMessageArrived = (msg) => {
+      console.log("ping arrived")
       if (msg.payloadString === "1"){
         var unit = msg.topic.split("/")[1]
         setUnit(unit)
@@ -23,6 +24,8 @@ function TactileButtonNotification(props) {
         }
         catch {}
         setOpen(true)
+        console.log("set open")
+
       }
       else {
         setOpen(false)
