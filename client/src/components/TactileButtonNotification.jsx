@@ -30,11 +30,12 @@ function TactileButtonNotification(props) {
     }
 
     const onSuccess = () => {
+      console.log("tb success")
       client.subscribe(
       [
         "pioreactor",
         "+",
-        "+",
+        "$experiment",
         "monitor",
         "button_down"
       ].join("/"),
@@ -58,7 +59,6 @@ function TactileButtonNotification(props) {
     client.onMessageArrived = onMessageArrived;
 
   },[props.config])
-
 
   return (
     <Snackbar
