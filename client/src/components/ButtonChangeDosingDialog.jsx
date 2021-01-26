@@ -249,7 +249,7 @@ function ButtonChangeDosingDialog(props) {
       "pioreactor",
       props.unit,
       props.experiment,
-      "algorithm_controlling",
+      "dosing_control",
       "dosing_algorithm",
       "set",
     ].join("/");

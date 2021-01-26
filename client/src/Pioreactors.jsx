@@ -620,7 +620,7 @@ function SettingsActionsDialog(props) {
                <PatientButton
                 color="primary"
                 variant="contained"
-                onClick={startPioreactorJob(job)}
+                onClick={startPioreactorJob(parentJob)}
                 buttonText="Start"
                />
               </div>)
@@ -956,7 +956,7 @@ function SettingsActionsDialogAll(props) {
     "od_reading":  "optical density reading",
     "growth_rate_calculating":  "growth rate activity",
     "stirring":  "stirring",
-    "algorithm_controlling":  "dosing events",
+    "dosing_algorithm":  "dosing events",
     "dosing_control":  "dosing events",
   }
 
@@ -1071,7 +1071,7 @@ function SettingsActionsDialogAll(props) {
           className={classes.jobButton}
           disableElevation
           color="primary"
-          onClick={startPioreactorJob(job)}
+          onClick={startPioreactorJob(parentJob)}
         >
           Start
         </Button>
