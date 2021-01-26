@@ -220,7 +220,7 @@ function ButtonChangeDosingDialog(props) {
   };
 
   const handleAlgoSelectionChange = (e) => {
-    setAlgoSettings({io_algorithm: e.target.value})
+    setAlgoSettings({dosing_algorithm: e.target.value})
   }
 
   const updateFromChild = (setting) => {
@@ -228,7 +228,7 @@ function ButtonChangeDosingDialog(props) {
   }
 
   const switchToForm = () => {
-    switch(algoSettings.io_algorithm) {
+    switch(algoSettings.dosing_algorithm) {
       case "silent":
         return <SilentForm updateParent={updateFromChild}/>
       case "pid_turbidostat":
@@ -236,6 +236,7 @@ function ButtonChangeDosingDialog(props) {
       case "pid_morbidostat":
         return <PIDMorbidostatForm updateParent={updateFromChild}/>
       default:
+        //TODO
         return <div><p>Not implemented</p></div>
     }
   }
@@ -249,7 +250,7 @@ function ButtonChangeDosingDialog(props) {
       props.unit,
       props.experiment,
       "algorithm_controlling",
-      "io_algorithm",
+      "dosing_algorithm",
       "set",
     ].join("/");
     message.qos = 2;

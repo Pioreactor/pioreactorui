@@ -664,7 +664,7 @@ function SettingsActionsDialog(props) {
 
   const odButtons = createUserButtonsBasedOnState(props.ODReadingJobState, "od_reading")
   const grButtons = createUserButtonsBasedOnState(props.growthRateJobState, "growth_rate_calculating")
-  const ioButtons = createUserButtonsBasedOnState(props.IOEventsJobState, "io_controlling", "algorithm_controlling")
+  const ioButtons = createUserButtonsBasedOnState(props.IOEventsJobState, "dosing_control", "algorithm_controlling")
   const stirringButtons = createUserButtonsBasedOnState(props.stirringJobState, "stirring")
 
   return (
@@ -764,7 +764,7 @@ function SettingsActionsDialog(props) {
           </Typography>
           <TextField
             size="small"
-            id="io_controlling/volume"
+            id="dosing_control/volume"
             label="Volume / dosing"
             defaultValue={props.volumeState}
             InputProps={{
@@ -785,7 +785,7 @@ function SettingsActionsDialog(props) {
           </Typography>
           <TextField
             size="small"
-            id="io_controlling/target_od"
+            id="dosing_control/target_od"
             label="Target optical density"
             defaultValue={props.targetODState}
             InputProps={{
@@ -806,7 +806,7 @@ function SettingsActionsDialog(props) {
           </Typography>
           <TextField
             size="small"
-            id="io_controlling/duration"
+            id="dosing_control/duration"
             label="Duration"
             defaultValue={props.durationState}
             InputProps={{
@@ -828,7 +828,7 @@ function SettingsActionsDialog(props) {
           </Typography>
           <TextField
             size="small"
-            id="io_controlling/target_growth_rate"
+            id="dosing_control/target_growth_rate"
             label="Target growth rate"
             defaultValue={props.targetGrowthRateState}
             InputProps={{
@@ -959,7 +959,7 @@ function SettingsActionsDialogAll(props) {
     "growth_rate_calculating":  "growth rate activity",
     "stirring":  "stirring",
     "algorithm_controlling":  "dosing events",
-    "io_controlling":  "dosing events",
+    "dosing_control":  "dosing events",
   }
 
   const handleTabChange = (event, newValue) => {
@@ -1106,7 +1106,7 @@ function SettingsActionsDialogAll(props) {
 
   const odButtons = createUserButtonsBasedOnState("od_reading")
   const grButtons = createUserButtonsBasedOnState("growth_rate_calculating")
-  const ioButtons = createUserButtonsBasedOnState("io_controlling", "algorithm_controlling")
+  const ioButtons = createUserButtonsBasedOnState("dosing_control", "algorithm_controlling")
   const stirringButtons = createUserButtonsBasedOnState("stirring")
 
   return (
@@ -1136,7 +1136,7 @@ function SettingsActionsDialogAll(props) {
           </Typography>
           <TextField
             size="small"
-            id="io_controlling/volume"
+            id="dosing_control/volume"
             label="Volume / dosing"
             defaultValue={props.volumeState}
             InputProps={{
@@ -1157,7 +1157,7 @@ function SettingsActionsDialogAll(props) {
           </Typography>
           <TextField
             size="small"
-            id="io_controlling/target_od"
+            id="dosing_control/target_od"
             label="Target optical density"
             defaultValue={props.targetODState}
             InputProps={{
@@ -1178,7 +1178,7 @@ function SettingsActionsDialogAll(props) {
           </Typography>
           <TextField
             size="small"
-            id="io_controlling/duration"
+            id="dosing_control/duration"
             label="Duration"
             defaultValue={props.durationState}
             InputProps={{
@@ -1200,7 +1200,7 @@ function SettingsActionsDialogAll(props) {
           </Typography>
           <TextField
             size="small"
-            id="io_controlling/target_growth_rate"
+            id="dosing_control/target_growth_rate"
             label="Target growth rate"
             defaultValue={props.targetGrowthRateState}
             InputProps={{
@@ -1509,7 +1509,7 @@ function PioreactorCard(props){
             isUnitActive={isUnitActive}
             default="disconnected"
             isStateSetting
-            topic="io_controlling/$state"
+            topic="dosing_control/$state"
             unit={unit}
             config={props.config}
           />
@@ -1524,7 +1524,7 @@ function PioreactorCard(props){
             isUnitActive={isUnitActive}
             default="NA"
             isStateSetting
-            topic="temperature_controlling/$state"
+            topic="temperature_control/$state"
             unit={unit}
             config={props.config}
           />
@@ -1568,7 +1568,7 @@ function PioreactorCard(props){
             isUnitActive={isUnitActive}
             default="—"
             className={classes.alignRight}
-            topic="io_controlling/volume"
+            topic="dosing_control/volume"
             unit={unit}
             config={props.config}
           />
@@ -1584,7 +1584,7 @@ function PioreactorCard(props){
             isUnitActive={isUnitActive}
             default={"—"}
             className={classes.alignRight}
-            topic="io_controlling/target_od"
+            topic="dosing_control/target_od"
             unit={unit}
             config={props.config}
           />
@@ -1601,7 +1601,7 @@ function PioreactorCard(props){
             isUnitActive={isUnitActive}
             default="—"
             className={classes.alignRight}
-            topic="io_controlling/target_growth_rate"
+            topic="dosing_control/target_growth_rate"
             unit={unit}
             config={props.config}
           />
@@ -1616,7 +1616,7 @@ function PioreactorCard(props){
             isUnitActive={isUnitActive}
             default="—"
             className={classes.alignRight}
-            topic="algorithm_controlling/io_algorithm"
+            topic="algorithm_controlling/dosing_algorithm"
             unit={unit}
             config={props.config}
           />
@@ -1633,7 +1633,7 @@ function PioreactorCard(props){
             isUnitActive={isUnitActive}
             default="—"
             className={classes.alignRight}
-            topic="io_controlling/duration"
+            topic="dosing_control/duration"
             unit={unit}
             config={props.config}
           />
@@ -1648,7 +1648,7 @@ function PioreactorCard(props){
             isUnitActive={isUnitActive}
             default="—"
             className={classes.alignRight}
-            topic="temperature_controlling/temperature"
+            topic="temperature_control/temperature"
             unit={unit}
             config={props.config}
           />

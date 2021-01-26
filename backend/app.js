@@ -118,12 +118,12 @@ app.get("/run/:job/:unit", function(req, res) {
 
 
 app.get('/get_experiments', function (req, res) {
-    db.query(
-      'SELECT * FROM experiments ORDER BY timestamp DESC;',
-      ["experiment", "timestamp", "description"],
-      function (err, rows) {
-        res.send(rows)
-      })
+  db.query(
+    'SELECT * FROM experiments ORDER BY timestamp DESC;',
+    ["experiment", "timestamp", "description"],
+    function (err, rows) {
+      res.send(rows)
+    })
 })
 
 app.get('/get_latest_experiment', function (req, res) {

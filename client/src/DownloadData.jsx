@@ -109,7 +109,7 @@ const CheckboxesGroup = (props) => {
             The time series of the calculated (implied) growth rate. Same data as presented in the "Implied growth rate" chart in the Experiment Overview.
           </Typography>
           <FormControlLabel
-            control={<Checkbox checked={props.isChecked.io_events} onChange={props.handleChange} name="io_events" />}
+            control={<Checkbox checked={props.isChecked.dosing_events} onChange={props.handleChange} name="dosing_events" />}
             label="Dosing events log"
           />
           <Typography variant="caption" className={classes.caption} gutterBottom>
@@ -151,7 +151,7 @@ const CheckboxesGroup = (props) => {
             A time series of how much alternative media is in each Pioreactor. Same data as presented in the "Fraction of volume that is alternative media" chart in the Experiment Overview.
           </Typography>
           <FormControlLabel
-            control={<Checkbox checked={props.isChecked.io_algorithm_settings} onChange={props.handleChange} name="io_algorithm_settings" />}
+            control={<Checkbox checked={props.isChecked.dosing_algorithm_settings} onChange={props.handleChange} name="dosing_algorithm_settings" />}
             label="Dosing algorithm change log"
           />
           <Typography variant="caption" className={classes.caption} gutterBottom>
@@ -173,13 +173,13 @@ function DownloadDataFormContainer() {
     experimentSelection: "",
     datasetCheckbox: {
       growth_rates: false,
-      io_events: false,
+      dosing_events: false,
       experiments: false,
       od_readings_raw: false,
       od_readings_filtered: false,
       logs: false,
       alt_media_fraction: false,
-      io_algorithm_settings: false,
+      dosing_algorithm_settings: false,
     }
   });
 
