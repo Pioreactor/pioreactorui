@@ -178,7 +178,7 @@ function PIDMorbidostatForm(props){
 function ButtonChangeDosingDialog(props) {
   const classes = useStyles();
   const [open, setOpen] = useState(false);
-  const [algoSettings, setAlgoSettings] = useState({io_algorithm: "silent"})
+  const [algoSettings, setAlgoSettings] = useState({dosing_algorithm: "silent"})
   const [isClicked, setIsClicked] = useState(false)
   const [client, setClient] = useState(null)
 
