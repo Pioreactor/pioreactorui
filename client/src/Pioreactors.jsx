@@ -898,7 +898,7 @@ function SettingsActionsDialog(props) {
 
           <Divider className={classes.divider} />
           <Typography  gutterBottom>
-            Dosing events
+            Dosing control
           </Typography>
           <Typography variant="body2" component="p" gutterBottom>
             {props.IOEventsJobState !== "disconnected" &&
@@ -1262,7 +1262,7 @@ function SettingsActionsDialogAll(props) {
 
           <Divider className={classes.divider} />
           <Typography  gutterBottom>
-            Dosing events
+            Dosing control
           </Typography>
           <Typography variant="body2" component="p" gutterBottom>
             Dosing events will initially start in <span className={"underlineSpan"} title="silent mode performs no IO operations."><code>silent</code></span> mode, and can be changed after.
@@ -1335,7 +1335,6 @@ function ActiveUnits(props){
 )}
 
 function FlashLEDButton(props){
-  const color = "#5331CA"
   const [client, setClient] = useState(null)
 
   useEffect(() => {
@@ -1379,7 +1378,7 @@ function FlashLEDButton(props){
 
   return (
     <IconButton onClick={onClick} aria-label="flask LED on Pioreactor" style={{marginTop: "-8px"}}>
-      <FlareIcon style={{fill: color}}/>
+      <FlareIcon color={props.disabled ? "disabled" : "primary"}/>
     </IconButton>
 )}
 
@@ -1395,6 +1394,7 @@ function PioreactorCard(props){
   const [growthRateJobState, setGrowthRateJobState] = useState("disconnected");
   const [IOEventsJobState, setIOEventsJobState] = useState("disconnected");
   const [temperatureControllingJobState, setTemperatureControllingJobState] = useState("disconnected");
+  const [ledControllingJobState, setLEDControllingJobState] = useState("disconnected");
   const [targetODState, setTargetODState] = useState(0);
   const [durationState, setDurationState] = useState(0);
   const [targetGrowthRateState, setTargetGrowthRateState] = useState(0);
@@ -1416,7 +1416,7 @@ function PioreactorCard(props){
             </Typography>
             <div style={{display: "flex", justifyContent: "right"}}>
               <div>
-                <FlashLEDButton config={props.config} unit={unit}/>
+                <FlashLEDButton disabled={!isUnitActive} config={props.config} unit={unit}/>
               </div>
                 <SettingsActionsDialog
                   config={props.config}
@@ -1425,6 +1425,7 @@ function PioreactorCard(props){
                   growthRateJobState={growthRateJobState}
                   stirringJobState={stirringJobState}
                   IOEventsJobState={IOEventsJobState}
+                  ledControllingJobState={ledControllingJobState}
                   temperatureControllingJobState={temperatureControllingJobState}
                   targetGrowthRateState={targetGrowthRateState}
                   volumeState={volumeState}
@@ -1499,7 +1500,7 @@ function PioreactorCard(props){
         </div>
         <div className={classes.textbox}>
           <Typography variant="body2" style={{fontSize: "0.85rem"}}>
-            Dosing events
+            Dosing control
           </Typography>
           <UnitSettingDisplay
             passChildData={setIOEventsJobState}
@@ -1508,6 +1509,21 @@ function PioreactorCard(props){
             default="disconnected"
             isStateSetting
             topic="dosing_algorithm/$state"
+            unit={unit}
+            config={props.config}
+          />
+        </div>
+        <div className={classes.textbox}>
+          <Typography variant="body2" style={{fontSize: "0.85rem"}}>
+            LED control
+          </Typography>
+          <UnitSettingDisplay
+            passChildData={setLEDControllingJobState}
+            experiment={experiment}
+            isUnitActive={isUnitActive}
+            default="disconnected"
+            isStateSetting
+            topic="led_control/$state"
             unit={unit}
             config={props.config}
           />

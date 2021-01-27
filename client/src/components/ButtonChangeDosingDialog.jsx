@@ -174,6 +174,48 @@ function PIDMorbidostatForm(props){
 )}
 
 
+function ChemostatForm(props){
+  const classes = useStyles();
+  const defaults = {duration: 20, volume: 0.5}
+
+  useEffect(() => {
+    props.updateParent(defaults)
+  }, [])
+
+  const onSettingsChange = (e) => {
+    props.updateParent({[e.target.id]: e.target.value})
+  }
+
+  return (
+      <div>
+        <TextField
+          size="small"
+          id="duration"
+          label="Duration between events"
+          defaultValue={defaults.duration}
+          InputProps={{
+            endAdornment: <InputAdornment position="end">min</InputAdornment>,
+          }}
+          variant="outlined"
+          onChange={onSettingsChange}
+          className={classes.textFieldCompact}
+        />
+        <TextField
+          size="small"
+          id="volume"
+          label="Volume"
+          defaultValue={defaults.volume}
+          InputProps={{
+            endAdornment: <InputAdornment position="end">mL</InputAdornment>,
+          }}
+          variant="outlined"
+          onChange={onSettingsChange}
+          className={classes.textFieldCompact}
+        />
+    </div>
+)}
+
+
 
 function ButtonChangeDosingDialog(props) {
   const classes = useStyles();
@@ -184,9 +226,9 @@ function ButtonChangeDosingDialog(props) {
 
   const algos = [
     {name: "Silent", key: "silent"},
+    {name: "Chemostat", key: "chemostat"},
     {name: "PID Morbidostat",  key: "pid_morbidostat"},
     {name: "PID Turbidostat",  key: "pid_turbidostat"},
-    {name: "Chemostat", key: "chemostat"},
   ]
 
   useEffect(() => {
@@ -235,9 +277,8 @@ function ButtonChangeDosingDialog(props) {
         return <PIDTurbidostatForm updateParent={updateFromChild}/>
       case "pid_morbidostat":
         return <PIDMorbidostatForm updateParent={updateFromChild}/>
-      default:
-        //TODO
-        return <div><p>Not implemented</p></div>
+      case "chemostat":
+        return <ChemostatForm updateParent={updateFromChild}/>
     }
   }
 
