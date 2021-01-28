@@ -979,8 +979,10 @@ function SettingsActionsDialogAll(props) {
     "od_reading":  "optical density reading",
     "growth_rate_calculating":  "growth rate activity",
     "stirring":  "stirring",
-    "dosing_algorithm":  "dosing events",
-    "dosing_control":  "dosing events",
+    "dosing_algorithm":  "dosing control",
+    "dosing_control":  "dosing control",
+    "led_control":  "LED control",
+    "led_algorithm":  "LED control",
   }
 
   const handleTabChange = (event, newValue) => {
@@ -1303,7 +1305,7 @@ function SettingsActionsDialogAll(props) {
             Learn more about <a target="_blank" href="https://github.com/Pioreactor/pioreactor/wiki/led-algorithms">LED algorithms</a>.
           </Typography>
 
-            {dosingButtons}
+            {ledButtons}
           <Divider className={classes.divider} />
         </TabPanel>
         <TabPanel value={tabValue} index={2}>
