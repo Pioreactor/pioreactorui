@@ -662,7 +662,8 @@ function SettingsActionsDialog(props) {
 
   const odButtons = createUserButtonsBasedOnState(props.ODReadingJobState, "od_reading")
   const grButtons = createUserButtonsBasedOnState(props.growthRateJobState, "growth_rate_calculating")
-  const ioButtons = createUserButtonsBasedOnState(props.IOEventsJobState, "dosing_algorithm", "dosing_control")
+  const dosingButtons = createUserButtonsBasedOnState(props.dosingControlJobState, "dosing_algorithm", "dosing_control")
+  const ledButtons = createUserButtonsBasedOnState(props.ledControlJobState, "led_algorithm", "led_control")
   const stirringButtons = createUserButtonsBasedOnState(props.stirringJobState, "stirring")
 
   return (
@@ -841,13 +842,13 @@ function SettingsActionsDialog(props) {
             Dosing algorithm
           </Typography>
           <Typography variant="body2" component="p" gutterBottom>
-            {props.IOEventsJobState !== "disconnected" &&
+            {props.dosingControlJobState !== "disconnected" &&
               <React.Fragment>
               Currently running dosing algorithm <code>{props.dosingAlgorithm}</code>.
               Learn more about <a target="_blank" href="https://github.com/Pioreactor/pioreactor/wiki/dosing-algorithms">dosing algorithms</a>.
               </React.Fragment>
             }
-            {props.IOEventsJobState === "disconnected" &&
+            {props.dosingControlJobState === "disconnected" &&
 
               <React.Fragment>
               You can change the Dosing algorthm after starting the job.
@@ -901,13 +902,13 @@ function SettingsActionsDialog(props) {
             Dosing control
           </Typography>
           <Typography variant="body2" component="p" gutterBottom>
-            {props.IOEventsJobState !== "disconnected" &&
+            {props.dosingControlJobState !== "disconnected" &&
               <React.Fragment>
               Currently running dosing algorithm <code>{props.dosingAlgorithm}</code>.
               Learn more about <a target="_blank" href="https://github.com/Pioreactor/pioreactor/wiki/dosing-algorithms">dosing algorithms</a>.
               </React.Fragment>
             }
-            {props.IOEventsJobState === "disconnected" &&
+            {props.dosingControlJobState === "disconnected" &&
 
               <React.Fragment>
               Dosing events will initially start in <span className={"underlineSpan"} title="silent mode performs no dosing operations."><code>silent</code></span> mode, and can be changed after.
@@ -916,7 +917,29 @@ function SettingsActionsDialog(props) {
             }
           </Typography>
 
-            {ioButtons}
+            {dosingButtons}
+
+          <Divider className={classes.divider} />
+          <Typography  gutterBottom>
+            LED control
+          </Typography>
+          <Typography variant="body2" component="p" gutterBottom>
+            {props.ledControlJobState !== "disconnected" &&
+              <React.Fragment>
+              Currently running LED algorithm <code>{props.dosingAlgorithm}</code>.
+              Learn more about <a target="_blank" href="https://github.com/Pioreactor/pioreactor/wiki/led-algorithms">LED algorithms</a>.
+              </React.Fragment>
+            }
+            {props.ledControlJobState === "disconnected" &&
+
+              <React.Fragment>
+              LED controls will initially start in <span className={"underlineSpan"} title="silent mode performs no dosing operations."><code>silent</code></span> mode, and can be changed after.
+              Learn more about <a target="_blank" href="https://github.com/Pioreactor/pioreactor/wiki/led-algorithms">LED algorithms</a>.
+              </React.Fragment>
+            }
+          </Typography>
+
+            {ledButtons}
 
           <Divider className={classes.divider} />
           <Typography  gutterBottom>
@@ -1104,7 +1127,8 @@ function SettingsActionsDialogAll(props) {
 
   const odButtons = createUserButtonsBasedOnState("od_reading")
   const grButtons = createUserButtonsBasedOnState("growth_rate_calculating")
-  const ioButtons = createUserButtonsBasedOnState("dosing_algorithm", "dosing_control")
+  const dosingButtons = createUserButtonsBasedOnState("dosing_algorithm", "dosing_control")
+  const ledButtons = createUserButtonsBasedOnState("led_algorithm", "led_control")
   const stirringButtons = createUserButtonsBasedOnState("stirring")
 
   return (
@@ -1269,7 +1293,17 @@ function SettingsActionsDialogAll(props) {
             Learn more about <a target="_blank" href="https://github.com/Pioreactor/pioreactor/wiki/dosing-algorithms">dosing algorithms</a>.
           </Typography>
 
-            {ioButtons}
+            {dosingButtons}
+          <Divider className={classes.divider} />
+          <Typography  gutterBottom>
+            LED control
+          </Typography>
+          <Typography variant="body2" component="p" gutterBottom>
+            LED control will initially start in <span className={"underlineSpan"} title="silent mode performs no IO operations."><code>silent</code></span> mode, and can be changed after.
+            Learn more about <a target="_blank" href="https://github.com/Pioreactor/pioreactor/wiki/led-algorithms">LED algorithms</a>.
+          </Typography>
+
+            {dosingButtons}
           <Divider className={classes.divider} />
         </TabPanel>
         <TabPanel value={tabValue} index={2}>
@@ -1392,9 +1426,9 @@ function PioreactorCard(props){
   const [stirringJobState, setStirringJobState] = useState("disconnected");
   const [ODReadingJobState, setODReadingJobState] = useState("disconnected");
   const [growthRateJobState, setGrowthRateJobState] = useState("disconnected");
-  const [IOEventsJobState, setIOEventsJobState] = useState("disconnected");
+  const [dosingControlJobState, setdosingControlJobState] = useState("disconnected");
   const [temperatureControllingJobState, setTemperatureControllingJobState] = useState("disconnected");
-  const [ledControllingJobState, setLEDControllingJobState] = useState("disconnected");
+  const [ledControlJobState, setLEDControllingJobState] = useState("disconnected");
   const [targetODState, setTargetODState] = useState(0);
   const [durationState, setDurationState] = useState(0);
   const [targetGrowthRateState, setTargetGrowthRateState] = useState(0);
@@ -1424,8 +1458,8 @@ function PioreactorCard(props){
                   ODReadingJobState={ODReadingJobState}
                   growthRateJobState={growthRateJobState}
                   stirringJobState={stirringJobState}
-                  IOEventsJobState={IOEventsJobState}
-                  ledControllingJobState={ledControllingJobState}
+                  dosingControlJobState={dosingControlJobState}
+                  ledControlJobState={ledControlJobState}
                   temperatureControllingJobState={temperatureControllingJobState}
                   targetGrowthRateState={targetGrowthRateState}
                   volumeState={volumeState}
@@ -1503,7 +1537,7 @@ function PioreactorCard(props){
             Dosing control
           </Typography>
           <UnitSettingDisplay
-            passChildData={setIOEventsJobState}
+            passChildData={setdosingControlJobState}
             experiment={experiment}
             isUnitActive={isUnitActive}
             default="disconnected"
