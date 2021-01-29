@@ -75,17 +75,16 @@ app.post('/query_datasets', function(req, res) {
 
 
 app.get('/stop', function (req, res) {
-  for (const job of ['dosing_control', 'stirring', 'od_reading', 'growth_rate_calculating', 'led_control']) {
-    exec(`pios kill ${job} -y`, (error, stdout, stderr) => {
-        if (error) {
-            console.log(error)
-        }
-        if (stderr) {
-            console.log(stderr)
-        }
-        console.log(`stdout: ${stdout}`);
-    })
-  }
+  const jobs = ['dosing_control', 'stirring', 'od_reading', 'growth_rate_calculating', 'led_control']
+  exec(`pios kill ${jobs.join(" ")} -y`, (error, stdout, stderr) => {
+      if (error) {
+          console.log(error)
+      }
+      if (stderr) {
+          console.log(stderr)
+      }
+      console.log(`stdout: ${stdout}`);
+  })
   res.sendStatus(200)
 });
 

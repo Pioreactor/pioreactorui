@@ -14,32 +14,42 @@ import {
 import moment from "moment";
 import Card from "@material-ui/core/Card";
 
-const colors = {
-  "pioreactor1": "#9C6ADE",
-  "pioreactor1-A": "#9C6ADE",
-  "pioreactor1-D": "#E3D0FF",
-  "pioreactor1-C": "#50248F",
-  "pioreactor1-B": "#230051",
+const colors = [
+  //generated with https://medialab.github.io/iwanthue/
+  // and https://maketintsandshades.com/#50b47b,b74873,6c81d9,bf903b,5b388a,b94f3d,7fa443,c169ba
+  {primary: "#50b47b", A: "#50b47b", B: "#73c395", C: "#387e56", D: "#a8dabd"},
+  {primary: "#b74873", A: "#b74873", B: "#c56d8f", C: "#923a5c", D: "#dba4b9"},
+  {primary: "#6c81d9", A: "#6c81d9", B: "#98a7e4", C: "#4c5a98", D: "#c4cdf0"},
+  {primary: "#bf903b", A: "#bf903b", B: "#cca662", C: "#866529", D: "#dfc89d"},
+  {primary: "#5b388a", A: "#5b388a", B: "#7c60a1", C: "#402761", D: "#ad9cc5"},
+  {primary: "#b94f3d", A: "#b94f3d", B: "#ce8477", C: "#943f31", D: "#dca79e"},
+  {primary: "#7fa443", A: "#7fa443", B: "#a5bf7b", C: "#59732f", D: "#bfd2a1"},
+  {primary: "#c169ba", A: "#c169ba", B: "#d496cf", C: "#874a82", D: "#e6c3e3"},
+];
 
-  "pioreactor2": "#47C1BF",
-  "pioreactor2-A": "#47C1BF",
-  "pioreactor2-D": "#B7ECEC",
-  "pioreactor2-C": "#00848E",
-  "pioreactor2-B": "#003135",
+const colorMaps = {}
 
-  "pioreactor3": "#F49342",
-  "pioreactor3-A": "#F49342",
-  "pioreactor3-D": "#FFC58B",
-  "pioreactor3-C": "#C05717",
-  "pioreactor3-B": "#4A1504",
+function getColorFromName(name){
+  if (name in colorMaps){
+    return colorMaps[name]
+  }
 
-  "pioreactor4": "#50B83C",
-  "pioreactor4-A": "#50B83C",
-  "pioreactor4-B": "#173630",
-  "pioreactor4-C": "#108043",
-  "pioreactor4-D": "#BBE5B3",
+  let sensorRe = /(.*)-[ABCD]/;
+  if (sensorRe.test(name)){
+    let primaryName = name.match(sensorRe)[1]
+    return getColorFromName(primaryName)
+  }
+  else{
+    var newPallete = colors.shift()
+    colorMaps[name] = newPallete.primary
+    colorMaps[name + "-A"] = newPallete.A
+    colorMaps[name + "-B"] = newPallete.B
+    colorMaps[name + "-C"] = newPallete.C
+    colorMaps[name + "-D"] = newPallete.D
+    return getColorFromName(name)
+  }
+}
 
-};
 
 function linspace(startValue, stopValue, cardinality) {
   var arr = [];
@@ -104,7 +114,7 @@ class Chart extends React.Component {
             initialSeriesMap[v] = {
               data: (data["data"][i]).filter(this.filterDataPoints(data["data"][i].length)).map(item => ({y: item.y, x: moment(item.x, 'x')})),
               name: v,
-              color: colors[v],
+              color: getColorFromName(v),
             };
           }
         }
@@ -162,7 +172,7 @@ class Chart extends React.Component {
         const newSeriesMap = {...this.state.seriesMap, [key]:  {
           data: [{x: currentTime, y: parseFloat(message.payloadString)}],
           name: key,
-          color: colors[key]
+          color: getColorFromName(key)
         }}
 
         this.setState({ seriesMap: newSeriesMap })
@@ -324,7 +334,6 @@ ${this.renameAndFormatSeries(d.datum.childName)}: ${Math.round(d.datum.y * 1000)
           <VictoryAxis
             crossAxis={false}
             dependentAxis
-            domain={this.props.domain}
             label={this.props.yAxisLabel}
             axisLabelComponent={
               <VictoryLabel
@@ -356,7 +365,7 @@ ${this.renameAndFormatSeries(d.datum.childName)}: ${Math.round(d.datum.y * 1000)
             gutter={15}
             style={{
               labels: { fontSize: 12 },
-              data: { stroke: "#485157", strokeWidth: 1, size: 6 },
+              data: { stroke: "#485157", strokeWidth: 0.5, size: 6.5 },
             }}
             data={this.state.names.map(this.selectLegendData)}
           />

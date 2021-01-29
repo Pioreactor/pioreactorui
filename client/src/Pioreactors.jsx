@@ -166,7 +166,6 @@ class UnitSettingDisplay extends React.Component {
   }
 
   onConnect() {
-    console.log(this.client.clientId)
     this.client.subscribe(
       [
         "pioreactor",
@@ -317,14 +316,9 @@ function AddNewPioreactor(props){
         },
     })
     .then(response => {
-        if(response.ok)
-        {
-          return response.json();
+        if(!response.ok){
+          throw new Error('Something went wrong.');
         }
-        throw new Error('Something went wrong.');
-    })
-    .then(text => {
-      console.log('Request successful', text);
     })
     .catch(error => {
       setIsError(true)
