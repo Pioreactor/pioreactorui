@@ -11,6 +11,7 @@ import EditIcon from '@material-ui/icons/Edit';
 import SaveAltIcon from '@material-ui/icons/SaveAlt';
 import DashboardIcon from '@material-ui/icons/Dashboard';
 import HelpOutlineIcon from '@material-ui/icons/HelpOutline';
+import UpdateIcon from '@material-ui/icons/Update';
 import PioreactorIcon from './PioreactorIcon';
 
 export default function SideDrawer() {
@@ -57,7 +58,7 @@ export default function SideDrawer() {
         </ListItem>
         <ListItem href="/download-data" component="a" button key={"download_data"} selected={isSelected("/download-data")}>
           <ListItemIcon><SaveAltIcon color={isSelected("/download-data") ? "primary" : "inherit"}/> </ListItemIcon>
-          <ListItemText primary={"Download experiment data"} />
+          <ListItemText primary={"Download data"} />
         </ListItem>
 
       </List>
@@ -65,7 +66,11 @@ export default function SideDrawer() {
       <List>
         <ListItem href="https://github.com/Pioreactor/pioreactor/wiki" component="a" button key="help">
           <ListItemIcon><HelpOutlineIcon/> </ListItemIcon>
-          <ListItemText primary={"Documentation and help"} />
+          <ListItemText primary={"Documentation"} />
+        </ListItem>
+        <ListItem href="https://github.com/Pioreactor/pioreactor/wiki" component="a" button key="upgrade">
+          <ListItemIcon><UpdateIcon/> </ListItemIcon>
+          <ListItemText primary={"Upgrade to latest"} />
         </ListItem>
       </List>
     </div>

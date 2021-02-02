@@ -1454,8 +1454,8 @@ function PioreactorCard(props){
             </Typography>
             <div style={{display: "flex", justifyContent: "right"}}>
               <div>
-                <Button style={{textTransform: 'none', float: "right" }} disabled={props.disabled} color="primary">
-                  <SettingsIcon color={props.disabled ? "disabled" : "primary"} className={classes.textIcon}/> Calibrate
+                <Button style={{textTransform: 'none', float: "right" }} disabled={!isUnitActive} color="primary">
+                  <SettingsIcon color={!isUnitActive ? "disabled" : "primary"} className={classes.textIcon}/> Calibrate
                 </Button>
               </div>
               <div>
