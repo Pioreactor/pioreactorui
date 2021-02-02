@@ -208,8 +208,8 @@ app.get("/recent_media_rates/:experiment", function (req, res) {
       {pioreactor_unit: String, mediaRate: Number, altMediaRate: Number},
       function(err, rows) {
         if (err){
-          console.log(err)
-          return setTimeout(fetch, 250)
+          console.log("hrere")
+          return fetch()
         }
         var jsonResult = {}
         var aggregate = {altMediaRate: 0, mediaRate: 0}
