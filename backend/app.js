@@ -205,6 +205,7 @@ app.get("/recent_media_rates/:experiment", function (req, res) {
     {experiment: experiment, hours: hours},
     {pioreactor_unit: String, mediaRate: Number, altMediaRate: Number},
     function(err, rows) {
+      console.log(err, rows)
       var jsonResult = {}
       var aggregate = {altMediaRate: 0, mediaRate: 0}
       for (const row of rows){
