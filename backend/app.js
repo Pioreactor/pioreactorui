@@ -62,7 +62,7 @@ app.get('/pioreactorapp', function(req, res) {
 })
 
 app.get('/update_app', function(req, res) {
-  const command = `pio update`
+  const command = `pio update && pios sync`
   console.log(command)
   exec(command, (error, stdout, stderr) => {
       if (error) {
