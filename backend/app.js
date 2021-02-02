@@ -67,11 +67,9 @@ app.get('/update_app', function(req, res) {
   exec(command, (error, stdout, stderr) => {
       if (error) {
           console.log(error)
-          res.sendStatus(500)
       }
       if (stderr) {
           console.log(stderr)
-          res.sendStatus(500)
       }
       res.sendStatus(200)
   })})
