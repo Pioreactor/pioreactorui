@@ -188,6 +188,7 @@ app.get('/get_latest_experiment', function (req, res) {
         res.send(rows[0])
     })
   }
+  fetch()
 })
 
 
