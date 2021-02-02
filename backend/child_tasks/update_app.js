@@ -2,6 +2,7 @@ const { exec } = require("child_process");
 
 
 process.on('message', function(v) {
+    // pio update restarts the webserver...
     command = "pio update && pios sync"
     console.log(command)
     exec(command, (error, stdout, stderr) => {

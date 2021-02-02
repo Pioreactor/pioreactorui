@@ -11,7 +11,7 @@ import Snackbar from '@material-ui/core/Snackbar';
 import Link from '@material-ui/core/Link';
 import UpdateIcon from '@material-ui/icons/Update';
 import Divider from '@material-ui/core/Divider';
-import HistoryIcon from '@material-ui/icons/History';
+import SystemUpdateAltIcon from '@material-ui/icons/SystemUpdateAlt';
 import ExitToAppIcon from '@material-ui/icons/ExitToApp';
 import Header from "./components/Header"
 
@@ -82,7 +82,7 @@ function PageHeader(props) {
       <div style={{display: "flex", justifyContent: "space-between", marginBottom: "5px"}}>
         <Typography variant="h5" component="h1">
           <Box fontWeight="fontWeightBold">
-            PioreactorApp
+            Updates
           </Box>
         </Typography>
         <div >
@@ -99,7 +99,7 @@ function PageHeader(props) {
       <Divider/>
       <Typography variant="subtitle2">
         <Box fontWeight="fontWeightBold" style={{margin: "10px 2px 10px 2px", display:"inline-block"}}>
-          <HistoryIcon style={{ fontSize: 12, verticalAlign: "middle" }}/> Version installed:
+          <SystemUpdateAltIcon style={{ fontSize: 12, verticalAlign: "middle" }}/> Version installed:
         </Box>
         <Box fontWeight="fontWeightRegular" style={{marginRight: "20px", display:"inline-block"}}>
           {version}
@@ -115,7 +115,7 @@ function PageHeader(props) {
     <Snackbar
       anchorOrigin={{vertical: "bottom", horizontal: "center"}}
       open={openSnackbar}
-      message={"Updating software"}
+      message={"Updating software - this will only take a moment..."}
       autoHideDuration={20000}
       key={"snackbar-update"}
     />
@@ -158,7 +158,7 @@ function ChangelogContainer(){
 )}
 
 
-function PioreactorApp() {
+function Updates() {
     return (
         <Grid container spacing={2} >
           <Grid item xs={12}><Header /></Grid>
@@ -175,5 +175,5 @@ function PioreactorApp() {
     )
 }
 
-export default PioreactorApp;
+export default Updates;
 

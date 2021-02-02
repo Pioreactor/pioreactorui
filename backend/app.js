@@ -57,7 +57,7 @@ app.get('/pioreactors', function(req, res) {
     res.sendFile(path.join(__dirname, 'build', 'index.html'));
 })
 
-app.get('/pioreactorapp', function(req, res) {
+app.get('/updates', function(req, res) {
   res.sendFile(path.join(__dirname, 'build', 'index.html'));
 })
 

@@ -68,9 +68,9 @@ export default function SideDrawer() {
           <ListItemIcon><HelpOutlineIcon/> </ListItemIcon>
           <ListItemText primary={"Documentation"} />
         </ListItem>
-        <ListItem href="/pioreactorapp" component="a" button key="upgrade">
+        <ListItem href="/updates" component="a" button key="updates">
           <ListItemIcon><UpdateIcon/> </ListItemIcon>
-          <ListItemText primary={"PioreactorApp"} />
+          <ListItemText primary={"Updates"} />
         </ListItem>
       </List>
     </div>
