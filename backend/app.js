@@ -92,7 +92,7 @@ app.get('/get_app_version', function(req, res) {
 
 
 app.get('/get_changelog', function(req, res) {
-  const command = `cat ~/code/pioreactor/CHANGELOG.md`
+  const command = `cat ~/pioreactor/CHANGELOG.md`
   console.log(command)
   converter = new showdown.Converter()
   exec(command, (error, stdout, stderr) => {
