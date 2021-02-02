@@ -201,21 +201,28 @@ app.post("/create_experiment", function (req, res) {
 app.get("/recent_media_rates/:experiment", function (req, res) {
   const experiment = req.params.experiment
   const hours = 6
-  db.query(`SELECT pioreactor_unit, SUM(CASE WHEN event="add_media" THEN volume_change_ml ELSE 0 END) / :hours AS mediaRate, SUM(CASE WHEN event="add_alt_media" THEN volume_change_ml ELSE 0 END) / :hours AS altMediaRate FROM dosing_events where datetime(timestamp) >= datetime('now', '-:hours Hour') and event in ('add_alt_media', 'add_media') and experiment=:experiment and source_of_event == 'io_controlling' GROUP BY pioreactor_unit;`,
-    {experiment: experiment, hours: hours},
-    {pioreactor_unit: String, mediaRate: Number, altMediaRate: Number},
-    function(err, rows) {
-      console.log(err, rows)
-      var jsonResult = {}
-      var aggregate = {altMediaRate: 0, mediaRate: 0}
-      for (const row of rows){
-        jsonResult[row.pioreactor_unit] = {altMediaRate: row.altMediaRate, mediaRate: row.mediaRate}
-        aggregate.mediaRate = aggregate.mediaRate + row.mediaRate
-        aggregate.altMediaRate = aggregate.altMediaRate + row.altMediaRate
-      }
-      jsonResult["all"] = aggregate
-      res.json(jsonResult)
-  })
+
+  function fetch(){
+    db.query(`SELECT pioreactor_unit, SUM(CASE WHEN event="add_media" THEN volume_change_ml ELSE 0 END) / :hours AS mediaRate, SUM(CASE WHEN event="add_alt_media" THEN volume_change_ml ELSE 0 END) / :hours AS altMediaRate FROM dosing_events where datetime(timestamp) >= datetime('now', '-:hours Hour') and event in ('add_alt_media', 'add_media') and experiment=:experiment and source_of_event == 'io_controlling' GROUP BY pioreactor_unit;`,
+      {experiment: experiment, hours: hours},
+      {pioreactor_unit: String, mediaRate: Number, altMediaRate: Number},
+      function(err, rows) {
+        if (err){
+          console.log(err)
+          return setTimeout(250, fetch())
+        }
+        var jsonResult = {}
+        var aggregate = {altMediaRate: 0, mediaRate: 0}
+        for (const row of rows){
+          jsonResult[row.pioreactor_unit] = {altMediaRate: row.altMediaRate, mediaRate: row.mediaRate}
+          aggregate.mediaRate = aggregate.mediaRate + row.mediaRate
+          aggregate.altMediaRate = aggregate.altMediaRate + row.altMediaRate
+        }
+        jsonResult["all"] = aggregate
+        return res.json(jsonResult)
+    })
+  }
+  return fetch()
 })
 
 
