@@ -61,19 +61,18 @@ app.get('/pioreactorapp', function(req, res) {
   res.sendFile(path.join(__dirname, 'build', 'index.html'));
 })
 
-app.post("/update_app", function (req, res) {
+app.get("/update_app", function (req, res) {
     var child = cp.fork('./child_tasks/update_app');
-
+    console.log("update app")
     child.on('message', function(result) {
       if (result) {
           res.sendStatus(200)
       }
       else{
-        console.log(m)
         res.sendStatus(500)
       }
     });
-    child.send(newName);
+    child.send(1);
 })
 
 app.get('/get_app_version', function(req, res) {
