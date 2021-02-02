@@ -10,6 +10,7 @@ var dblite = require('dblite')
 const fs = require('fs')
 var expressStaticGzip = require("express-static-gzip");
 const compression = require('compression');
+var showdown  = require('showdown');
 
 const app = express()
 app.use(bodyParser.json());
@@ -56,7 +57,54 @@ app.get('/pioreactors', function(req, res) {
     res.sendFile(path.join(__dirname, 'build', 'index.html'));
 })
 
+app.get('/pioreactorapp', function(req, res) {
+  res.sendFile(path.join(__dirname, 'build', 'index.html'));
+})
 
+app.get('/update_app', function(req, res) {
+  const command = `pio update`
+  console.log(command)
+  exec(command, (error, stdout, stderr) => {
+      if (error) {
+          console.log(error)
+          res.sendStatus(500)
+      }
+      if (stderr) {
+          console.log(stderr)
+          res.sendStatus(500)
+      }
+      res.sendStatus(200)
+  })})
+
+app.get('/get_app_version', function(req, res) {
+  const command = `pio version`
+  console.log(command)
+  exec(command, (error, stdout, stderr) => {
+      if (error) {
+          console.log(error)
+      }
+      if (stderr) {
+          console.log(stderr)
+      }
+      res.send(stdout)
+  })
+})
+
+
+app.get('/get_changelog', function(req, res) {
+  const command = `cat ~/code/pioreactor/CHANGELOG.md`
+  console.log(command)
+  converter = new showdown.Converter()
+  exec(command, (error, stdout, stderr) => {
+      if (error) {
+          console.log(error)
+      }
+      if (stderr) {
+          console.log(stderr)
+      }
+      res.send(converter.makeHtml(stdout))
+  })
+})
 
 app.post('/query_datasets', function(req, res) {
     var child = cp.fork('./child_tasks/db_export');
@@ -94,6 +142,7 @@ app.get('/stop', function (req, res) {
 
 
 app.get("/run/:job/:unit", function(req, res) {
+    // TODO: this is a security problem: one could put any command as job, ex: "stirring && rm -rf /"
     const queryObject = url.parse(req.url, true).query;
     // assume that all query params are optional args for the job
     unit = req.params.unit

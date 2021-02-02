@@ -9,6 +9,7 @@ import DownloadData from "./DownloadData";
 import Pioreactors from "./Pioreactors";
 import StartNewExperiment from "./StartNewExperiment";
 import EditConfig from "./EditConfig";
+import PioreactorApp from "./PioreactorApp";
 
 import "fontsource-roboto/300-normal.css"
 import "fontsource-roboto/400-normal.css"
@@ -80,6 +81,10 @@ function App() {
             </Route>
             <Route path="/pioreactors">
               <Pioreactors config={config}/>
+            </Route>
+            <Route path="/pioreactorapp">
+              <PioreactorApp config={config}/>
+              <TactileButtonNotification config={config}/>
             </Route>
             <Route path="/">
               <ExperimentOverview config={config}/>
