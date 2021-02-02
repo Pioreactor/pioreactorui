@@ -58,6 +58,7 @@ app.get('/pioreactors', function(req, res) {
 })
 
 app.get('/updates', function(req, res) {
+  app.use("/", expressStaticGzip(path.join(__dirname, 'build')));
   res.sendFile(path.join(__dirname, 'build', 'index.html'));
 })
 
