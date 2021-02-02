@@ -61,18 +61,20 @@ app.get('/pioreactorapp', function(req, res) {
   res.sendFile(path.join(__dirname, 'build', 'index.html'));
 })
 
-app.get('/update_app', function(req, res) {
-  const command = `pio update && pios sync`
-  console.log(command)
-  exec(command, (error, stdout, stderr) => {
-      if (error) {
-          console.log(error)
+app.post("/update_app", function (req, res) {
+    var child = cp.fork('./child_tasks/update_app');
+
+    child.on('message', function(result) {
+      if (result) {
+          res.sendStatus(200)
       }
-      if (stderr) {
-          console.log(stderr)
+      else{
+        console.log(m)
+        res.sendStatus(500)
       }
-      res.sendStatus(200)
-  })})
+    });
+    child.send(newName);
+})
 
 app.get('/get_app_version', function(req, res) {
   const command = `pio version`
