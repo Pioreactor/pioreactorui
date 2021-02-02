@@ -42,7 +42,7 @@ function PageHeader(props) {
 
   const updateVersion = () => {
     setOpenSnackbar(true)
-    fetch("/update_app")
+    fetch("/update_app", {method: "POST"})
     .then(res => {
       if (res.ok) {
         window.location.reload();
