@@ -209,7 +209,7 @@ app.get("/recent_media_rates/:experiment", function (req, res) {
       function(err, rows) {
         if (err){
           console.log(err)
-          return setTimeout(250, fetch())
+          return setTimeout(fetch, 250)
         }
         var jsonResult = {}
         var aggregate = {altMediaRate: 0, mediaRate: 0}
