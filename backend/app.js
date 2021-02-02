@@ -176,12 +176,18 @@ app.get('/get_experiments', function (req, res) {
 })
 
 app.get('/get_latest_experiment', function (req, res) {
-  db.query(
-    'SELECT * FROM experiments ORDER BY timestamp DESC LIMIT 1;',
-    ["experiment", "timestamp", "description"],
-    function (err, rows) {
-      res.send(rows[0])
-  })
+  function fetch() {
+    db.query(
+      'SELECT * FROM experiments ORDER BY timestamp DESC LIMIT 1;',
+      ["experiment", "timestamp", "description"],
+      function (err, rows) {
+        if (err) {
+          console.log(err)
+          fetch()
+        }
+        res.send(rows[0])
+    })
+  }
 })
 
 
@@ -208,8 +214,8 @@ app.get("/recent_media_rates/:experiment", function (req, res) {
       {pioreactor_unit: String, mediaRate: Number, altMediaRate: Number},
       function(err, rows) {
         if (err){
-          console.log("hrere")
-          return fetch()
+          console.log(err)
+          fetch()
         }
         var jsonResult = {}
         var aggregate = {altMediaRate: 0, mediaRate: 0}
@@ -219,10 +225,10 @@ app.get("/recent_media_rates/:experiment", function (req, res) {
           aggregate.altMediaRate = aggregate.altMediaRate + row.altMediaRate
         }
         jsonResult["all"] = aggregate
-        return res.json(jsonResult)
+        res.json(jsonResult)
     })
   }
-  return fetch()
+  fetch()
 })
 
 
