@@ -76,7 +76,9 @@ app.post('/query_datasets', function(req, res) {
 
 app.get('/stop', function (req, res) {
   const jobs = ['dosing_control', 'stirring', 'od_reading', 'growth_rate_calculating', 'led_control']
-  exec(`pios kill ${jobs.join(" ")} -y`, (error, stdout, stderr) => {
+  const command = `pios kill ${jobs.join(" ")} -y`
+  console.log(command)
+  exec(command, (error, stdout, stderr) => {
       if (error) {
           console.log(error)
       }

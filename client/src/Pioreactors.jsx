@@ -31,6 +31,7 @@ import ClearIcon from '@material-ui/icons/Clear';
 import EditIcon from '@material-ui/icons/Edit';
 import IconButton from '@material-ui/core/IconButton';
 import FlareIcon from '@material-ui/icons/Flare';
+import SettingsIcon from '@material-ui/icons/Settings';
 
 import {parseINIString} from "./utilities"
 import ButtonChangeDosingDialog from "./components/ButtonChangeDosingDialog"
@@ -654,27 +655,34 @@ function SettingsActionsDialog(props) {
     }
    }
 
+  const stirringButtons = createUserButtonsBasedOnState(props.stirringJobState, "stirring")
   const odButtons = createUserButtonsBasedOnState(props.ODReadingJobState, "od_reading")
   const grButtons = createUserButtonsBasedOnState(props.growthRateJobState, "growth_rate_calculating")
   const dosingButtons = createUserButtonsBasedOnState(props.dosingControlJobState, "dosing_algorithm", "dosing_control")
   const ledButtons = createUserButtonsBasedOnState(props.ledControlJobState, "led_algorithm", "led_control")
-  const stirringButtons = createUserButtonsBasedOnState(props.stirringJobState, "stirring")
 
   return (
     <div>
-    <IconButton aria-label="edit Pioreactor" onClick={handleClickOpen} disabled={props.disabled} style={{marginTop: "-8px"}}>
-      <EditIcon color={props.disabled ? "disabled" : "primary"}/>
-    </IconButton>
+    <Button style={{textTransform: 'none', float: "right" }} disabled={props.disabled} onClick={handleClickOpen} color="primary">
+      <EditIcon color={props.disabled ? "disabled" : "primary"} className={classes.textIcon}/> Edit
+    </Button>
     <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
       <DialogTitle>
         <Typography className={classes.suptitle}>
           <PioreactorIcon style={{verticalAlign: "middle", fontSize: "1.2em"}}/> {(props.config['ui.overview.rename'] &&  props.config['ui.overview.rename'][props.unit]) ? `${props.config['ui.overview.rename'][props.unit]} / ${props.unit}` : `${props.unit}`}
         </Typography>
-      <Tabs variant="fullWidth" value={tabValue} onChange={handleTabChange} indicatorColor="primary" textColor="primary">
+      <Tabs
+        value={tabValue}
+        onChange={handleTabChange}
+        indicatorColor="primary"
+        textColor="primary"
+        variant="scrollable"
+        scrollButtons="auto"
+        >
         <Tab label="Activities"/>
         <Tab label="Settings"/>
         <Tab label="Dosing"/>
-        <Tab label="Calibrate"/>
+        <Tab label="LEDs"/>
       </Tabs>
       </DialogTitle>
       <DialogContent>
@@ -707,19 +715,10 @@ function SettingsActionsDialog(props) {
         </TabPanel>
         <TabPanel value={tabValue} index={3}>
           <Typography  gutterBottom>
-            Pump calibration
+            LEDs
           </Typography>
           <Typography variant="body2" component="p">
-            If any pumps are attached to the Pioreactor, they should be calibrated to often
-            to accurately add a precise amount of media.
-          </Typography>
-          <Divider className={classes.divider} />
-          <Typography  gutterBottom>
-            Temperature calibration
-          </Typography>
-          <Typography variant="body2" component="p">
-            If any pumps are attached to the Pioreactor, they should be calibrated to often
-            to accurately add a precise amount of media.
+            Change the intensity of any onboard LEDs.
           </Typography>
           <Divider className={classes.divider} />
         </TabPanel>
@@ -1137,7 +1136,14 @@ function SettingsActionsDialogAll(props) {
         <Typography className={classes.suptitle}>
           All active Pioreactors
         </Typography>
-      <Tabs value={tabValue} onChange={handleTabChange} indicatorColor="primary" textColor="primary">
+      <Tabs
+        value={tabValue}
+        onChange={handleTabChange}
+        indicatorColor="primary"
+        textColor="primary"
+        variant="scrollable"
+        scrollButtons="auto"
+      >
         <Tab label="Activities"/>
         <Tab label="Settings"/>
         <Tab label="Dosing"/>
@@ -1347,7 +1353,7 @@ function SettingsActionsDialogAll(props) {
 function ActiveUnits(props){
   return (
   <React.Fragment>
-    <div style={{display: "flex", justifyContent: "space-between", marginBottom: "5px", marginTop: "15px"}}>
+    <div style={{display: "flex", justifyContent: "space-between", marginBottom: "10px", marginTop: "15px"}}>
       <Typography variant="h5" component="h2">
         <Box fontWeight="fontWeightRegular">
           Active Pioreactors
@@ -1365,6 +1371,8 @@ function ActiveUnits(props){
 )}
 
 function FlashLEDButton(props){
+  const classes = useStyles();
+
   const [client, setClient] = useState(null)
 
   useEffect(() => {
@@ -1407,9 +1415,9 @@ function FlashLEDButton(props){
   }
 
   return (
-    <IconButton onClick={onClick} aria-label="flask LED on Pioreactor" style={{marginTop: "-8px"}}>
-      <FlareIcon color={props.disabled ? "disabled" : "primary"}/>
-    </IconButton>
+    <Button style={{textTransform: 'none', float: "right" }} disabled={props.disabled} onClick={onClick} color="primary">
+      <FlareIcon color={props.disabled ? "disabled" : "primary"} className={classes.textIcon}/> Blink
+    </Button>
 )}
 
 
@@ -1446,27 +1454,32 @@ function PioreactorCard(props){
             </Typography>
             <div style={{display: "flex", justifyContent: "right"}}>
               <div>
+                <Button style={{textTransform: 'none', float: "right" }} disabled={props.disabled} color="primary">
+                  <SettingsIcon color={props.disabled ? "disabled" : "primary"} className={classes.textIcon}/> Calibrate
+                </Button>
+              </div>
+              <div>
                 <FlashLEDButton disabled={!isUnitActive} config={props.config} unit={unit}/>
               </div>
-                <SettingsActionsDialog
-                  config={props.config}
-                  stirringDCState={stirringDCState}
-                  ODReadingJobState={ODReadingJobState}
-                  growthRateJobState={growthRateJobState}
-                  stirringJobState={stirringJobState}
-                  dosingControlJobState={dosingControlJobState}
-                  ledControlJobState={ledControlJobState}
-                  temperatureControllingJobState={temperatureControllingJobState}
-                  targetGrowthRateState={targetGrowthRateState}
-                  volumeState={volumeState}
-                  durationState={durationState}
-                  targetODState={targetODState}
-                  dosingAlgorithm={dosingAlgorithm}
-                  temperature={temperature}
-                  experiment={experiment}
-                  unit={unit}
-                  disabled={!isUnitActive}
-                />
+              <SettingsActionsDialog
+                config={props.config}
+                stirringDCState={stirringDCState}
+                ODReadingJobState={ODReadingJobState}
+                growthRateJobState={growthRateJobState}
+                stirringJobState={stirringJobState}
+                dosingControlJobState={dosingControlJobState}
+                ledControlJobState={ledControlJobState}
+                temperatureControllingJobState={temperatureControllingJobState}
+                targetGrowthRateState={targetGrowthRateState}
+                volumeState={volumeState}
+                durationState={durationState}
+                targetODState={targetODState}
+                dosingAlgorithm={dosingAlgorithm}
+                temperature={temperature}
+                experiment={experiment}
+                unit={unit}
+                disabled={!isUnitActive}
+              />
               <div>
               </div>
             </div>
@@ -1709,7 +1722,7 @@ function InactiveUnits(props){
 
   return (
   <React.Fragment>
-    <div style={{display: "flex", justifyContent: "space-between", marginBottom: "5px", marginTop: "15px"}}>
+    <div style={{display: "flex", justifyContent: "space-between", marginBottom: "10px", marginTop: "15px"}}>
       <Typography variant="h5" component="h2">
         <Box fontWeight="fontWeightRegular">
           Inactive Pioreactors
