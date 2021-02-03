@@ -1374,6 +1374,7 @@ function FlashLEDButton(props){
   const classes = useStyles();
 
   const [client, setClient] = useState(null)
+  const [flashing, setFlashing] = useState(false)
 
   useEffect(() => {
     if (!props.config['network.topology']){
@@ -1396,27 +1397,34 @@ function FlashLEDButton(props){
 
 
   const onClick = () => {
-    var message = new Message("1");
-    message.destinationName = [
-      "pioreactor",
-      props.unit,
-      "$experiment",
-      "monitor",
-      "flicker_led",
-    ].join("/");
-    message.qos = 0;
-    try{
-      client.publish(message);
+    setFlashing(true)
+
+    const sendMessage = () => {
+      var message = new Message("1");
+      message.destinationName = [
+        "pioreactor",
+        props.unit,
+        "$experiment",
+        "monitor",
+        "flicker_led",
+      ].join("/");
+      message.qos = 0;
+      try{
+        client.publish(message);
+      }
+      catch (e){
+        console.log(e)
+        setTimeout(() => {sendMessage()}, 1000)
+      }
     }
-    catch (e){
-      console.log(e)
-      setTimeout(() => {onClick()}, 1000)
-    }
+
+    sendMessage()
+    setTimeout(() => {setFlashing(false)}, 3600 ) // .9 * 4
   }
 
   return (
-    <Button style={{textTransform: 'none', float: "right" }} disabled={props.disabled} onClick={onClick} color="primary">
-      <FlareIcon color={props.disabled ? "disabled" : "primary"} className={classes.textIcon}/> Blink
+    <Button style={{textTransform: 'none', float: "right"}} className={clsx({["blink-led"]: flashing})} disabled={props.disabled} onClick={onClick} color="primary">
+      <FlareIcon color={props.disabled ? "disabled" : "primary"} className={classes.textIcon}/> <span >  Blink  </span>
     </Button>
 )}
 

@@ -22,3 +22,18 @@ p[contenteditable="true"]:hover {
 a, u {
     text-decoration: none;
 }
+
+
+.blink-led {
+    animation-name: blink;
+    animation-duration: 0.9s;
+    animation-iteration-count: 4;
+}
+@keyframes blink {
+    0%   { opacity: 1;}
+    13%  { opacity: 0;}
+    26%  { opacity: 1;}
+    39%  { opacity: 0;}
+    51%  { opacity: 1;}
+    100% { opacity: 1;}
+}

@@ -101,6 +101,7 @@ const CheckboxesGroup = (props) => {
       <FormControl component="fieldset" className={classes.formControl}>
         <FormLabel component="legend">Datasets</FormLabel>
         <FormGroup>
+
           <FormControlLabel
             control={<Checkbox checked={props.isChecked.growth_rates} onChange={props.handleChange} name="growth_rates" />}
             label="Implied growth rate"
@@ -108,20 +109,7 @@ const CheckboxesGroup = (props) => {
           <Typography variant="caption" className={classes.caption} gutterBottom>
             The time series of the calculated (implied) growth rate. Same data as presented in the "Implied growth rate" chart in the Experiment Overview.
           </Typography>
-          <FormControlLabel
-            control={<Checkbox checked={props.isChecked.dosing_events} onChange={props.handleChange} name="dosing_events" />}
-            label="Dosing events log"
-          />
-          <Typography variant="caption" className={classes.caption} gutterBottom>
-            A detailed log table of all dosing events, including the volume exchanged, and the source of the initiator.
-          </Typography>
-          <FormControlLabel
-            control={<Checkbox checked={props.isChecked.experiments} onChange={props.handleChange} name="experiments" />}
-            label="Experiment description"
-          />
-          <Typography variant="caption" className={classes.caption} gutterBottom>
-            The most recent description of the experiment.
-          </Typography>
+
           <FormControlLabel
             control={<Checkbox checked={props.isChecked.od_readings_raw} onChange={props.handleChange} name="od_readings_raw" />}
             label="Raw optical density"
@@ -129,6 +117,7 @@ const CheckboxesGroup = (props) => {
           <Typography variant="caption" className={classes.caption} gutterBottom>
             The time series of raw voltages provided by the senors, the inputs for growth calculations and normalized optical densities. Same data as presented in the "Raw optical density" chart in the Experiment Overview.
           </Typography>
+
           <FormControlLabel
             control={<Checkbox checked={props.isChecked.od_readings_filtered} onChange={props.handleChange} name="od_readings_filtered" />}
             label="Normalized optical density"
@@ -136,6 +125,7 @@ const CheckboxesGroup = (props) => {
           <Typography variant="caption" className={classes.caption} gutterBottom>
             The time series of normalized optical densities. Same data as presented in the "Normalized optical density" chart in the Experiment Overview.
           </Typography>
+
           <FormControlLabel
             control={<Checkbox checked={props.isChecked.logs} onChange={props.handleChange} name="logs" />}
             label="Event logs"
@@ -143,6 +133,15 @@ const CheckboxesGroup = (props) => {
           <Typography variant="caption" className={classes.caption} gutterBottom>
             The append-only collection of logs from all Pioreactors. Same data as displayed in the Log Table in the Expeirment Overview.
           </Typography>
+
+          <FormControlLabel
+            control={<Checkbox checked={props.isChecked.experiments} onChange={props.handleChange} name="experiments" />}
+            label="Experiment description"
+          />
+          <Typography variant="caption" className={classes.caption} gutterBottom>
+            The most recent description of the experiment.
+          </Typography>
+
           <FormControlLabel
             control={<Checkbox checked={props.isChecked.alt_media_fraction} onChange={props.handleChange} name="alt_media_fraction" />}
             label="Alternative media fraction"
@@ -150,6 +149,15 @@ const CheckboxesGroup = (props) => {
           <Typography variant="caption" className={classes.caption} gutterBottom>
             A time series of how much alternative media is in each Pioreactor. Same data as presented in the "Fraction of volume that is alternative media" chart in the Experiment Overview.
           </Typography>
+
+          <FormControlLabel
+            control={<Checkbox checked={props.isChecked.dosing_events} onChange={props.handleChange} name="dosing_events" />}
+            label="Dosing events log"
+          />
+          <Typography variant="caption" className={classes.caption} gutterBottom>
+            A detailed log table of all dosing events, including the volume exchanged, and the source of the initiator.
+          </Typography>
+
           <FormControlLabel
             control={<Checkbox checked={props.isChecked.dosing_algorithm_settings} onChange={props.handleChange} name="dosing_algorithm_settings" />}
             label="Dosing algorithm change log"
@@ -158,6 +166,25 @@ const CheckboxesGroup = (props) => {
             Whenever a dosing algorithm is updated (new algorithm, new setting, etc.), a new record is produced. You can reconstruct all the dosing algorithm states
             from this dataset.
           </Typography>
+
+          <FormControlLabel
+            control={<Checkbox checked={props.isChecked.led_events} onChange={props.handleChange} name="led_events" />}
+            label="LED events log"
+          />
+          <Typography variant="caption" className={classes.caption} gutterBottom>
+            A detailed log table of all LED events, including the channel, intensity, and the source of the initiator.
+          </Typography>
+
+          <FormControlLabel
+            control={<Checkbox checked={props.isChecked.led_algorithm_settings} onChange={props.handleChange} name="led_algorithm_settings" />}
+            label="LED algorithm change log"
+          />
+          <Typography variant="caption" className={classes.caption} gutterBottom>
+            Whenever a LED algorithm is updated (new algorithm, new setting, etc.), a new record is produced. You can reconstruct all the LED algorithm states
+            from this dataset.
+          </Typography>
+
+
         </FormGroup>
       </FormControl>
     </div>
@@ -174,12 +201,14 @@ function DownloadDataFormContainer() {
     datasetCheckbox: {
       growth_rates: false,
       dosing_events: false,
+      led_events: false,
       experiments: false,
       od_readings_raw: false,
       od_readings_filtered: false,
       logs: false,
       alt_media_fraction: false,
       dosing_algorithm_settings: false,
+      led_algorithm_settings: false,
     }
   });
 
