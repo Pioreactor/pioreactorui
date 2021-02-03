@@ -115,7 +115,7 @@ function PageHeader(props) {
     <Snackbar
       anchorOrigin={{vertical: "bottom", horizontal: "center"}}
       open={openSnackbar}
-      message={"Updating software - this will only take a moment..."}
+      message={"Updating in the background - you may leave this page"}
       autoHideDuration={20000}
       key={"snackbar-update"}
     />

@@ -35,7 +35,8 @@ import SettingsIcon from '@material-ui/icons/Settings';
 
 import {parseINIString} from "./utilities"
 import ButtonChangeDosingDialog from "./components/ButtonChangeDosingDialog"
-import ActionPumpForm from "./components/ActionPumpForm"
+import ActionDosingForm from "./components/ActionDosingForm"
+import ActionLEDForm from "./components/ActionLEDForm"
 import PioreactorIcon from "./components/PioreactorIcon"
 import TactileButtonNotification from "./components/TactileButtonNotification";
 
@@ -660,6 +661,8 @@ function SettingsActionsDialog(props) {
   const grButtons = createUserButtonsBasedOnState(props.growthRateJobState, "growth_rate_calculating")
   const dosingButtons = createUserButtonsBasedOnState(props.dosingControlJobState, "dosing_algorithm", "dosing_control")
   const ledButtons = createUserButtonsBasedOnState(props.ledControlJobState, "led_algorithm", "led_control")
+  const invertedLEDMap = Object.fromEntries(Object.entries(props.config['leds']).map(([k, v]) => [v, k]))
+  console.log(invertedLEDMap)
 
   return (
     <div>
@@ -693,7 +696,7 @@ function SettingsActionsDialog(props) {
           <Typography variant="body2" component="p">
             Run the media pump{props.isPlural ? "s" : ""} for a set duration (seconds), or a set volume (mL).
           </Typography>
-          <ActionPumpForm action="add_media" unit={props.unit} />
+          <ActionDosingForm action="add_media" unit={props.unit} />
           <Divider className={classes.divider} />
           <Typography gutterBottom>
             Add alternative media
@@ -702,7 +705,7 @@ function SettingsActionsDialog(props) {
             Run the alternative media pump{props.isPlural ? "s" : ""} for a set duration (seconds), or a set
             volume (mL).
           </Typography>
-          <ActionPumpForm action="add_alt_media" unit={props.unit} />
+          <ActionDosingForm action="add_alt_media" unit={props.unit} />
           <Divider className={classes.divider} />
           <Typography  gutterBottom>
             Remove waste
@@ -710,16 +713,45 @@ function SettingsActionsDialog(props) {
           <Typography variant="body2" component="p">
             Run the waste pump{props.isPlural ? "s" : ""} for a set duration (seconds), or a set volume (mL).
           </Typography>
-          <ActionPumpForm action="remove_waste" unit={props.unit} />
+          <ActionDosingForm action="remove_waste" unit={props.unit} />
           <Divider className={classes.divider} />
         </TabPanel>
         <TabPanel value={tabValue} index={3}>
-          <Typography  gutterBottom>
-            LEDs
+          <Typography className={clsx(classes.suptitle)} color="textSecondary">
+            {(invertedLEDMap['A']) ? "Channel A" : ""}
           </Typography>
-          <Typography variant="body2" component="p">
-            Change the intensity of any onboard LEDs.
+          <Typography style={{textTransform: "capitalize"}}>
+            {(invertedLEDMap['A']) ? (invertedLEDMap['A'].replace("_", " ").replace("led", "LED")) : "Channel A" }
           </Typography>
+          <ActionLEDForm channel="A" unit={props.unit} />
+          <Divider className={classes.divider} />
+
+          <Typography className={clsx(classes.suptitle)} color="textSecondary">
+            {(invertedLEDMap['B']) ? "Channel B" : ""}
+          </Typography>
+          <Typography style={{textTransform: "capitalize"}}>
+            {(invertedLEDMap['B']) ? (invertedLEDMap['B'].replace("_", " ").replace("led", "LED")) : "Channel B" }
+          </Typography>
+          <ActionLEDForm channel="B" unit={props.unit} />
+          <Divider className={classes.divider} />
+
+          <Typography className={clsx(classes.suptitle)} color="textSecondary">
+            {(invertedLEDMap['C']) ? "Channel C" : ""}
+          </Typography>
+          <Typography style={{textTransform: "capitalize"}}>
+            {(invertedLEDMap['C']) ? (invertedLEDMap['C'].replace("_", " ").replace("led", "LED")) : "Channel C" }
+          </Typography>
+          <ActionLEDForm channel="C" unit={props.unit} />
+          <Divider className={classes.divider} />
+
+          <Typography className={clsx(classes.suptitle)} color="textSecondary">
+            {(invertedLEDMap['D']) ? "Channel D" : ""}
+          </Typography>
+          <Typography style={{textTransform: "capitalize"}}>
+            {(invertedLEDMap['D']) ? (invertedLEDMap['D'].replace("_", " ").replace("led", "LED")) : "Channel D" }
+          </Typography>
+          <ActionLEDForm channel="A" unit={props.unit} />
+
           <Divider className={classes.divider} />
         </TabPanel>
         <TabPanel value={tabValue} index={1}>
@@ -1315,7 +1347,7 @@ function SettingsActionsDialogAll(props) {
           <Typography variant="body2" component="p">
             Run the media pump{props.isPlural ? "s" : ""} for a set duration (seconds), or a set volume (mL).
           </Typography>
-          <ActionPumpForm action="add_media" unit={props.unit} />
+          <ActionDosingForm action="add_media" unit={props.unit} />
           <Divider className={classes.divider} />
           <Typography gutterBottom>
             Add alternative media
@@ -1324,7 +1356,7 @@ function SettingsActionsDialogAll(props) {
             Run the alternative media pump{props.isPlural ? "s" : ""} for a set duration (seconds), or a set
             volume (mL).
           </Typography>
-          <ActionPumpForm action="add_alt_media" unit={props.unit} />
+          <ActionDosingForm action="add_alt_media" unit={props.unit} />
           <Divider className={classes.divider} />
           <Typography  gutterBottom>
             Remove waste
@@ -1332,7 +1364,7 @@ function SettingsActionsDialogAll(props) {
           <Typography variant="body2" component="p">
             Run the waste pump{props.isPlural ? "s" : ""} for a set duration (seconds), or a set volume (mL).
           </Typography>
-          <ActionPumpForm action="remove_waste" unit={props.unit} />
+          <ActionDosingForm action="remove_waste" unit={props.unit} />
           <Divider className={classes.divider} />
         </TabPanel>
       </DialogContent>

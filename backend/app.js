@@ -184,7 +184,7 @@ app.get('/get_latest_experiment', function (req, res) {
       function (err, rows) {
         if (err) {
           console.log(err)
-          fetch()
+          return fetch()
         }
         res.send(rows[0])
     })
@@ -217,7 +217,7 @@ app.get("/recent_media_rates/:experiment", function (req, res) {
       function(err, rows) {
         if (err){
           console.log(err)
-          fetch()
+          return fetch()
         }
         var jsonResult = {}
         var aggregate = {altMediaRate: 0, mediaRate: 0}

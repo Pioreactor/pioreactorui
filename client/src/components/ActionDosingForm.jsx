@@ -22,17 +22,17 @@ const actionToAct = {
 }
 
 export default function ActionPumpForm(props) {
-  const emptyState = "";
-  const [mL, setML] = useState(emptyState);
-  const [duration, setDuration] = useState(emptyState);
+  const EMPTYSTATE = "";
   const classes = useStyles();
+  const [mL, setML] = useState(EMPTYSTATE);
+  const [duration, setDuration] = useState(EMPTYSTATE);
   const [isMLDisabled, setIsMLDisabled] = useState(false);
   const [isDurationDisabled, setIsDurationDisabled] = useState(false);
   const [openSnackbar, setOpenSnackbar] = useState(false);
 
   function onSubmit(e) {
     e.preventDefault();
-    if (mL !== emptyState || duration !== emptyState) {
+    if (mL !== EMPTYSTATE || duration !== EMPTYSTATE) {
       const params = mL !== "" ? { ml: mL, source_of_event: "UI"} : { duration: duration, source_of_event: "UI"};
       fetch(
         "/run/" +
@@ -53,7 +53,7 @@ export default function ActionPumpForm(props) {
   function handleMLChange(e) {
     setML(e.target.value);
     setIsDurationDisabled(true);
-    if (e.target.value === emptyState) {
+    if (e.target.value === EMPTYSTATE) {
       setIsDurationDisabled(false);
     }
   }
@@ -61,7 +61,7 @@ export default function ActionPumpForm(props) {
   function handleDurationChange(e) {
     setDuration(e.target.value);
     setIsMLDisabled(true);
-    if (e.target.value === emptyState) {
+    if (e.target.value === EMPTYSTATE) {
       setIsMLDisabled(false);
     }
   }
@@ -105,7 +105,7 @@ export default function ActionPumpForm(props) {
         anchorOrigin={{vertical: "bottom", horizontal: "center"}}
         open={openSnackbar}
         onClose={handleSnackbarClose}
-        message={actionToAct[props.action] + (duration !== emptyState ? (" for " +  duration + " seconds.") : (" until " + mL + "mL."))}
+        message={actionToAct[props.action] + (duration !== EMPTYSTATE ? (" for " +  duration + " seconds.") : (" until " + mL + "mL."))}
         autoHideDuration={7000}
         key={"snackbar" + props.unit + props.action}
       />
