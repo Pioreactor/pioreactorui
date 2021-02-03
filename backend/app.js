@@ -185,16 +185,12 @@ app.get('/get_latest_experiment', function (req, res) {
       function (err, rows) {
         if (err) {
           console.log(err)
-          return false
+          return setTimeout(fetch, 250)
         }
         res.send(rows[0])
-        return true
     })
   }
-
-  while (!fetch()){
-  }
-
+  fetch()
 })
 
 
