@@ -184,7 +184,7 @@ app.get('/get_latest_experiment', function (req, res) {
       function (err, rows) {
         if (err) {
           console.log(err)
-          return fetch()
+          return setTimeout(fetch, 250)
         }
         res.send(rows[0])
     })
@@ -211,13 +211,13 @@ app.get("/recent_media_rates/:experiment", function (req, res) {
   const hours = 6
 
   function fetch(){
-    db.query(`SELECT pioreactor_unit, SUM(CASE WHEN event="add_media" THEN volume_change_ml ELSE 0 END) / :hours AS mediaRate, SUM(CASE WHEN event="add_alt_media" THEN volume_change_ml ELSE 0 END) / :hours AS altMediaRate FROM dosing_events where datetime(timestamp) >= datetime('now', '-:hours Hour') and event in ('add_alt_media', 'add_media') and experiment=:experiment and source_of_event == 'io_controlling' GROUP BY pioreactor_unit;`,
+    db.query(`SELECT pioreactor_unit, SUM(CASE WHEN event="add_media" THEN volume_change_ml ELSE 0 END) / :hours AS mediaRate, SUM(CASE WHEN event="add_alt_media" THEN volume_change_ml ELSE 0 END) / :hours AS altMediaRate FROM dosing_events where datetime(timestamp) >= datetime('now', '-:hours Hour') and event in ('add_alt_media', 'add_media') and experiment=:experiment and source_of_event == 'dosing_algorithm' GROUP BY pioreactor_unit;`,
       {experiment: experiment, hours: hours},
       {pioreactor_unit: String, mediaRate: Number, altMediaRate: Number},
       function(err, rows) {
         if (err){
           console.log(err)
-          return fetch()
+          return setTimeout(fetch, 250)
         }
         var jsonResult = {}
         var aggregate = {altMediaRate: 0, mediaRate: 0}

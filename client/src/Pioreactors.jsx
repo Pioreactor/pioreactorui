@@ -258,14 +258,14 @@ function ButtonConfirmStopProcessDialog() {
         <DialogTitle id="alert-dialog-title">{"Stop all Pioreactor activity?"}</DialogTitle>
         <DialogContent>
           <DialogContentText id="alert-dialog-description">
-            This will stop stirring, optical density measuring, and dosing events from occurring in <b>all</b> Pioreactor units.
+            This will stop all activies (stirring, dosing, optical density reading, etc.) in <b>all</b> Pioreactor units. Do you wish to stop all activities?
           </DialogContentText>
         </DialogContent>
         <DialogActions>
           <Button onClick={onConfirm} color="primary">
-            OK
+            Confirm
           </Button>
-          <Button onClick={handleClose} color="primary" autoFocus>
+          <Button onClick={handleClose} color="secondary" autoFocus>
             Cancel
           </Button>
         </DialogActions>
@@ -383,7 +383,7 @@ network={
         <TextField
           size="small"
           id="new-pioreactor-name"
-          label="New Pioreactor's name"
+          label="Provide a name"
           variant="outlined"
           className={classes.textFieldWide}
           onChange={handleNameChange}
@@ -432,7 +432,9 @@ function PioreactorHeader(props) {
           </Box>
         </Typography>
         <div >
+          <SettingsActionsDialogAll unit={'$broadcast'} config={props.config} experiment={props.experiment}/>
           <AddNewPioreactor config={props.config}/>
+          <ButtonConfirmStopProcessDialog/>
         </div>
       </div>
       <Divider/>
@@ -1392,8 +1394,7 @@ function ActiveUnits(props){
         </Box>
       </Typography>
       <div >
-        <SettingsActionsDialogAll unit={'$broadcast'} config={props.config} experiment={props.experiment}/>
-        <ButtonConfirmStopProcessDialog/>
+
       </div>
     </div>
     {props.units.map(unit =>
@@ -1520,8 +1521,6 @@ function PioreactorCard(props){
                 unit={unit}
                 disabled={!isUnitActive}
               />
-              <div>
-              </div>
             </div>
           </div>
         </div>
@@ -1801,7 +1800,7 @@ function Pioreactors(props) {
 
           <Grid item md={1} xs={1}/>
           <Grid item md={10} xs={12}>
-            <PioreactorHeader experiment={experimentMetadata.experiment}/>
+            <PioreactorHeader config={props.config} experiment={experimentMetadata.experiment}/>
             <ActiveUnits experiment={experimentMetadata.experiment} config={props.config} units={props.config['inventory'] ? entries(props.config['inventory']).filter((v) => v[1] === "1").map((v) => v[0]) : [] }/>
             <InactiveUnits experiment={experimentMetadata.experiment} config={props.config} units={props.config['inventory'] ? entries(props.config['inventory']).filter((v) => v[1] === "0").map((v) => v[0]) : [] }/>
           </Grid>
