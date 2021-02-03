@@ -178,6 +178,7 @@ app.get('/get_experiments', function (req, res) {
 
 app.get('/get_latest_experiment', function (req, res) {
   function fetch() {
+    console.log("here in fetch get_latest_experiment")
     db.query(
       'SELECT * FROM experiments ORDER BY timestamp DESC LIMIT 1;',
       ["experiment", "timestamp", "description"],
