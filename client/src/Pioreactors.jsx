@@ -912,7 +912,7 @@ function SettingsActionsDialog(props) {
             unit={props.unit}
             config={props.config}
             experiment={props.experiment}
-            currentLEDAlgorithm={"silent"}
+            currentLEDAlgorithm={props.ledAlgorithm}
           />
           <Divider className={classes.divider} />
         </TabPanel>

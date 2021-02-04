@@ -127,14 +127,6 @@ const CheckboxesGroup = (props) => {
           </Typography>
 
           <FormControlLabel
-            control={<Checkbox checked={props.isChecked.logs} onChange={props.handleChange} name="logs" />}
-            label="Event logs"
-          />
-          <Typography variant="caption" className={classes.caption} gutterBottom>
-            The append-only collection of logs from all Pioreactors. Same data as displayed in the Log Table in the Expeirment Overview.
-          </Typography>
-
-          <FormControlLabel
             control={<Checkbox checked={props.isChecked.experiments} onChange={props.handleChange} name="experiments" />}
             label="Experiment description"
           />
@@ -152,7 +144,7 @@ const CheckboxesGroup = (props) => {
 
           <FormControlLabel
             control={<Checkbox checked={props.isChecked.dosing_events} onChange={props.handleChange} name="dosing_events" />}
-            label="Dosing events log"
+            label="Dosing event log"
           />
           <Typography variant="caption" className={classes.caption} gutterBottom>
             A detailed log table of all dosing events, including the volume exchanged, and the source of the initiator.
@@ -160,7 +152,7 @@ const CheckboxesGroup = (props) => {
 
           <FormControlLabel
             control={<Checkbox checked={props.isChecked.dosing_algorithm_settings} onChange={props.handleChange} name="dosing_algorithm_settings" />}
-            label="Dosing algorithm change log"
+            label="Dosing algorithm changelog"
           />
           <Typography variant="caption" className={classes.caption} gutterBottom>
             Whenever a dosing algorithm is updated (new algorithm, new setting, etc.), a new record is produced. You can reconstruct all the dosing algorithm states
@@ -169,7 +161,7 @@ const CheckboxesGroup = (props) => {
 
           <FormControlLabel
             control={<Checkbox checked={props.isChecked.led_events} onChange={props.handleChange} name="led_events" />}
-            label="LED events log"
+            label="LED event log"
           />
           <Typography variant="caption" className={classes.caption} gutterBottom>
             A detailed log table of all LED events, including the channel, intensity, and the source of the initiator.
@@ -177,13 +169,21 @@ const CheckboxesGroup = (props) => {
 
           <FormControlLabel
             control={<Checkbox checked={props.isChecked.led_algorithm_settings} onChange={props.handleChange} name="led_algorithm_settings" />}
-            label="LED algorithm change log"
+            label="LED algorithm changelog"
           />
           <Typography variant="caption" className={classes.caption} gutterBottom>
             Whenever a LED algorithm is updated (new algorithm, new setting, etc.), a new record is produced. You can reconstruct all the LED algorithm states
             from this dataset.
           </Typography>
 
+          <FormControlLabel
+            control={<Checkbox checked={props.isChecked.logs} onChange={props.handleChange} name="logs" />}
+            label="Pioreactor logs"
+          />
+          <Typography variant="caption" className={classes.caption} gutterBottom>
+            The append-only collection of logs from all Pioreactors. A subset of the these logs are displayed in the Log Table in the Experiment Overview.
+            These are the logs that should be provided to get assistance from third-parties.
+          </Typography>
 
         </FormGroup>
       </FormControl>
