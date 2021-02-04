@@ -35,6 +35,7 @@ import SettingsIcon from '@material-ui/icons/Settings';
 
 import {parseINIString} from "./utilities"
 import ButtonChangeDosingDialog from "./components/ButtonChangeDosingDialog"
+import ButtonChangeLEDDialog from "./components/ButtonChangeLEDDialog"
 import ActionDosingForm from "./components/ActionDosingForm"
 import ActionLEDForm from "./components/ActionLEDForm"
 import PioreactorIcon from "./components/PioreactorIcon"
@@ -664,7 +665,6 @@ function SettingsActionsDialog(props) {
   const dosingButtons = createUserButtonsBasedOnState(props.dosingControlJobState, "dosing_algorithm", "dosing_control")
   const ledButtons = createUserButtonsBasedOnState(props.ledControlJobState, "led_algorithm", "led_control")
   const invertedLEDMap = Object.fromEntries(Object.entries(props.config['leds']).map(([k, v]) => [v, k]))
-  console.log(invertedLEDMap)
 
   return (
     <div>
@@ -888,6 +888,31 @@ function SettingsActionsDialog(props) {
             config={props.config}
             experiment={props.experiment}
             currentDosingAlgorithm={props.dosingAlgorithm}
+          />
+          <Divider className={classes.divider} />
+          <Typography  gutterBottom>
+            LED algorithm
+          </Typography>
+          <Typography variant="body2" component="p" gutterBottom>
+            {props.ledControlJobState !== "disconnected" &&
+              <React.Fragment>
+              Currently running LED algorithm <code>{props.ledAlgorithm}</code>.
+              Learn more about <a target="_blank" href="https://github.com/Pioreactor/pioreactor/wiki/led-algorithms">LED algorithms</a>.
+              </React.Fragment>
+            }
+            {props.ledControlJobState === "disconnected" &&
+
+              <React.Fragment>
+              You can change the LED algorthm after starting the job.
+              </React.Fragment>
+            }
+          </Typography>
+
+          <ButtonChangeLEDDialog
+            unit={props.unit}
+            config={props.config}
+            experiment={props.experiment}
+            currentLEDAlgorithm={"silent"}
           />
           <Divider className={classes.divider} />
         </TabPanel>
@@ -1479,6 +1504,7 @@ function PioreactorCard(props){
   const [targetGrowthRateState, setTargetGrowthRateState] = useState(0);
   const [volumeState, setVolumeState] = useState(0);
   const [dosingAlgorithm, setDosingAlgorithm] = useState(null);
+  const [ledAlgorithm, setLedAlgorithm] = useState(null);
   const [temperature, setTemperature] = useState(0);
 
   return (
@@ -1516,6 +1542,7 @@ function PioreactorCard(props){
                 durationState={durationState}
                 targetODState={targetODState}
                 dosingAlgorithm={dosingAlgorithm}
+                ledAlgorithm={ledAlgorithm}
                 temperature={temperature}
                 experiment={experiment}
                 unit={unit}
@@ -1713,6 +1740,21 @@ function PioreactorCard(props){
             default="—"
             className={classes.alignRight}
             topic="dosing_control/dosing_algorithm"
+            unit={unit}
+            config={props.config}
+          />
+        </div>
+        <div className={classes.textbox}>
+          <Typography variant="body2" style={{fontSize: "0.85rem"}}>
+            LED algorithm
+          </Typography>
+          <UnitSettingDisplay
+            experiment={experiment}
+            passChildData={setLedAlgorithm}
+            isUnitActive={isUnitActive}
+            default="—"
+            className={classes.alignRight}
+            topic="led_control/led_algorithm"
             unit={unit}
             config={props.config}
           />
