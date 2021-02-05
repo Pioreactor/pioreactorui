@@ -65,7 +65,6 @@ app.get('/updates', function(req, res) {
 app.post("/update_app", function (req, res) {
     var child = cp.fork('./child_tasks/update_app');
     child.on('message', function(result) {
-      console.log(result)
       if (result) {
           res.sendStatus(200)
       }
@@ -178,7 +177,6 @@ app.get('/get_experiments', function (req, res) {
 
 app.get('/get_latest_experiment', function (req, res) {
   function fetch() {
-    console.log("here in fetch get_latest_experiment")
     db.query(
       'SELECT * FROM experiments ORDER BY timestamp DESC LIMIT 1;',
       ["experiment", "timestamp", "description"],
