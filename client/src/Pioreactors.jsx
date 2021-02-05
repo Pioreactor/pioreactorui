@@ -1504,6 +1504,15 @@ function PioreactorCard(props){
     if (!props.config['network.topology']){
       return
     }
+
+    if (!isUnitActive){
+      return
+    }
+
+    if (!experiment){
+      return
+    }
+
     if (props.config.remote) {
       var client = new Client(
         `ws://${props.config.remote.ws_url}/`,
@@ -1518,7 +1527,7 @@ function PioreactorCard(props){
     setClient(client)
     client.onMessageArrived = onMessageArrived
     client.connect({onSuccess: onConnect});
-  },[props.config])
+  },[props.config, props.experiment])
 
 
   return (
