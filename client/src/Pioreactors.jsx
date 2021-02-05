@@ -1609,7 +1609,7 @@ function PioreactorCard(props){
             Growth rate
           </Typography>
           <UnitSettingDisplay
-            passChildData={growthRateJobState}
+            value={growthRateJobState}
             isUnitActive={isUnitActive}
             default="disconnected"
             isStateSetting
