@@ -93,7 +93,7 @@ function ButtonChangeLEDDialog(props) {
       )}
     else {
       var client = new Client(
-        `${props.config['network.topology']['leader_hostname']}.local`, 9001,
+        `${props.config['network.topology']['leader_address']}`, 9001,
         "webui_ButtonChangeLEDDialog" + Math.random()
       );
     }

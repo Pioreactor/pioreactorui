@@ -160,7 +160,7 @@ class UnitSettingDisplay extends React.Component {
       )}
     else {
       this.client = new Client(
-        `${this.props.config['network.topology']['leader_hostname']}.local`, 9001,
+        `${this.props.config['network.topology']['leader_address']}`, 9001,
         "webui_UnitSettingDisplay" + Math.random()
       );
     }
@@ -525,7 +525,7 @@ function SettingsActionsDialog(props) {
       )}
     else {
       var client = new Client(
-        `${props.config['network.topology']['leader_hostname']}.local`, 9001,
+        `${props.config['network.topology']['leader_address']}`, 9001,
         "webui_SettingsActionsDialog" + Math.random()
       );
     }
@@ -1052,7 +1052,7 @@ function SettingsActionsDialogAll(props) {
       )}
     else {
       var client = new Client(
-        `${props.config['network.topology']['leader_hostname']}.local`, 9001,
+        `${props.config['network.topology']['leader_address']}`, 9001,
         "webui_SettingsActionsDialogAll" + Math.random()
       );
     }
@@ -1445,7 +1445,7 @@ function FlashLEDButton(props){
       )}
     else {
       var client = new Client(
-        `${props.config['network.topology']['leader_hostname']}.local`, 9001,
+        `${props.config['network.topology']['leader_address']}`, 9001,
         "webui_FlashLEDButton" + Math.random()
       );
     }

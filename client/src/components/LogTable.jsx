@@ -67,7 +67,7 @@ class LogTable extends React.Component {
       )}
     else {
       this.client = new Client(
-        `${this.props.config['network.topology']['leader_hostname']}.local`, 9001,
+        `${this.props.config['network.topology']['leader_address']}`, 9001,
         "webui_LogTable" + Math.random()
       );
     }
