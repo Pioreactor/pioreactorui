@@ -9,7 +9,6 @@ import {
   VictoryLegend,
   createContainer,
   VictoryTooltip,
-  VictoryVoronoiContainer
 } from "victory";
 import moment from "moment";
 import Card from "@material-ui/core/Card";
@@ -50,15 +49,6 @@ function getColorFromName(name){
   }
 }
 
-
-function linspace(startValue, stopValue, cardinality) {
-  var arr = [];
-  var step = (stopValue - startValue) / (cardinality - 1);
-  for (var i = 0; i < cardinality; i++) {
-    arr.push(startValue + step * i);
-  }
-  return arr;
-}
 
 class Chart extends React.Component {
   constructor(props) {

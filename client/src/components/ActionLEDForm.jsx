@@ -14,12 +14,6 @@ const useStyles = makeStyles({
 });
 
 
-const actionToAct = {
-  "remove_waste": "Removing waste",
-  "add_media": "Adding media",
-  "add_alt_media": "Adding alt. media",
-
-}
 
 export default function ActionLEDForm(props) {
   const EMPTYSTATE = "";

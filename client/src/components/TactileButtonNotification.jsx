@@ -23,7 +23,6 @@ function TactileButtonNotification(props) {
         }
         catch {}
         setOpen(true)
-
       }
       else {
         setOpen(false)

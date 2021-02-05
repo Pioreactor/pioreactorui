@@ -4,11 +4,6 @@ import SvgIcon from '@material-ui/core/SvgIcon';
 
 
 function PioreactorIcon(props) {
-  const colors = {
-    primary: "#5331CA",
-    disabled: "rgba(0, 0, 0, 0.38)",
-    black: "rgba(0, 0, 0, 0.87)"
-  }
   return (
     <SvgIcon {...props}>
         <g id="Page-1" stroke="none" strokeWidth="1" fill={props.fillColor || "none"} fillRule="evenodd">

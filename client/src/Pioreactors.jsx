@@ -136,48 +136,15 @@ TabPanel.propTypes = {
 
 
 class UnitSettingDisplay extends React.Component {
-  // this class polls the MQTT broker for state
   constructor(props) {
     super(props);
-    this.state = { msg: this.props.default };
-    this.onConnect = this.onConnect.bind(this);
-    this.onMessageArrived = this.onMessageArrived.bind(this);
-    this.MQTTConnect();
+    this.state = { value: this.props.default };
   }
 
-  updateParent(data) {
-    try {
-      this.props.passChildData(data);
-    } catch (e) {}
-  }
-
-  MQTTConnect() {
-    // need to have unique clientIds
-    if (this.props.config.remote) {
-      this.client = new Client(
-        `ws://${this.props.config.remote.ws_url}/`,
-        "webui_UnitSettingDisplay" + Math.random()
-      )}
-    else {
-      this.client = new Client(
-        `${this.props.config['network.topology']['leader_address']}`, 9001,
-        "webui_UnitSettingDisplay" + Math.random()
-      );
+  componentDidUpdate(prevProps) {
+    if (this.props.value !== prevProps.value) {
+      this.setState({value: this.props.value})
     }
-    this.client.connect({ onSuccess: this.onConnect, timeout: 180});
-    this.client.onMessageArrived = this.onMessageArrived;
-  }
-
-  onConnect() {
-    this.client.subscribe(
-      [
-        "pioreactor",
-        this.props.unit,
-        this.props.experiment,
-        this.props.topic,
-      ].join("/"),
-      { qos: 1 }
-    );
   }
 
   stateDisplay = {
@@ -189,35 +156,26 @@ class UnitSettingDisplay extends React.Component {
     "NA":            {display: "Not available", color: offlineGrey},
   }
 
-  onMessageArrived(message) {
-    var parsedFloat = parseFloat(message.payloadString);
-    var payload = isNaN(parsedFloat) ? message.payloadString : parsedFloat
-    this.setState({
-      msg: payload,
-    });
-    this.updateParent(payload);
-  }
-
   render() {
     if (this.props.isStateSetting) {
       if (!this.props.isUnitActive) {
-        return <div style={{ color: offlineGrey, fontWeight: 500}}> {this.stateDisplay[this.state.msg].display} </div>;
+        return <div style={{ color: offlineGrey, fontWeight: 500}}> {this.stateDisplay[this.state.value].display} </div>;
       } else {
-        var displaySettings = this.stateDisplay[this.state.msg]
+        var displaySettings = this.stateDisplay[this.state.value]
         return (
           <div style={{ color: displaySettings.color, fontWeight: 500}}>
             {displaySettings.display}
           </div>
       )}
     } else {
-      if (!this.props.isUnitActive || this.state.msg === "—" || this.state.msg === "") {
+      if (!this.props.isUnitActive || this.state.value === "—" || this.state.value === "") {
         return <div style={{ color: offlineGrey, fontSize: "13px"}}> {this.props.default} </div>;
       } else {
         return (
           <div style={{ fontSize: "13px"}}>
-            {(typeof this.state.msg === "string"
-              ? this.state.msg
-              : +this.state.msg.toFixed(this.props.precision)) +
+            {(typeof this.state.value === "string"
+              ? this.state.value
+              : +this.state.value.toFixed(this.props.precision)) +
               (this.props.measurementUnit ? this.props.measurementUnit : "")}
           </div>
         );
@@ -766,7 +724,7 @@ function SettingsActionsDialog(props) {
           </Typography>
           <div className={classes.slider}>
             <Slider
-              defaultValue={parseInt(props.stirringDCState)}
+              defaultValue={parseInt(props.stirringDC)}
               aria-labelledby="discrete-slider-custom"
               step={1}
               valueLabelDisplay="on"
@@ -792,7 +750,7 @@ function SettingsActionsDialog(props) {
             size="small"
             id="dosing_algorithm/volume"
             label="Volume / dosing"
-            defaultValue={props.volumeState}
+            defaultValue={props.volume}
             InputProps={{
               endAdornment: <InputAdornment position="end">mL</InputAdornment>,
             }}
@@ -813,7 +771,7 @@ function SettingsActionsDialog(props) {
             size="small"
             id="dosing_algorithm/target_od"
             label="Target optical density"
-            defaultValue={props.targetODState}
+            defaultValue={props.targetOD}
             InputProps={{
               endAdornment: <InputAdornment position="end">AU</InputAdornment>,
             }}
@@ -834,7 +792,7 @@ function SettingsActionsDialog(props) {
             size="small"
             id="dosing_algorithm/duration"
             label="Duration"
-            defaultValue={props.durationState}
+            defaultValue={props.duration}
             InputProps={{
               endAdornment: <InputAdornment position="end">min</InputAdornment>,
             }}
@@ -856,7 +814,7 @@ function SettingsActionsDialog(props) {
             size="small"
             id="dosing_algorithm/target_growth_rate"
             label="Target growth rate"
-            defaultValue={props.targetGrowthRateState}
+            defaultValue={props.targetGrowthRate}
             InputProps={{
               endAdornment: <InputAdornment position="end">h⁻¹</InputAdornment>,
             }}
@@ -1221,7 +1179,7 @@ function SettingsActionsDialogAll(props) {
             size="small"
             id="dosing_algorithm/volume"
             label="Volume / dosing"
-            defaultValue={props.volumeState}
+            defaultValue={props.volume}
             InputProps={{
               endAdornment: <InputAdornment position="end">mL</InputAdornment>,
             }}
@@ -1242,7 +1200,7 @@ function SettingsActionsDialogAll(props) {
             size="small"
             id="dosing_algorithm/target_od"
             label="Target optical density"
-            defaultValue={props.targetODState}
+            defaultValue={props.targetOD}
             InputProps={{
               endAdornment: <InputAdornment position="end">AU</InputAdornment>,
             }}
@@ -1263,7 +1221,7 @@ function SettingsActionsDialogAll(props) {
             size="small"
             id="dosing_algorithm/duration"
             label="Duration"
-            defaultValue={props.durationState}
+            defaultValue={props.duration}
             InputProps={{
               endAdornment: <InputAdornment position="end">min</InputAdornment>,
             }}
@@ -1285,7 +1243,7 @@ function SettingsActionsDialogAll(props) {
             size="small"
             id="dosing_algorithm/target_growth_rate"
             label="Target growth rate"
-            defaultValue={props.targetGrowthRateState}
+            defaultValue={props.targetGrowthRate}
             InputProps={{
               endAdornment: <InputAdornment position="end">h⁻¹</InputAdornment>,
             }}
@@ -1428,6 +1386,7 @@ function ActiveUnits(props){
   </React.Fragment>
 )}
 
+
 function FlashLEDButton(props){
   const classes = useStyles();
 
@@ -1492,20 +1451,72 @@ function PioreactorCard(props){
   const unit = props.unit
   const isUnitActive = props.isUnitActive
   const experiment = props.experiment
-  const [stirringDCState, setStirringDCState] = useState(0);
   const [stirringJobState, setStirringJobState] = useState("disconnected");
   const [ODReadingJobState, setODReadingJobState] = useState("disconnected");
   const [growthRateJobState, setGrowthRateJobState] = useState("disconnected");
   const [dosingControlJobState, setdosingControlJobState] = useState("disconnected");
   const [temperatureControllingJobState, setTemperatureControllingJobState] = useState("disconnected");
   const [ledControlJobState, setLEDControllingJobState] = useState("disconnected");
-  const [targetODState, setTargetODState] = useState(0);
-  const [durationState, setDurationState] = useState(0);
-  const [targetGrowthRateState, setTargetGrowthRateState] = useState(0);
-  const [volumeState, setVolumeState] = useState(0);
+  const [stirringDC, setStirringDC] = useState(0);
+  const [targetOD, setTargetOD] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const [targetGrowthRate, setTargetGrowthRate] = useState(0);
+  const [volume, setVolume] = useState(0);
   const [dosingAlgorithm, setDosingAlgorithm] = useState(null);
   const [ledAlgorithm, setLedAlgorithm] = useState(null);
   const [temperature, setTemperature] = useState(0);
+  const [client, setClient] = useState(null);
+
+  const topicsToCallback = {
+    [["pioreactor", unit, experiment, "led_control/$state"   ].join("/")]: setLEDControllingJobState,
+    [["pioreactor", unit, experiment, "stirring/$state"      ].join("/")]: setStirringJobState,
+    [["pioreactor", unit, experiment, "od_reading/$state"    ].join("/")]: setODReadingJobState,
+    [["pioreactor", unit, experiment, "dosing_control/$state"].join("/")]: setdosingControlJobState,
+    [["pioreactor", unit, experiment, "growth_rate_calculating/$state"].join("/")]: setGrowthRateJobState,
+    [["pioreactor", unit, experiment, "temperature_control/$state"].join("/")]: setTemperatureControllingJobState,
+    [["pioreactor", unit, experiment, "stirring/duty_cycle"].join("/")]: setStirringDC,
+    [["pioreactor", unit, experiment, "dosing_algorithm/target_od"].join("/")]: setTargetOD,
+    [["pioreactor", unit, experiment, "dosing_algorithm/duration"].join("/")]: setDuration,
+    [["pioreactor", unit, experiment, "dosing_algorithm/target_growth_rate"].join("/")]: setTargetGrowthRate,
+    [["pioreactor", unit, experiment, "dosing_algorithm/volume"].join("/")]: setVolume,
+    [["pioreactor", unit, experiment, "dosing_control/dosing_algorithm"].join("/")]: setDosingAlgorithm,
+    [["pioreactor", unit, experiment, "led_control/led_algorithm"].join("/")]: setLedAlgorithm,
+    [["pioreactor", unit, experiment, "temperature_control/temperature"].join("/")]: setTemperature,
+  }
+
+
+  useEffect(() => {
+    const onConnect = () => {
+      for (const [key, value] of Object.entries(topicsToCallback)) {
+        client.subscribe(key);
+      }
+    }
+
+    const onMessageArrived = (message) => {
+      var parsedFloat = parseFloat(message.payloadString); // try to parse it as a float first
+      var payload = isNaN(parsedFloat) ? message.payloadString : parsedFloat
+      topicsToCallback[message.topic](payload)
+    }
+
+    if (!props.config['network.topology']){
+      return
+    }
+    if (props.config.remote) {
+      var client = new Client(
+        `ws://${props.config.remote.ws_url}/`,
+        "webui" + Math.random()
+      )}
+    else {
+      var client = new Client(
+        `${props.config['network.topology']['leader_address']}`, 9001,
+        "webui" + Math.random()
+      );
+    }
+    setClient(client)
+    client.connect({onSuccess: onConnect});
+    client.onMessageArrived = onMessageArrived
+  },[props.config])
+
 
   return (
     <Card className={classes.pioreactorCard} id={unit}>
@@ -1530,17 +1541,17 @@ function PioreactorCard(props){
               </div>
               <SettingsActionsDialog
                 config={props.config}
-                stirringDCState={stirringDCState}
+                stirringDC={stirringDC}
                 ODReadingJobState={ODReadingJobState}
                 growthRateJobState={growthRateJobState}
                 stirringJobState={stirringJobState}
                 dosingControlJobState={dosingControlJobState}
                 ledControlJobState={ledControlJobState}
                 temperatureControllingJobState={temperatureControllingJobState}
-                targetGrowthRateState={targetGrowthRateState}
-                volumeState={volumeState}
-                durationState={durationState}
-                targetODState={targetODState}
+                targetGrowthRate={targetGrowthRate}
+                volume={volume}
+                duration={duration}
+                targetOD={targetOD}
                 dosingAlgorithm={dosingAlgorithm}
                 ledAlgorithm={ledAlgorithm}
                 temperature={temperature}
@@ -1567,14 +1578,10 @@ function PioreactorCard(props){
             Stirring
           </Typography>
           <UnitSettingDisplay
-            passChildData={setStirringJobState}
-            experiment={experiment}
+            value={stirringJobState}
             isUnitActive={isUnitActive}
             default="disconnected"
             isStateSetting
-            topic="stirring/$state"
-            unit={unit}
-            config={props.config}
           />
         </div>
         <div className={classes.textbox}>
@@ -1582,14 +1589,10 @@ function PioreactorCard(props){
             Optical density
           </Typography>
           <UnitSettingDisplay
-            passChildData={setODReadingJobState}
-            experiment={experiment}
+            value={ODReadingJobState}
             isUnitActive={isUnitActive}
             default="disconnected"
             isStateSetting
-            topic="od_reading/$state"
-            unit={unit}
-            config={props.config}
           />
         </div>
         <div className={classes.textbox}>
@@ -1597,14 +1600,10 @@ function PioreactorCard(props){
             Growth rate
           </Typography>
           <UnitSettingDisplay
-            passChildData={setGrowthRateJobState}
-            experiment={experiment}
+            passChildData={growthRateJobState}
             isUnitActive={isUnitActive}
             default="disconnected"
             isStateSetting
-            topic="growth_rate_calculating/$state"
-            unit={unit}
-            config={props.config}
           />
         </div>
         <div className={classes.textbox}>
@@ -1612,14 +1611,10 @@ function PioreactorCard(props){
             Dosing control
           </Typography>
           <UnitSettingDisplay
-            passChildData={setdosingControlJobState}
-            experiment={experiment}
+            value={dosingControlJobState}
             isUnitActive={isUnitActive}
             default="disconnected"
             isStateSetting
-            topic="dosing_algorithm/$state"
-            unit={unit}
-            config={props.config}
           />
         </div>
         <div className={classes.textbox}>
@@ -1627,14 +1622,10 @@ function PioreactorCard(props){
             LED control
           </Typography>
           <UnitSettingDisplay
-            passChildData={setLEDControllingJobState}
-            experiment={experiment}
+            value={ledControlJobState}
             isUnitActive={isUnitActive}
             default="disconnected"
             isStateSetting
-            topic="led_control/$state"
-            unit={unit}
-            config={props.config}
           />
         </div>
         <div className={classes.textbox}>
@@ -1642,14 +1633,10 @@ function PioreactorCard(props){
             Temperature control
           </Typography>
           <UnitSettingDisplay
-            passChildData={setTemperatureControllingJobState}
-            experiment={experiment}
+            value={temperatureControllingJobState}
             isUnitActive={isUnitActive}
             default="NA"
             isStateSetting
-            topic="temperature_control/$state"
-            unit={unit}
-            config={props.config}
           />
         </div>
       </div>
@@ -1669,14 +1656,10 @@ function PioreactorCard(props){
             Stirring speed
           </Typography>
           <UnitSettingDisplay
-            passChildData={setStirringDCState}
-            experiment={experiment}
+            value={stirringDC}
             isUnitActive={isUnitActive}
             default="—"
             className={classes.alignRight}
-            topic="stirring/duty_cycle"
-            unit={unit}
-            config={props.config}
           />
         </div>
         <div className={classes.textbox}>
@@ -1686,14 +1669,10 @@ function PioreactorCard(props){
           <UnitSettingDisplay
             precision={2}
             measurementUnit="mL"
-            experiment={experiment}
-            passChildData={setVolumeState}
+            value={volume}
             isUnitActive={isUnitActive}
             default="—"
             className={classes.alignRight}
-            topic="dosing_algorithm/volume"
-            unit={unit}
-            config={props.config}
           />
         </div>
         <div className={classes.textbox}>
@@ -1702,14 +1681,10 @@ function PioreactorCard(props){
           </Typography>
           <UnitSettingDisplay
             precision={2}
-            experiment={experiment}
-            passChildData={setTargetODState}
+            value={targetOD}
             isUnitActive={isUnitActive}
             default={"—"}
             className={classes.alignRight}
-            topic="dosing_algorithm/target_od"
-            unit={unit}
-            config={props.config}
           />
         </div>
         <div className={classes.textbox}>
@@ -1719,14 +1694,10 @@ function PioreactorCard(props){
           <UnitSettingDisplay
             precision={2}
             measurementUnit="h⁻¹"
-            experiment={experiment}
-            passChildData={setTargetGrowthRateState}
+            value={targetGrowthRate}
             isUnitActive={isUnitActive}
             default="—"
             className={classes.alignRight}
-            topic="dosing_algorithm/target_growth_rate"
-            unit={unit}
-            config={props.config}
           />
         </div>
         <div className={classes.textbox}>
@@ -1734,14 +1705,10 @@ function PioreactorCard(props){
             Dosing algorithm
           </Typography>
           <UnitSettingDisplay
-            experiment={experiment}
-            passChildData={setDosingAlgorithm}
+            value={dosingAlgorithm}
             isUnitActive={isUnitActive}
             default="—"
             className={classes.alignRight}
-            topic="dosing_control/dosing_algorithm"
-            unit={unit}
-            config={props.config}
           />
         </div>
         <div className={classes.textbox}>
@@ -1749,14 +1716,10 @@ function PioreactorCard(props){
             LED algorithm
           </Typography>
           <UnitSettingDisplay
-            experiment={experiment}
-            passChildData={setLedAlgorithm}
+            value={ledAlgorithm}
             isUnitActive={isUnitActive}
             default="—"
             className={classes.alignRight}
-            topic="led_control/led_algorithm"
-            unit={unit}
-            config={props.config}
           />
         </div>
         <div className={classes.textbox}>
@@ -1766,14 +1729,10 @@ function PioreactorCard(props){
           <UnitSettingDisplay
             precision={0}
             measurementUnit="m"
-            experiment={experiment}
-            passChildData={setDurationState}
+            value={duration}
             isUnitActive={isUnitActive}
             default="—"
             className={classes.alignRight}
-            topic="dosing_algorithm/duration"
-            unit={unit}
-            config={props.config}
           />
         </div>
         <div className={classes.textbox}>
@@ -1781,14 +1740,10 @@ function PioreactorCard(props){
             Target temperature
           </Typography>
           <UnitSettingDisplay
-            experiment={experiment}
-            passChildData={setTemperature}
+            value={temperature}
             isUnitActive={isUnitActive}
             default="—"
             className={classes.alignRight}
-            topic="temperature_control/temperature"
-            unit={unit}
-            config={props.config}
           />
         </div>
       </div>
