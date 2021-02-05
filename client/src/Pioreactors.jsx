@@ -1487,12 +1487,15 @@ function PioreactorCard(props){
 
   useEffect(() => {
     const onConnect = () => {
-      for (const [key, value] of Object.entries(topicsToCallback)) {
-        client.subscribe(key);
+      console.log("connected")
+      for (const topic of Object.keys(topicsToCallback)) {
+        client.subscribe(topic);
+        console.log(topic)
       }
     }
 
     const onMessageArrived = (message) => {
+      console.log(message)
       var parsedFloat = parseFloat(message.payloadString); // try to parse it as a float first
       var payload = isNaN(parsedFloat) ? message.payloadString : parsedFloat
       topicsToCallback[message.topic](payload)
@@ -1513,8 +1516,8 @@ function PioreactorCard(props){
       );
     }
     setClient(client)
-    client.connect({onSuccess: onConnect});
     client.onMessageArrived = onMessageArrived
+    client.connect({onSuccess: onConnect});
   },[props.config])
 
 
