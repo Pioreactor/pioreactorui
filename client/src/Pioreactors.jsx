@@ -42,8 +42,8 @@ import PioreactorIcon from "./components/PioreactorIcon"
 import TactileButtonNotification from "./components/TactileButtonNotification";
 
 
-const onlineGreen = "#4caf50"
-const offlineGrey = "grey"
+const readyGreen = "#4caf50"
+const disconnectedGrey = "grey"
 const errorRed = "#DE3618"
 
 const useStyles = makeStyles((theme) => ({
@@ -135,51 +135,39 @@ TabPanel.propTypes = {
 };
 
 
-class UnitSettingDisplay extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = { value: this.props.default };
-  }
-
-  componentDidUpdate(prevProps) {
-    if (this.props.value !== prevProps.value) {
-      this.setState({value: this.props.value})
-    }
-  }
-
-  stateDisplay = {
-    "init":          {display: "Starting", color: onlineGreen},
-    "ready":         {display: "On", color: onlineGreen},
-    "sleeping":      {display: "Paused", color: offlineGrey},
-    "disconnected":  {display: "Off", color: offlineGrey},
+function UnitSettingDisplay(props) {
+  const classes = useStyles();
+  const stateDisplay = {
+    "init":          {display: "Starting", color: readyGreen},
+    "ready":         {display: "On", color: readyGreen},
+    "sleeping":      {display: "Paused", color: disconnectedGrey},
+    "disconnected":  {display: "Off", color: disconnectedGrey},
     "lost":          {display: "Lost", color: errorRed},
-    "NA":            {display: "Not available", color: offlineGrey},
+    "NA":            {display: "Not available", color: disconnectedGrey},
   }
-
-  render() {
-    if (this.props.isStateSetting) {
-      if (!this.props.isUnitActive) {
-        return <div style={{ color: offlineGrey, fontWeight: 500}}> {this.stateDisplay[this.state.value].display} </div>;
-      } else {
-        var displaySettings = this.stateDisplay[this.state.value]
-        return (
-          <div style={{ color: displaySettings.color, fontWeight: 500}}>
-            {displaySettings.display}
-          </div>
-      )}
+  const value = props.value || ""
+  if (props.isStateSetting) {
+    if (!props.isUnitActive) {
+      return <div className={clsx({[classes.disabledText]: !props.isUnitActive})}> {stateDisplay[value].display} </div>;
     } else {
-      if (!this.props.isUnitActive || this.state.value === "—" || this.state.value === "") {
-        return <div style={{ color: offlineGrey, fontSize: "13px"}}> {this.props.default} </div>;
-      } else {
-        return (
-          <div style={{ fontSize: "13px"}}>
-            {(typeof this.state.value === "string"
-              ? this.state.value
-              : +this.state.value.toFixed(this.props.precision)) +
-              (this.props.measurementUnit ? this.props.measurementUnit : "")}
-          </div>
-        );
-      }
+      var displaySettings = stateDisplay[value]
+      return (
+        <div style={{ color: displaySettings.color, fontWeight: 500}}>
+          {displaySettings.display}
+        </div>
+    )}
+  } else {
+    if (!props.isUnitActive || value === "—" || value === "") {
+      return <div style={{ color: disconnectedGrey, fontSize: "13px"}}> {props.default} </div>;
+    } else {
+      return (
+        <div style={{ fontSize: "13px"}}>
+          {(typeof value === "string"
+            ? value
+            : +value.toFixed(props.precision)) +
+            (props.measurementUnit ? props.measurementUnit : "")}
+        </div>
+      );
     }
   }
 }
@@ -1550,13 +1538,13 @@ function PioreactorCard(props){
               </div>
               <SettingsActionsDialog
                 config={props.config}
-                stirringDC={stirringDC}
+                stirringJobState={stirringJobState}
                 ODReadingJobState={ODReadingJobState}
                 growthRateJobState={growthRateJobState}
-                stirringJobState={stirringJobState}
                 dosingControlJobState={dosingControlJobState}
                 ledControlJobState={ledControlJobState}
                 temperatureControllingJobState={temperatureControllingJobState}
+                stirringDC={stirringDC}
                 targetGrowthRate={targetGrowthRate}
                 volume={volume}
                 duration={duration}
@@ -1583,7 +1571,7 @@ function PioreactorCard(props){
         </div>
 
         <div className={classes.textbox}>
-          <Typography variant="body2" style={{fontSize: "0.85rem"}}>
+          <Typography variant="body2" style={{fontSize: "0.85rem"}} className={clsx({[classes.disabledText]: !isUnitActive})}>
             Stirring
           </Typography>
           <UnitSettingDisplay
@@ -1594,7 +1582,7 @@ function PioreactorCard(props){
           />
         </div>
         <div className={classes.textbox}>
-          <Typography variant="body2" style={{fontSize: "0.85rem"}}>
+          <Typography variant="body2" style={{fontSize: "0.85rem"}} className={clsx({[classes.disabledText]: !isUnitActive})}>
             Optical density
           </Typography>
           <UnitSettingDisplay
@@ -1605,7 +1593,7 @@ function PioreactorCard(props){
           />
         </div>
         <div className={classes.textbox}>
-          <Typography variant="body2" style={{fontSize: "0.85rem"}}>
+          <Typography variant="body2" style={{fontSize: "0.85rem"}} className={clsx({[classes.disabledText]: !isUnitActive})}>
             Growth rate
           </Typography>
           <UnitSettingDisplay
@@ -1616,7 +1604,7 @@ function PioreactorCard(props){
           />
         </div>
         <div className={classes.textbox}>
-          <Typography variant="body2" style={{fontSize: "0.85rem"}}>
+          <Typography variant="body2" style={{fontSize: "0.85rem"}} className={clsx({[classes.disabledText]: !isUnitActive})}>
             Dosing control
           </Typography>
           <UnitSettingDisplay
@@ -1627,7 +1615,7 @@ function PioreactorCard(props){
           />
         </div>
         <div className={classes.textbox}>
-          <Typography variant="body2" style={{fontSize: "0.85rem"}}>
+          <Typography variant="body2" style={{fontSize: "0.85rem"}} className={clsx({[classes.disabledText]: !isUnitActive})}>
             LED control
           </Typography>
           <UnitSettingDisplay
@@ -1638,7 +1626,7 @@ function PioreactorCard(props){
           />
         </div>
         <div className={classes.textbox}>
-          <Typography variant="body2" style={{fontSize: "0.85rem"}}>
+          <Typography variant="body2" style={{fontSize: "0.85rem"}} className={clsx({[classes.disabledText]: !isUnitActive})}>
             Temperature control
           </Typography>
           <UnitSettingDisplay
@@ -1661,7 +1649,7 @@ function PioreactorCard(props){
           </Typography>
         </div>
         <div className={classes.textbox}>
-          <Typography variant="body2" style={{fontSize: "0.85rem"}}>
+          <Typography variant="body2" style={{fontSize: "0.85rem"}} className={clsx({[classes.disabledText]: !isUnitActive})}>
             Stirring speed
           </Typography>
           <UnitSettingDisplay
@@ -1672,7 +1660,7 @@ function PioreactorCard(props){
           />
         </div>
         <div className={classes.textbox}>
-          <Typography variant="body2" style={{fontSize: "0.85rem"}}>
+          <Typography variant="body2" style={{fontSize: "0.85rem"}} className={clsx({[classes.disabledText]: !isUnitActive})}>
             Volume / dosing
           </Typography>
           <UnitSettingDisplay
@@ -1685,7 +1673,7 @@ function PioreactorCard(props){
           />
         </div>
         <div className={classes.textbox}>
-          <Typography variant="body2" style={{fontSize: "0.85rem"}}>
+          <Typography variant="body2" style={{fontSize: "0.85rem"}} className={clsx({[classes.disabledText]: !isUnitActive})}>
             Target OD
           </Typography>
           <UnitSettingDisplay
@@ -1697,7 +1685,7 @@ function PioreactorCard(props){
           />
         </div>
         <div className={classes.textbox}>
-          <Typography variant="body2" style={{fontSize: "0.85rem"}}>
+          <Typography variant="body2" style={{fontSize: "0.85rem"}} className={clsx({[classes.disabledText]: !isUnitActive})}>
             Target growth rate
           </Typography>
           <UnitSettingDisplay
@@ -1710,7 +1698,7 @@ function PioreactorCard(props){
           />
         </div>
         <div className={classes.textbox}>
-          <Typography variant="body2" style={{fontSize: "0.85rem"}}>
+          <Typography variant="body2" style={{fontSize: "0.85rem"}} className={clsx({[classes.disabledText]: !isUnitActive})}>
             Dosing algorithm
           </Typography>
           <UnitSettingDisplay
@@ -1721,7 +1709,7 @@ function PioreactorCard(props){
           />
         </div>
         <div className={classes.textbox}>
-          <Typography variant="body2" style={{fontSize: "0.85rem"}}>
+          <Typography variant="body2" style={{fontSize: "0.85rem"}} className={clsx({[classes.disabledText]: !isUnitActive})}>
             LED algorithm
           </Typography>
           <UnitSettingDisplay
@@ -1732,7 +1720,7 @@ function PioreactorCard(props){
           />
         </div>
         <div className={classes.textbox}>
-          <Typography variant="body2" style={{fontSize: "0.85rem"}}>
+          <Typography variant="body2" style={{fontSize: "0.85rem"}} className={clsx({[classes.disabledText]: !isUnitActive})}>
             Time between dosing events
           </Typography>
           <UnitSettingDisplay
@@ -1745,7 +1733,7 @@ function PioreactorCard(props){
           />
         </div>
         <div className={classes.textbox}>
-          <Typography variant="body2" style={{fontSize: "0.85rem"}}>
+          <Typography variant="body2" style={{fontSize: "0.85rem"}} className={clsx({[classes.disabledText]: !isUnitActive})}>
             Target temperature
           </Typography>
           <UnitSettingDisplay
