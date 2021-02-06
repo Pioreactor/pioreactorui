@@ -76,7 +76,7 @@ const useStyles = makeStyles((theme) => ({
     color: "rgba(0, 0, 0, 0.38)",
   },
   textbox:{
-    width: "130px",
+    width: "101px",
   },
   textboxLabel:{
     width: "100px",
@@ -156,6 +156,18 @@ function UnitSettingDisplay(props) {
           {displaySettings.display}
         </div>
     )}
+  } else if (props.isLEDIntensity) {
+    if (!props.isUnitActive || value === "—" || value === "") {
+      return <div style={{ color: disconnectedGrey, fontSize: "13px"}}> {props.default} </div>;
+    } else {
+      const unpacked = JSON.parse(value)
+      return(
+        <div style={{fontSize: "13px"}}>
+          <span style={{display:"block"}}>A: {unpacked["A"]} B: {unpacked["B"]} </span>
+          <span style={{display:"block"}}>C: {unpacked["C"]} D: {unpacked["D"]} </span>
+        </div>
+      )
+    }
   } else {
     if (!props.isUnitActive || value === "—" || value === "") {
       return <div style={{ color: disconnectedGrey, fontSize: "13px"}}> {props.default} </div>;
@@ -1453,7 +1465,7 @@ function PioreactorCard(props){
   const [dosingAlgorithm, setDosingAlgorithm] = useState(null);
   const [ledAlgorithm, setLedAlgorithm] = useState(null);
   const [temperature, setTemperature] = useState(0);
-  const [client, setClient] = useState(null);
+  const [ledIntensity, setLEDIntensity] = useState("");
 
   const topicsToCallback = {
     [["pioreactor", unit, experiment, "led_control/$state"   ].join("/")]: setLEDControllingJobState,
@@ -1470,6 +1482,7 @@ function PioreactorCard(props){
     [["pioreactor", unit, experiment, "dosing_control/dosing_algorithm"].join("/")]: setDosingAlgorithm,
     [["pioreactor", unit, experiment, "led_control/led_algorithm"].join("/")]: setLedAlgorithm,
     [["pioreactor", unit, experiment, "temperature_control/temperature"].join("/")]: setTemperature,
+    [["pioreactor", unit, experiment, "leds/intensity"].join("/")]: setLEDIntensity,
   }
 
 
@@ -1509,7 +1522,6 @@ function PioreactorCard(props){
         "webui" + Math.random()
       );
     }
-    setClient(client)
     client.onMessageArrived = onMessageArrived
     client.connect({onSuccess: onConnect});
   },[props.config, props.experiment])
@@ -1741,6 +1753,18 @@ function PioreactorCard(props){
             isUnitActive={isUnitActive}
             default="—"
             className={classes.alignRight}
+          />
+        </div>
+        <div className={classes.textbox}>
+          <Typography variant="body2" style={{fontSize: "0.85rem"}} className={clsx({[classes.disabledText]: !isUnitActive})}>
+            LED intensity
+          </Typography>
+          <UnitSettingDisplay
+            value={ledIntensity}
+            isUnitActive={isUnitActive}
+            default="—"
+            className={classes.alignRight}
+            isLEDIntensity
           />
         </div>
       </div>
