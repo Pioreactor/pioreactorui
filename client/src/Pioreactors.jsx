@@ -472,25 +472,6 @@ function SettingsActionsDialog(props) {
     }
   }, [props.disabled, props.unit]);
 
-  useEffect(() => {
-    if (!props.config['network.topology']){
-      return
-    }
-    if (props.config.remote) {
-      var client = new Client(
-        `ws://${props.config.remote.ws_url}/`,
-        "webui_SettingsActionsDialog" + Math.random()
-      )}
-    else {
-      var client = new Client(
-        `${props.config['network.topology']['leader_address']}`, 9001,
-        "webui_SettingsActionsDialog" + Math.random()
-      );
-    }
-    client.connect({timeout: 180});
-    setClient(client)
-  },[props.config])
-
 
   function setPioreactorJobState(job, state) {
     return function sendMessage() {
@@ -505,7 +486,7 @@ function SettingsActionsDialog(props) {
       ].join("/");
       message.qos = 1;
       try{
-        client.publish(message);
+        props.client.publish(message);
       }
       catch (e){
         console.log(e)
@@ -532,11 +513,11 @@ function SettingsActionsDialog(props) {
     ].join("/");
     message.qos = 1;
     try{
-      client.publish(message);
+      props.client.publish(message);
     }
     catch (e) {
       console.log(e)
-      client.connect({onSuccess: () => setPioreactorJobAttr(job_attr, value)});
+      props.client.connect({onSuccess: () => setPioreactorJobAttr(job_attr, value)});
     }
   }
 
@@ -676,7 +657,9 @@ function SettingsActionsDialog(props) {
           <ActionDosingForm action="remove_waste" unit={props.unit} />
           <Divider className={classes.divider} />
         </TabPanel>
+
         <TabPanel value={tabValue} index={3}>
+
           <Typography className={clsx(classes.suptitle)} color="textSecondary">
             {(invertedLEDMap['A']) ? "Channel A" : ""}
           </Typography>
@@ -701,6 +684,7 @@ function SettingsActionsDialog(props) {
           <Typography style={{textTransform: "capitalize"}}>
             {(invertedLEDMap['C']) ? (invertedLEDMap['C'].replace("_", " ").replace("led", "LED")) : "Channel C" }
           </Typography>
+
           <ActionLEDForm channel="C" unit={props.unit} />
           <Divider className={classes.divider} />
 
@@ -710,7 +694,7 @@ function SettingsActionsDialog(props) {
           <Typography style={{textTransform: "capitalize"}}>
             {(invertedLEDMap['D']) ? (invertedLEDMap['D'].replace("_", " ").replace("led", "LED")) : "Channel D" }
           </Typography>
-          <ActionLEDForm channel="A" unit={props.unit} />
+          <ActionLEDForm channel="D" unit={props.unit} />
 
           <Divider className={classes.divider} />
         </TabPanel>
@@ -1164,9 +1148,38 @@ function SettingsActionsDialogAll(props) {
         <Tab label="Activities"/>
         <Tab label="Settings"/>
         <Tab label="Dosing"/>
+        <Tab label="LEDs"/>
       </Tabs>
       </DialogTitle>
       <DialogContent>
+
+        <TabPanel value={tabValue} index={3}>
+          <Typography style={{textTransform: "capitalize"}}>
+            Channel A
+          </Typography>
+          <ActionLEDForm channel="A" unit={props.unit} />
+          <Divider className={classes.divider} />
+
+          <Typography style={{textTransform: "capitalize"}}>
+            Channel B
+          </Typography>
+          <ActionLEDForm channel="B" unit={props.unit} />
+          <Divider className={classes.divider} />
+
+          <Typography style={{textTransform: "capitalize"}}>
+            Channel C
+          </Typography>
+          <ActionLEDForm channel="C" unit={props.unit} />
+
+          <Divider className={classes.divider} />
+          <Typography style={{textTransform: "capitalize"}}>
+            Channel D
+          </Typography>
+          <ActionLEDForm channel="D" unit={props.unit} />
+
+          <Divider className={classes.divider} />
+        </TabPanel>
+
         <TabPanel value={tabValue} index={1}>
           <Typography gutterBottom>
             Volume / dosing
@@ -1390,27 +1403,7 @@ function ActiveUnits(props){
 function FlashLEDButton(props){
   const classes = useStyles();
 
-  const [client, setClient] = useState(null)
   const [flashing, setFlashing] = useState(false)
-
-  useEffect(() => {
-    if (!props.config['network.topology']){
-      return
-    }
-    if (props.config.remote) {
-      var client = new Client(
-        `ws://${props.config.remote.ws_url}/`,
-        "webui_FlashLEDButton" + Math.random()
-      )}
-    else {
-      var client = new Client(
-        `${props.config['network.topology']['leader_address']}`, 9001,
-        "webui_FlashLEDButton" + Math.random()
-      );
-    }
-    client.connect({timeout: 180});
-    setClient(client)
-  },[props.config])
 
 
   const onClick = () => {
@@ -1427,7 +1420,7 @@ function FlashLEDButton(props){
       ].join("/");
       message.qos = 0;
       try{
-        client.publish(message);
+        props.client.publish(message);
       }
       catch (e){
         console.log(e)
@@ -1451,6 +1444,9 @@ function PioreactorCard(props){
   const unit = props.unit
   const isUnitActive = props.isUnitActive
   const experiment = props.experiment
+
+  const [client, setClient] = useState(null)
+
   const [stirringJobState, setStirringJobState] = useState("disconnected");
   const [ODReadingJobState, setODReadingJobState] = useState("disconnected");
   const [growthRateJobState, setGrowthRateJobState] = useState("disconnected");
@@ -1468,21 +1464,21 @@ function PioreactorCard(props){
   const [ledIntensity, setLEDIntensity] = useState("");
 
   const topicsToCallback = {
-    [["pioreactor", unit, experiment, "led_control/$state"   ].join("/")]: setLEDControllingJobState,
-    [["pioreactor", unit, experiment, "stirring/$state"      ].join("/")]: setStirringJobState,
-    [["pioreactor", unit, experiment, "od_reading/$state"    ].join("/")]: setODReadingJobState,
-    [["pioreactor", unit, experiment, "dosing_control/$state"].join("/")]: setdosingControlJobState,
-    [["pioreactor", unit, experiment, "growth_rate_calculating/$state"].join("/")]: setGrowthRateJobState,
-    [["pioreactor", unit, experiment, "temperature_control/$state"].join("/")]: setTemperatureControllingJobState,
-    [["pioreactor", unit, experiment, "stirring/duty_cycle"].join("/")]: setStirringDC,
-    [["pioreactor", unit, experiment, "dosing_algorithm/target_od"].join("/")]: setTargetOD,
-    [["pioreactor", unit, experiment, "dosing_algorithm/duration"].join("/")]: setDuration,
+    [["pioreactor", unit, experiment, "led_control/$state"                 ].join("/")]: setLEDControllingJobState,
+    [["pioreactor", unit, experiment, "stirring/$state"                    ].join("/")]: setStirringJobState,
+    [["pioreactor", unit, experiment, "od_reading/$state"                  ].join("/")]: setODReadingJobState,
+    [["pioreactor", unit, experiment, "dosing_control/$state"              ].join("/")]: setdosingControlJobState,
+    [["pioreactor", unit, experiment, "growth_rate_calculating/$state"     ].join("/")]: setGrowthRateJobState,
+    [["pioreactor", unit, experiment, "temperature_control/$state"         ].join("/")]: setTemperatureControllingJobState,
+    [["pioreactor", unit, experiment, "stirring/duty_cycle"                ].join("/")]: setStirringDC,
+    [["pioreactor", unit, experiment, "dosing_algorithm/target_od"         ].join("/")]: setTargetOD,
+    [["pioreactor", unit, experiment, "dosing_algorithm/duration"          ].join("/")]: setDuration,
     [["pioreactor", unit, experiment, "dosing_algorithm/target_growth_rate"].join("/")]: setTargetGrowthRate,
-    [["pioreactor", unit, experiment, "dosing_algorithm/volume"].join("/")]: setVolume,
-    [["pioreactor", unit, experiment, "dosing_control/dosing_algorithm"].join("/")]: setDosingAlgorithm,
-    [["pioreactor", unit, experiment, "led_control/led_algorithm"].join("/")]: setLedAlgorithm,
-    [["pioreactor", unit, experiment, "temperature_control/temperature"].join("/")]: setTemperature,
-    [["pioreactor", unit, experiment, "leds/intensity"].join("/")]: setLEDIntensity,
+    [["pioreactor", unit, experiment, "dosing_algorithm/volume"            ].join("/")]: setVolume,
+    [["pioreactor", unit, experiment, "dosing_control/dosing_algorithm"    ].join("/")]: setDosingAlgorithm,
+    [["pioreactor", unit, experiment, "led_control/led_algorithm"          ].join("/")]: setLedAlgorithm,
+    [["pioreactor", unit, experiment, "temperature_control/temperature"    ].join("/")]: setTemperature,
+    [["pioreactor", unit, experiment, "leds/intensity"                     ].join("/")]: setLEDIntensity,
   }
 
 
@@ -1524,6 +1520,7 @@ function PioreactorCard(props){
     }
     client.onMessageArrived = onMessageArrived
     client.connect({onSuccess: onConnect});
+    setClient(client)
   },[props.config, props.experiment])
 
 
@@ -1546,10 +1543,11 @@ function PioreactorCard(props){
                 </Button>
               </div>
               <div>
-                <FlashLEDButton disabled={!isUnitActive} config={props.config} unit={unit}/>
+                <FlashLEDButton client={client} disabled={!isUnitActive} config={props.config} unit={unit}/>
               </div>
               <SettingsActionsDialog
                 config={props.config}
+                client={client}
                 stirringJobState={stirringJobState}
                 ODReadingJobState={ODReadingJobState}
                 growthRateJobState={growthRateJobState}

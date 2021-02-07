@@ -24,6 +24,7 @@ export default function ActionLEDForm(props) {
   function onSubmit(e) {
     e.preventDefault();
     if (intensity !== EMPTYSTATE) {
+      // TODO: this should also fire an mqtt event to set it in LEDAlgorithm, in case that is running
       const params = { intensity: intensity, channel: props.channel, source_of_event: "UI"}
       fetch(
         "/run/" +
@@ -74,7 +75,7 @@ export default function ActionLEDForm(props) {
         anchorOrigin={{vertical: "bottom", horizontal: "center"}}
         open={openSnackbar}
         onClose={handleSnackbarClose}
-        message={`Updated Channel ${props.channel} to ${intensity}.`}
+        message={`Updating Channel ${props.channel} LED to ${intensity}.`}
         autoHideDuration={7000}
         key={"snackbar" + props.unit + props.channel}
       />

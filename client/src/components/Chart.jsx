@@ -16,14 +16,14 @@ import Card from "@material-ui/core/Card";
 const colors = [
   //generated with https://medialab.github.io/iwanthue/
   // and https://maketintsandshades.com/#50b47b,b74873,6c81d9,bf903b,5b388a,b94f3d,7fa443,c169ba
-  {primary: "#50b47b", A: "#50b47b", B: "#73c395", C: "#387e56", D: "#a8dabd"},
-  {primary: "#b74873", A: "#b74873", B: "#c56d8f", C: "#923a5c", D: "#dba4b9"},
-  {primary: "#6c81d9", A: "#6c81d9", B: "#98a7e4", C: "#4c5a98", D: "#c4cdf0"},
-  {primary: "#bf903b", A: "#bf903b", B: "#cca662", C: "#866529", D: "#dfc89d"},
-  {primary: "#5b388a", A: "#5b388a", B: "#7c60a1", C: "#402761", D: "#ad9cc5"},
-  {primary: "#b94f3d", A: "#b94f3d", B: "#ce8477", C: "#943f31", D: "#dca79e"},
-  {primary: "#7fa443", A: "#7fa443", B: "#a5bf7b", C: "#59732f", D: "#bfd2a1"},
-  {primary: "#c169ba", A: "#c169ba", B: "#d496cf", C: "#874a82", D: "#e6c3e3"},
+  {primary: "#50b47b", 0: "#50b47b", 1: "#73c395", 2: "#387e56", 3: "#a8dabd"},
+  {primary: "#b74873", 0: "#b74873", 1: "#c56d8f", 2: "#923a5c", 3: "#dba4b9"},
+  {primary: "#6c81d9", 0: "#6c81d9", 1: "#98a7e4", 2: "#4c5a98", 3: "#c4cdf0"},
+  {primary: "#bf903b", 0: "#bf903b", 1: "#cca662", 2: "#866529", 3: "#dfc89d"},
+  {primary: "#5b388a", 0: "#5b388a", 1: "#7c60a1", 2: "#402761", 3: "#ad9cc5"},
+  {primary: "#b94f3d", 0: "#b94f3d", 1: "#ce8477", 2: "#943f31", 3: "#dca79e"},
+  {primary: "#7fa443", 0: "#7fa443", 1: "#a5bf7b", 2: "#59732f", 3: "#bfd2a1"},
+  {primary: "#c169ba", 0: "#c169ba", 1: "#d496cf", 2: "#874a82", 3: "#e6c3e3"},
 ];
 
 const colorMaps = {}
@@ -33,7 +33,7 @@ function getColorFromName(name){
     return colorMaps[name]
   }
 
-  let sensorRe = /(.*)-[ABCD]/;
+  let sensorRe = /(.*)-[0123]/;
   if (sensorRe.test(name)){
     let primaryName = name.match(sensorRe)[1]
     return getColorFromName(primaryName)
@@ -41,10 +41,10 @@ function getColorFromName(name){
   else{
     var newPallete = colors.shift()
     colorMaps[name] = newPallete.primary
-    colorMaps[name + "-A"] = newPallete.A
-    colorMaps[name + "-B"] = newPallete.B
-    colorMaps[name + "-C"] = newPallete.C
-    colorMaps[name + "-D"] = newPallete.D
+    colorMaps[name + "-0"] = newPallete[0]
+    colorMaps[name + "-1"] = newPallete[1]
+    colorMaps[name + "-2"] = newPallete[2]
+    colorMaps[name + "-3"] = newPallete[3]
     return getColorFromName(name)
   }
 }
@@ -196,8 +196,8 @@ class Chart extends React.Component {
       return name
     }
 
-    if (name.match(/(.*)-([ABCD])/g)){
-      const results = name.match(/(.*)-([ABCD])/);
+    if (name.match(/(.*)([0123])/g)){
+      const results = name.match(/(.*)([0123])/);
       const index = results[1];
       const sensor = results[2];
       return this.breakString(this.props.config['ui.overview.rename'][index] || index) + sensor
