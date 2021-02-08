@@ -22,6 +22,7 @@ import CircularProgress from '@material-ui/core/CircularProgress';
 import Slider from '@material-ui/core/Slider';
 import Snackbar from '@material-ui/core/Snackbar';
 import TextField from '@material-ui/core/TextField';
+import Tooltip from '@material-ui/core/Tooltip';
 import InputAdornment from '@material-ui/core/InputAdornment';
 import Tabs from '@material-ui/core/Tabs';
 import Tab from '@material-ui/core/Tab';
@@ -1450,7 +1451,8 @@ function PioreactorCard(props){
   const [stirringJobState, setStirringJobState] = useState("disconnected");
   const [ODReadingJobState, setODReadingJobState] = useState("disconnected");
   const [growthRateJobState, setGrowthRateJobState] = useState("disconnected");
-  const [dosingControlJobState, setdosingControlJobState] = useState("disconnected");
+  const [dosingControlJobState, setSosingControlJobState] = useState("disconnected");
+  const [monitorJobState, setMonitorJobState] = useState("disconnected");
   const [temperatureControllingJobState, setTemperatureControllingJobState] = useState("disconnected");
   const [ledControlJobState, setLEDControllingJobState] = useState("disconnected");
   const [stirringDC, setStirringDC] = useState(0);
@@ -1464,21 +1466,22 @@ function PioreactorCard(props){
   const [ledIntensity, setLEDIntensity] = useState("");
 
   const topicsToCallback = {
-    [["pioreactor", unit, experiment, "led_control/$state"                 ].join("/")]: setLEDControllingJobState,
-    [["pioreactor", unit, experiment, "stirring/$state"                    ].join("/")]: setStirringJobState,
-    [["pioreactor", unit, experiment, "od_reading/$state"                  ].join("/")]: setODReadingJobState,
-    [["pioreactor", unit, experiment, "dosing_control/$state"              ].join("/")]: setdosingControlJobState,
-    [["pioreactor", unit, experiment, "growth_rate_calculating/$state"     ].join("/")]: setGrowthRateJobState,
-    [["pioreactor", unit, experiment, "temperature_control/$state"         ].join("/")]: setTemperatureControllingJobState,
-    [["pioreactor", unit, experiment, "stirring/duty_cycle"                ].join("/")]: setStirringDC,
+    [["pioreactor", unit, experiment, "led_control/$state"                  ].join("/")]: setLEDControllingJobState,
+    [["pioreactor", unit, experiment, "stirring/$state"                     ].join("/")]: setStirringJobState,
+    [["pioreactor", unit, experiment, "od_reading/$state"                   ].join("/")]: setODReadingJobState,
+    [["pioreactor", unit, experiment, "dosing_control/$state"               ].join("/")]: setSosingControlJobState,
+    [["pioreactor", unit, experiment, "growth_rate_calculating/$state"      ].join("/")]: setGrowthRateJobState,
+    [["pioreactor", unit, experiment, "temperature_control/$state"          ].join("/")]: setTemperatureControllingJobState,
+    [["pioreactor", unit, experiment, "monitor/$state"                      ].join("/")]: setMonitorJobState,
+    [["pioreactor", unit, experiment, "stirring/duty_cycle"                 ].join("/")]: setStirringDC,
     [["pioreactor", unit, experiment, "dosing_automation/target_od"         ].join("/")]: setTargetOD,
     [["pioreactor", unit, experiment, "dosing_automation/duration"          ].join("/")]: setDuration,
     [["pioreactor", unit, experiment, "dosing_automation/target_growth_rate"].join("/")]: setTargetGrowthRate,
     [["pioreactor", unit, experiment, "dosing_automation/volume"            ].join("/")]: setVolume,
     [["pioreactor", unit, experiment, "dosing_control/dosing_automation"    ].join("/")]: setDosingautomation,
     [["pioreactor", unit, experiment, "led_control/led_automation"          ].join("/")]: setLedautomation,
-    [["pioreactor", unit, experiment, "temperature_control/temperature"    ].join("/")]: setTemperature,
-    [["pioreactor", unit, experiment, "leds/intensity"                     ].join("/")]: setLEDIntensity,
+    [["pioreactor", unit, experiment, "temperature_control/temperature"     ].join("/")]: setTemperature,
+    [["pioreactor", unit, experiment, "leds/intensity"                      ].join("/")]: setLEDIntensity,
   }
 
 
@@ -1523,6 +1526,9 @@ function PioreactorCard(props){
     setClient(client)
   },[props.config, props.experiment])
 
+  const indicatorDotColor = (monitorJobState == "disconnected") ? disconnectedGrey : ((monitorJobState == "lost") ? errorRed : readyGreen)
+  const indicatorDotShadow = (monitorJobState == "disconnected") ? 0 : 8
+  const indicatorLabel = (monitorJobState == "disconnected") ? "Offline" : ((monitorJobState == "lost") ? "Lost" : "Online")
 
   return (
     <Card className={classes.pioreactorCard} id={unit}>
@@ -1533,9 +1539,17 @@ function PioreactorCard(props){
             {(props.config['ui.overview.rename'] && props.config['ui.overview.rename'][unit]) ? unit : ""}
           </Typography>
           <div style={{display: "flex", justifyContent: "space-between"}}>
-            <Typography className={clsx(classes.unitTitle, {[classes.disabledText]: !isUnitActive})} gutterBottom>
-              <PioreactorIcon color={isUnitActive ? "inherit" : "disabled"} style={{verticalAlign: "middle"}}/> {(props.config['ui.overview.rename'] && props.config['ui.overview.rename'][unit]) ? props.config['ui.overview.rename'][unit] : unit }
-            </Typography>
+            <div style={{display: "flex", justifyContent: "left"}}>
+              <Typography className={clsx(classes.unitTitle, {[classes.disabledText]: !isUnitActive})} gutterBottom>
+                <PioreactorIcon color={isUnitActive ? "inherit" : "disabled"} style={{verticalAlign: "middle"}}/>
+                {(props.config['ui.overview.rename'] && props.config['ui.overview.rename'][unit]) ? props.config['ui.overview.rename'][unit] : unit }
+              </Typography>
+              <Tooltip title={indicatorLabel} placement="right">
+                <div>
+                <div aria-label={indicatorLabel} class="indicator-dot" style={{boxShadow: `0 0 ${indicatorDotShadow}px ${indicatorDotColor}, inset 0 0 12px  ${indicatorDotColor}`}}/>
+                </div>
+              </Tooltip>
+            </div>
             <div style={{display: "flex", justifyContent: "right"}}>
               <div>
                 <Button style={{textTransform: 'none', float: "right" }} disabled={!isUnitActive} color="primary">
