@@ -72,7 +72,7 @@ function SilentForm(props){
 function ButtonChangeLEDDialog(props) {
   const classes = useStyles();
   const [open, setOpen] = useState(false);
-  const [algoSettings, setAlgoSettings] = useState({led_algorithm: "silent"})
+  const [algoSettings, setAlgoSettings] = useState({led_automation: "silent"})
   const [isClicked, setIsClicked] = useState(false)
   const [client, setClient] = useState(null)
 
@@ -111,7 +111,7 @@ function ButtonChangeLEDDialog(props) {
   };
 
   const handleAlgoSelectionChange = (e) => {
-    setAlgoSettings({led_algorithm: e.target.value})
+    setAlgoSettings({led_automation: e.target.value})
   }
 
   const updateFromChild = (setting) => {
@@ -119,7 +119,7 @@ function ButtonChangeLEDDialog(props) {
   }
 
   const switchToForm = () => {
-    switch(algoSettings.led_algorithm) {
+    switch(algoSettings.led_automation) {
       case "silent":
         return <SilentForm updateParent={updateFromChild}/>
     }
@@ -134,7 +134,7 @@ function ButtonChangeLEDDialog(props) {
       props.unit,
       props.experiment,
       "led_control",
-      "led_algorithm",
+      "led_automation",
       "set",
     ].join("/");
     message.qos = 2;
@@ -152,10 +152,10 @@ function ButtonChangeLEDDialog(props) {
       style={{marginTop: "10px"}}
       size="small"
       color="primary"
-      disabled={!props.currentLEDAlgorithm}
+      disabled={!props.currentLEDautomation}
       onClick={handleClickOpen}
     >
-      Change LED algorithm
+      Change LED automation
     </Button>
     <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title" PaperProps={{style: {height: "100%"}}}>
       <DialogTitle>
@@ -163,17 +163,17 @@ function ButtonChangeLEDDialog(props) {
           <PioreactorIcon style={{verticalAlign: "middle", fontSize: "1.2em"}}/> {props.title || ((props.config['ui.overview.rename'] && props.config['ui.overview.rename'][props.unit]) ? `${props.config['ui.overview.rename'][props.unit]} (${props.unit})` : `${props.unit}`)}
         </Typography>
         <Typography className={classes.unitTitleDialog}>
-          LED Algorithm
+          LED automation
         </Typography>
       </DialogTitle>
       <DialogContent>
         <Typography variant="body2" component="p" gutterBottom>
-          LED algorithms control when and how much media to add to the Pioreactor. The settings below can be changed later. Learn more about <a target="_blank" href="https://github.com/Pioreactor/pioreactor/wiki/LED-Algorithms">led algorithms</a>.
+          LED automations control when and how much media to add to the Pioreactor. The settings below can be changed later. Learn more about <a target="_blank" href="https://github.com/Pioreactor/pioreactor/wiki/LED-automations">led automations</a>.
         </Typography>
 
         <form>
           <FormControl component="fieldset" className={classes.formControl}>
-          <FormLabel component="legend">Algorithm</FormLabel>
+          <FormLabel component="legend">automation</FormLabel>
             <Select
               native
               value={algoSettings.mode}

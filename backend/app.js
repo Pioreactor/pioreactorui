@@ -34,6 +34,9 @@ app.get('/', function(req, res) {
 
 app.get('/overview', function(req, res) {
     app.use("/", expressStaticGzip(path.join(__dirname, 'build')));
+    res.set({
+        "Access-Control-Allow-Origin": "*",
+    });
     res.sendFile(path.join(__dirname, 'build', 'index.html'));
 })
 

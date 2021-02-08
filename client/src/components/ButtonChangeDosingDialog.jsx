@@ -222,7 +222,7 @@ function ChemostatForm(props){
 function ButtonChangeDosingDialog(props) {
   const classes = useStyles();
   const [open, setOpen] = useState(false);
-  const [algoSettings, setAlgoSettings] = useState({dosing_algorithm: "silent"})
+  const [algoSettings, setAlgoSettings] = useState({dosing_automation: "silent"})
   const [isClicked, setIsClicked] = useState(false)
   const [client, setClient] = useState(null)
 
@@ -264,7 +264,7 @@ function ButtonChangeDosingDialog(props) {
   };
 
   const handleAlgoSelectionChange = (e) => {
-    setAlgoSettings({dosing_algorithm: e.target.value})
+    setAlgoSettings({dosing_automation: e.target.value})
   }
 
   const updateFromChild = (setting) => {
@@ -272,7 +272,7 @@ function ButtonChangeDosingDialog(props) {
   }
 
   const switchToForm = () => {
-    switch(algoSettings.dosing_algorithm) {
+    switch(algoSettings.dosing_automation) {
       case "silent":
         return <SilentForm updateParent={updateFromChild}/>
       case "pid_turbidostat":
@@ -293,7 +293,7 @@ function ButtonChangeDosingDialog(props) {
       props.unit,
       props.experiment,
       "dosing_control",
-      "dosing_algorithm",
+      "dosing_automation",
       "set",
     ].join("/");
     message.qos = 2;
@@ -311,10 +311,10 @@ function ButtonChangeDosingDialog(props) {
       style={{marginTop: "10px"}}
       size="small"
       color="primary"
-      disabled={!props.currentDosingAlgorithm}
+      disabled={!props.currentDosingautomation}
       onClick={handleClickOpen}
     >
-      Change dosing algorithm
+      Change dosing automation
     </Button>
     <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title" PaperProps={{style: {height: "100%"}}}>
       <DialogTitle>
@@ -322,17 +322,17 @@ function ButtonChangeDosingDialog(props) {
           <PioreactorIcon style={{verticalAlign: "middle", fontSize: "1.2em"}}/> {props.title || ((props.config['ui.overview.rename'] && props.config['ui.overview.rename'][props.unit]) ? `${props.config['ui.overview.rename'][props.unit]} (${props.unit})` : `${props.unit}`)}
         </Typography>
         <Typography className={classes.unitTitleDialog}>
-          Dosing Algorithm
+          Dosing automation
         </Typography>
       </DialogTitle>
       <DialogContent>
         <Typography variant="body2" component="p" gutterBottom>
-          Dosing algorithms control when and how much media to add to the Pioreactor. The settings below can be changed later. Learn more about <a target="_blank" href="https://github.com/Pioreactor/pioreactor/wiki/Dosing-Algorithms">dosing algorithms</a>.
+          Dosing automations control when and how much media to add to the Pioreactor. The settings below can be changed later. Learn more about <a target="_blank" href="https://github.com/Pioreactor/pioreactor/wiki/Dosing-automations">dosing automations</a>.
         </Typography>
 
         <form>
           <FormControl component="fieldset" className={classes.formControl}>
-          <FormLabel component="legend">Algorithm</FormLabel>
+          <FormLabel component="legend">automation</FormLabel>
             <Select
               native
               value={algoSettings.mode}

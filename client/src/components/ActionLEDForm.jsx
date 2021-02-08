@@ -3,6 +3,8 @@ import TextField from "@material-ui/core/TextField";
 import Button from "@material-ui/core/Button";
 import Snackbar from "@material-ui/core/Snackbar";
 import { makeStyles } from "@material-ui/styles";
+import InputAdornment from '@material-ui/core/InputAdornment';
+
 
 const useStyles = makeStyles({
   actionTextField: {
@@ -55,9 +57,12 @@ export default function ActionLEDForm(props) {
         value={intensity}
         size="small"
         id={props.channel + "_intensity_edit"}
-        label="new intensity [0-100]"
+        label="new intensity"
         variant="outlined"
         onChange={handleChange}
+        InputProps={{
+          endAdornment: <InputAdornment position="end">%</InputAdornment>,
+        }}
         className={classes.actionTextField}
       />
       <br />
@@ -75,7 +80,7 @@ export default function ActionLEDForm(props) {
         anchorOrigin={{vertical: "bottom", horizontal: "center"}}
         open={openSnackbar}
         onClose={handleSnackbarClose}
-        message={`Updating Channel ${props.channel} LED to ${intensity}.`}
+        message={`Updating Channel ${props.channel} to ${intensity}%.`}
         autoHideDuration={7000}
         key={"snackbar" + props.unit + props.channel}
       />

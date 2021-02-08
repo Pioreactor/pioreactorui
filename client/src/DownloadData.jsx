@@ -151,11 +151,11 @@ const CheckboxesGroup = (props) => {
           </Typography>
 
           <FormControlLabel
-            control={<Checkbox checked={props.isChecked.dosing_algorithm_settings} onChange={props.handleChange} name="dosing_algorithm_settings" />}
-            label="Dosing algorithm changelog"
+            control={<Checkbox checked={props.isChecked.dosing_automation_settings} onChange={props.handleChange} name="dosing_automation_settings" />}
+            label="Dosing automation changelog"
           />
           <Typography variant="caption" className={classes.caption} gutterBottom>
-            Whenever a dosing algorithm is updated (new algorithm, new setting, etc.), a new record is produced. You can reconstruct all the dosing algorithm states
+            Whenever a dosing automation is updated (new automation, new setting, etc.), a new record is produced. You can reconstruct all the dosing automation states
             from this dataset.
           </Typography>
 
@@ -168,11 +168,11 @@ const CheckboxesGroup = (props) => {
           </Typography>
 
           <FormControlLabel
-            control={<Checkbox checked={props.isChecked.led_algorithm_settings} onChange={props.handleChange} name="led_algorithm_settings" />}
-            label="LED algorithm changelog"
+            control={<Checkbox checked={props.isChecked.led_automation_settings} onChange={props.handleChange} name="led_automation_settings" />}
+            label="LED automation changelog"
           />
           <Typography variant="caption" className={classes.caption} gutterBottom>
-            Whenever a LED algorithm is updated (new algorithm, new setting, etc.), a new record is produced. You can reconstruct all the LED algorithm states
+            Whenever a LED automation is updated (new automation, new setting, etc.), a new record is produced. You can reconstruct all the LED automation states
             from this dataset.
           </Typography>
 
@@ -207,8 +207,8 @@ function DownloadDataFormContainer() {
       od_readings_filtered: false,
       logs: false,
       alt_media_fraction: false,
-      dosing_algorithm_settings: false,
-      led_algorithm_settings: false,
+      dosing_automation_settings: false,
+      led_automation_settings: false,
     }
   });
 
