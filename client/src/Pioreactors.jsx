@@ -1472,7 +1472,7 @@ function PioreactorCard(props){
     [["pioreactor", unit, experiment, "dosing_control/$state"               ].join("/")]: setSosingControlJobState,
     [["pioreactor", unit, experiment, "growth_rate_calculating/$state"      ].join("/")]: setGrowthRateJobState,
     [["pioreactor", unit, experiment, "temperature_control/$state"          ].join("/")]: setTemperatureControllingJobState,
-    [["pioreactor", unit, experiment, "monitor/$state"                      ].join("/")]: setMonitorJobState,
+    [["pioreactor", unit, "$experiment", "monitor/$state"                   ].join("/")]: setMonitorJobState,
     [["pioreactor", unit, experiment, "stirring/duty_cycle"                 ].join("/")]: setStirringDC,
     [["pioreactor", unit, experiment, "dosing_automation/target_od"         ].join("/")]: setTargetOD,
     [["pioreactor", unit, experiment, "dosing_automation/duration"          ].join("/")]: setDuration,
