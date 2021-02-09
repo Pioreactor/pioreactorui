@@ -1527,8 +1527,8 @@ function PioreactorCard(props){
   },[props.config, props.experiment])
 
   const indicatorDotColor = (monitorJobState == "disconnected") ? disconnectedGrey : ((monitorJobState == "lost") ? errorRed : readyGreen)
-  const indicatorDotShadow = (monitorJobState == "disconnected") ? 0 : 8
-  const indicatorLabel = (monitorJobState == "disconnected") ? "Offline" : ((monitorJobState == "lost") ? "Lost" : "Online")
+  const indicatorDotShadow = (monitorJobState == "disconnected") ? 0 : 6
+  const indicatorLabel = (monitorJobState == "disconnected") ? (isUnitActive ? "Offline, need to power up" : "Offline, change inventory status in config.ini") : ((monitorJobState == "lost") ? "Lost, something went wrong..." : "Online")
 
   return (
     <Card className={classes.pioreactorCard} id={unit}>
