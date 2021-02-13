@@ -549,17 +549,29 @@ function SettingsActionsDialog(props) {
   }
 
 
-  function createUserButtonsBasedOnState(jobState, job, parentJob=null){
+  function createUserButtonsBasedOnState(jobState, job){
 
-    parentJob = parentJob || job
     switch (jobState){
       case "lost":
+        return (<div>
+          <PatientButton
+            color="secondary"
+            variant="contained"
+                onClick={startPioreactorJob(job)}
+            buttonText="Start"
+          />
+          <PatientButton
+            color="secondary"
+            onClick={setPioreactorJobState(job, "disconnected")}
+            buttonText="Stop"
+          />
+        </div>)
       case "disconnected":
        return (<div>
                <PatientButton
                 color="primary"
                 variant="contained"
-                onClick={startPioreactorJob(parentJob)}
+                onClick={startPioreactorJob(job)}
                 buttonText="Start"
                />
               </div>)
@@ -574,7 +586,7 @@ function SettingsActionsDialog(props) {
           />
           <PatientButton
             color="secondary"
-            onClick={setPioreactorJobState(parentJob, "disconnected")}
+            onClick={setPioreactorJobState(job, "disconnected")}
             buttonText="Stop"
           />
         </div>)
@@ -589,7 +601,7 @@ function SettingsActionsDialog(props) {
             />
             <PatientButton
               color="secondary"
-              onClick={setPioreactorJobState(parentJob, "disconnected")}
+              onClick={setPioreactorJobState(job, "disconnected")}
               buttonText="Stop"
             />
           </div>
@@ -602,8 +614,8 @@ function SettingsActionsDialog(props) {
   const stirringButtons = createUserButtonsBasedOnState(props.stirringJobState, "stirring")
   const odButtons = createUserButtonsBasedOnState(props.ODReadingJobState, "od_reading")
   const grButtons = createUserButtonsBasedOnState(props.growthRateJobState, "growth_rate_calculating")
-  const dosingButtons = createUserButtonsBasedOnState(props.dosingControlJobState, "dosing_automation", "dosing_control")
-  const ledButtons = createUserButtonsBasedOnState(props.ledControlJobState, "led_automation", "led_control")
+  const dosingButtons = createUserButtonsBasedOnState(props.dosingControlJobState, "dosing_control")
+  const ledButtons = createUserButtonsBasedOnState(props.ledControlJobState, "led_control")
   const invertedLEDMap = Object.fromEntries(Object.entries(props.config['leds']).map(([k, v]) => [v, k]))
 
   return (
@@ -1084,14 +1096,13 @@ function SettingsActionsDialogAll(props) {
   }
 
 
-  function createUserButtonsBasedOnState(job, parentJob=null){
-    parentJob = parentJob || job
+  function createUserButtonsBasedOnState(job){
     return (<div>
         <Button
           className={classes.jobButton}
           disableElevation
           color="primary"
-          onClick={startPioreactorJob(parentJob)}
+          onClick={startPioreactorJob(job)}
         >
           Start
         </Button>
@@ -1115,7 +1126,7 @@ function SettingsActionsDialogAll(props) {
           className={classes.jobButton}
           disableElevation
           color="secondary"
-          onClick={setPioreactorJobState(parentJob, "disconnected")}
+          onClick={setPioreactorJobState(job, "disconnected")}
         >
           Stop
         </Button>
@@ -1124,8 +1135,8 @@ function SettingsActionsDialogAll(props) {
 
   const odButtons = createUserButtonsBasedOnState("od_reading")
   const grButtons = createUserButtonsBasedOnState("growth_rate_calculating")
-  const dosingButtons = createUserButtonsBasedOnState("dosing_automation", "dosing_control")
-  const ledButtons = createUserButtonsBasedOnState("led_automation", "led_control")
+  const dosingButtons = createUserButtonsBasedOnState("dosing_control")
+  const ledButtons = createUserButtonsBasedOnState("led_control")
   const stirringButtons = createUserButtonsBasedOnState("stirring")
 
   return (

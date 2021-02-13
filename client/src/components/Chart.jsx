@@ -58,6 +58,7 @@ class Chart extends React.Component {
       hiddenSeries: new Set(),
       names: [],
       legendEvents: [],
+      fetched: false,
     };
     this.onConnect = this.onConnect.bind(this);
     this.onMessageArrived = this.onMessageArrived.bind(this);
@@ -95,6 +96,7 @@ class Chart extends React.Component {
   async getData() {
     await fetch(this.props.dataFile)
       .then((response) => {
+        this.setState({fetched: true})
         return response.json();
       })
       .then((data) => {
@@ -148,6 +150,9 @@ class Chart extends React.Component {
   }
 
   onMessageArrived(message) {
+    if (!this.state.fetched){
+      return
+    }
     if (message.retained){
       return
     }
