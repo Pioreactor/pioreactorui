@@ -329,11 +329,11 @@ network={
         <li>Turn on the RaspberryPi by inserting the power cord.</li>
       </ol>
 
-      <p>We're pretty much done at this point. Below, provide a unique name for your new Pioreactor, and
+      <p>We're pretty much done at this point. Below, provide a unique name for your new Pioreactor (letters and digits only), and
       we'll automatically install the required software and connect it to the other Pioreactors.
       </p>
 
-      <p>It will take up to 5 minutes to install the software. When finished, the new Pioreactor
+      <p>It may take up to 5 minutes to install the software. When finished, the new Pioreactor
       will show up on on this page. You don't need to stay on this page while it's installing.</p>
 
       {isRunning? <p><b>Installation is occuring in the background. You may navigate away from this page. </b></p> : <p></p>}
@@ -1000,7 +1000,7 @@ function SettingsActionsDialogAll(props) {
     if (!props.config['network.topology']){
       return
     }
-    if (props.config.remote) {
+    if (props.config.remote.ws_url) {
       var client = new Client(
         `ws://${props.config.remote.ws_url}/`,
         "webui_SettingsActionsDialogAll" + Math.random()
@@ -1011,7 +1011,7 @@ function SettingsActionsDialogAll(props) {
         "webui_SettingsActionsDialogAll" + Math.random()
       );
     }
-    client.connect({timeout: 180});
+    client.connect({timeout: 180, reconnect: true});
     setClient(client)
   },[props.config])
 
@@ -1521,7 +1521,7 @@ function PioreactorCard(props){
       return
     }
 
-    if (props.config.remote) {
+    if (props.config.remote.ws_url) {
       var client = new Client(
         `ws://${props.config.remote.ws_url}/`,
         "webui" + Math.random()
@@ -1533,7 +1533,7 @@ function PioreactorCard(props){
       );
     }
     client.onMessageArrived = onMessageArrived
-    client.connect({onSuccess: onConnect});
+    client.connect({onSuccess: onConnect, reconnect: true});
     setClient(client)
   },[props.config, props.experiment])
 

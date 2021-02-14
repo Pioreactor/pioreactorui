@@ -43,7 +43,7 @@ function TactileButtonNotification(props) {
     }
 
     var client = null
-    if (props.config.remote) {
+    if (props.config.remote && props.config.remote.ws_url) {
       client = new Client(
         `ws://${props.config.remote.ws_url}/`,
         "webui_TactileButtonNotification" + Math.random()
@@ -54,7 +54,7 @@ function TactileButtonNotification(props) {
         "webui_TactileButtonNotification" + Math.random()
       );
     }
-    client.connect({onSuccess: onSuccess, timeout: 180});
+    client.connect({onSuccess: onSuccess, timeout: 180, reconnect: true});
     client.onMessageArrived = onMessageArrived;
 
   },[props.config])

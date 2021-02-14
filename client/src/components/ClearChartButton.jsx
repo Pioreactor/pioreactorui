@@ -19,7 +19,7 @@ function ClearChartButton(props){
 
 
   function onClick() {
-    if (props.config.remote) {
+    if (props.config.remote.ws_url) {
       var client = new Client(
         `ws://${props.config.remote.ws_url}/`,
         "webui_ClearChartButton" + Math.random()
@@ -52,7 +52,7 @@ function ClearChartButton(props){
   }
 
   return (
-    <Button color="primary" style={{textTransform: "none"}} onClick={onClick}><ClearIcon className={classes.textIcon}/> Clear chart data </Button>
+    <Button color="primary" style={{textTransform: "none"}} onClick={onClick}><ClearIcon className={classes.textIcon}/> Clear charts </Button>
 )}
 
 

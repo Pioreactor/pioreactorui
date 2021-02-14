@@ -147,7 +147,7 @@ const CheckboxesGroup = (props) => {
             label="Dosing event log"
           />
           <Typography variant="caption" className={classes.caption} gutterBottom>
-            A detailed log table of all dosing events, including the volume exchanged, and the source of the initiator.
+            A detailed log table of all dosing events, including the volume exchanged, and the source of who or what changed it.
           </Typography>
 
           <FormControlLabel
@@ -155,7 +155,7 @@ const CheckboxesGroup = (props) => {
             label="Dosing automation changelog"
           />
           <Typography variant="caption" className={classes.caption} gutterBottom>
-            Whenever a dosing automation is updated (new automation, new setting, etc.), a new record is produced. You can reconstruct all the dosing automation states
+            Whenever a dosing automation is updated (new automation, new setting, etc.), a new row is recorded. You can reconstruct all the dosing automation states
             from this dataset.
           </Typography>
 
@@ -164,7 +164,7 @@ const CheckboxesGroup = (props) => {
             label="LED event log"
           />
           <Typography variant="caption" className={classes.caption} gutterBottom>
-            A detailed log table of all LED events, including the channel, intensity, and the source of the initiator.
+            A detailed log table of all LED events, including the channel, intensity, and the source of who or what changed it.
           </Typography>
 
           <FormControlLabel
@@ -172,7 +172,7 @@ const CheckboxesGroup = (props) => {
             label="LED automation changelog"
           />
           <Typography variant="caption" className={classes.caption} gutterBottom>
-            Whenever a LED automation is updated (new automation, new setting, etc.), a new record is produced. You can reconstruct all the LED automation states
+            Whenever a LED automation is updated (new automation, new setting, etc.), a new row is recorded. You can reconstruct all the LED automation states
             from this dataset.
           </Typography>
 
@@ -182,7 +182,7 @@ const CheckboxesGroup = (props) => {
           />
           <Typography variant="caption" className={classes.caption} gutterBottom>
             The append-only collection of logs from all Pioreactors. A subset of the these logs are displayed in the Log Table in the Experiment Overview.
-            These are the logs that should be provided to get assistance from third-parties.
+            These are the logs that should be provided to get assistance when troubleshooting.
           </Typography>
 
         </FormGroup>

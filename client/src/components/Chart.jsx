@@ -89,7 +89,7 @@ class Chart extends React.Component {
     }
 
 
-    this.client.connect({ onSuccess: this.onConnect });
+    this.client.connect({ onSuccess: this.onConnect, reconnect: true});
     this.client.onMessageArrived = this.onMessageArrived;
   }
 

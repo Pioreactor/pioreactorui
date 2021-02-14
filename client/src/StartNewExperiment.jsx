@@ -72,7 +72,7 @@ function ExperimentSummaryForm(props) {
       client.publish(message);
     }
 
-    if (props.config.remote) {
+    if (props.config.remote.ws_url) {
       var client = new Client(
         `ws://${props.config.remote.ws_url}/`,
         "webui_publishExpNameToMQTT" + Math.random()

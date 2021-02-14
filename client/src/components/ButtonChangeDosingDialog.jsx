@@ -239,7 +239,7 @@ function ButtonChangeDosingDialog(props) {
       return
     }
 
-    if (props.config.remote) {
+    if (props.config.remote.ws_url) {
       var client = new Client(
         `ws://${props.config.remote.ws_url}/`,
         "webui_ButtonChangeDosingDialog" + Math.random()
