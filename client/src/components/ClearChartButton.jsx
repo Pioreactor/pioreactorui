@@ -19,7 +19,7 @@ function ClearChartButton(props){
 
 
   function onClick() {
-    if (props.config.remote.ws_url) {
+    if (props.config.remote && props.config.remote.ws_url) {
       var client = new Client(
         `ws://${props.config.remote.ws_url}/`,
         "webui_ClearChartButton" + Math.random()

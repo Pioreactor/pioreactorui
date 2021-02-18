@@ -86,7 +86,7 @@ function ButtonChangeLEDDialog(props) {
       return
     }
 
-    if (props.config.remote.ws_url) {
+    if (props.config.remote && props.config.remote.ws_url) {
       var client = new Client(
         `ws://${props.config.remote.ws_url}/`,
         "webui_ButtonChangeLEDDialog" + Math.random()

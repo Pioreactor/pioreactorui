@@ -1000,7 +1000,7 @@ function SettingsActionsDialogAll(props) {
     if (!props.config['network.topology']){
       return
     }
-    if (props.config.remote.ws_url) {
+    if (props.config.remote && props.config.remote.ws_url) {
       var client = new Client(
         `ws://${props.config.remote.ws_url}/`,
         "webui_SettingsActionsDialogAll" + Math.random()
@@ -1521,7 +1521,7 @@ function PioreactorCard(props){
       return
     }
 
-    if (props.config.remote.ws_url) {
+    if (props.config.remote && props.config.remote.ws_url) {
       var client = new Client(
         `ws://${props.config.remote.ws_url}/`,
         "webui" + Math.random()
