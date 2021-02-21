@@ -30,7 +30,6 @@ import Button from "@material-ui/core/Button";
 import AddIcon from '@material-ui/icons/Add';
 import ClearIcon from '@material-ui/icons/Clear';
 import EditIcon from '@material-ui/icons/Edit';
-import IconButton from '@material-ui/core/IconButton';
 import FlareIcon from '@material-ui/icons/Flare';
 import SettingsIcon from '@material-ui/icons/Settings';
 
@@ -77,7 +76,7 @@ const useStyles = makeStyles((theme) => ({
     color: "rgba(0, 0, 0, 0.38)",
   },
   textbox:{
-    width: "101px",
+    width: "112px",
   },
   textboxLabel:{
     width: "100px",
@@ -1473,7 +1472,6 @@ function PioreactorCard(props){
   const [volume, setVolume] = useState(0);
   const [dosingautomation, setDosingautomation] = useState(null);
   const [ledautomation, setLedautomation] = useState(null);
-  const [temperature, setTemperature] = useState(0);
   const [ledIntensity, setLEDIntensity] = useState("");
 
   const topicsToCallback = {
@@ -1491,7 +1489,6 @@ function PioreactorCard(props){
     [["pioreactor", unit, experiment, "dosing_automation/volume"            ].join("/")]: setVolume,
     [["pioreactor", unit, experiment, "dosing_control/dosing_automation"    ].join("/")]: setDosingautomation,
     [["pioreactor", unit, experiment, "led_control/led_automation"          ].join("/")]: setLedautomation,
-    [["pioreactor", unit, experiment, "temperature_control/temperature"     ].join("/")]: setTemperature,
     [["pioreactor", unit, experiment, "leds/intensity"                      ].join("/")]: setLEDIntensity,
   }
 
@@ -1537,9 +1534,9 @@ function PioreactorCard(props){
     setClient(client)
   },[props.config, props.experiment])
 
-  const indicatorDotColor = (monitorJobState == "disconnected") ? disconnectedGrey : ((monitorJobState == "lost") ? errorRed : readyGreen)
-  const indicatorDotShadow = (monitorJobState == "disconnected") ? 0 : 6
-  const indicatorLabel = (monitorJobState == "disconnected") ? (isUnitActive ? "Offline, need to power up" : "Offline, change inventory status in config.ini") : ((monitorJobState == "lost") ? "Lost, something went wrong..." : "Online")
+  const indicatorDotColor = (monitorJobState === "disconnected") ? disconnectedGrey : ((monitorJobState == "lost") ? errorRed : readyGreen)
+  const indicatorDotShadow = (monitorJobState === "disconnected") ? 0 : 6
+  const indicatorLabel = (monitorJobState === "disconnected") ? (isUnitActive ? "Offline, need to power up" : "Offline, change inventory status in config.ini") : ((monitorJobState == "lost") ? "Lost, something went wrong..." : "Online")
 
   return (
     <Card className={classes.pioreactorCard} id={unit}>
@@ -1586,7 +1583,6 @@ function PioreactorCard(props){
                 targetOD={targetOD}
                 dosingautomation={dosingautomation}
                 ledautomation={ledautomation}
-                temperature={temperature}
                 experiment={experiment}
                 unit={unit}
                 disabled={!isUnitActive}
@@ -1762,17 +1758,6 @@ function PioreactorCard(props){
             precision={0}
             measurementUnit="m"
             value={duration}
-            isUnitActive={isUnitActive}
-            default="—"
-            className={classes.alignRight}
-          />
-        </div>
-        <div className={classes.textbox}>
-          <Typography variant="body2" style={{fontSize: "0.85rem"}} className={clsx({[classes.disabledText]: !isUnitActive})}>
-            Target temperature
-          </Typography>
-          <UnitSettingDisplay
-            value={temperature}
             isUnitActive={isUnitActive}
             default="—"
             className={classes.alignRight}

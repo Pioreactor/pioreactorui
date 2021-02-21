@@ -19,7 +19,7 @@ function TactileButtonNotification(props) {
         var unit = msg.topic.split("/")[1]
         setUnit(unit)
         try {
-          setRenamedUnit(props.config['ui.overview.rename'][unit])
+          setRenamedUnit(props.config['ui.rename'][unit])
         }
         catch {}
         setOpen(true)
