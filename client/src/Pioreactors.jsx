@@ -625,7 +625,7 @@ function SettingsActionsDialog(props) {
     <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
       <DialogTitle>
         <Typography className={classes.suptitle}>
-          <PioreactorIcon style={{verticalAlign: "middle", fontSize: "1.2em"}}/> {(props.config['ui.overview.rename'] &&  props.config['ui.overview.rename'][props.unit]) ? `${props.config['ui.overview.rename'][props.unit]} / ${props.unit}` : `${props.unit}`}
+          <PioreactorIcon style={{verticalAlign: "middle", fontSize: "1.2em"}}/> {(props.config['ui.rename'] &&  props.config['ui.rename'][props.unit]) ? `${props.config['ui.rename'][props.unit]} / ${props.unit}` : `${props.unit}`}
         </Typography>
       <Tabs
         value={tabValue}
@@ -1544,13 +1544,13 @@ function PioreactorCard(props){
       <CardContent className={classes.cardContent}>
         <div className={"fixme"}>
           <Typography className={clsx(classes.suptitle)} color="textSecondary">
-            {(props.config['ui.overview.rename'] && props.config['ui.overview.rename'][unit]) ? unit : ""}
+            {(props.config['ui.rename'] && props.config['ui.rename'][unit]) ? unit : ""}
           </Typography>
           <div style={{display: "flex", justifyContent: "space-between"}}>
             <div style={{display: "flex", justifyContent: "left"}}>
               <Typography className={clsx(classes.unitTitle, {[classes.disabledText]: !isUnitActive})} gutterBottom>
                 <PioreactorIcon color={isUnitActive ? "inherit" : "disabled"} style={{verticalAlign: "middle"}}/>
-                {(props.config['ui.overview.rename'] && props.config['ui.overview.rename'][unit]) ? props.config['ui.overview.rename'][unit] : unit }
+                {(props.config['ui.rename'] && props.config['ui.rename'][unit]) ? props.config['ui.rename'][unit] : unit }
               </Typography>
               <Tooltip title={indicatorLabel} placement="right">
                 <div>
@@ -1827,11 +1827,11 @@ function Pioreactors(props) {
           <Grid item md={1} xs={1}/>
           <Grid item md={10} xs={12}>
             <PioreactorHeader config={props.config} experiment={experimentMetadata.experiment}/>
-            <ActiveUnits experiment={experimentMetadata.experiment} config={props.config} units={props.config['inventory'] ? entries(props.config['inventory']).filter((v) => v[1] === "1").map((v) => v[0]) : [] }/>
-            <InactiveUnits experiment={experimentMetadata.experiment} config={props.config} units={props.config['inventory'] ? entries(props.config['inventory']).filter((v) => v[1] === "0").map((v) => v[0]) : [] }/>
+            <ActiveUnits experiment={experimentMetadata.experiment} config={props.config} units={props.config['network.inventory'] ? entries(props.config['network.inventory']).filter((v) => v[1] === "1").map((v) => v[0]) : [] }/>
+            <InactiveUnits experiment={experimentMetadata.experiment} config={props.config} units={props.config['network.inventory'] ? entries(props.config['network.inventory']).filter((v) => v[1] === "0").map((v) => v[0]) : [] }/>
           </Grid>
           <Grid item md={1} xs={1}/>
-          {props.config['ui.overview.rename'] ? <TactileButtonNotification config={props.config}/> : null}
+          {props.config['ui.rename'] ? <TactileButtonNotification config={props.config}/> : null}
         </Grid>
     )
 }
