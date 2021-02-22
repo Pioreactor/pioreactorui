@@ -101,10 +101,10 @@ class LogTable extends React.Component {
   }
 
   renameUnit(name){
-    if (!this.props.config['ui.overview.rename']){
+    if (!this.props.config['ui.rename']){
       return name
     }
-    return (this.props.config['ui.overview.rename'][name]) || name
+    return (this.props.config['ui.rename'][name]) || name
   }
 
   render(){

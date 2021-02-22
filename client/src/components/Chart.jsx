@@ -14,16 +14,14 @@ import moment from "moment";
 import Card from "@material-ui/core/Card";
 
 const colors = [
-  //generated with https://medialab.github.io/iwanthue/
-  // and https://maketintsandshades.com/#50b47b,b74873,6c81d9,bf903b,5b388a,b94f3d,7fa443,c169ba
-  {primary: "#50b47b", 0: "#50b47b", 1: "#73c395", 2: "#387e56", 3: "#a8dabd"},
-  {primary: "#b74873", 0: "#b74873", 1: "#c56d8f", 2: "#923a5c", 3: "#dba4b9"},
-  {primary: "#6c81d9", 0: "#6c81d9", 1: "#98a7e4", 2: "#4c5a98", 3: "#c4cdf0"},
-  {primary: "#bf903b", 0: "#bf903b", 1: "#cca662", 2: "#866529", 3: "#dfc89d"},
-  {primary: "#5b388a", 0: "#5b388a", 1: "#7c60a1", 2: "#402761", 3: "#ad9cc5"},
-  {primary: "#b94f3d", 0: "#b94f3d", 1: "#ce8477", 2: "#943f31", 3: "#dca79e"},
-  {primary: "#7fa443", 0: "#7fa443", 1: "#a5bf7b", 2: "#59732f", 3: "#bfd2a1"},
-  {primary: "#c169ba", 0: "#c169ba", 1: "#d496cf", 2: "#874a82", 3: "#e6c3e3"},
+  {primary: "#9C6ADE", 0: "#9C6ADE", 1: "#E3D0FF", 2: "#50248F", 3: "#ecdffb"},
+  {primary: "#F49342", 0: "#F49342", 1: "#FFC58B", 2: "#C05717", 3: "#4A1504"},
+  {primary: "#47C1BF", 0: "#47C1BF", 1: "#B7ECEC", 2: "#00848E", 3: "#003135"},
+  {primary: "#50B83C", 0: "#50B83C", 1: "#BBE5B3", 2: "#108043", 3: "#E3F1DF"},
+  {primary: "#DE3618", 0: "#DE3618", 1: "#FEAD9A", 2: "#BF0711", 3: "#FBEAE5"},
+  {primary: "#EEC200", 0: "#EEC200", 1: "#FFEA8A", 2: "#8A6116", 3: "#573B00"},
+  {primary: "#006FBB", 0: "#006FBB", 1: "#B4E1FA", 2: "#084E8A", 3: "#001429"},
+  {primary: "#43467F", 0: "#43467F", 1: "#B3B5CB", 2: "#1C2260", 3: "#00044C"},
 ];
 
 const colorMaps = {}
@@ -96,7 +94,6 @@ class Chart extends React.Component {
   async getData() {
     await fetch(this.props.dataFile)
       .then((response) => {
-        this.setState({fetched: true})
         return response.json();
       })
       .then((data) => {
@@ -115,7 +112,11 @@ class Chart extends React.Component {
           seriesMap: initialSeriesMap,
           legendEvents: this.createLegendEvents(names),
           names: names,
+          fetched: true
         });
+      })
+      .catch((e) => {
+        this.setState({fetched: true})
       });
   }
 
@@ -197,7 +198,7 @@ class Chart extends React.Component {
   }
 
   renameAndFormatSeries(name){
-    if (!this.props.config['ui.overview.rename']){
+    if (!this.props.config['ui.rename']){
       return name
     }
 
@@ -205,10 +206,10 @@ class Chart extends React.Component {
       const results = name.match(/(.*)([0123])/);
       const index = results[1];
       const sensor = results[2];
-      return this.breakString(this.props.config['ui.overview.rename'][index] || index) + sensor
+      return this.breakString(this.props.config['ui.rename'][index] || index) + sensor
     }
     else {
-      return this.breakString(this.props.config['ui.overview.rename'][name] || name)
+      return this.breakString(this.props.config['ui.rename'][name] || name)
     }
   }
 
@@ -329,6 +330,8 @@ ${this.renameAndFormatSeries(d.datum.childName)}: ${Math.round(d.datum.y * 1000)
           <VictoryAxis
             crossAxis={false}
             dependentAxis
+            domain={this.props.yAxisDomain}
+            tickFormat={(t) => `${t.toFixed(2)}`}
             label={this.props.yAxisLabel}
             axisLabelComponent={
               <VictoryLabel

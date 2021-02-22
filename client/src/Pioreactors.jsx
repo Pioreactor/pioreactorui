@@ -440,7 +440,6 @@ function SettingsActionsDialog(props) {
   const classes = useStyles();
   const [defaultStirring, setDefaultStirring] = useState(0);
   const [open, setOpen] = useState(false);
-  const [client, setClient] = useState(null);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [tabValue, setTabValue] = React.useState(0);
@@ -1534,9 +1533,9 @@ function PioreactorCard(props){
     setClient(client)
   },[props.config, props.experiment])
 
-  const indicatorDotColor = (monitorJobState === "disconnected") ? disconnectedGrey : ((monitorJobState == "lost") ? errorRed : readyGreen)
+  const indicatorDotColor = (monitorJobState === "disconnected") ? disconnectedGrey : ((monitorJobState === "lost") ? errorRed : readyGreen)
   const indicatorDotShadow = (monitorJobState === "disconnected") ? 0 : 6
-  const indicatorLabel = (monitorJobState === "disconnected") ? (isUnitActive ? "Offline, need to power up" : "Offline, change inventory status in config.ini") : ((monitorJobState == "lost") ? "Lost, something went wrong..." : "Online")
+  const indicatorLabel = (monitorJobState === "disconnected") ? (isUnitActive ? "Offline, need to power up" : "Offline, change inventory status in config.ini") : ((monitorJobState === "lost") ? "Lost, something went wrong..." : "Online")
 
   return (
     <Card className={classes.pioreactorCard} id={unit}>

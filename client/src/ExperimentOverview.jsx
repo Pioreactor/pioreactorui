@@ -61,6 +61,7 @@ function Overview(props) {
                 yAxisLabel="Growth rate, h⁻¹"
                 experiment={experimentMetadata.experiment}
                 interpolation="stepAfter"
+                yAxisDomain={[-0.03, 0.2]}
               />
             </Grid>
             }
@@ -135,7 +136,7 @@ function Overview(props) {
 
           <Grid item xs={1} md={1}/>
         </Grid>
-        {props.config['ui.overview.rename'] ? <TactileButtonNotification config={props.config}/> : null}
+        {props.config['ui.rename'] ? <TactileButtonNotification config={props.config}/> : null}
       </React.Fragment>
   );
 }
