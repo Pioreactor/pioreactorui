@@ -202,8 +202,8 @@ class Chart extends React.Component {
       return name
     }
 
-    if (name.match(/(.*)([0123])/g)){
-      const results = name.match(/(.*)([0123])/);
+    if (name.match(/(.*)-([0123])/g)){
+      const results = name.match(/(.*)-([0123])/);
       const index = results[1];
       const sensor = results[2];
       return this.breakString(this.props.config['ui.rename'][index] || index) + sensor

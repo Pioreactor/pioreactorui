@@ -61,7 +61,7 @@ function Overview(props) {
                 yAxisLabel="Growth rate, h⁻¹"
                 experiment={experimentMetadata.experiment}
                 interpolation="stepAfter"
-                yAxisDomain={[-0.03, 0.2]}
+                yAxisDomain={[-0.01, 0.1]}
               />
             </Grid>
             }
