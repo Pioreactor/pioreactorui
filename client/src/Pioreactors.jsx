@@ -825,7 +825,7 @@ function SettingsActionsDialog(props) {
             {props.dosingControlJobState !== "disconnected" &&
               <React.Fragment>
               Currently running dosing automation <code>{props.dosingautomation}</code>.
-              Learn more about <a target="_blank" href="https://github.com/Pioreactor/pioreactor/wiki/dosing-automations">dosing automations</a>.
+              Learn more about <a target="_blank" href="https://pioreactor.com/pages/dosing-automations">dosing automations</a>.
               </React.Fragment>
             }
             {props.dosingControlJobState === "disconnected" &&
@@ -850,7 +850,7 @@ function SettingsActionsDialog(props) {
             {props.ledControlJobState !== "disconnected" &&
               <React.Fragment>
               Currently running LED automation <code>{props.ledautomation}</code>.
-              Learn more about <a target="_blank" href="https://github.com/Pioreactor/pioreactor/wiki/led-automations">LED automations</a>.
+              Learn more about <a target="_blank" href="https://pioreactor.com/pages/led-automations">LED automations</a>.
               </React.Fragment>
             }
             {props.ledControlJobState === "disconnected" &&
@@ -910,14 +910,14 @@ function SettingsActionsDialog(props) {
             {props.dosingControlJobState !== "disconnected" &&
               <React.Fragment>
               Currently running dosing automation <code>{props.dosingautomation}</code>.
-              Learn more about <a target="_blank" href="https://github.com/Pioreactor/pioreactor/wiki/dosing-automations">dosing automations</a>.
+              Learn more about <a target="_blank" href="https://pioreactor.com/pages/dosing-automations">dosing automations</a>.
               </React.Fragment>
             }
             {props.dosingControlJobState === "disconnected" &&
 
               <React.Fragment>
               Dosing events will initially start in <span className={"underlineSpan"} title="silent mode performs no dosing operations."><code>silent</code></span> mode, and can be changed after.
-              Learn more about <a target="_blank" href="https://github.com/Pioreactor/pioreactor/wiki/dosing-automations">dosing automations</a>.
+              Learn more about <a target="_blank" href="https://pioreactor.com/pages/dosing-automations">dosing automations</a>.
               </React.Fragment>
             }
           </Typography>
@@ -932,14 +932,14 @@ function SettingsActionsDialog(props) {
             {props.ledControlJobState !== "disconnected" &&
               <React.Fragment>
               Currently running LED automation <code>{props.dosingautomation}</code>.
-              Learn more about <a target="_blank" href="https://github.com/Pioreactor/pioreactor/wiki/led-automations">LED automations</a>.
+              Learn more about <a target="_blank" href="https://pioreactor.com/pages/led-automations">LED automations</a>.
               </React.Fragment>
             }
             {props.ledControlJobState === "disconnected" &&
 
               <React.Fragment>
               LED controls will initially start in <span className={"underlineSpan"} title="silent mode performs no dosing operations."><code>silent</code></span> mode, and can be changed after.
-              Learn more about <a target="_blank" href="https://github.com/Pioreactor/pioreactor/wiki/led-automations">LED automations</a>.
+              Learn more about <a target="_blank" href="https://pioreactor.com/pages/led-automations">LED automations</a>.
               </React.Fragment>
             }
           </Typography>
@@ -1143,7 +1143,7 @@ function SettingsActionsDialogAll(props) {
       <EditIcon className={classes.textIcon}/> Edit all Pioreactors
     </Button>
     <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
-      <DialogTitle>
+      <DialogTitle style={{backgroundColor: "#edeaf9"}}>
         <Typography className={classes.suptitle}>
           All active Pioreactors
         </Typography>
@@ -1332,7 +1332,7 @@ function SettingsActionsDialogAll(props) {
           </Typography>
           <Typography variant="body2" component="p" gutterBottom>
             Dosing events will initially start in <span className={"underlineSpan"} title="silent mode performs no IO operations."><code>silent</code></span> mode, and can be changed after.
-            Learn more about <a target="_blank" href="https://github.com/Pioreactor/pioreactor/wiki/dosing-automations">dosing automations</a>.
+            Learn more about <a target="_blank" href="https://pioreactor.com/pages/dosing-automations">dosing automations</a>.
           </Typography>
 
             {dosingButtons}
@@ -1342,7 +1342,7 @@ function SettingsActionsDialogAll(props) {
           </Typography>
           <Typography variant="body2" component="p" gutterBottom>
             LED control will initially start in <span className={"underlineSpan"} title="silent mode performs no IO operations."><code>silent</code></span> mode, and can be changed after.
-            Learn more about <a target="_blank" href="https://github.com/Pioreactor/pioreactor/wiki/led-automations">LED automations</a>.
+            Learn more about <a target="_blank" href="https://pioreactor.com/pages/led-automations">LED automations</a>.
           </Typography>
 
             {ledButtons}
@@ -1488,7 +1488,7 @@ function PioreactorCard(props){
     [["pioreactor", unit, experiment, "dosing_automation/volume"            ].join("/")]: setVolume,
     [["pioreactor", unit, experiment, "dosing_control/dosing_automation"    ].join("/")]: setDosingautomation,
     [["pioreactor", unit, experiment, "led_control/led_automation"          ].join("/")]: setLedautomation,
-    [["pioreactor", unit, experiment, "leds/intensity"                      ].join("/")]: setLEDIntensity,
+    [["pioreactor", unit, "$experiment", "leds/intensity"                   ].join("/")]: setLEDIntensity,
   }
 
 
