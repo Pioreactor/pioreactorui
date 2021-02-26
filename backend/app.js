@@ -196,15 +196,25 @@ app.get('/get_latest_experiment', function (req, res) {
 
 
 app.post("/create_experiment", function (req, res) {
-    var insert = 'INSERT INTO experiments (timestamp, experiment, description) VALUES (?,?,?)'
-    db.query(insert, [req.body.timestamp, req.body.experiment, req.body.description], function(err){
-        if (err){
-            console.log(err)
-            res.sendStatus(500)
-        } else {
-        res.sendStatus(200)
+    // I was hitting this bug https://github.com/WebReflection/dblite/issues/23 in the previous code that tried
+    // to rawdog an insert. I now manually check... sigh.
+    db.query("SELECT experiment FROM experiments WHERE experiment=:experiment", {experiment: req.body.experiment}, function(err, rows){
+        if (rows.length > 0){
+          res.sendStatus(422)
+          return
         }
-    })
+        else{
+          var insert = 'INSERT INTO experiments (timestamp, experiment, description) VALUES (?,?,?)'
+          db.query(insert, [req.body.timestamp, req.body.experiment, req.body.description], function(err, rows){
+            if (err){
+              res.sendStatus(500)
+            } else {
+              res.sendStatus(200)
+            }
+            return
+          })
+      }
+  })
 })
 
 
@@ -238,12 +248,12 @@ app.get("/recent_media_rates/:experiment", function (req, res) {
 
 app.post("/update_experiment_desc", function (req, res) {
     var update = 'UPDATE experiments SET description = (?) WHERE experiment=(?)'
-    db.query(update, [req.body.description, req.body.experiment], function(err){
+    db.query(update, [req.body.description, req.body.experiment], function(err, _){
         if (err){
-            console.log(err)
-            res.sendStatus(500)
+          console.log(err)
+          res.sendStatus(500)
         } else {
-        res.sendStatus(200)
+          res.sendStatus(200)
         }
     })
 })

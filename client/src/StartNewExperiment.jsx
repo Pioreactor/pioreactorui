@@ -57,6 +57,7 @@ function ExperimentSummaryForm(props) {
   const classes = useStyles();
   const [openSnackbar, setOpenSnackbar] = React.useState(false);
   const [formError, setFormError] = React.useState(false);
+  const [helperText, setHelperText] = React.useState("");
   const [expName, setExpName] = React.useState("");
   const [timestamp, setTimestamp] = React.useState(moment().format("YYYY-MM-DDTHH:mm:ss"));
   const [description, setDescription] = React.useState("");
@@ -92,9 +93,11 @@ function ExperimentSummaryForm(props) {
   }
 
   function onSubmit(e) {
+    console.log("onSubmit")
     e.preventDefault();
     if (expName === ""){
       setFormError(true)
+      setHelperText("Can't be blank")
       return
     }
     fetch('create_experiment',{
@@ -106,6 +109,7 @@ function ExperimentSummaryForm(props) {
         }
       }).then(res => {
         if (res.status === 200){
+          setHelperText("")
           setFormError(false);
           setOpenSnackbar(true);
           killExistingJobs()
@@ -113,6 +117,7 @@ function ExperimentSummaryForm(props) {
         }
         else{
           setFormError(true);
+          setHelperText("Experiment name already used.")
         }
       }
      )
@@ -143,6 +148,7 @@ function ExperimentSummaryForm(props) {
               label="Experiment name"
               required className={`${classes.halfTextField} ${classes.textField}`}
               onChange={onExpNameChange}
+              helperText={helperText}
               />
           </Grid>
           <Grid item xs={12} md={6}>
@@ -176,7 +182,7 @@ function ExperimentSummaryForm(props) {
               anchorOrigin={{vertical: "bottom", horizontal: "center"}}
               open={openSnackbar}
               onClose={handleSnackbarClose}
-              message={"Created new experiment"}
+              message={`Created new experiment called ${expName}.`}
               autoHideDuration={7000}
               key={"snackbar" + props.unit + props.action}
             />
