@@ -97,7 +97,7 @@ function StartSensors(props){
           fontScale={1.0}
           interpolation="stepAfter"
           title="Raw 135° optical density"
-          topic="od_raw/135/+"
+          topic="od_raw/+/+"
           yAxisLabel="Voltage"
           experiment="+"
         />

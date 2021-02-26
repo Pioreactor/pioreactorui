@@ -327,7 +327,7 @@ function ButtonChangeDosingDialog(props) {
       </DialogTitle>
       <DialogContent>
         <Typography variant="body2" component="p" gutterBottom>
-          Dosing automations control when and how much media to add to the Pioreactor. The settings below can be changed later. Learn more about <a target="_blank" href="https://github.com/Pioreactor/pioreactor/wiki/Dosing-automations">dosing automations</a>.
+          Dosing automations control when and how much media to add to the Pioreactor. The settings below can be changed later. Learn more about <a target="_blank" href="https://pioreactor.com/pages/Dosing-automations">dosing automations</a>.
         </Typography>
 
         <form>

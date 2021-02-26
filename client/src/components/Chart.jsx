@@ -191,7 +191,7 @@ class Chart extends React.Component {
   }
 
   breakString(string){
-    if (string.length > 7){
+    if (string.length > 8){
       return string.slice(0, 5) + "..." + string.slice(string.length-2, string.length)
     }
     return string
@@ -331,7 +331,7 @@ ${this.renameAndFormatSeries(d.datum.childName)}: ${Math.round(d.datum.y * 1000)
             crossAxis={false}
             dependentAxis
             domain={this.props.yAxisDomain}
-            tickFormat={(t) => `${t.toFixed(2)}`}
+            tickFormat={this.props.yAxisTickFormat}
             label={this.props.yAxisLabel}
             axisLabelComponent={
               <VictoryLabel

@@ -62,6 +62,7 @@ function Overview(props) {
                 experiment={experimentMetadata.experiment}
                 interpolation="stepAfter"
                 yAxisDomain={[-0.01, 0.1]}
+                yAxisTickFormat={(t) => `${t.toFixed(2)}`}
               />
             </Grid>
             }
@@ -92,6 +93,7 @@ function Overview(props) {
                 yAxisLabel="Current OD / initial OD"
                 experiment={experimentMetadata.experiment}
                 interpolation="stepAfter"
+                yAxisTickFormat={(t) => `${t.toFixed(2)}`}
               />
             </Grid>
             }
