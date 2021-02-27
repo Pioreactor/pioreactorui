@@ -4,7 +4,7 @@ const path = require('path');
 const bodyParser = require('body-parser');
 require('dotenv').config()
 const url = require('url');
-const { exec } = require("child_process");
+const { execFile } = require("child_process");
 const cp = require('child_process');
 var dblite = require('dblite')
 const fs = require('fs')
@@ -50,7 +50,7 @@ app.get('/start-new-experiment', function(req, res) {
     res.sendFile(path.join(__dirname, 'build', 'index.html'));
 })
 
-app.get('/edit-config', function(req, res) {
+app.get('/config', function(req, res) {
     app.use("/", expressStaticGzip(path.join(__dirname, 'build')));
     res.sendFile(path.join(__dirname, 'build', 'index.html'));
 })
@@ -79,9 +79,7 @@ app.post("/update_app", function (req, res) {
 })
 
 app.get('/get_app_version', function(req, res) {
-  const command = `pio version`
-  console.log(command)
-  exec(command, (error, stdout, stderr) => {
+  execFile("pio", ["version"], (error, stdout, stderr) => {
       if (error) {
           console.log(error)
       }
@@ -94,10 +92,8 @@ app.get('/get_app_version', function(req, res) {
 
 
 app.get('/get_changelog', function(req, res) {
-  const command = `cat ~/pioreactor/CHANGELOG.md`
-  console.log(command)
   converter = new showdown.Converter()
-  exec(command, (error, stdout, stderr) => {
+  execFile("cat", ["~/pioreactor/CHANGELOG.md"], (error, stdout, stderr) => {
       if (error) {
           console.log(error)
       }
@@ -125,10 +121,7 @@ app.post('/query_datasets', function(req, res) {
 
 
 app.get('/stop', function (req, res) {
-  const jobs = ['dosing_control', 'stirring', 'od_reading', 'growth_rate_calculating', 'led_control']
-  const command = `pios kill ${jobs.join(" ")} -y`
-  console.log(command)
-  exec(command, (error, stdout, stderr) => {
+  execFile("pios", ["kill"] + jobs + ["-y"], (error, stdout, stderr) => {
       if (error) {
           console.log(error)
       }
@@ -144,23 +137,26 @@ app.get('/stop', function (req, res) {
 
 
 app.get("/run/:job/:unit", function(req, res) {
-    // TODO: this is a security problem: one could put any command as job, ex: "stirring && rm -rf /"
-    const queryObject = url.parse(req.url, true).query;
-    // assume that all query params are optional args for the job
+    const queryObject = url.parse(req.url, true).query; // assume that all query params are optional args for the job
     unit = req.params.unit
     job = req.params.job
+
+    if (!["stirring", "od_reading", "growth_rate_calculating", "led_control", "dosing_control", "tempature_control"].includes(job)){
+      // this solves a security problem: one could put any command as job, ex: "stirring && rm -rf /"
+      res.send(400)
+    }
+
     options = Object.entries(queryObject).map(k_v => [`--${k_v[0].replace(/_/g, "-")} ${k_v[1]}`])
-    command = (["pios", "run", job, "-y", "--units", `'${req.params.unit}'`].concat(options)).join(" ")
-    console.log(command)
-    exec(command, (error, stdout, stderr) => {
+
+    execFile("pios", ["run", job, "-y", "--units", `'${req.params.unit}'`].concat(options), (error, stdout, stderr) => {
         if (error) {
-            console.log(command)
-            res.send(`error: ${error.message}`);
+            console.log(error)
+            res.sendStatus(500);
             return;
         }
         if (stderr) {
-            console.log(command)
-            res.send(`stderr: ${stderr}`);
+            console.log(error)
+            res.sendStatus(500);
             return;
         }
         console.log(`stdout: ${stdout}`);
@@ -291,6 +287,23 @@ app.post("/add_new_pioreactor", function (req, res) {
     child.send(newName);
 })
 
+
+app.post("/delete_config", function(req, res) {
+  const configPath = path.join(process.env.CONFIG_INI_FOLDER, req.body.filename);
+
+  execFile("rm", [configPath], (error, stdout, stderr) => {
+      if (error) {
+          console.log(error)
+      }
+      if (stderr) {
+          console.log(stderr)
+      }
+      console.log(`stdout: ${stdout}`);
+  })
+  res.sendStatus(200)
+});
+
+
 app.post("/save_new_config", function(req, res) {
   // if the config file is unit specific, we only need to run sync-config on that unit.
   const regex = /config_?(.*)?\.ini/
@@ -308,8 +321,7 @@ app.post("/save_new_config", function(req, res) {
       res.sendStatus(500)
     }
     else {
-      command = (["pios", "sync-configs", "--units", `'${units}'`]).join(" ")
-      exec(command, (error, stdout, stderr) => {
+      execFile("pios", ["sync-configs", "--units", `'${units}'`], (error, stdout, stderr) => {
           if (error) {
               console.log(error)
               res.sendStatus(500);

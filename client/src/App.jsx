@@ -75,7 +75,7 @@ function App() {
             <Route path="/overview">
               <ExperimentOverview config={config}/>
             </Route>
-            <Route path="/edit-config">
+            <Route path="/config">
               <EditConfig config={config}/>
               <TactileButtonNotification config={config}/>
             </Route>

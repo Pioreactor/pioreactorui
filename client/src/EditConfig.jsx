@@ -45,6 +45,7 @@ class EditableCodeDiv extends React.Component {
       ]
     };
     this.saveCurrentCode = this.saveCurrentCode.bind(this);
+    this.deleteConfig = this.deleteConfig.bind(this);
   }
 
   async getConfig(filename) {
@@ -89,6 +90,28 @@ class EditableCodeDiv extends React.Component {
     })
   }
 
+  deleteConfig(){
+    fetch('/delete_config',{
+        method: "POST",
+        body: JSON.stringify({filename: this.state.filename}),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        }
+      })
+    .then(res => {
+      if (res.ok) {
+        this.setState({snackbarMsg: this.state.filename + " deleted."})
+      } else {
+        this.setState({snackbarMsg: "Hm. Something when wrong deleting..."})
+      }
+      this.setState({openSnackbar: true});
+      setTimeout(function () {
+        window.location.reload();
+      }, 1000);
+    })
+  }
+
   componentDidMount() {
     this.getConfig(this.state.filename)
     this.getListOfConfigFiles()
@@ -115,21 +138,23 @@ class EditableCodeDiv extends React.Component {
     const runningFeedback = this.state.isRunning ? <CircularProgress color="inherit" size={24}/> : "Save"
     return (
       <React.Fragment>
-        <Select
-          style={{margin: "10px 10px 10px 10px"}}
-          native
-          value={this.state.filename}
-          onChange={this.onSelectionChange}
-          inputProps={{
-            name: 'config',
-            id: 'config',
-          }}
-        >
-          {this.state.availableConfigs.map((v) => {
-            return <option key={v.filename} value={v.filename}>{v.name}</option>
-            }
-          )}
-        </Select>
+        <div>
+          <Select
+            style={{margin: "10px 10px 10px 10px"}}
+            native
+            value={this.state.filename}
+            onChange={this.onSelectionChange}
+            inputProps={{
+              name: 'config',
+              id: 'config',
+            }}
+          >
+            {this.state.availableConfigs.map((v) => {
+              return <option key={v.filename} value={v.filename}>{v.name}</option>
+              }
+            )}
+          </Select>
+        </div>
 
         <div style={{letterSpacing: "0em", margin: "10px auto 10px auto", position: "relative", width: "98%", height: "300px", border: "1px solid #ccc"}}>
           <CodeFlaskReact
@@ -139,14 +164,23 @@ class EditableCodeDiv extends React.Component {
             language={"python"}
           />
         </div>
-        <Button
-          style={{margin: "5px 10px 5px 10px"}}
-          color="primary"
-          variant="contained"
-          onClick={this.saveCurrentCode}
-          disabled={false}>
-          {runningFeedback}
-        </Button>
+        <div style={{display: "flex", justifyContent: "space-between"}}>
+          <Button
+            style={{margin: "5px 10px 5px 10px"}}
+            color="primary"
+            variant="contained"
+            onClick={this.saveCurrentCode}
+            >
+            {runningFeedback}
+          </Button>
+          <Button
+            style={{margin: "5px 10px 5px 10px"}}
+            color="secondary"
+            onClick={this.deleteConfig}
+            disabled={(this.state.filename === "config.ini")}>
+            Delete config file
+          </Button>
+        </div>
         <Snackbar
           anchorOrigin={{vertical: "bottom", horizontal: "center"}}
           open={this.state.openSnackbar}
@@ -172,14 +206,14 @@ function EditConfigContainer(){
         <div>
           <Typography variant="h5" component="h2">
             <Box fontWeight="fontWeightBold">
-              Edit config.ini
+              Configuration
             </Box>
           </Typography>
         </div>
       </div>
       <Card className={classes.root}>
         <CardContent className={classes.cardContent}>
-          <p>Update the <code>config.ini</code> files. The shared <code>config.ini</code> will be deployed to <em>all</em> Pioreactors, but can be overwritten with a specific Pioreactor's <code>config.ini</code>. <a href="https://pioreactor.com/pages/Configuration-via-config.ini" target="_blank">Learn more about Pioreactor configuration</a>.</p>
+          <p>Update the <code>config.ini</code> files. The shared <code>config.ini</code> will be deployed to <em>all</em> Pioreactors, but configuration can be overwritten by editing specific Pioreactor's <code>config.ini</code>. <a href="https://pioreactor.com/pages/Configuration-via-config.ini" target="_blank">Learn more about Pioreactor configuration</a>.</p>
           <EditableCodeDiv/>
         </CardContent>
       </Card>

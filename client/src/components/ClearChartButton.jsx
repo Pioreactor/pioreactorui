@@ -3,7 +3,7 @@ import { Client, Message } from "paho-mqtt";
 import ClearIcon from '@material-ui/icons/Clear';
 import Button from "@material-ui/core/Button";
 import { makeStyles } from '@material-ui/core/styles';
-
+import clearChartCommand from './clearChartCommand'
 
 const useStyles = makeStyles((theme) => ({
   textIcon: {
@@ -17,39 +17,12 @@ const useStyles = makeStyles((theme) => ({
 function ClearChartButton(props){
   const classes = useStyles();
 
-
-  function onClick() {
-    if (props.config.remote && props.config.remote.ws_url) {
-      var client = new Client(
-        `ws://${props.config.remote.ws_url}/`,
-        "webui_ClearChartButton" + Math.random()
-      )}
-    else {
-      var client = new Client(
-        `${props.config['network.topology']['leader_address']}`, 9001,
-        "webui_ClearChartButton" + Math.random()
-      );
-    }
-    client.connect({timeout: 180, onSuccess: () => {
-      for (var jobName of ['od_raw', 'od_filtered', 'growth_rate', 'alt_media_fraction']) {
-        var message = new Message("");
-
-        message.destinationName = [
-          "pioreactor",
-          props.config['network.topology']['leader_hostname'],
-          "$experiment",
-          `${jobName}_time_series_aggregating`,
-          "aggregated_time_series",
-          "set",
-        ].join("/");
-
-        client.publish(message);
-      }
-
-      window.location.reload();
-      return false
-    }});
+  function onClick(){
+    clearChartCommand(props)
+    window.location.reload();
+    return false
   }
+
 
   return (
     <Button color="primary" style={{textTransform: "none"}} onClick={onClick}><ClearIcon className={classes.textIcon}/> Clear charts </Button>

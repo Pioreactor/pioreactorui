@@ -7,7 +7,7 @@ import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
 import MenuIcon from '@material-ui/icons/Menu';
 import IconButton from '@material-ui/core/IconButton';
-import EditIcon from '@material-ui/icons/Edit';
+import SettingsIcon from '@material-ui/icons/Settings';
 import SaveAltIcon from '@material-ui/icons/SaveAlt';
 import DashboardIcon from '@material-ui/icons/Dashboard';
 import HelpOutlineIcon from '@material-ui/icons/HelpOutline';
@@ -52,9 +52,9 @@ export default function SideDrawer() {
       </List>
       <Divider />
       <List>
-        <ListItem button href="/edit-config"  component="a" key={"edit_config"} selected={isSelected("/edit-config")}>
-          <ListItemIcon> <EditIcon color={isSelected("/edit-config") ? "primary" : "inherit"}/> </ListItemIcon>
-          <ListItemText primary={"Edit config.ini"} />
+        <ListItem button href="/config"  component="a" key={"config"} selected={isSelected("/config")}>
+          <ListItemIcon> <SettingsIcon color={isSelected("/config") ? "primary" : "inherit"}/> </ListItemIcon>
+          <ListItemText primary={"Configuration"} />
         </ListItem>
         <ListItem href="/download-data" component="a" button key={"download_data"} selected={isSelected("/download-data")}>
           <ListItemIcon><SaveAltIcon color={isSelected("/download-data") ? "primary" : "inherit"}/> </ListItemIcon>

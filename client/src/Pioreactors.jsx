@@ -107,6 +107,10 @@ const useStyles = makeStyles((theme) => ({
     marginTop: 15,
     marginBottom: 10,
   },
+  jobButton: {
+    paddingRight: "15px",
+    paddingLeft: "15px"
+  }
 }));
 
 function TabPanel(props) {

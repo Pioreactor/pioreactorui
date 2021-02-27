@@ -19,6 +19,7 @@ import Header from "./components/Header"
 import CleaningScript from "./components/CleaningScript"
 import StartSensors from "./components/StartSensors"
 import StartCalculations from "./components/StartCalculations"
+import clearChartCommand from "./components/clearChartCommand"
 
 
 const useStyles = makeStyles((theme) => ({
@@ -114,6 +115,7 @@ function ExperimentSummaryForm(props) {
           setOpenSnackbar(true);
           killExistingJobs()
           publishExpNameToMQTT()
+          clearChartCommand(props)
         }
         else{
           setFormError(true);
