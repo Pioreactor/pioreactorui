@@ -42,7 +42,7 @@ function TactileButtonNotification(props) {
       )
     }
 
-    var client = null
+    var client
     if (props.config.remote && props.config.remote.ws_url) {
       client = new Client(
         `ws://${props.config.remote.ws_url}/`,

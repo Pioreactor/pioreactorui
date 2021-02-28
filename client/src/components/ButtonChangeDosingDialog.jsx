@@ -239,13 +239,14 @@ function ButtonChangeDosingDialog(props) {
       return
     }
 
+    var client
     if (props.config.remote && props.config.remote.ws_url) {
-      var client = new Client(
+      client = new Client(
         `ws://${props.config.remote.ws_url}/`,
         "webui_ButtonChangeDosingDialog" + Math.random()
       )}
     else {
-      var client = new Client(
+      client = new Client(
         `${props.config['network.topology']['leader_address']}`, 9001,
         "webui_ButtonChangeDosingDialog" + Math.random()
       );
@@ -281,6 +282,8 @@ function ButtonChangeDosingDialog(props) {
         return <PIDMorbidostatForm updateParent={updateFromChild}/>
       case "chemostat":
         return <ChemostatForm updateParent={updateFromChild}/>
+      default:
+        return <div></div>
     }
   }
 
@@ -327,7 +330,7 @@ function ButtonChangeDosingDialog(props) {
       </DialogTitle>
       <DialogContent>
         <Typography variant="body2" component="p" gutterBottom>
-          Dosing automations control when and how much media to add to the Pioreactor. The settings below can be changed later. Learn more about <a target="_blank" href="https://pioreactor.com/pages/Dosing-automations">dosing automations</a>.
+          Dosing automations control when and how much media to add to the Pioreactor. The settings below can be changed later. Learn more about <a target="_blank" rel="noopener noreferrer" href="https://pioreactor.com/pages/Dosing-automations">dosing automations</a>.
         </Typography>
 
         <form>

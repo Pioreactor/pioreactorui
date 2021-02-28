@@ -829,7 +829,7 @@ function SettingsActionsDialog(props) {
             {props.dosingControlJobState !== "disconnected" &&
               <React.Fragment>
               Currently running dosing automation <code>{props.dosingautomation}</code>.
-              Learn more about <a target="_blank" href="https://pioreactor.com/pages/dosing-automations">dosing automations</a>.
+              Learn more about <a target="_blank" rel="noopener noreferrer" href="https://pioreactor.com/pages/dosing-automations">dosing automations</a>.
               </React.Fragment>
             }
             {props.dosingControlJobState === "disconnected" &&
@@ -854,7 +854,7 @@ function SettingsActionsDialog(props) {
             {props.ledControlJobState !== "disconnected" &&
               <React.Fragment>
               Currently running LED automation <code>{props.ledautomation}</code>.
-              Learn more about <a target="_blank" href="https://pioreactor.com/pages/led-automations">LED automations</a>.
+              Learn more about <a target="_blank" rel="noopener noreferrer" href="https://pioreactor.com/pages/led-automations">LED automations</a>.
               </React.Fragment>
             }
             {props.ledControlJobState === "disconnected" &&
@@ -914,14 +914,14 @@ function SettingsActionsDialog(props) {
             {props.dosingControlJobState !== "disconnected" &&
               <React.Fragment>
               Currently running dosing automation <code>{props.dosingautomation}</code>.
-              Learn more about <a target="_blank" href="https://pioreactor.com/pages/dosing-automations">dosing automations</a>.
+              Learn more about <a target="_blank" rel="noopener noreferrer" href="https://pioreactor.com/pages/dosing-automations">dosing automations</a>.
               </React.Fragment>
             }
             {props.dosingControlJobState === "disconnected" &&
 
               <React.Fragment>
               Dosing events will initially start in <span className={"underlineSpan"} title="silent mode performs no dosing operations."><code>silent</code></span> mode, and can be changed after.
-              Learn more about <a target="_blank" href="https://pioreactor.com/pages/dosing-automations">dosing automations</a>.
+              Learn more about <a target="_blank" rel="noopener noreferrer" href="https://pioreactor.com/pages/dosing-automations">dosing automations</a>.
               </React.Fragment>
             }
           </Typography>
@@ -936,14 +936,14 @@ function SettingsActionsDialog(props) {
             {props.ledControlJobState !== "disconnected" &&
               <React.Fragment>
               Currently running LED automation <code>{props.dosingautomation}</code>.
-              Learn more about <a target="_blank" href="https://pioreactor.com/pages/led-automations">LED automations</a>.
+              Learn more about <a target="_blank" rel="noopener noreferrer" href="https://pioreactor.com/pages/led-automations">LED automations</a>.
               </React.Fragment>
             }
             {props.ledControlJobState === "disconnected" &&
 
               <React.Fragment>
               LED controls will initially start in <span className={"underlineSpan"} title="silent mode performs no dosing operations."><code>silent</code></span> mode, and can be changed after.
-              Learn more about <a target="_blank" href="https://pioreactor.com/pages/led-automations">LED automations</a>.
+              Learn more about <a target="_blank" rel="noopener noreferrer" href="https://pioreactor.com/pages/led-automations">LED automations</a>.
               </React.Fragment>
             }
           </Typography>
@@ -1002,13 +1002,14 @@ function SettingsActionsDialogAll(props) {
     if (!props.config['network.topology']){
       return
     }
+    var client
     if (props.config.remote && props.config.remote.ws_url) {
-      var client = new Client(
+      client = new Client(
         `ws://${props.config.remote.ws_url}/`,
         "webui_SettingsActionsDialogAll" + Math.random()
       )}
     else {
-      var client = new Client(
+      client = new Client(
         `${props.config['network.topology']['leader_address']}`, 9001,
         "webui_SettingsActionsDialogAll" + Math.random()
       );
@@ -1283,7 +1284,7 @@ function SettingsActionsDialogAll(props) {
             Dosing automation
           </Typography>
           <Typography variant="body2" component="p" gutterBottom>
-              Learn more about <a target="_blank" href="https://github.com/Pioreactor/pioreactor/.ex/dosing-automations">dosing automations</a>.
+              Learn more about <a target="_blank" rel="noopener noreferrer" href="https://github.com/Pioreactor/pioreactor/.ex/dosing-automations">dosing automations</a>.
           </Typography>
 
           <ButtonChangeDosingDialog
@@ -1336,7 +1337,7 @@ function SettingsActionsDialogAll(props) {
           </Typography>
           <Typography variant="body2" component="p" gutterBottom>
             Dosing events will initially start in <span className={"underlineSpan"} title="silent mode performs no IO operations."><code>silent</code></span> mode, and can be changed after.
-            Learn more about <a target="_blank" href="https://pioreactor.com/pages/dosing-automations">dosing automations</a>.
+            Learn more about <a target="_blank" rel="noopener noreferrer" href="https://pioreactor.com/pages/dosing-automations">dosing automations</a>.
           </Typography>
 
             {dosingButtons}
@@ -1346,7 +1347,7 @@ function SettingsActionsDialogAll(props) {
           </Typography>
           <Typography variant="body2" component="p" gutterBottom>
             LED control will initially start in <span className={"underlineSpan"} title="silent mode performs no IO operations."><code>silent</code></span> mode, and can be changed after.
-            Learn more about <a target="_blank" href="https://pioreactor.com/pages/led-automations">LED automations</a>.
+            Learn more about <a target="_blank" rel="noopener noreferrer" href="https://pioreactor.com/pages/led-automations">LED automations</a>.
           </Typography>
 
             {ledButtons}
@@ -1447,7 +1448,7 @@ function FlashLEDButton(props){
   }
 
   return (
-    <Button style={{textTransform: 'none', float: "right"}} className={clsx({["blink-led"]: flashing})} disabled={props.disabled} onClick={onClick} color="primary">
+    <Button style={{textTransform: 'none', float: "right"}} className={clsx({blinkled: flashing})} disabled={props.disabled} onClick={onClick} color="primary">
       <FlareIcon color={props.disabled ? "disabled" : "primary"} className={classes.textIcon}/> <span >  Blink  </span>
     </Button>
 )}
@@ -1521,13 +1522,14 @@ function PioreactorCard(props){
       return
     }
 
+    var client
     if (props.config.remote && props.config.remote.ws_url) {
-      var client = new Client(
+      client = new Client(
         `ws://${props.config.remote.ws_url}/`,
         "webui" + Math.random()
       )}
     else {
-      var client = new Client(
+      client = new Client(
         `${props.config['network.topology']['leader_address']}`, 9001,
         "webui" + Math.random()
       );

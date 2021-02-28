@@ -24,7 +24,7 @@ a, u {
 }
 
 
-.blink-led {
+.blinkled {
     animation-name: blink;
     animation-duration: 0.9s;
     animation-iteration-count: 4;

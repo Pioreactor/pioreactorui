@@ -1,13 +1,14 @@
 import { Client, Message } from "paho-mqtt";
 
 function clearChartCommand(props) {
+  var client
   if (props.config.remote && props.config.remote.ws_url) {
-    var client = new Client(
+    client = new Client(
       `ws://${props.config.remote.ws_url}/`,
       "webui_ClearChartButton" + Math.random()
     )}
   else {
-    var client = new Client(
+    client = new Client(
       `${props.config['network.topology']['leader_address']}`, 9001,
       "webui_ClearChartButton" + Math.random()
     );
