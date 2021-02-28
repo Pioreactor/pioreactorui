@@ -18,7 +18,7 @@ function ClearChartButton(props){
 
   function onClick(){
     clearChartCommand(props)
-    window.location.reload();
+    setTimeout(function(){ window.location.reload()}, 1200)
     return false
   }
 
