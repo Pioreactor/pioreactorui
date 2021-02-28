@@ -149,7 +149,7 @@ app.get("/run/:job/:unit", function(req, res) {
 
     options = Object.entries(queryObject).map(k_v => [`--${k_v[0].replace(/_/g, "-")} ${k_v[1]}`])
 
-    execFile("pios", ["run", job, "-y", "--units", `'${req.params.unit}'`].concat(options), (error, stdout, stderr) => {
+    execFile("pios", ["run", job, "-y", "--units", req.params.unit].concat(options), (error, stdout, stderr) => {
         if (error) {
             console.log(error)
             res.sendStatus(500);
