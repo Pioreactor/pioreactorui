@@ -22,7 +22,6 @@ process.on('message', function(v) {
         }
         // now that we have sent a confirmation, also update the UI...
         // pio update ui restarts the webserver...
-        command = "pio update --ui"
         execFile("pio", ['update', "--ui"])
         process.exit(0)
     });
