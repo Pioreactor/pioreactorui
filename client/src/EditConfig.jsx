@@ -166,7 +166,7 @@ class EditableCodeDiv extends React.Component {
         </div>
         <div style={{display: "flex", justifyContent: "space-between"}}>
           <Button
-            style={{margin: "5px 10px 5px 10px"}}
+            style={{margin: "5px 12px 5px 12px"}}
             color="primary"
             variant="contained"
             onClick={this.saveCurrentCode}
