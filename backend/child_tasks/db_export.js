@@ -6,9 +6,9 @@ process.on('message', function(options) {
     tables = tables.filter(t => options.datasetCheckbox[t])
     experiment = options.experimentSelection
     cmd_tables = tables.map(s => ["--tables", s]).flat()
-    filename = `export_${experiment.replace(" ", "_")}_${Math.floor(Date.now() / 1000).toString()}.zip`
+    filename = `export_${experiment.replace(/ /g, "_")}_${Math.floor(Date.now() / 1000).toString()}.zip`
     execFile("pio",
-            ["run", "download_experiment_data", "--experiment", experiment, "--output", filename].concat(cmd_tables),
+            ["run", "download_experiment_data", "--experiment", experiment.replace(/ /g, '\ '), "--output", filename].concat(cmd_tables),
             {cwd: "/home/pi/pioreactorui/backend/build/static/exports/"},
             (error, stdout, stderr) => {
         console.log(stdout)

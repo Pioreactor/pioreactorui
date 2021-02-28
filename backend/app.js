@@ -121,6 +121,7 @@ app.post('/query_datasets', function(req, res) {
 
 
 app.get('/stop', function (req, res) {
+  const jobs = ['dosing_control', 'stirring', 'od_reading', 'growth_rate_calculating', 'led_control']
   execFile("pios", ["kill"] + jobs + ["-y"], (error, stdout, stderr) => {
       if (error) {
           console.log(error)
