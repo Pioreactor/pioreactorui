@@ -8,7 +8,7 @@ process.on('message', function(options) {
     cmd_tables = tables.map(s => ["--tables", s]).flat()
     filename = `export_${experiment.replace(" ", "_")}_${Math.floor(Date.now() / 1000).toString()}.zip`
     execFile("pio",
-            ["run", "download_experiment_data", "--experiment", `"${experiment}"`, "--output", `"${filename}"`].concat(cmd_tables),
+            ["run", "download_experiment_data", "--experiment", experiment, "--output", filename].concat(cmd_tables),
             {cwd: "/home/pi/pioreactorui/backend/build/static/exports/"},
             (error, stdout, stderr) => {
         console.log(stdout)
