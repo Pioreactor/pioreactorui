@@ -322,7 +322,7 @@ app.post("/save_new_config", function(req, res) {
       res.sendStatus(500)
     }
     else {
-      execFile("pios", ["sync-configs", "--units", `'${units}'`], (error, stdout, stderr) => {
+      execFile("pios", ["sync-configs", "--units", units], (error, stdout, stderr) => {
           if (error) {
               console.log(error)
               res.sendStatus(500);
