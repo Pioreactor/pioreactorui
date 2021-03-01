@@ -46,7 +46,7 @@ const useStyles = makeStyles((theme) => ({
 function ExperimentSelection(props) {
   const classes = useStyles();
 
-  const [experiments, setExperiments] = React.useState([])
+  const [experiments, setExperiments] = React.useState([{experiment: "<All experiments>"}])
 
   React.useEffect(() => {
     async function getData() {
@@ -55,7 +55,7 @@ function ExperimentSelection(props) {
           return response.json();
         })
         .then((data) => {
-          setExperiments(data)
+          setExperiments(prevState => [ ...data, ...prevState])
           props.handleChange(data[0].experiment)
         });
       }
@@ -81,7 +81,7 @@ function ExperimentSelection(props) {
           }}
         >
           {experiments.map((v) => {
-            return <option value={v.experiment}>{v.experiment +  ` (started ${moment(v.timestamp).format("MMMM D, YYYY")})`}</option>
+            return <option value={v.experiment}>{v.experiment +  (v.timestamp ? ` (started ${moment(v.timestamp).format("MMMM D, YYYY")})` : "")}</option>
             }
           )}
         </Select>
