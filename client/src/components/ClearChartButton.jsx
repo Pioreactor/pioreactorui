@@ -17,8 +17,7 @@ function ClearChartButton(props){
   const classes = useStyles();
 
   function onClick(){
-    clearChartCommand(props)
-    setTimeout(function(){window.location.reload()}, 1200)
+    clearChartCommand(props, function(){window.location.reload()})
     return false
   }
 

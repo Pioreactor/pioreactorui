@@ -1,6 +1,6 @@
 import { Client, Message } from "paho-mqtt";
 
-function clearChartCommand(props) {
+function clearChartCommand(props, publishCallback) {
   var client
   if (props.config.remote && props.config.remote.ws_url) {
     client = new Client(
@@ -13,6 +13,11 @@ function clearChartCommand(props) {
       "webui_ClearChartButton" + Math.random()
     );
   }
+
+  if (publishCallback){
+    client.onMessageDelivered = publishCallback
+  }
+
   client.connect({onSuccess: () => {
     for (var jobName of ['od_raw', 'od_filtered', 'growth_rate', 'alt_media_fraction']) {
       var message = new Message("");

@@ -31,6 +31,9 @@ function ClearLogButton(props){
         "webui_ClearLogButton" + Math.random()
       );
     }
+
+    client.onMessageDelivered = (m) => {window.location.reload();}
+
     client.connect({timeout: 180, onSuccess: () => {
       var message = new Message("");
       message.destinationName = [
@@ -42,8 +45,6 @@ function ClearLogButton(props){
         "set",
       ].join("/");
       client.publish(message);
-      window.location.reload();
-      return false
     }});
   }
 

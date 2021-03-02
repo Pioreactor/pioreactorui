@@ -61,7 +61,7 @@ function Overview(props) {
                 yAxisLabel="Growth rate, h⁻¹"
                 experiment={experimentMetadata.experiment}
                 interpolation="stepAfter"
-                yAxisDomain={[-0.01, 0.1]}
+                yAxisDomain={[-0.02, 0.1]}
                 yAxisTickFormat={(t) => `${t.toFixed(2)}`}
               />
             </Grid>

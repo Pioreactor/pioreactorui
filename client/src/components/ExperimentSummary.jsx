@@ -37,7 +37,12 @@ class EditableDescription extends React.Component {
   constructor(props) {
     super(props)
     this.contentEditable = React.createRef();
-    this.state = {desc: "", openSnackBar: false, originalDesc: ""};
+    this.state = {
+      desc: "",
+      openSnackBar: false,
+      originalDesc: "",
+      snackBarMessage: ""
+    };
   };
 
   componentDidUpdate(prevProps) {
@@ -52,6 +57,8 @@ class EditableDescription extends React.Component {
 
   onBlur = evt => {
     if (this.state.desc !== this.state.originalDesc) {
+      this.setState({openSnackBar: true});
+      this.setState({snackBarMessage: "Updating..."});
       this.setState({originalDesc: this.state.desc})
       return fetch('update_experiment_desc', {
           method: "POST",
@@ -62,7 +69,7 @@ class EditableDescription extends React.Component {
           }
         }).then(res => {
           if (res.status === 200){
-            this.setState({openSnackBar: true});
+            this.setState({snackBarMessage: "Updated experiment description"});
           }
         })
     }
@@ -83,7 +90,7 @@ class EditableDescription extends React.Component {
         <ContentEditable
             innerRef={this.contentEditable}
             html={this.state.desc} // innerHTML of the editable div
-            disabled={false}       // use true to disable editing
+            disabled={false}
             onChange={this.handleChange} // handle innerHTML change
             onBlur={this.onBlur}
             tagName="p"
@@ -93,8 +100,8 @@ class EditableDescription extends React.Component {
             anchorOrigin={{vertical: "bottom", horizontal: "center"}}
             open={this.state.openSnackBar}
             onClose={this.handleSnackbarClose}
-            message={"Updated description"}
-            autoHideDuration={2500}
+            message={this.state.snackBarMessage}
+            autoHideDuration={5000}
             key={"snackbarEditDesc"}
           />
       </div>

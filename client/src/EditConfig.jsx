@@ -108,7 +108,7 @@ class EditableCodeDiv extends React.Component {
       this.setState({openSnackbar: true});
       setTimeout(function () {
         window.location.reload();
-      }, 1000);
+      }, 750);
     })
   }
 

@@ -191,7 +191,7 @@ class Chart extends React.Component {
   }
 
   breakString(string){
-    if (string.length > 8){
+    if (string.length > 11){
       return string.slice(0, 5) + "..." + string.slice(string.length-2, string.length)
     }
     return string
@@ -206,7 +206,7 @@ class Chart extends React.Component {
       const results = name.match(/(.*)-([0123])/);
       const index = results[1];
       const sensor = results[2];
-      return this.breakString(this.props.config['ui.rename'][index] || index) + sensor
+      return this.breakString(this.props.config['ui.rename'][index] || index) + "-" + sensor
     }
     else {
       return this.breakString(this.props.config['ui.rename'][name] || name)
@@ -352,15 +352,16 @@ ${this.renameAndFormatSeries(d.datum.childName)}: ${Math.round(d.datum.y * 1000)
             }}
           />
           <VictoryLegend
-            x={60}
+            x={65}
             y={267}
-            symbolSpacer={10}
-            itemsPerRow={6}
+            symbolSpacer={6}
+            itemsPerRow={5}
             name={"legend"}
             borderPadding={{ right: 8 }}
             orientation="horizontal"
             cursor={"pointer"}
             gutter={15}
+            rowGutter={5}
             style={{
               labels: { fontSize: 12 },
               data: { stroke: "#485157", strokeWidth: 0.5, size: 6.5 },
