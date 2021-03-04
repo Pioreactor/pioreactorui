@@ -77,9 +77,12 @@ const useStyles = makeStyles((theme) => ({
   },
   textbox:{
     width: "112px",
+    marginTop: "10px"
   },
   textboxLabel:{
     width: "100px",
+    marginTop: "10px",
+    marginRight: "10px"
   },
   footnote: {
     marginBottom: 0,
@@ -1563,7 +1566,7 @@ function PioreactorCard(props){
                 </div>
               </Tooltip>
             </div>
-            <div style={{display: "flex", justifyContent: "right"}}>
+            <div style={{display: "flex", justifyContent: "flex-end", flexDirection: "row", flexWrap: "wrap"}}>
               <div>
                 <Button style={{textTransform: 'none', float: "right" }} disabled={!isUnitActive} color="primary">
                   <SettingsIcon color={!isUnitActive ? "disabled" : "primary"} className={classes.textIcon}/> Calibrate
@@ -1597,7 +1600,11 @@ function PioreactorCard(props){
         </div>
 
 
-      <div style={{display: "flex", margin: "15px 20px 20px 0px"}}>
+      <div style={{
+          display: "flex",
+          margin: "15px 20px 20px 0px",
+          flexDirection: "row",
+        }}>
         <div className={classes.textboxLabel}>
           <Typography variant="body2" component="body1">
             <Box fontWeight="fontWeightBold" className={clsx({[classes.disabledText]: !isUnitActive})}>
@@ -1605,78 +1612,92 @@ function PioreactorCard(props){
             </Box>
           </Typography>
         </div>
-
-        <div className={classes.textbox}>
-          <Typography variant="body2" style={{fontSize: "0.85rem"}} className={clsx({[classes.disabledText]: !isUnitActive})}>
-            Stirring
-          </Typography>
-          <UnitSettingDisplay
-            value={stirringJobState}
-            isUnitActive={isUnitActive}
-            default="disconnected"
-            isStateSetting
-          />
-        </div>
-        <div className={classes.textbox}>
-          <Typography variant="body2" style={{fontSize: "0.85rem"}} className={clsx({[classes.disabledText]: !isUnitActive})}>
-            Optical density
-          </Typography>
-          <UnitSettingDisplay
-            value={ODReadingJobState}
-            isUnitActive={isUnitActive}
-            default="disconnected"
-            isStateSetting
-          />
-        </div>
-        <div className={classes.textbox}>
-          <Typography variant="body2" style={{fontSize: "0.85rem"}} className={clsx({[classes.disabledText]: !isUnitActive})}>
-            Growth rate
-          </Typography>
-          <UnitSettingDisplay
-            value={growthRateJobState}
-            isUnitActive={isUnitActive}
-            default="disconnected"
-            isStateSetting
-          />
-        </div>
-        <div className={classes.textbox}>
-          <Typography variant="body2" style={{fontSize: "0.85rem"}} className={clsx({[classes.disabledText]: !isUnitActive})}>
-            Dosing control
-          </Typography>
-          <UnitSettingDisplay
-            value={dosingControlJobState}
-            isUnitActive={isUnitActive}
-            default="disconnected"
-            isStateSetting
-          />
-        </div>
-        <div className={classes.textbox}>
-          <Typography variant="body2" style={{fontSize: "0.85rem"}} className={clsx({[classes.disabledText]: !isUnitActive})}>
-            LED control
-          </Typography>
-          <UnitSettingDisplay
-            value={ledControlJobState}
-            isUnitActive={isUnitActive}
-            default="disconnected"
-            isStateSetting
-          />
-        </div>
-        <div className={classes.textbox}>
-          <Typography variant="body2" style={{fontSize: "0.85rem"}} className={clsx({[classes.disabledText]: !isUnitActive})}>
-            Temperature control
-          </Typography>
-          <UnitSettingDisplay
-            value={temperatureControllingJobState}
-            isUnitActive={isUnitActive}
-            default="NA"
-            isStateSetting
-          />
+        <div
+         style={{
+          display: "flex",
+          flexDirection: "row",
+          flexWrap: "wrap",
+          justifyContent: "flex-start",
+          alignItems: "stretch",
+          alignContent: "stretch",
+        }}
+        >
+          <div className={classes.textbox}>
+            <Typography variant="body2" style={{fontSize: "0.85rem"}} className={clsx({[classes.disabledText]: !isUnitActive})}>
+              Stirring
+            </Typography>
+            <UnitSettingDisplay
+              value={stirringJobState}
+              isUnitActive={isUnitActive}
+              default="disconnected"
+              isStateSetting
+            />
+          </div>
+          <div className={classes.textbox}>
+            <Typography variant="body2" style={{fontSize: "0.85rem"}} className={clsx({[classes.disabledText]: !isUnitActive})}>
+              Optical density
+            </Typography>
+            <UnitSettingDisplay
+              value={ODReadingJobState}
+              isUnitActive={isUnitActive}
+              default="disconnected"
+              isStateSetting
+            />
+          </div>
+          <div className={classes.textbox}>
+            <Typography variant="body2" style={{fontSize: "0.85rem"}} className={clsx({[classes.disabledText]: !isUnitActive})}>
+              Growth rate
+            </Typography>
+            <UnitSettingDisplay
+              value={growthRateJobState}
+              isUnitActive={isUnitActive}
+              default="disconnected"
+              isStateSetting
+            />
+          </div>
+          <div className={classes.textbox}>
+            <Typography variant="body2" style={{fontSize: "0.85rem"}} className={clsx({[classes.disabledText]: !isUnitActive})}>
+              Dosing control
+            </Typography>
+            <UnitSettingDisplay
+              value={dosingControlJobState}
+              isUnitActive={isUnitActive}
+              default="disconnected"
+              isStateSetting
+            />
+          </div>
+          <div className={classes.textbox}>
+            <Typography variant="body2" style={{fontSize: "0.85rem"}} className={clsx({[classes.disabledText]: !isUnitActive})}>
+              LED control
+            </Typography>
+            <UnitSettingDisplay
+              value={ledControlJobState}
+              isUnitActive={isUnitActive}
+              default="disconnected"
+              isStateSetting
+            />
+          </div>
+          <div className={classes.textbox}>
+            <Typography variant="body2" style={{fontSize: "0.85rem"}} className={clsx({[classes.disabledText]: !isUnitActive})}>
+              Temperature control
+            </Typography>
+            <UnitSettingDisplay
+              value={temperatureControllingJobState}
+              isUnitActive={isUnitActive}
+              default="NA"
+              isStateSetting
+            />
+          </div>
         </div>
       </div>
       <Divider/>
 
 
-      <div style={{display: "flex", margin: "20px 20px 20px 0px"}}>
+      <div style={{
+          display: "flex",
+          margin: "15px 20px 20px 0px",
+          flexDirection: "row",
+        }}>
         <div className={classes.textboxLabel}>
           <Typography variant="body2" component="body1">
             <Box fontWeight="fontWeightBold"  className={clsx({[classes.disabledText]: !isUnitActive})}>
@@ -1684,101 +1705,112 @@ function PioreactorCard(props){
             </Box>
           </Typography>
         </div>
-        <div className={classes.textbox}>
-          <Typography variant="body2" style={{fontSize: "0.85rem"}} className={clsx({[classes.disabledText]: !isUnitActive})}>
-            Stirring speed
-          </Typography>
-          <UnitSettingDisplay
-            value={stirringDC}
-            isUnitActive={isUnitActive}
-            default="—"
-            className={classes.alignRight}
-          />
-        </div>
-        <div className={classes.textbox}>
-          <Typography variant="body2" style={{fontSize: "0.85rem"}} className={clsx({[classes.disabledText]: !isUnitActive})}>
-            Volume / dosing
-          </Typography>
-          <UnitSettingDisplay
-            precision={2}
-            measurementUnit="mL"
-            value={volume}
-            isUnitActive={isUnitActive}
-            default="—"
-            className={classes.alignRight}
-          />
-        </div>
-        <div className={classes.textbox}>
-          <Typography variant="body2" style={{fontSize: "0.85rem"}} className={clsx({[classes.disabledText]: !isUnitActive})}>
-            Target OD
-          </Typography>
-          <UnitSettingDisplay
-            precision={2}
-            value={targetOD}
-            isUnitActive={isUnitActive}
-            default={"—"}
-            className={classes.alignRight}
-          />
-        </div>
-        <div className={classes.textbox}>
-          <Typography variant="body2" style={{fontSize: "0.85rem"}} className={clsx({[classes.disabledText]: !isUnitActive})}>
-            Target growth rate
-          </Typography>
-          <UnitSettingDisplay
-            precision={2}
-            measurementUnit="h⁻¹"
-            value={targetGrowthRate}
-            isUnitActive={isUnitActive}
-            default="—"
-            className={classes.alignRight}
-          />
-        </div>
-        <div className={classes.textbox}>
-          <Typography variant="body2" style={{fontSize: "0.85rem"}} className={clsx({[classes.disabledText]: !isUnitActive})}>
-            Dosing automation
-          </Typography>
-          <UnitSettingDisplay
-            value={dosingautomation}
-            isUnitActive={isUnitActive}
-            default="—"
-            className={classes.alignRight}
-          />
-        </div>
-        <div className={classes.textbox}>
-          <Typography variant="body2" style={{fontSize: "0.85rem"}} className={clsx({[classes.disabledText]: !isUnitActive})}>
-            LED automation
-          </Typography>
-          <UnitSettingDisplay
-            value={ledautomation}
-            isUnitActive={isUnitActive}
-            default="—"
-            className={classes.alignRight}
-          />
-        </div>
-        <div className={classes.textbox}>
-          <Typography variant="body2" style={{fontSize: "0.85rem"}} className={clsx({[classes.disabledText]: !isUnitActive})}>
-            Time between dosing events
-          </Typography>
-          <UnitSettingDisplay
-            precision={0}
-            measurementUnit="m"
-            value={duration}
-            isUnitActive={isUnitActive}
-            default="—"
-            className={classes.alignRight}
-          />
-        </div>
-        <div className={classes.textbox}>
-          <Typography variant="body2" style={{fontSize: "0.85rem"}} className={clsx({[classes.disabledText]: !isUnitActive})}>
-            LED intensity
-          </Typography>
-          <UnitSettingDisplay
-            value={ledIntensity}
-            isUnitActive={isUnitActive}
-            default="—"
-            className={classes.alignRight}
-            isLEDIntensity
-          />
+        <div
+         style={{
+          display: "flex",
+          flexDirection: "row",
+          flexWrap: "wrap",
+          justifyContent: "flex-start",
+          alignItems: "stretch",
+          alignContent: "stretch",
+        }}
+        >
+          <div className={classes.textbox}>
+            <Typography variant="body2" style={{fontSize: "0.85rem"}} className={clsx({[classes.disabledText]: !isUnitActive})}>
+              Stirring speed
+            </Typography>
+            <UnitSettingDisplay
+              value={stirringDC}
+              isUnitActive={isUnitActive}
+              default="—"
+              className={classes.alignRight}
+            />
+          </div>
+          <div className={classes.textbox}>
+            <Typography variant="body2" style={{fontSize: "0.85rem"}} className={clsx({[classes.disabledText]: !isUnitActive})}>
+              Volume / dosing
+            </Typography>
+            <UnitSettingDisplay
+              precision={2}
+              measurementUnit="mL"
+              value={volume}
+              isUnitActive={isUnitActive}
+              default="—"
+              className={classes.alignRight}
+            />
+          </div>
+          <div className={classes.textbox}>
+            <Typography variant="body2" style={{fontSize: "0.85rem"}} className={clsx({[classes.disabledText]: !isUnitActive})}>
+              Target OD
+            </Typography>
+            <UnitSettingDisplay
+              precision={2}
+              value={targetOD}
+              isUnitActive={isUnitActive}
+              default={"—"}
+              className={classes.alignRight}
+            />
+          </div>
+          <div className={classes.textbox}>
+            <Typography variant="body2" style={{fontSize: "0.85rem"}} className={clsx({[classes.disabledText]: !isUnitActive})}>
+              Target growth rate
+            </Typography>
+            <UnitSettingDisplay
+              precision={2}
+              measurementUnit="h⁻¹"
+              value={targetGrowthRate}
+              isUnitActive={isUnitActive}
+              default="—"
+              className={classes.alignRight}
+            />
+          </div>
+          <div className={classes.textbox}>
+            <Typography variant="body2" style={{fontSize: "0.85rem"}} className={clsx({[classes.disabledText]: !isUnitActive})}>
+              Dosing automation
+            </Typography>
+            <UnitSettingDisplay
+              value={dosingautomation}
+              isUnitActive={isUnitActive}
+              default="—"
+              className={classes.alignRight}
+            />
+          </div>
+          <div className={classes.textbox}>
+            <Typography variant="body2" style={{fontSize: "0.85rem"}} className={clsx({[classes.disabledText]: !isUnitActive})}>
+              LED automation
+            </Typography>
+            <UnitSettingDisplay
+              value={ledautomation}
+              isUnitActive={isUnitActive}
+              default="—"
+              className={classes.alignRight}
+            />
+          </div>
+          <div className={classes.textbox}>
+            <Typography variant="body2" style={{fontSize: "0.85rem"}} className={clsx({[classes.disabledText]: !isUnitActive})}>
+              Time between dosing events
+            </Typography>
+            <UnitSettingDisplay
+              precision={0}
+              measurementUnit="m"
+              value={duration}
+              isUnitActive={isUnitActive}
+              default="—"
+              className={classes.alignRight}
+            />
+          </div>
+          <div className={classes.textbox}>
+            <Typography variant="body2" style={{fontSize: "0.85rem"}} className={clsx({[classes.disabledText]: !isUnitActive})}>
+              LED intensity
+            </Typography>
+            <UnitSettingDisplay
+              value={ledIntensity}
+              isUnitActive={isUnitActive}
+              default="—"
+              className={classes.alignRight}
+              isLEDIntensity
+            />
+          </div>
         </div>
       </div>
 

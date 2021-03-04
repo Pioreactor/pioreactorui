@@ -104,7 +104,7 @@ function Overview(props) {
                 config={props.config}
                 isODReading={true}
                 dataFile={"./data/od_raw_time_series_aggregating.json"}
-                title="Raw optical density"
+                title="Optical density"
                 topic="od_raw/+/+"
                 yAxisLabel="Voltage"
                 experiment="+"

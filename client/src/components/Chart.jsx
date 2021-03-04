@@ -116,6 +116,7 @@ class Chart extends React.Component {
         });
       })
       .catch((e) => {
+        console.log(e)
         this.setState({fetched: true})
       });
   }
@@ -216,13 +217,13 @@ class Chart extends React.Component {
 
   filterDataPoints(totalLength){
     return function(value, index){
-      if (totalLength < 500){
+      if (totalLength < 600){
         return true
       }
       if ((index === 0) || (index === (totalLength - 1))){
         return true
       }
-      else if (index % Math.round(totalLength/500) === 0){
+      else if (index % Math.round(totalLength/600) === 0){
         return true
       } else {
         return false
