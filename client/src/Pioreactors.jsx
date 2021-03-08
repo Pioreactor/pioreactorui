@@ -82,7 +82,7 @@ const useStyles = makeStyles((theme) => ({
   textboxLabel:{
     width: "100px",
     marginTop: "10px",
-    marginRight: "10px"
+    marginRight: "5px"
   },
   footnote: {
     marginBottom: 0,
