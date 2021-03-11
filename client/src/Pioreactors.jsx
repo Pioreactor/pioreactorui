@@ -202,7 +202,7 @@ function ButtonConfirmStopProcessDialog() {
   };
 
   const onConfirm = () => {
-    fetch("/stop")
+    fetch("/stop_all")
     handleClose()
   }
 
@@ -958,7 +958,7 @@ function SettingsActionsDialog(props) {
             Temperature controlling
           </Typography>
           <Typography variant="body2" component="p" gutterBottom>
-            Us at Pioreactor are working on including per-reactor temperature control. Stay tuned!
+            We are working on including per-reactor temperature control. Stay tuned!
           </Typography>
 
           <Divider className={classes.divider} />
@@ -971,6 +971,7 @@ function SettingsActionsDialog(props) {
       onClose={handleSnackbarClose}
       message={snackbarMessage}
       autoHideDuration={7000}
+      resumeHideDuration={2000}
       key={"snackbar" + props.unit + "settings"}
     />
     </div>
@@ -1391,6 +1392,7 @@ function SettingsActionsDialogAll(props) {
       onClose={handleSnackbarClose}
       message={snackbarMessage}
       autoHideDuration={7000}
+      resumeHideDuration={2000}
       key={"snackbar" + props.unit + "settings"}
     />
     </React.Fragment>

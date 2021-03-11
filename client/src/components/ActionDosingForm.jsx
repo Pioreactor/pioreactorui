@@ -7,6 +7,7 @@ import { makeStyles } from "@material-ui/styles";
 const useStyles = makeStyles({
   actionTextField: {
     padding: "0px 10px 0px 0px",
+    width: "175px",
   },
   actionForm: {
     padding: "20px 0px 0px 0px",
@@ -34,20 +35,17 @@ export default function ActionPumpForm(props) {
     e.preventDefault();
     if (mL !== EMPTYSTATE || duration !== EMPTYSTATE) {
       const params = mL !== "" ? { ml: mL, source_of_event: "UI"} : { duration: duration, source_of_event: "UI"};
-      fetch(
-        "/run/" +
-          props.action +
-          "/" +
-          props.unit +
-          "?" +
-          new URLSearchParams(params)
-      );
+      fetch(`/run/${props.action}/${props.unit}?` + new URLSearchParams(params));
       setOpenSnackbar(true);
     }
   }
 
+  function stopPump(e) {
+    fetch(`/stop/${props.action}/${props.unit}`)
+  }
+
   const handleSnackbarClose = () => {
-    setOpenSnackbar(false );
+    setOpenSnackbar(false);
   };
 
   function handleMLChange(e) {
@@ -92,15 +90,24 @@ export default function ActionPumpForm(props) {
       />
       <br />
       <br />
-      <Button
-        type="submit"
-        variant="contained"
-        size="small"
-        color="primary"
-        onClick={onSubmit}
-      >
-        {props.action.replace(/_/g, " ")}
-      </Button>
+      <div style={{display: "flex", justifyContent: "space-between"}}>
+        <Button
+          type="submit"
+          variant="contained"
+          size="small"
+          color="primary"
+          onClick={onSubmit}
+        >
+          {props.action.replace(/_/g, " ")}
+        </Button>
+        <Button
+          size="small"
+          color="secondary"
+          onClick={stopPump}
+        >
+          Interrupt
+        </Button>
+      </div>
       <Snackbar
         anchorOrigin={{vertical: "bottom", horizontal: "center"}}
         open={openSnackbar}

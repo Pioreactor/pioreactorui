@@ -39,51 +39,35 @@ class EditableDescription extends React.Component {
     this.contentEditable = React.createRef();
     this.state = {
       desc: "",
-      openSnackBar: false,
-      originalDesc: "",
-      snackBarMessage: ""
     };
   };
 
   componentDidUpdate(prevProps) {
     if (this.props.description !== prevProps.description) {
-      this.setState({desc: `${this.props.description}`, originalDesc: `${this.props.description}`})
+      this.setState({desc: this.props.description})
     }
   }
 
   handleChange = evt => {
     this.setState({desc: evt.target.value});
+    return fetch('update_experiment_desc', {
+        method: "POST",
+        body: JSON.stringify({experiment : this.props.experiment, description: evt.target.value}),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        }
+      }).then(res => {
+        if (res.status ==! 200){
+          console.log("didn't save")
+        }
+      })
   };
 
-  onBlur = evt => {
-    if (this.state.desc !== this.state.originalDesc) {
-      this.setState({openSnackBar: true});
-      this.setState({snackBarMessage: "Updating..."});
-      this.setState({originalDesc: this.state.desc})
-      return fetch('update_experiment_desc', {
-          method: "POST",
-          body: JSON.stringify({experiment : this.props.experiment, description: this.state.desc}),
-          headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-          }
-        }).then(res => {
-          if (res.status === 200){
-            this.setState({snackBarMessage: "Updated experiment description"});
-          }
-        })
-    }
-  };
-
-  handleSnackbarClose = (e, reason) => {
-    if (reason !== "clickaway"){
-      this.setState({openSnackBar: false});
-    }
-  };
 
   render = () => {
     return (
-      <div style={{"padding": "0px 5px 0px 5px"}}>
+      <div style={{padding: "0px 5px 0px 5px"}}>
         <Box fontWeight="fontWeightBold">
           Description:
         </Box>
@@ -94,15 +78,7 @@ class EditableDescription extends React.Component {
             onChange={this.handleChange} // handle innerHTML change
             onBlur={this.onBlur}
             tagName="p"
-            style={{"padding": "3px 3px 3px 2px"}}
-          />
-          <Snackbar
-            anchorOrigin={{vertical: "bottom", horizontal: "center"}}
-            open={this.state.openSnackBar}
-            onClose={this.handleSnackbarClose}
-            message={this.state.snackBarMessage}
-            autoHideDuration={5000}
-            key={"snackbarEditDesc"}
+            style={{padding: "3px 3px 3px 2px", outline: "none"}}
           />
       </div>
     )

@@ -64,7 +64,7 @@ export default function SideDrawer() {
       </List>
       <Divider />
       <List>
-        <ListItem target="_blank" href="https://pioreactor.com/pages/documentation" component="a" button key="help">
+        <ListItem target="_blank" rel="noopener noreferrer" href="https://pioreactor.com/pages/documentation" component="a" button key="help">
           <ListItemIcon><HelpOutlineIcon/> </ListItemIcon>
           <ListItemText primary={"Documentation"} />
         </ListItem>

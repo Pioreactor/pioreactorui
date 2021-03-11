@@ -13,7 +13,6 @@ import Stepper from '@material-ui/core/Stepper';
 import Step from '@material-ui/core/Step';
 import StepLabel from '@material-ui/core/StepLabel';
 import TextField from '@material-ui/core/TextField';
-import Snackbar from '@material-ui/core/Snackbar';
 
 import Header from "./components/Header"
 import CleaningScript from "./components/CleaningScript"
@@ -56,7 +55,6 @@ const useStyles = makeStyles((theme) => ({
 
 function ExperimentSummaryForm(props) {
   const classes = useStyles();
-  const [openSnackbar, setOpenSnackbar] = React.useState(false);
   const [formError, setFormError] = React.useState(false);
   const [helperText, setHelperText] = React.useState("");
   const [expName, setExpName] = React.useState("");
@@ -91,11 +89,10 @@ function ExperimentSummaryForm(props) {
   }
 
   function killExistingJobs(){
-     fetch('/stop')
+     fetch('/stop_all')
   }
 
   function onSubmit(e) {
-    console.log("onSubmit")
     e.preventDefault();
     if (expName === ""){
       setFormError(true)
@@ -113,10 +110,10 @@ function ExperimentSummaryForm(props) {
         if (res.status === 200){
           setHelperText("")
           setFormError(false);
-          setOpenSnackbar(true);
           killExistingJobs()
           publishExpNameToMQTT()
           clearChartCommand(props)
+          props.handleNext()
         }
         else{
           setFormError(true);
@@ -136,9 +133,6 @@ function ExperimentSummaryForm(props) {
     setTimestamp(e.target.value)
   }
 
-  const handleSnackbarClose = () => {
-    setOpenSnackbar(false);
-  };
 
   return (
     <div className={classes.root}>
@@ -181,14 +175,6 @@ function ExperimentSummaryForm(props) {
           <Grid item xs={12} md={10}/>
           <Grid item xs={12} md={2}>
             <Button variant="contained" color="primary" onClick={onSubmit}> Create </Button>
-            <Snackbar
-              anchorOrigin={{vertical: "bottom", horizontal: "center"}}
-              open={openSnackbar}
-              onClose={handleSnackbarClose}
-              message={`Created new experiment called ${expName}.`}
-              autoHideDuration={7000}
-              key={"snackbar" + props.unit + props.action}
-            />
           </Grid>
         </Grid>
         </FormGroup>
@@ -198,22 +184,12 @@ function ExperimentSummaryForm(props) {
 
 
 
-function getSteps(config) {
-  return [
-    {title: 'Experiment summary', content: <ExperimentSummaryForm config={config} />, optional: true},
-    {title: 'Cleaning and preparation', content: <CleaningScript config={config}/>, optional: true},
-    {title: 'Start sensors', content: <StartSensors config={config}/>, optional: true},
-    {title: 'Start calculations', content: <StartCalculations config={config}/>, optional: false},
-  ];
-}
-
 
 
 function StartNewExperimentContainer(props) {
   const classes = useStyles();
   const [activeStep, setActiveStep] = React.useState(0);
   const [skipped, setSkipped] = React.useState(new Set());
-  const steps = getSteps(props.config);
 
   const getStepContent = (index) => {
     return steps[index].content
@@ -263,6 +239,13 @@ function StartNewExperimentContainer(props) {
   const handleReset = () => {
     setActiveStep(0);
   };
+
+  const steps = [
+    {title: 'Experiment summary', content: <ExperimentSummaryForm config={props.config} handleNext={handleNext}/>, optional: true},
+    {title: 'Cleaning and preparation', content: <CleaningScript config={props.config}/>, optional: true},
+    {title: 'Start sensors', content: <StartSensors config={props.config}/>, optional: true},
+    {title: 'Start calculations', content: <StartCalculations config={props.config}/>, optional: false},
+  ];
 
   return (
     <Card className={classes.root}>

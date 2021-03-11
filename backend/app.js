@@ -120,9 +120,25 @@ app.post('/query_datasets', function(req, res) {
 })
 
 
-app.get('/stop', function (req, res) {
-  const jobs = ['dosing_control', 'stirring', 'od_reading', 'growth_rate_calculating', 'led_control']
+app.get('/stop_all', function (req, res) {
+  const jobs = ["add_media", "add_alt_media", "remove_waste", 'dosing_control', 'stirring', 'od_reading', 'growth_rate_calculating', 'led_control']
   execFile("pios", ["kill"].concat(jobs).concat(["-y"]), (error, stdout, stderr) => {
+      if (error) {
+          console.log(error)
+      }
+      if (stderr) {
+          console.log(stderr)
+      }
+      console.log(`stdout: ${stdout}`);
+  })
+  res.sendStatus(200)
+});
+
+app.get('/stop/:job/:unit', function (req, res) {
+    job = req.params.job
+    unit = req.params.unit
+
+    execFile("pios", ["kill", job, "-y", "--units", req.params.unit], (error, stdout, stderr) => {
       if (error) {
           console.log(error)
       }
@@ -142,7 +158,7 @@ app.get("/run/:job/:unit", function(req, res) {
     unit = req.params.unit
     job = req.params.job
 
-    if (!["stirring", "od_reading", "growth_rate_calculating", "led_control", "dosing_control", "tempature_control"].includes(job)){
+    if (!["stirring", "od_reading", "growth_rate_calculating", "led_control", "dosing_control", "tempature_control", "add_media", "remove_waste", "add_alt_media"].includes(job)){
       // this solves a security problem: one could put any command as job, ex: "stirring && rm -rf /"
       res.send(400)
     }
@@ -220,7 +236,7 @@ app.get("/recent_media_rates/:experiment", function (req, res) {
   const hours = 6
 
   function fetch(){
-    db.query(`SELECT pioreactor_unit, SUM(CASE WHEN event="add_media" THEN volume_change_ml ELSE 0 END) / :hours AS mediaRate, SUM(CASE WHEN event="add_alt_media" THEN volume_change_ml ELSE 0 END) / :hours AS altMediaRate FROM dosing_events where datetime(timestamp) >= datetime('now', '-:hours Hour') and event in ('add_alt_media', 'add_media') and experiment=:experiment and source_of_event == 'dosing_automation' GROUP BY pioreactor_unit;`,
+    db.query(`SELECT pioreactor_unit, SUM(CASE WHEN event="add_media" THEN volume_change_ml ELSE 0 END) / :hours AS mediaRate, SUM(CASE WHEN event="add_alt_media" THEN volume_change_ml ELSE 0 END) / :hours AS altMediaRate FROM dosing_events where datetime(timestamp) >= datetime('now', '-:hours Hour') and event in ('add_alt_media', 'add_media') and experiment=:experiment and source_of_event LIKE 'dosing_automation%' GROUP BY pioreactor_unit;`,
       {experiment: experiment, hours: hours},
       {pioreactor_unit: String, mediaRate: Number, altMediaRate: Number},
       function(err, rows) {
