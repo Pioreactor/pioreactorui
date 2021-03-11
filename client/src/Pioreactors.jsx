@@ -117,7 +117,6 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 function TabPanel(props) {
-  // move me
   const { children, value, index, ...other } = props;
 
   return (
@@ -125,6 +124,7 @@ function TabPanel(props) {
       role="tabpanel"
       hidden={value !== index}
       id={`simple-tabpanel-${index}`}
+      key={`simple-tabpanel-${index}`}
       aria-labelledby={`simple-tab-${index}`}
       {...other}
     >
@@ -1564,7 +1564,7 @@ function PioreactorCard(props){
               </Typography>
               <Tooltip title={indicatorLabel} placement="right">
                 <div>
-                <div aria-label={indicatorLabel} class="indicator-dot" style={{boxShadow: `0 0 ${indicatorDotShadow}px ${indicatorDotColor}, inset 0 0 12px  ${indicatorDotColor}`}}/>
+                <div aria-label={indicatorLabel} className="indicator-dot" style={{boxShadow: `0 0 ${indicatorDotShadow}px ${indicatorDotColor}, inset 0 0 12px  ${indicatorDotColor}`}}/>
                 </div>
               </Tooltip>
             </div>

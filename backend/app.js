@@ -93,7 +93,7 @@ app.get('/get_app_version', function(req, res) {
 
 app.get('/get_changelog', function(req, res) {
   converter = new showdown.Converter()
-  execFile("cat", ["/home/pi/pioreactor/CHANGELOG.md"], (error, stdout, stderr) => {
+  execFile("cat", ["CHANGELOG.md"], {cwd: process.env.PIOREACTOR_SOURCE_CODE}, (error, stdout, stderr) => {
       if (error) {
           console.log(error)
       }

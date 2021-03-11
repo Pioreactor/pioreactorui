@@ -6,12 +6,15 @@ import { makeStyles } from "@material-ui/styles";
 import Button from "@material-ui/core/Button";
 import Typography from "@material-ui/core/Typography";
 import TextField from "@material-ui/core/TextField";
+import Checkbox from "@material-ui/core/Checkbox";
 import InputAdornment from "@material-ui/core/InputAdornment";
 import Dialog from '@material-ui/core/Dialog';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import FormLabel from '@material-ui/core/FormLabel';
 import FormControl from '@material-ui/core/FormControl';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
+import MenuItem from '@material-ui/core/MenuItem';
 import Select from '@material-ui/core/Select';
 import PioreactorIcon from "./PioreactorIcon"
 
@@ -70,7 +73,7 @@ function SilentForm(props){
 
 function PIDTurbidostatForm(props){
   const classes = useStyles();
-  const defaults = {duration: 30, volume: 0.75, target_od: 1.5}
+  const defaults = {duration: 30, volume: 0.75, target_od: 1.5, skip_first_run: false}
 
   useEffect(() => {
     props.updateParent(defaults)
@@ -78,7 +81,7 @@ function PIDTurbidostatForm(props){
 
 
   const onSettingsChange = (e) => {
-    props.updateParent({[e.target.id]: parseFloat(e.target.value)})
+    props.updateParent({[e.target.id]: e.target.value})
   }
 
   return (
@@ -218,11 +221,54 @@ function ChemostatForm(props){
 )}
 
 
+function ContinuousCycleForm(props){
+  const classes = useStyles();
+  const defaults = {duration: 0.17, volume: 0.25, skip_first_run: true}
+
+  useEffect(() => {
+    props.updateParent(defaults)
+  }, [])
+
+  const onSettingsChange = (e) => {
+    props.updateParent({[e.target.id]: e.target.value})
+  }
+
+  return (
+      <div>
+        <TextField
+          size="small"
+          id="duration"
+          label="Duration between events"
+          defaultValue={defaults.duration}
+          InputProps={{
+            endAdornment: <InputAdornment position="end">min</InputAdornment>,
+          }}
+          variant="outlined"
+          onChange={onSettingsChange}
+          className={classes.textFieldCompact}
+        />
+        <TextField
+          size="small"
+          id="volume"
+          label="Volume"
+          defaultValue={defaults.volume}
+          InputProps={{
+            endAdornment: <InputAdornment position="end">mL</InputAdornment>,
+          }}
+          variant="outlined"
+          onChange={onSettingsChange}
+          className={classes.textFieldCompact}
+        />
+    </div>
+)}
+
+
+
 
 function ButtonChangeDosingDialog(props) {
   const classes = useStyles();
   const [open, setOpen] = useState(false);
-  const [algoSettings, setAlgoSettings] = useState({dosing_automation: "silent"})
+  const [algoSettings, setAlgoSettings] = useState({dosing_automation: "silent", skip_first_run: false})
   const [isClicked, setIsClicked] = useState(false)
   const [client, setClient] = useState(null)
 
@@ -231,6 +277,7 @@ function ButtonChangeDosingDialog(props) {
     {name: "Chemostat", key: "chemostat"},
     {name: "PID Morbidostat",  key: "pid_morbidostat"},
     {name: "PID Turbidostat",  key: "pid_turbidostat"},
+    {name: "Continuous Cycle",  key: "continuous_cycle"},
   ]
 
   useEffect(() => {
@@ -265,7 +312,11 @@ function ButtonChangeDosingDialog(props) {
   };
 
   const handleAlgoSelectionChange = (e) => {
-    setAlgoSettings({dosing_automation: e.target.value})
+    setAlgoSettings({dosing_automation: e.target.value, skip_first_run: algoSettings.skip_first_run})
+  }
+
+  const handleSkipFirstRunChange = (e) => {
+    setAlgoSettings({...algoSettings, skip_first_run: e.target.checked})
   }
 
   const updateFromChild = (setting) => {
@@ -282,6 +333,8 @@ function ButtonChangeDosingDialog(props) {
         return <PIDMorbidostatForm updateParent={updateFromChild}/>
       case "chemostat":
         return <ChemostatForm updateParent={updateFromChild}/>
+      case "continuous_cycle":
+        return <ContinuousCycleForm updateParent={updateFromChild}/>
       default:
         return <div></div>
     }
@@ -335,19 +388,24 @@ function ButtonChangeDosingDialog(props) {
 
         <form>
           <FormControl component="fieldset" className={classes.formControl}>
-          <FormLabel component="legend">automation</FormLabel>
+            <FormLabel component="legend">Automation</FormLabel>
             <Select
               native
               value={algoSettings.mode}
               onChange={handleAlgoSelectionChange}
               style={{maxWidth: "200px"}}
             >
-              {algos.map((v) => {
-                return <option id={v.key} value={v.key} key={"change-io" + v.key}>{v.name}</option>
-                }
-              )}
+              {algos.map((v) => <option id={v.key} value={v.key} key={"change-io" + v.key}>{v.name}</option>)}
             </Select>
             {switchToForm()}
+            <FormControlLabel
+              control={<Checkbox checked={algoSettings.skip_first_run}
+                                  color="primary"
+                                  onChange={handleSkipFirstRunChange}
+                                  size="small"/>
+                      }
+              label="Skip first run"
+            />
             <Button
               type="submit"
               variant="contained"
