@@ -17,7 +17,7 @@ process.on('message', function(options) {
     }
 
     execFile("pio",
-            ["run", "download_experiment_data", "--output", filename].concat(cmd_tables).concat(experimentOption),
+            ["run", "export_experiment_data", "--output", filename].concat(cmd_tables).concat(experimentOption),
             {cwd: "/home/pi/pioreactorui/backend/build/static/exports/"},
             (error, stdout, stderr) => {
         console.log(stdout)

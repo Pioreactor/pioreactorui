@@ -56,9 +56,9 @@ export default function SideDrawer() {
           <ListItemIcon> <SettingsIcon color={isSelected("/config") ? "primary" : "inherit"}/> </ListItemIcon>
           <ListItemText primary={"Configuration"} />
         </ListItem>
-        <ListItem href="/download-data" component="a" button key={"download_data"} selected={isSelected("/download-data")}>
+        <ListItem href="/export-data" component="a" button key={"download_data"} selected={isSelected("/download-data")}>
           <ListItemIcon><SaveAltIcon color={isSelected("/download-data") ? "primary" : "inherit"}/> </ListItemIcon>
-          <ListItemText primary={"Download data"} />
+          <ListItemText primary={"Export data"} />
         </ListItem>
 
       </List>

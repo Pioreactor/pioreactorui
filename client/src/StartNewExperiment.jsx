@@ -108,10 +108,10 @@ function ExperimentSummaryForm(props) {
         }
       }).then(res => {
         if (res.status === 200){
+          publishExpNameToMQTT()
           setHelperText("")
           setFormError(false);
           killExistingJobs()
-          publishExpNameToMQTT()
           clearChartCommand(props)
           props.handleNext()
         }

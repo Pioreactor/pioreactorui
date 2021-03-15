@@ -5,7 +5,7 @@ import CssBaseline from "@material-ui/core/CssBaseline";
 
 import TactileButtonNotification from "./components/TactileButtonNotification";
 import ExperimentOverview from "./ExperimentOverview";
-import DownloadData from "./DownloadData";
+import ExportData from "./ExportData";
 import Pioreactors from "./Pioreactors";
 import StartNewExperiment from "./StartNewExperiment";
 import EditConfig from "./EditConfig";
@@ -64,8 +64,8 @@ function App() {
       <Router>
         <div className="pageContainer">
           <Switch>
-            <Route path="/download-data">
-              <DownloadData config={config}/>
+            <Route path="/export-data">
+              <ExportData config={config}/>
               <TactileButtonNotification config={config}/>
             </Route>
             <Route path="/start-new-experiment">

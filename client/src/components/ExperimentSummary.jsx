@@ -101,8 +101,8 @@ function ExperimentSummary(props){
             </Box>
           </Typography>
           <div >
-            <Button href="/download-data" style={{textTransform: 'none', marginRight: "0px", float: "right"}} color="primary">
-              <GetAppIcon className={classes.textIcon}/> Download experiment data
+            <Button href="/export-data" style={{textTransform: 'none', marginRight: "0px", float: "right"}} color="primary">
+              <GetAppIcon className={classes.textIcon}/> Export experiment data
             </Button>
             <Button href="/start-new-experiment" style={{textTransform: 'none', float: "right", marginRight: "10px"}} color="primary">
               <AddIcon className={classes.textIcon}/> New experiment

@@ -40,7 +40,7 @@ app.get('/overview', function(req, res) {
     res.sendFile(path.join(__dirname, 'build', 'index.html'));
 })
 
-app.get('/download-data', function(req, res) {
+app.get('/export-data', function(req, res) {
     app.use("/", expressStaticGzip(path.join(__dirname, 'build')));
     res.sendFile(path.join(__dirname, 'build', 'index.html'));
 })
@@ -104,7 +104,7 @@ app.get('/get_changelog', function(req, res) {
   })
 })
 
-app.post('/query_datasets', function(req, res) {
+app.post('/export_datasets', function(req, res) {
     var child = cp.fork('./child_tasks/db_export');
 
     child.on('message', function(m) {
@@ -222,6 +222,7 @@ app.post("/create_experiment", function (req, res) {
           var insert = 'INSERT INTO experiments (timestamp, experiment, description) VALUES (?,?,?)'
           db.query(insert, [req.body.timestamp, req.body.experiment, req.body.description], function(err, rows){
             if (err){
+              // TODO: maybe here we should fire event for updating MQTT
               res.sendStatus(500)
             } else {
               res.sendStatus(200)
@@ -308,6 +309,7 @@ app.post("/add_new_pioreactor", function (req, res) {
 
 
 app.post("/delete_config", function(req, res) {
+  // TODO: make this http DELETE
   const configPath = path.join(process.env.CONFIG_INI_FOLDER, req.body.filename);
 
   execFile("rm", [configPath], (error, stdout, stderr) => {
