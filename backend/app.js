@@ -121,31 +121,34 @@ app.post('/query_datasets', function(req, res) {
 
 
 app.get('/stop_all', function (req, res) {
+  // TODO: this should be a POST
   const jobs = ["add_media", "add_alt_media", "remove_waste", 'dosing_control', 'stirring', 'od_reading', 'growth_rate_calculating', 'led_control']
   execFile("pios", ["kill"].concat(jobs).concat(["-y"]), (error, stdout, stderr) => {
-      if (error) {
-          console.log(error)
-      }
-      if (stderr) {
-          console.log(stderr)
-      }
-      console.log(`stdout: ${stdout}`);
+    if (error) {
+        console.log(error)
+    }
+    if (stderr) {
+        console.log(stderr)
+    }
+    console.log(`stdout: ${stdout}`);
   })
   res.sendStatus(200)
 });
 
 app.get('/stop/:job/:unit', function (req, res) {
-    job = req.params.job
-    unit = req.params.unit
+  // TODO: this should be a POST
 
-    execFile("pios", ["kill", job, "-y", "--units", req.params.unit], (error, stdout, stderr) => {
-      if (error) {
-          console.log(error)
-      }
-      if (stderr) {
-          console.log(stderr)
-      }
-      console.log(`stdout: ${stdout}`);
+  job = req.params.job
+  unit = req.params.unit
+
+  execFile("pios", ["kill", job, "-y", "--units", req.params.unit], (error, stdout, stderr) => {
+    if (error) {
+        console.log(error)
+    }
+    if (stderr) {
+        console.log(stderr)
+    }
+    console.log(`stdout: ${stdout}`);
   })
   res.sendStatus(200)
 });
@@ -153,7 +156,7 @@ app.get('/stop/:job/:unit', function (req, res) {
 
 
 
-app.get("/run/:job/:unit", function(req, res) {
+app.post("/run/:job/:unit", function(req, res) {
     const queryObject = url.parse(req.url, true).query; // assume that all query params are optional args for the job
     unit = req.params.unit
     job = req.params.job
@@ -163,9 +166,9 @@ app.get("/run/:job/:unit", function(req, res) {
       res.send(400)
     }
 
-    options = Object.entries(queryObject).map(k_v => [`--${k_v[0].replace(/_/g, "-")} ${k_v[1]}`])
+    options = Object.entries(req.body).map(k_v => [`--${k_v[0].replace(/_/g, "-")} ${k_v[1]}`])
 
-    execFile("pios", ["run", job, "-y", "--units", req.params.unit].concat(options), (error, stdout, stderr) => {
+    execFile("pios", ["run", job, "-y", "--units", unit].concat(options), (error, stdout, stderr) => {
         if (error) {
             console.log(error)
             res.sendStatus(500);
@@ -199,7 +202,7 @@ app.get('/get_latest_experiment', function (req, res) {
       function (err, rows) {
         if (err) {
           console.log(err)
-          return setTimeout(fetch, 250)
+          return setTimeout(fetch, 500)
         }
         res.send(rows[0])
     })

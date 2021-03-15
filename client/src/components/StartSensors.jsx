@@ -13,7 +13,9 @@ function StartStirringButton(props){
 
   const onClick = (e) => {
     setIsClicked(true)
-    fetch("/run/stirring/$broadcast").then(res => {
+    fetch("/run/stirring/$broadcast", {
+        method: "POST"}
+      ).then(res => {
       if (res.status === 200){
         setOpenSnackbar(true);
       }
@@ -48,7 +50,7 @@ function StartODReading(props){
 
   const onClick = (e) => {
     setIsClicked(true)
-    fetch("/run/od_reading/$broadcast").then(res => {
+    fetch("/run/od_reading/$broadcast",  {method: "POST"}).then(res => {
       if (res.status === 200){
         setOpenSnackbar(true);
       }
@@ -96,7 +98,7 @@ function StartSensors(props){
           isODReading={true}
           fontScale={1.0}
           interpolation="stepAfter"
-          title="Raw 135° optical density"
+          title="Optical density"
           topic="od_raw/+/+"
           yAxisLabel="Voltage"
           experiment="+"

@@ -146,7 +146,7 @@ function PageHeader(props) {
         </Typography>
         <div >
           <ConfirmDialog/>
-          <Link color="inherit" underline="none" href="https://github.com/Pioreactor/pioreactor/releases" target="_blank" rel="noopener noreferrer" rel="noopener">
+          <Link color="inherit" underline="none" href="https://github.com/Pioreactor/pioreactor/releases" target="_blank" rel="noopener noreferrer">
             <Button style={{textTransform: 'none', float: "right", marginRight: "0px"}} color="primary">
               <ExitToAppIcon className={classes.textIcon}/> View latest release
             </Button>

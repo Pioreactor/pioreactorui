@@ -72,7 +72,11 @@ class Chart extends React.Component {
   }
 
   componentDidMount() {
-    this.getData();
+    if (this.props.dataFile){
+      this.getData()
+    } else {
+      this.setState({fetched: true})
+    }
 
     if (this.props.config.remote && this.props.config.remote.ws_url) {
       this.client = new Client(

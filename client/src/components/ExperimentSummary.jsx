@@ -5,7 +5,6 @@ import CardContent from '@material-ui/core/Card';
 import {Typography} from '@material-ui/core';
 import moment from "moment";
 import Box from '@material-ui/core/Box';
-import Snackbar from '@material-ui/core/Snackbar';
 import Divider from '@material-ui/core/Divider';
 import Button from '@material-ui/core/Button';
 import ContentEditable from 'react-contenteditable'
@@ -58,7 +57,7 @@ class EditableDescription extends React.Component {
           'Content-Type': 'application/json'
         }
       }).then(res => {
-        if (res.status ==! 200){
+        if (res.status !== 200){
           console.log("didn't save")
         }
       })

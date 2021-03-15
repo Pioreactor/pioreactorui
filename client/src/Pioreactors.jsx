@@ -503,7 +503,7 @@ function SettingsActionsDialog(props) {
 
   function startPioreactorJob(job_attr){
     return function() {
-      fetch("/run/" + job_attr + "/" + props.unit).then(res => {
+      fetch("/run/" + job_attr + "/" + props.unit, {method: "POST"}).then(res => {
       })
     }
   }
@@ -1058,7 +1058,7 @@ function SettingsActionsDialogAll(props) {
     return function() {
       setSnackbarMessage(`Starting ${hrJobs[job]} on all active Pioreactors`)
       setSnackbarOpen(true)
-      fetch("/run/" + job + "/" + props.unit)
+      fetch("/run/" + job + "/" + props.unit, {method: "POST"})
     }
   }
 

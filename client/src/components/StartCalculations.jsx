@@ -14,7 +14,7 @@ function StartGrowthRate(props){
   const [isClicked, setIsClicked] = React.useState(false);
 
   const onClick = (e) => {
-    fetch("/run/growth_rate_calculating/$broadcast").then(r => {
+    fetch("/run/growth_rate_calculating/$broadcast", {method: "POST"}).then(r => {
       setSnackbarMessage("Growth rate calculating starting")
       setOpenSnackbar(true)
       setIsClicked(true)

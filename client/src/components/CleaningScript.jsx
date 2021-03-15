@@ -35,9 +35,30 @@ function CycleLiquid(props) {
   const [isClicked, setIsClicked] = React.useState(false)
 
   const onSubmit = () => {
-    fetch("/run/remove_waste/$broadcast?" + new URLSearchParams({duration: 90, duty_cycle: 100}));
-    fetch("/run/add_media/$broadcast?" + new URLSearchParams({duration: 50, duty_cycle: 25}));
-    fetch("/run/add_alt_media/$broadcast?" + new URLSearchParams({duration: 50, duty_cycle: 25}));
+    fetch("/run/remove_waste/$broadcast", {
+        method: "POST",
+        body: JSON.stringify({duration: 90, duty_cycle: 100}),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        }
+    });
+    fetch("/run/add_media/$broadcast", {
+        method: "POST",
+        body: JSON.stringify({duration: 50, duty_cycle: 55}),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        }
+    });
+    fetch("/run/add_alt_media/$broadcast", {
+        method: "POST",
+        body: JSON.stringify({duration: 50, duty_cycle: 55}),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        }
+    });
     setIsClicked(true)
   }
 
@@ -57,11 +78,32 @@ function MediaFlush(props) {
   const [isClicked, setIsClicked] = React.useState(false)
 
   const onSubmit = () => {
-    fetch("/run/remove_waste/$broadcast?" + new URLSearchParams({duration: 60, duty_cycle: 100}));
+    fetch("/run/remove_waste/$broadcast", {
+        method: "POST",
+        body: JSON.stringify({duration: 90, duty_cycle: 100}),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        }
+    })
     if (isAlt){
-      fetch("/run/add_alt_media/$broadcast?" + new URLSearchParams({duration: 15, duty_cycle: 25}));
+      fetch("/run/add_alt_media/$broadcast", {
+        method: "POST",
+        body: JSON.stringify({duration: 50, duty_cycle: 66}),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        }
+    })
     } else {
-      fetch("/run/add_media/$broadcast?" + new URLSearchParams({duration: 15, duty_cycle: 25}));
+      fetch("/run/add_media/$broadcast", {
+        method: "POST",
+        body: JSON.stringify({duration: 50, duty_cycle: 55}),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        }
+    })
     }
     setIsClicked(true)
   }
@@ -81,7 +123,14 @@ function AddFinalVolumeOfMedia(props) {
 
 
   const onSubmit = () => {
-    fetch("/run/add_media/$broadcast?" + new URLSearchParams({ml: 12}));
+    fetch("/run/add_media/$broadcast", {
+        method: "POST",
+        body: JSON.stringify({ml: 12}),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        }
+    });
     setIsClicked(true)
   }
 

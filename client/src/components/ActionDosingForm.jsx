@@ -35,7 +35,14 @@ export default function ActionPumpForm(props) {
     e.preventDefault();
     if (mL !== EMPTYSTATE || duration !== EMPTYSTATE) {
       const params = mL !== "" ? { ml: mL, source_of_event: "UI"} : { duration: duration, source_of_event: "UI"};
-      fetch(`/run/${props.action}/${props.unit}?` + new URLSearchParams(params));
+      fetch(`/run/${props.action}/${props.unit}`, {
+        method: "POST",
+        body: JSON.stringify(params),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        }
+      });
       setOpenSnackbar(true);
     }
   }
