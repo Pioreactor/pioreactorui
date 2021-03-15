@@ -89,7 +89,7 @@ function ExperimentSummaryForm(props) {
   }
 
   function killExistingJobs(){
-     fetch('/stop_all')
+     fetch('/stop_all', {method: "POST"})
   }
 
   function onSubmit(e) {

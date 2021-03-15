@@ -78,7 +78,7 @@ function App() {
             <Route path="/config">
               <EditConfig config={config}/>
               <TactileButtonNotification config={config}/>
-            </Route>
+            </Route>f
             <Route path="/pioreactors">
               <Pioreactors config={config}/>
             </Route>

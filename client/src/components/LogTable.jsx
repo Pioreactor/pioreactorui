@@ -55,6 +55,8 @@ class LogTable extends React.Component {
       })
       .then(data => {
         this.setState({listOfLogs: data});
+      }).catch((e) => {
+        console.log(e)
       });
   }
 

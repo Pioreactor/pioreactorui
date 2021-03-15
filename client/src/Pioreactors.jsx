@@ -202,7 +202,7 @@ function ButtonConfirmStopProcessDialog() {
   };
 
   const onConfirm = () => {
-    fetch("/stop_all")
+    fetch("/stop_all", {method: "POST"})
     handleClose()
   }
 

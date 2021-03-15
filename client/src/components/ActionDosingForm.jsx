@@ -48,7 +48,7 @@ export default function ActionPumpForm(props) {
   }
 
   function stopPump(e) {
-    fetch(`/stop/${props.action}/${props.unit}`)
+    fetch(`/stop/${props.action}/${props.unit}`, {method: "POST"})
   }
 
   const handleSnackbarClose = () => {

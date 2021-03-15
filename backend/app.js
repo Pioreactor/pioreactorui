@@ -120,8 +120,7 @@ app.post('/query_datasets', function(req, res) {
 })
 
 
-app.get('/stop_all', function (req, res) {
-  // TODO: this should be a POST
+app.post('/stop_all', function (req, res) {
   const jobs = ["add_media", "add_alt_media", "remove_waste", 'dosing_control', 'stirring', 'od_reading', 'growth_rate_calculating', 'led_control']
   execFile("pios", ["kill"].concat(jobs).concat(["-y"]), (error, stdout, stderr) => {
     if (error) {
@@ -135,8 +134,8 @@ app.get('/stop_all', function (req, res) {
   res.sendStatus(200)
 });
 
-app.get('/stop/:job/:unit', function (req, res) {
-  // TODO: this should be a POST
+
+app.post('/stop/:job/:unit', function (req, res) {
 
   job = req.params.job
   unit = req.params.unit
