@@ -19,9 +19,11 @@ import DialogContentText from '@material-ui/core/DialogContentText';
 import Box from '@material-ui/core/Box';
 import Divider from '@material-ui/core/Divider';
 import CircularProgress from '@material-ui/core/CircularProgress';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Slider from '@material-ui/core/Slider';
 import Snackbar from '@material-ui/core/Snackbar';
 import TextField from '@material-ui/core/TextField';
+import Switch from '@material-ui/core/Switch';
 import Tooltip from '@material-ui/core/Tooltip';
 import InputAdornment from '@material-ui/core/InputAdornment';
 import Tabs from '@material-ui/core/Tabs';
@@ -539,6 +541,10 @@ function SettingsActionsDialog(props) {
     setPioreactorJobAttr("stirring/duty_cycle", value);
   }
 
+  function setPioreactorStirringDynamic(e, value) {
+    setPioreactorJobAttr("stirring/dc_increase_between_adc_readings", value ? 1 : 0);
+  }
+
 
   const handleClickOpen = () => {
     setOpen(true);
@@ -740,6 +746,22 @@ function SettingsActionsDialog(props) {
               ]}
             />
           </div>
+
+          <Divider className={classes.divider} />
+          <Typography  gutterBottom>
+            Dynamic stirring adjustments
+          </Typography>
+          <Typography variant="body2" component="p">
+            Enable adjusting of stirring speed when not taking optical density measurements. Turning this on
+            increases the oxygen transfer rate.
+          </Typography>
+
+          <div style={{marginLeft: "20px"}}>
+            <FormControlLabel
+              control={<Switch checked={props.stirringDynamic} onChange={setPioreactorStirringDynamic} color="primary"/>}
+            />
+          </div>
+
           <Divider className={classes.divider} />
           <Typography gutterBottom>
             Volume / dosing
@@ -1475,6 +1497,7 @@ function PioreactorCard(props){
   const [temperatureControllingJobState, setTemperatureControllingJobState] = useState("disconnected");
   const [ledControlJobState, setLEDControllingJobState] = useState("disconnected");
   const [stirringDC, setStirringDC] = useState(0);
+  const [stirringDynamic, setStirringDynamic] = useState(0);
   const [targetOD, setTargetOD] = useState(0);
   const [duration, setDuration] = useState(0);
   const [targetGrowthRate, setTargetGrowthRate] = useState(0);
@@ -1492,6 +1515,7 @@ function PioreactorCard(props){
     [["pioreactor", unit, experiment, "temperature_control/$state"          ].join("/")]: setTemperatureControllingJobState,
     [["pioreactor", unit, "$experiment", "monitor/$state"                   ].join("/")]: setMonitorJobState,
     [["pioreactor", unit, experiment, "stirring/duty_cycle"                 ].join("/")]: setStirringDC,
+    [["pioreactor", unit, experiment, "stirring/dc_increase_between_adc_readings" ].join("/")]: setStirringDynamic,
     [["pioreactor", unit, experiment, "dosing_automation/target_od"         ].join("/")]: setTargetOD,
     [["pioreactor", unit, experiment, "dosing_automation/duration"          ].join("/")]: setDuration,
     [["pioreactor", unit, experiment, "dosing_automation/target_growth_rate"].join("/")]: setTargetGrowthRate,
@@ -1564,7 +1588,7 @@ function PioreactorCard(props){
               </Typography>
               <Tooltip title={indicatorLabel} placement="right">
                 <div>
-                <div aria-label={indicatorLabel} className="indicator-dot" style={{boxShadow: `0 0 ${indicatorDotShadow}px ${indicatorDotColor}, inset 0 0 12px  ${indicatorDotColor}`}}/>
+                  <div aria-label={indicatorLabel} className="indicator-dot" style={{boxShadow: `0 0 ${indicatorDotShadow}px ${indicatorDotColor}, inset 0 0 12px  ${indicatorDotColor}`}}/>
                 </div>
               </Tooltip>
             </div>
@@ -1587,6 +1611,7 @@ function PioreactorCard(props){
                 ledControlJobState={ledControlJobState}
                 temperatureControllingJobState={temperatureControllingJobState}
                 stirringDC={stirringDC}
+                stirringDynamic={stirringDynamic}
                 targetGrowthRate={targetGrowthRate}
                 volume={volume}
                 duration={duration}

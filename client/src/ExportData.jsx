@@ -232,6 +232,7 @@ function ExportDataFormContainer() {
     }).then(res => res.json())
       .then(res => {
       var link = document.createElement("a");
+      const filename = res['filename'].replace(/%/g, "%25")
       link.setAttribute('export', res['filename']);
       link.href = "/static/exports/" + res['filename'];
       document.body.appendChild(link);
