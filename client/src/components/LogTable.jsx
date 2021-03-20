@@ -95,13 +95,6 @@ class LogTable extends React.Component {
     });
   }
 
-  breakString(string){
-    if (string.length > 5){
-      return string.slice(0, 4) + "..."
-    }
-    return string
-  }
-
   renameUnit(name){
     if (!this.props.config['ui.rename']){
       return name
@@ -132,7 +125,9 @@ class LogTable extends React.Component {
               <TableBody>
                 {this.state.listOfLogs.map((log, i) => (
                   <TableRow key={i}>
-                    <TableCell className={clsx(classes.tightCell, classes.smallText, {[classes.errorLog]: log.is_error, [classes.warningLog]: log.is_warning})}> {moment(log.timestamp, 'x').format('HH:mm:ss')} </TableCell>
+                    <TableCell className={clsx(classes.tightCell, classes.smallText, {[classes.errorLog]: log.is_error, [classes.warningLog]: log.is_warning})}>
+                      <span title={moment(log.timestamp, 'x').format('YYYY-MM-DD HH:mm:sss')}>{moment(log.timestamp, 'x').format('HH:mm:ss')} </span>
+                    </TableCell>
                     <TableCell className={clsx(classes.tightCell, classes.smallText, {[classes.errorLog]: log.is_error, [classes.warningLog]: log.is_warning})}> {log.message} </TableCell>
                     <TableCell className={clsx(classes.tightCell, classes.smallText, {[classes.errorLog]: log.is_error, [classes.warningLog]: log.is_warning})}> {this.renameUnit(log.unit)}</TableCell>
                   </TableRow>

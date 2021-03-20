@@ -169,11 +169,17 @@ function UnitSettingDisplay(props) {
     if (!props.isUnitActive || value === "—" || value === "") {
       return <div style={{ color: disconnectedGrey, fontSize: "13px"}}> {props.default} </div>;
     } else {
-      const unpacked = JSON.parse(value)
+      const ledIntensities = JSON.parse(value)
       return(
         <div style={{fontSize: "13px"}}>
-          <span style={{display:"block"}}>A: {unpacked["A"]}% B: {unpacked["B"]}% </span>
-          <span style={{display:"block"}}>C: {unpacked["C"]}% D: {unpacked["D"]}% </span>
+          <div>
+            <span style={{width: "55px", display: "inline-block"}}>A: {ledIntensities["A"]}%</span>
+            <span style={{width: "55px", display: "inline-block"}}>B: {ledIntensities["B"]}% </span>
+          </div>
+          <div>
+            <span style={{width: "55px", display: "inline-block"}}>C: {ledIntensities["C"]}%</span>
+            <span style={{width: "55px", display: "inline-block"}}>D: {ledIntensities["D"]}% </span>
+          </div>
         </div>
       )
     }
@@ -320,31 +326,24 @@ function AddNewPioreactor(props){
       </ul>
       <p> With that all ready, let's begin: </p>
       <ol>
-        <li>Flash the Raspberry Pi OS Lite onto the microSD card. Here's a <a href="https://www.youtube.com/watch?v=J024soVgEeM">short video</a> on how.</li>
-        <li>Remove the microSD card, and put it <b>back in</b>.</li>
-        <li>Onto the microSD card, create an empty file named <code>ssh</code>.</li>
-        <li>Also onto the microSD card, create a file named <code>wpa_supplicant.conf</code>, with the following contents:</li>
-        <pre style={{border: "1px #b9b9b9 solid", padding: "5px 10px", maxWidth: "85%"}}>
-{`country=CA # Your 2-digit country code, ex: US, GB, CA
-ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
-network={
-    ssid="your network name"
-    psk="your network password"
-    key_mgmt=WPA-PSK
-}`}
-       </pre>
-        <li>Unmount the microSD, insert it into the RaspberryPi, and attach the Pioreactor hat to the RaspberryPi.</li>
+        <li>Insert your microSD card into your computer.</li>
+        <li>Open the <a href="https://www.raspberrypi.org/software/">RaspberryPi Imager</a>, and hold "ctrl-shift-x" to bring up the settings menu</li>
+        <li>Check "Enable SSH", with password <code>raspberry</code>. <b>This is important</b>.</li>
+        <li>Check "Configure wifi", and add your credentials.</li>
+        <li> Click "Save".</li>
+        <li>Choose the "Raspberry Pi OS Lite" and your storage, and click "write". </li>
+        <li>When done, unmount the microSD, insert it into the RaspberryPi, and attach the Pioreactor hat to the RaspberryPi.</li>
         <li>Turn on the RaspberryPi by inserting the power cord.</li>
       </ol>
 
-      <p>We're pretty much done at this point. Below, provide a unique name for your new Pioreactor (letters and digits only), and
-      we'll automatically install the required software and connect it to the other Pioreactors.
+      <p>Below, provide a unique name for your new Pioreactor (letters and digits only), and
+      your existing Pioreactors will automatically install the required software and connect it to the cluster.
       </p>
 
       <p>It may take up to 5 minutes to install the software. When finished, the new Pioreactor
       will show up on on this page. You don't need to stay on this page while it's installing.</p>
 
-      {isRunning? <p><b>Installation is occuring in the background. You may navigate away from this page. </b></p> : <p></p>}
+      {isRunning? <p><b>Installation is occuring in the background. You may navigate away from this page. </b></p> : <p> </p>}
       {isError? <p><b>{errorMsg}</b></p> : <p></p>}
 
       <div >

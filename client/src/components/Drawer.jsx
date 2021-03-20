@@ -64,13 +64,13 @@ export default function SideDrawer() {
       </List>
       <Divider />
       <List>
-        <ListItem target="_blank" rel="noopener noreferrer" href="https://pioreactor.com/pages/documentation" component="a" button key="help">
-          <ListItemIcon><HelpOutlineIcon/> </ListItemIcon>
-          <ListItemText primary={"Documentation"} />
-        </ListItem>
         <ListItem href="/updates" component="a" button key="updates">
           <ListItemIcon><UpdateIcon/> </ListItemIcon>
           <ListItemText primary={"Updates"} />
+        </ListItem>
+        <ListItem target="_blank" rel="noopener noreferrer" href="https://pioreactor.com/pages/documentation" component="a" button key="help">
+          <ListItemIcon><HelpOutlineIcon/> </ListItemIcon>
+          <ListItemText primary={"Help"} />
         </ListItem>
       </List>
     </div>

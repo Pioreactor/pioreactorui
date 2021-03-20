@@ -109,6 +109,7 @@ function Overview(props) {
                 yAxisLabel="Voltage"
                 experiment="+"
                 interpolation="stepAfter"
+                yAxisTickFormat={(t) => `${t.toFixed(4)}`}
               />
             </Grid>
            }
