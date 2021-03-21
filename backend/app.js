@@ -160,7 +160,7 @@ app.post("/run/:job/:unit", function(req, res) {
     unit = req.params.unit
     job = req.params.job
 
-    if (!["stirring", "od_reading", "growth_rate_calculating", "led_control", "dosing_control", "tempature_control", "add_media", "remove_waste", "add_alt_media"].includes(job)){
+    if (!["stirring", "od_reading", "growth_rate_calculating", "led_control", "dosing_control", "tempature_control", "add_media", "remove_waste", "add_alt_media", "led_intensity"].includes(job)){
       // this solves a security problem: one could put any command as job, ex: "stirring && rm -rf /"
       res.sendStatus(400)
       return
