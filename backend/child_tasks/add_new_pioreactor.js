@@ -2,6 +2,7 @@ const { execFile } = require("child_process");
 
 
 process.on('message', function(newPioreactorName) {
+    console.log(`pio add-pioreactor ${newPioreactorName}`)
     execFile("pio", ["add-pioreactor", newPioreactorName],
         { shell: "/bin/bash" },
         (error, stdout, stderr) => {

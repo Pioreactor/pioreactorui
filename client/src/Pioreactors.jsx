@@ -343,8 +343,6 @@ function AddNewPioreactor(props){
       <p>It may take up to 5 minutes to install the software. When finished, the new Pioreactor
       will show up on on this page. You don't need to stay on this page while it's installing.</p>
 
-      {isRunning? <p><b>Installation is occuring in the background. You may navigate away from this page. </b></p> : <p> </p>}
-      {isError? <p><b>{errorMsg}</b></p> : <p></p>}
 
       <div >
         <TextField
@@ -363,6 +361,12 @@ function AddNewPioreactor(props){
           }}
         />
       </div>
+
+      <div style={{minHeight: "50px"}}>
+        {isError? <p><b>{errorMsg}</b></p> : <p></p>}
+        {isRunning? <p><b>Installation is occuring in the background. You may navigate away from this page, and add other Pioreactors. </b></p> : <p> </p>}
+      </div>
+
       <Button
         variant="contained"
         color="primary"
@@ -626,7 +630,9 @@ function SettingsActionsDialog(props) {
   const grButtons = createUserButtonsBasedOnState(props.growthRateJobState, "growth_rate_calculating")
   const dosingButtons = createUserButtonsBasedOnState(props.dosingControlJobState, "dosing_control")
   const ledButtons = createUserButtonsBasedOnState(props.ledControlJobState, "led_control")
-  const invertedLEDMap = Object.fromEntries(Object.entries(props.config['leds']).map(([k, v]) => [v, k]))
+
+  // the | {} is here to protect against the UI loading from a broken config.
+  const invertedLEDMap = Object.fromEntries(Object.entries(props.config['leds'] | {}).map(([k, v]) => [v, k]))
 
   return (
     <div>

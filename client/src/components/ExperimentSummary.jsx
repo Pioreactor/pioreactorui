@@ -12,6 +12,11 @@ import CalendarTodayIcon from '@material-ui/icons/CalendarToday';
 import TimelapseIcon from '@material-ui/icons/Timelapse';
 import GetAppIcon from '@material-ui/icons/GetApp';
 import AddIcon from '@material-ui/icons/Add';
+import DialogTitle from '@material-ui/core/DialogTitle';
+import Dialog from '@material-ui/core/Dialog';
+import DialogContent from '@material-ui/core/DialogContent';
+import DialogActions from '@material-ui/core/DialogActions';
+import DialogContentText from '@material-ui/core/DialogContentText';
 
 const useStyles = makeStyles({
   title: {
@@ -85,6 +90,55 @@ class EditableDescription extends React.Component {
 };
 
 
+function ButtonConfirmNewExperimentDialog() {
+  const classes = useStyles();
+  const [open, setOpen] = React.useState(false);
+
+  const handleClickOpen = () => {
+    setOpen(true);
+  };
+
+  const onConfirm = () => {
+    fetch("/stop_all", {method: "POST"})
+    handleClose()
+  }
+
+  const handleClose = () => {
+    setOpen(false);
+  };
+
+  return (
+    <React.Fragment>
+      <Button style={{textTransform: 'none', float: "right", marginRight: "10px"}} color="primary" onClick={handleClickOpen}>
+        <AddIcon className={classes.textIcon}/> New experiment
+      </Button>
+      <Dialog
+        open={open}
+        onClose={handleClose}
+        aria-labelledby="alert-dialog-title"
+        aria-describedby="alert-dialog-description"
+      >
+        <DialogTitle id="alert-dialog-title">Starting a new experiment</DialogTitle>
+        <DialogContent>
+          <DialogContentText id="alert-dialog-description">
+            Starting a new experiment will stop data collection for the current experiment. Do you wish to proceed?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button href="/start-new-experiment" color="primary">
+            Confirm
+          </Button>
+          <Button onClick={handleClose} color="secondary" autoFocus>
+            Cancel
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </React.Fragment>
+  );
+}
+
+
+
 function ExperimentSummary(props){
   const classes = useStyles();
   const experiment = props.experimentMetadata.experiment || ""
@@ -104,9 +158,8 @@ function ExperimentSummary(props){
             <Button href="/export-data" style={{textTransform: 'none', marginRight: "0px", float: "right"}} color="primary">
               <GetAppIcon className={classes.textIcon}/> Export experiment data
             </Button>
-            <Button href="/start-new-experiment" style={{textTransform: 'none', float: "right", marginRight: "10px"}} color="primary">
-              <AddIcon className={classes.textIcon}/> New experiment
-            </Button>
+
+            <ButtonConfirmNewExperimentDialog/>
           </div>
         </div>
 

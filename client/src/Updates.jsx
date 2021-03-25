@@ -13,6 +13,7 @@ import UpdateIcon from '@material-ui/icons/Update';
 import Divider from '@material-ui/core/Divider';
 import SystemUpdateAltIcon from '@material-ui/icons/SystemUpdateAlt';
 import ExitToAppIcon from '@material-ui/icons/ExitToApp';
+import OpenInNewIcon from '@material-ui/icons/OpenInNew';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
@@ -148,7 +149,7 @@ function PageHeader(props) {
           <ConfirmDialog/>
           <Link color="inherit" underline="none" href="https://github.com/Pioreactor/pioreactor/releases" target="_blank" rel="noopener noreferrer">
             <Button style={{textTransform: 'none', float: "right", marginRight: "0px"}} color="primary">
-              <ExitToAppIcon className={classes.textIcon}/> View latest release
+              <OpenInNewIcon className={classes.textIcon}/> View latest release
             </Button>
           </Link>
         </div>

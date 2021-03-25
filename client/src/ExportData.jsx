@@ -147,7 +147,7 @@ const CheckboxesGroup = (props) => {
             label="Dosing event log"
           />
           <Typography variant="caption" className={classes.caption} gutterBottom>
-            A detailed log table of all dosing events, including the volume exchanged, and the source of who or what changed it.
+            A detailed log table of all dosing events, including the volume exchanged, and the source of who or what trigger the event.
           </Typography>
 
           <FormControlLabel
@@ -164,7 +164,7 @@ const CheckboxesGroup = (props) => {
             label="LED event log"
           />
           <Typography variant="caption" className={classes.caption} gutterBottom>
-            A detailed log table of all LED events, including the channel, intensity, and the source of who or what changed it.
+            A detailed log table of all LED events, including the channel, intensity, and the source of who or what triggered the event.
           </Typography>
 
           <FormControlLabel
