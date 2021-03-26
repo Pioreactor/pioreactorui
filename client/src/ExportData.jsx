@@ -233,8 +233,8 @@ function ExportDataFormContainer() {
       .then(res => {
       var link = document.createElement("a");
       const filename = res['filename'].replace(/%/g, "%25")
-      link.setAttribute('export', res['filename']);
-      link.href = "/static/exports/" + res['filename'];
+      link.setAttribute('export', filename);
+      link.href = "/static/exports/" + filename;
       document.body.appendChild(link);
       link.click();
       link.remove();

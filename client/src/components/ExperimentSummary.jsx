@@ -98,11 +98,6 @@ function ButtonConfirmNewExperimentDialog() {
     setOpen(true);
   };
 
-  const onConfirm = () => {
-    fetch("/stop_all", {method: "POST"})
-    handleClose()
-  }
-
   const handleClose = () => {
     setOpen(false);
   };

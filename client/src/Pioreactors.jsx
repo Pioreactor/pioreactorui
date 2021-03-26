@@ -293,14 +293,11 @@ function AddNewPioreactor(props){
     })
     .then(response => {
         if(!response.ok){
-          throw new Error('Something went wrong.');
+          setIsError(true)
+          setIsRunning(false)
+          response.json().then(data => setErrorMsg(`Unable to complete installation. ${data.stderr}`))
         }
     })
-    .catch(error => {
-      setIsError(true)
-      setErrorMsg("Unable to complete installation. Check server logs.")
-      setIsRunning(false)
-    });
   }
 
   const runningFeedback = isRunning ? <CircularProgress color="inherit" size={24}/> : "Install and connect"
@@ -341,7 +338,7 @@ function AddNewPioreactor(props){
       </p>
 
       <p>It may take up to 5 minutes to install the software. When finished, the new Pioreactor
-      will show up on on this page. You don't need to stay on this page while it's installing.</p>
+      will show up on this page. You don't need to stay on this page while it's installing.</p>
 
 
       <div >
@@ -364,7 +361,7 @@ function AddNewPioreactor(props){
 
       <div style={{minHeight: "50px"}}>
         {isError? <p><b>{errorMsg}</b></p> : <p></p>}
-        {isRunning? <p><b>Installation is occuring in the background. You may navigate away from this page, and add other Pioreactors. </b></p> : <p> </p>}
+        {isRunning? <p>Installation is occuring in the background. You may navigate away from this page, including adding more Pioreactors. </p> : <p> </p>}
       </div>
 
       <Button
@@ -473,7 +470,7 @@ function SettingsActionsDialog(props) {
         .then((config) => {
           config = parseINIString(config);
           setDefaultStirring(
-            config["stirring"]["duty_cycle_" + props.unit]
+            config["stirring"]["duty_cycle"]
           );
         })
         .catch((error) => {})

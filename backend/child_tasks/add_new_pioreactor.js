@@ -10,9 +10,9 @@ process.on('message', function(newPioreactorName) {
         console.log(stderr)
         if (error) {
             console.log(error)
-            process.send(false);
+            process.send({stderr: stderr});
         } else {
-            process.send(true);
+            process.send(0);
         }
         process.exit(0)
     });

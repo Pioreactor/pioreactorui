@@ -12,7 +12,6 @@ import Link from '@material-ui/core/Link';
 import UpdateIcon from '@material-ui/icons/Update';
 import Divider from '@material-ui/core/Divider';
 import SystemUpdateAltIcon from '@material-ui/icons/SystemUpdateAlt';
-import ExitToAppIcon from '@material-ui/icons/ExitToApp';
 import OpenInNewIcon from '@material-ui/icons/OpenInNew';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';

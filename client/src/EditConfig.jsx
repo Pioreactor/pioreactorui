@@ -14,7 +14,6 @@ import CircularProgress from '@material-ui/core/CircularProgress';
 import { CodeFlaskReact } from "react-codeflask"
 
 import Header from "./components/Header"
-import {parseINIString} from "./utilities"
 
 const useStyles = makeStyles((theme) => ({
   root: {

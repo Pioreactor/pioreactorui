@@ -295,13 +295,12 @@ app.get("/get_configs", function(req, res) {
 app.post("/add_new_pioreactor", function (req, res) {
     const newName = req.body.newPioreactorName
     var child = cp.fork('./child_tasks/add_new_pioreactor');
-    child.on('message', function(m) {
-      if (m) {
-          res.json({filename: m})
+    child.on('message', function(msg) {
+      if (msg == 0) {
+        res.sendStatus(200)
       }
       else{
-        console.log(m)
-        res.sendStatus(500)
+        res.status(500).json(msg)
       }
     });
     child.send(newName);
