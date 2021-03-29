@@ -79,7 +79,6 @@ function Overview(props) {
                 yAxisLabel="Fraction"
                 experiment={experimentMetadata.experiment}
                 deltaHours={experimentMetadata.delta_hours}
-                dataSource="alt_media_fraction"
                 lookback={100000}
               />
             </Grid>

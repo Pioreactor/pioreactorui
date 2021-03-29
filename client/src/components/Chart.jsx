@@ -113,7 +113,7 @@ class Chart extends React.Component {
         for (const [i, v] of data["series"].entries()) {
           if (data["data"][i].length > 0) {
             initialSeriesMap[v] = {
-              data: (data["data"][i]).map(item => ({y: item.y, x: moment(item.x, 'YYYY-MM-DD[T]HH:mm:ss.SSSSS[Z]')})),
+              data: (data["data"][i]).map(item => ({y: item.y, x: moment.utc(item.x, 'YYYY-MM-DD[T]HH:mm:ss.SSSSS[Z]').local()})),
               name: v,
               color: getColorFromName(v),
             };
