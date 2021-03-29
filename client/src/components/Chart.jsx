@@ -113,7 +113,7 @@ class Chart extends React.Component {
         for (const [i, v] of data["series"].entries()) {
           if (data["data"][i].length > 0) {
             initialSeriesMap[v] = {
-              data: (data["data"][i]).map(item => ({y: item.y, x: moment.utc(item.x, 'YYYY-MM-DD[T]HH:mm:ss.SSSSS[Z]').local()})),
+              data: (data["data"][i]).map(item => ({y: item.y, x: moment.utc(item.x, 'YYYY-MM-DDTHH:mm:ss.SSSSS').local()})),
               name: v,
               color: getColorFromName(v),
             };
@@ -170,7 +170,7 @@ class Chart extends React.Component {
     if (message.retained){
       return
     }
-    const currentTime = moment()
+    const currentTime = moment().local()
 
     var key = this.props.isODReading
       ? message.topic.split("/")[1] + "-" + message.topic.split("/")[5]
