@@ -8,7 +8,6 @@ import ExperimentSummary from "./components/ExperimentSummary";
 import Chart from "./components/Chart";
 import MediaCard from "./components/MediaCard";
 import ClearChartButton from "./components/ClearChartButton";
-import ClearLogButton from "./components/ClearLogButton";
 import PioreactorIcon from './components/PioreactorIcon';
 import TactileButtonNotification from "./components/TactileButtonNotification";
 
@@ -129,8 +128,7 @@ function Overview(props) {
 
             {( props.config['ui.overview.cards'] && (props.config['ui.overview.cards']['event_logs'] === "1")) &&
               <Grid item xs={12} style={{padding: "10px 0px"}}>
-                <LogTable config={props.config}/>
-                <ClearLogButton config={props.config} />
+                <LogTable experiment={experimentMetadata.experiment} config={props.config}/>
               </Grid>
             }
 

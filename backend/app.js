@@ -156,7 +156,6 @@ app.post('/stop/:job/:unit', function (req, res) {
 
 
 app.post("/run/:job/:unit", function(req, res) {
-    const queryObject = url.parse(req.url, true).query; // assume that all query params are optional args for the job
     unit = req.params.unit
     job = req.params.job
 
@@ -166,6 +165,7 @@ app.post("/run/:job/:unit", function(req, res) {
       return
     }
 
+    // TODO: is this a security risk?
     options = Object.entries(req.body).map(k_v => [`--${k_v[0].replace(/_/g, "-")} ${k_v[1]}`])
 
     execFile("pios", ["run", job, "-y", "--units", unit].concat(options), (error, stdout, stderr) => {
@@ -193,6 +193,34 @@ app.get('/get_experiments', function (req, res) {
       res.send(rows)
     })
 })
+
+
+app.get('/recent_logs/:experiment', function (req, res) {
+  const experiment = req.params.experiment
+  const queryObject = url.parse(req.url, true).query; // assume that all query params are optional args for the job
+  const minLevel = queryObject['min_level'] || "INFO"
+
+  if (minLevel == "DEBUG"){
+    levelString = '(level == "ERROR" or level == "INFO" or level == "DEBUG")'
+  } else if (minLevel == "INFO") {
+    levelString = '(level == "ERROR" or level == "INFO")'
+  }
+  else if (minLevel == "ERROR") {
+    levelString = '(level == "ERROR")'
+  }
+  else{
+    levelString = '(level == "ERROR" or level == "INFO")'
+  }
+
+  db.query(
+    `SELECT timestamp, level=="ERROR" as is_error, level=="WARNING" as is_warning, pioreactor_unit, ("[" || task || "]" || " " || message) as message FROM logs where ${levelString} and experiment=:experiment and source="app" ORDER BY timestamp DESC LIMIT 50;`,
+    {experiment: experiment, levelString: levelString},
+    {timestamp: String, is_error: Boolean, is_warning: Boolean, pioreactor_unit: String, message: String},
+    function (err, rows) {
+      res.send(rows)
+    })
+})
+
 
 app.get('/get_latest_experiment', function (req, res) {
   function fetch() {
