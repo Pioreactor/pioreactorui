@@ -71,12 +71,14 @@ class Chart extends React.Component {
     );
   }
 
-  componentDidMount() {
-    if (this.props.dataFile){
+  componentDidUpdate(prevProps) {
+     if (prevProps.experiment !== this.props.experiment) {
       this.getData()
-    } else {
-      this.setState({fetched: true})
-    }
+     }
+  }
+
+  componentDidMount() {
+    this.getData()
 
     if (this.props.config.remote && this.props.config.remote.ws_url) {
       this.client = new Client(
@@ -96,7 +98,13 @@ class Chart extends React.Component {
   }
 
   async getData() {
-    await fetch(this.props.dataFile)
+    if (!this.props.experiment){
+      return
+    }
+    await fetch("/time_series/" + this.props.dataSource + "/" + this.props.experiment + "?" + new URLSearchParams({
+        filter_mod_N: Math.max(Math.floor(Math.min(this.props.deltaHours, this.props.lookback)/2), 1),
+        lookback: this.props.lookback
+      }))
       .then((response) => {
         return response.json();
       })
@@ -105,7 +113,7 @@ class Chart extends React.Component {
         for (const [i, v] of data["series"].entries()) {
           if (data["data"][i].length > 0) {
             initialSeriesMap[v] = {
-              data: (data["data"][i]).filter(this.filterDataPoints(data["data"][i].length)).map(item => ({y: item.y, x: moment(item.x, 'x')})),
+              data: (data["data"][i]).map(item => ({y: item.y, x: moment(item.x, 'YYYY-MM-DD[T]HH:mm:ss.SSSSS[Z]')})),
               name: v,
               color: getColorFromName(v),
             };

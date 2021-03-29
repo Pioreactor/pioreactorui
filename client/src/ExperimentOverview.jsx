@@ -54,13 +54,15 @@ function Overview(props) {
             <Grid item xs={12}>
               <Chart
                 config={props.config}
-                dataFile={"./data/growth_rate_time_series_aggregating.json"}
+                dataSource="growth_rates"
                 title="Implied growth rate"
                 topic="growth_rate"
                 yAxisLabel="Growth rate, h⁻¹"
                 experiment={experimentMetadata.experiment}
+                deltaHours={experimentMetadata.delta_hours}
                 interpolation="stepAfter"
                 yAxisDomain={[-0.02, 0.1]}
+                lookback={100000}
                 yAxisTickFormat={(t) => `${t.toFixed(2)}`}
               />
             </Grid>
@@ -71,12 +73,15 @@ function Overview(props) {
               <Chart
                 config={props.config}
                 domain={[0, 1]}
-                dataFile={"./data/alt_media_fraction_time_series_aggregating.json"}
+                dataSource="alt_media_fraction"
                 interpolation="stepAfter"
                 title="Fraction of volume that is alternative media"
                 topic="alt_media_calculating/alt_media_fraction"
                 yAxisLabel="Fraction"
                 experiment={experimentMetadata.experiment}
+                deltaHours={experimentMetadata.delta_hours}
+                dataSource="alt_media_fraction"
+                lookback={100000}
               />
             </Grid>
             }
@@ -86,12 +91,14 @@ function Overview(props) {
               <Chart
                 config={props.config}
                 isODReading={true}
-                dataFile={"./data/od_filtered_time_series_aggregating.json"}
+                dataSource="od_readings_filtered"
                 title="Normalized optical density"
                 topic="od_filtered/+/+"
                 yAxisLabel="Current OD / initial OD"
                 experiment={experimentMetadata.experiment}
+                deltaHours={experimentMetadata.delta_hours}
                 interpolation="stepAfter"
+                lookback={parseInt(props.config['ui.overview.settings']['filtered_od_lookback_hours'])}
                 yAxisTickFormat={(t) => `${t.toFixed(2)}`}
               />
             </Grid>
@@ -102,12 +109,14 @@ function Overview(props) {
               <Chart
                 config={props.config}
                 isODReading={true}
-                dataFile={"./data/od_raw_time_series_aggregating.json"}
+                dataSource="od_readings_raw"
                 title="Optical density"
                 topic="od_raw/+/+"
                 yAxisLabel="Voltage"
-                experiment="+"
+                experiment={experimentMetadata.experiment}
+                deltaHours={experimentMetadata.delta_hours}
                 interpolation="stepAfter"
+                lookback={parseInt(props.config['ui.overview.settings']['raw_od_lookback_hours'])}
                 yAxisTickFormat={(t) => `${t.toFixed(4)}`}
               />
             </Grid>

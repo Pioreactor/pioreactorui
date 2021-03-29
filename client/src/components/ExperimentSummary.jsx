@@ -139,6 +139,7 @@ function ExperimentSummary(props){
   const experiment = props.experimentMetadata.experiment || ""
   const startedAt = props.experimentMetadata.timestamp || moment()
   const desc = props.experimentMetadata.description || ""
+  const deltaHours = props.experimentMetadata.delta_hours || 0
 
   return(
     <React.Fragment>
@@ -170,7 +171,7 @@ function ExperimentSummary(props){
             <TimelapseIcon style={{ fontSize: 12, verticalAlign: "middle"  }}/>Time elapsed:
           </Box>
           <Box fontWeight="fontWeightRegular" style={{display:"inline-block"}}>
-           {(moment().diff(moment(startedAt), 'H'))}h
+           {deltaHours}h
           </Box>
         </Typography>
       </div>

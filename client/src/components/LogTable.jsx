@@ -52,7 +52,6 @@ class LogTable extends React.Component {
     if (!this.props.experiment){
       return
     }
-    console.log(this.props.config)
     await fetch("/recent_logs/" + encodeURIComponent(this.props.experiment) + "?" + new URLSearchParams({
         min_level: this.props.config.logging.ui_log_level
       }))
