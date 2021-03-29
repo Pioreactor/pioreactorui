@@ -7,7 +7,6 @@ import LogTable from "./components/LogTable";
 import ExperimentSummary from "./components/ExperimentSummary";
 import Chart from "./components/Chart";
 import MediaCard from "./components/MediaCard";
-import ClearChartButton from "./components/ClearChartButton";
 import PioreactorIcon from './components/PioreactorIcon';
 import TactileButtonNotification from "./components/TactileButtonNotification";
 
@@ -121,7 +120,6 @@ function Overview(props) {
               />
             </Grid>
            }
-            <Grid item xs={12}> <ClearChartButton config={props.config} experiment={experimentMetadata.experiment}/> </Grid>
           </Grid>
 
           <Grid item xs={12} md={4} container spacing={2} justify="flex-end" style={{height: "100%"}}>
