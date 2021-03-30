@@ -71,14 +71,15 @@ function Overview(props) {
             <Grid item xs={12}>
               <Chart
                 config={props.config}
-                domain={[0, 1]}
+                yAxisDomain={[0.00, 0.2]}
                 dataSource="alt_media_fraction"
                 interpolation="stepAfter"
                 title="Fraction of volume that is alternative media"
                 topic="alt_media_calculating/alt_media_fraction"
                 yAxisLabel="Fraction"
                 experiment={experimentMetadata.experiment}
-                deltaHours={experimentMetadata.delta_hours}
+                deltaHours={1} // hack to make all points display
+                yAxisTickFormat={(t) => `${t.toFixed(3)}`}
                 lookback={100000}
               />
             </Grid>
