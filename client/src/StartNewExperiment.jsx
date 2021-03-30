@@ -58,7 +58,7 @@ function ExperimentSummaryForm(props) {
   const [formError, setFormError] = React.useState(false);
   const [helperText, setHelperText] = React.useState("");
   const [expName, setExpName] = React.useState("");
-  const [timestamp, setTimestamp] = React.useState(moment().format("YYYY-MM-DDTHH:mm:ss"));
+  const [timestamp, setTimestamp] = React.useState(moment.utc());
   const [description, setDescription] = React.useState("");
 
 
@@ -101,7 +101,7 @@ function ExperimentSummaryForm(props) {
     }
     fetch('create_experiment',{
         method: "POST",
-        body: JSON.stringify({experiment : expName.trim(), timestamp: moment.utc(timestamp).toISOString(), description: description}),
+        body: JSON.stringify({experiment : expName.trim(), timestamp: timestamp.toISOString(), description: description}),
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json'
@@ -153,7 +153,7 @@ function ExperimentSummaryForm(props) {
               id="datetime"
               label="Start time"
               type="datetime-local"
-              defaultValue={timestamp}
+              defaultValue={timestamp.local().format("YYYY-MM-DDTHH:mm:ss")}
               className={`${classes.halfTextField} ${classes.textField}`}
               onChange={onTimestampChange}
               InputLabelProps={{
