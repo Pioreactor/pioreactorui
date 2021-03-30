@@ -99,7 +99,7 @@ class LogTable extends React.Component {
     const unit = message.topic.split("/")[1]
     const payload = message.payloadString
     this.state.listOfLogs.unshift(
-      {timestamp: moment().format('YYYY-MM-DD[T]HH:mm:ss.SSSSS[Z]'), pioreactor_unit: unit, message: payload, is_error: payload.includes("Error"), is_warning: payload.includes("Warning")}
+      {timestamp: moment.utc().format('YYYY-MM-DD[T]HH:mm:ss.SSSSS[Z]'), pioreactor_unit: unit, message: payload, is_error: payload.includes("Error"), is_warning: payload.includes("Warning")}
     )
     this.setState({
       listOfLogs: this.state.listOfLogs
@@ -137,7 +137,7 @@ class LogTable extends React.Component {
                 {this.state.listOfLogs.map((log, i) => (
                   <TableRow key={i}>
                     <TableCell className={clsx(classes.tightCell, classes.smallText, {[classes.errorLog]: log.is_error, [classes.warningLog]: log.is_warning})}>
-                      <span title={moment(log.timestamp, 'YYYY-MM-DD[T]HH:mm:ss.SSSSS[Z]').local().format('YYYY-MM-DD HH:mm:sss')}>{moment(log.timestamp, 'YYYY-MM-DD[T]HH:mm:ss.SSSSS[Z]').local().format('HH:mm:ss')} </span>
+                      <span title={moment.utc(log.timestamp, 'YYYY-MM-DD[T]HH:mm:ss.SSSSS[Z]').local().format('YYYY-MM-DD HH:mm:sss')}>{moment.utc(log.timestamp, 'YYYY-MM-DD[T]HH:mm:ss.SSSSS[Z]').local().format('HH:mm:ss')} </span>
                     </TableCell>
                     <TableCell className={clsx(classes.tightCell, classes.smallText, {[classes.errorLog]: log.is_error, [classes.warningLog]: log.is_warning})}> {log.message} </TableCell>
                     <TableCell className={clsx(classes.tightCell, classes.smallText, {[classes.errorLog]: log.is_error, [classes.warningLog]: log.is_warning})}> {this.renameUnit(log.pioreactor_unit)}</TableCell>
