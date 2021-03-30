@@ -71,7 +71,7 @@ function Overview(props) {
             <Grid item xs={12}>
               <Chart
                 config={props.config}
-                yAxisDomain={[0.00, 0.2]}
+                yAxisDomain={[0.00, 0.05]}
                 dataSource="alt_media_fraction"
                 interpolation="stepAfter"
                 title="Fraction of volume that is alternative media"

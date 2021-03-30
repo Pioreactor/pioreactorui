@@ -137,7 +137,7 @@ class LogTable extends React.Component {
                 {this.state.listOfLogs.map((log, i) => (
                   <TableRow key={i}>
                     <TableCell className={clsx(classes.tightCell, classes.smallText, {[classes.errorLog]: log.is_error, [classes.warningLog]: log.is_warning})}>
-                      <span title={moment(log.timestamp, 'YYYY-MM-DD[T]HH:mm:ss.SSSSS[Z]').format('YYYY-MM-DD HH:mm:sss').local()}>{moment(log.timestamp, 'YYYY-MM-DD[T]HH:mm:ss.SSSSS[Z]').format('HH:mm:ss').local()} </span>
+                      <span title={moment(log.timestamp, 'YYYY-MM-DD[T]HH:mm:ss.SSSSS[Z]').local().format('YYYY-MM-DD HH:mm:sss')}>{moment(log.timestamp, 'YYYY-MM-DD[T]HH:mm:ss.SSSSS[Z]').local().format('HH:mm:ss')} </span>
                     </TableCell>
                     <TableCell className={clsx(classes.tightCell, classes.smallText, {[classes.errorLog]: log.is_error, [classes.warningLog]: log.is_warning})}> {log.message} </TableCell>
                     <TableCell className={clsx(classes.tightCell, classes.smallText, {[classes.errorLog]: log.is_error, [classes.warningLog]: log.is_warning})}> {this.renameUnit(log.pioreactor_unit)}</TableCell>
