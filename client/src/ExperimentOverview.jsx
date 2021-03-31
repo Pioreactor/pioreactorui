@@ -16,6 +16,7 @@ function Overview(props) {
   const [experimentMetadata, setExperimentMetadata] = React.useState({})
 
   React.useEffect(() => {
+    document.title = props.title;
     async function getLatestExperiment() {
          await fetch("/get_latest_experiment")
         .then((response) => {
@@ -26,7 +27,6 @@ function Overview(props) {
         });
       }
     getLatestExperiment()
-    document.title = props.title;
   }, [props.title])
 
   return (
