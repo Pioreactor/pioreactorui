@@ -315,7 +315,10 @@ function ExportDataFormContainer() {
 }
 
 
-function ExportData() {
+function ExportData(props) {
+    React.useEffect(() => {
+      document.title = props.title;
+    }, [props.title]);
     return (
         <Grid container spacing={2} >
           <Grid item xs={12}><Header /></Grid>

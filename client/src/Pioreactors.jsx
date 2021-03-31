@@ -1870,6 +1870,7 @@ function Pioreactors(props) {
     const [experimentMetadata, setExperimentMetadata] = React.useState({})
 
     React.useEffect(() => {
+      document.title = props.title;
       async function getLatestExperiment() {
            await fetch("/get_latest_experiment")
           .then((response) => {
@@ -1880,7 +1881,7 @@ function Pioreactors(props) {
           });
         }
       getLatestExperiment()
-    }, [])
+    }, [props.title])
 
     const entries = (a) => Object.entries(a)
 
