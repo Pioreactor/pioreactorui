@@ -1880,7 +1880,8 @@ function Pioreactors(props) {
           });
         }
       getLatestExperiment()
-    }, [])
+      document.title = props.title;
+    }, [props.title])
 
     const entries = (a) => Object.entries(a)
 

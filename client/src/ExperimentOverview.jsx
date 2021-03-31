@@ -26,7 +26,8 @@ function Overview(props) {
         });
       }
     getLatestExperiment()
-  }, [])
+    document.title = props.title;
+  }, [props.title])
 
   return (
       <React.Fragment>
