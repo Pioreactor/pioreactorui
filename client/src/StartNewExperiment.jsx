@@ -101,7 +101,7 @@ function ExperimentSummaryForm(props) {
     }
     fetch('create_experiment',{
         method: "POST",
-        body: JSON.stringify({experiment : expName.trim(), timestamp: timestamp.toISOString(), description: description}),
+        body: JSON.stringify({experiment : expName, timestamp: timestamp.toISOString(), description: description}),
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json'
@@ -124,7 +124,7 @@ function ExperimentSummaryForm(props) {
   }
 
   const onExpNameChange = (e) => {
-    setExpName(e.target.value)
+    setExpName(e.target.value.trim())
   }
   const onDescChange = (e) => {
     setDescription(e.target.value)

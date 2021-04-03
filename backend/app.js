@@ -19,6 +19,12 @@ app.use(compression());
 
 var db = dblite(process.env.DB_LOCATION)
 
+db.on('error', function (err) {
+  // log any DB errors.
+  console.error(err.toString());
+});
+
+
 // this is not secure, and I know it. It's fine for now, as the app isn't exposed to the internet.
 var staticUserAuth = basicAuth({
     users: {
@@ -183,7 +189,7 @@ app.get('/time_series/growth_rates/:experiment', function (req, res) {
   const filterModN = queryObject['filter_mod_N'] || 100
 
   db.query(
-    "SELECT json_object('series', json_group_array(unit), 'data', json_group_array(data)) FROM (SELECT pioreactor_unit as unit, json_group_array(json_object('x', timestamp, 'y', round(rate, 5))) as data FROM growth_rates WHERE experiment=:experiment AND ROWID % :filterModN = 0 GROUP BY 1);",
+    "SELECT json_object('series', json_group_array(unit), 'data', json_group_array(data)) FROM (SELECT pioreactor_unit as unit, json_group_array(json_object('x', timestamp, 'y', round(rate, 5))) as data FROM growth_rates WHERE experiment=:experiment AND RANDOM() % :filterModN = 0 GROUP BY 1);",
     {experiment: experiment, filterModN: filterModN},
     {results: String},
     function (err, rows) {
@@ -204,7 +210,7 @@ app.get('/time_series/od_readings_filtered/:experiment', function (req, res) {
   const lookback = queryObject['lookback'] || 4
 
   db.query(
-    "SELECT json_object('series', json_group_array(unit), 'data', json_group_array(data)) FROM (SELECT pioreactor_unit || '-' || channel as unit, json_group_array(json_object('x', timestamp, 'y', round(normalized_od_reading, 7))) as data FROM od_readings_filtered WHERE experiment=:experiment AND ROWID % :filterModN in (0, 1) and timestamp > strftime('%Y-%m-%dT%H:%M:%S', datetime('now', :lookback)) GROUP BY 1);",
+    "SELECT json_object('series', json_group_array(unit), 'data', json_group_array(data)) FROM (SELECT pioreactor_unit || '-' || channel as unit, json_group_array(json_object('x', timestamp, 'y', round(normalized_od_reading, 7))) as data FROM od_readings_filtered WHERE experiment=:experiment AND RANDOM() % :filterModN in (0, 1) and timestamp > strftime('%Y-%m-%dT%H:%M:%S', datetime('now', :lookback)) GROUP BY 1);",
     {experiment: experiment, filterModN: filterModN, lookback: `-${lookback} hours`},
     {results: String},
     function (err, rows) {
@@ -225,7 +231,7 @@ app.get('/time_series/od_readings_raw/:experiment', function (req, res) {
   const lookback = queryObject['lookback'] || 4
 
   db.query(
-    "SELECT json_object('series', json_group_array(unit), 'data', json_group_array(data)) FROM (SELECT pioreactor_unit || '-' || channel as unit, json_group_array(json_object('x', timestamp, 'y', round(od_reading_v, 7))) as data FROM od_readings_raw WHERE experiment=:experiment AND ROWID % :filterModN in (0, 1) and timestamp > strftime('%Y-%m-%dT%H:%M:%S', datetime('now', :lookback)) GROUP BY 1);",
+    "SELECT json_object('series', json_group_array(unit), 'data', json_group_array(data)) FROM (SELECT pioreactor_unit || '-' || channel as unit, json_group_array(json_object('x', timestamp, 'y', round(od_reading_v, 7))) as data FROM od_readings_raw WHERE experiment=:experiment AND RANDOM() % :filterModN in (0, 1) and timestamp > strftime('%Y-%m-%dT%H:%M:%S', datetime('now', :lookback)) GROUP BY 1);",
     {experiment: experiment, filterModN: filterModN, lookback: `-${lookback} hours`},
     {results: String},
     function (err, rows) {
@@ -241,11 +247,10 @@ app.get('/time_series/od_readings_raw/:experiment', function (req, res) {
 app.get('/time_series/alt_media_fraction/:experiment', function (req, res) {
   const experiment = req.params.experiment
   const queryObject = url.parse(req.url, true).query; // assume that all query params are optional args for the job
-  const filterModN = queryObject['filter_mod_N'] || 100
 
   db.query(
-    "SELECT json_object('series', json_group_array(unit), 'data', json_group_array(data)) FROM (SELECT pioreactor_unit as unit, json_group_array(json_object('x', timestamp, 'y', round(alt_media_fraction, 7))) as data FROM alt_media_fraction WHERE experiment=:experiment AND ROWID % :filterModN == 0 GROUP BY 1);",
-    {experiment: experiment, filterModN: filterModN},
+    "SELECT json_object('series', json_group_array(unit), 'data', json_group_array(data)) FROM (SELECT pioreactor_unit as unit, json_group_array(json_object('x', timestamp, 'y', round(alt_media_fraction, 7))) as data FROM alt_media_fraction WHERE experiment=:experiment GROUP BY 1);",
+    {experiment: experiment},
     {results: String},
     function (err, rows) {
       if (err){
