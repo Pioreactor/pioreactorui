@@ -414,6 +414,7 @@ app.post("/update_experiment_desc", function (req, res, next) {
     console.log("here1")
     console.log(db)
     console.log(Object.getOwnPropertyNames(db))
+    console.log(Object.keys(db);
     db.query(update, [req.body.description, req.body.experiment], function(err, _){
         console.log("here2")
         if (err){
