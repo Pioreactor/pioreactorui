@@ -65,29 +65,29 @@ function App() {
         <div className="pageContainer">
           <Switch>
             <Route path="/export-data">
-              <ExportData config={config} title="Export data"/>
+              <ExportData config={config} title="Pioreactor ~ Export data"/>
               <TactileButtonNotification config={config}/>
             </Route>
             <Route path="/start-new-experiment">
-              <StartNewExperiment config={config} title="Start new experiment" />
+              <StartNewExperiment config={config} title="Pioreactor ~ Start new experiment" />
               <TactileButtonNotification config={config}/>
             </Route>
             <Route path="/overview">
-              <ExperimentOverview config={config} title="Overview"/>
+              <ExperimentOverview config={config} title="Pioreactor ~ Overview"/>
             </Route>
             <Route path="/config">
-              <EditConfig config={config} title="Configuration"/>
+              <EditConfig config={config} title="Pioreactor ~ Configuration"/>
               <TactileButtonNotification config={config}/>
             </Route>f
             <Route path="/pioreactors">
-              <Pioreactors config={config} title="Pioreactors"/>
+              <Pioreactors config={config} title="Pioreactor ~ Pioreactors"/>
             </Route>
             <Route path="/Updates">
-              <Updates config={config} title="Updates"/>
+              <Updates config={config} title="Pioreactor ~ Updates"/>
               <TactileButtonNotification config={config}/>
             </Route>
             <Route path="/">
-              <ExperimentOverview config={config} title="Pioreactor"/>
+              <ExperimentOverview config={config} title="Pioreactor ~ Pioreactor"/>
             </Route>
           </Switch>
         </div>

@@ -414,7 +414,7 @@ app.post("/update_experiment_desc", function (req, res) {
     db.query(update, [req.body.description, req.body.experiment], function(err, _){
         if (err){
           console.log(err)
-          res.sendStatus(500)
+          next(err)
         } else {
           res.sendStatus(200)
         }
