@@ -409,7 +409,7 @@ app.post("/create_experiment", function (req, res) {
   })
 })
 
-app.post("/update_experiment_desc", function (req, res) {
+app.post("/update_experiment_desc", function (req, res, next) {
     var update = 'UPDATE experiments SET description = (?) WHERE experiment=(?)'
     db.query(update, [req.body.description, req.body.experiment], function(err, _){
         if (err){
