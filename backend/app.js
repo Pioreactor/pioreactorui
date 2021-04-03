@@ -411,11 +411,15 @@ app.post("/create_experiment", function (req, res) {
 
 app.post("/update_experiment_desc", function (req, res, next) {
     var update = 'UPDATE experiments SET description = (?) WHERE experiment=(?)'
+    console.log("here1")
     db.query(update, [req.body.description, req.body.experiment], function(err, _){
+        console.log("here2")
         if (err){
+          console.log("here3")
           console.log(err)
           next(err)
         } else {
+          console.log("here4")
           res.sendStatus(200)
         }
     })
