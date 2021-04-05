@@ -411,20 +411,12 @@ app.post("/create_experiment", function (req, res) {
 
 app.post("/update_experiment_desc", function (req, res, next) {
     var update = 'UPDATE experiments SET description = (?) WHERE experiment=(?)'
-    console.log("here1")
-    console.log(db)
-    console.log(Object.getOwnPropertyNames(db))
-    console.log(Object.keys(db));
-    db.ignoreErrors = true;
-    console.log(db.ignoreErrors)
+    db.ignoreErrors = true; // this is a hack to avoid dblite from freezing when we get a db is locked.
     db.query(update, [req.body.description, req.body.experiment], function(err, _){
-        console.log("here2")
         if (err){
-          console.log("here3")
           console.log(err)
           next(err)
         } else {
-          console.log("here4")
           res.sendStatus(200)
         }
     })

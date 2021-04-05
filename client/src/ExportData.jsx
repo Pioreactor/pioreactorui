@@ -177,6 +177,14 @@ const CheckboxesGroup = (props) => {
           </Typography>
 
           <FormControlLabel
+            control={<Checkbox checked={props.isChecked.kalman_filter_outputs} onChange={props.handleChange} name="kalman_filter_outputs" />}
+            label="Kalman Filter outputs"
+          />
+          <Typography variant="caption" className={classes.caption} gutterBottom>
+            An internal Kalman filter produces the normalized optical densities, growth rates, an acceleration term, and variances (and covariances) between the estimates.
+          </Typography>
+
+          <FormControlLabel
             control={<Checkbox checked={props.isChecked.logs} onChange={props.handleChange} name="logs" />}
             label="Pioreactor logs"
           />
@@ -209,6 +217,7 @@ function ExportDataFormContainer() {
       alt_media_fraction: false,
       dosing_automation_settings: false,
       led_automation_settings: false,
+      kalman_filter_outputs: false,
     }
   });
 

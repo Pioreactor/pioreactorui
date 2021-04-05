@@ -220,7 +220,7 @@ function ButtonConfirmStopProcessDialog() {
 
   return (
     <React.Fragment>
-      <Button style={{textTransform: 'none', marginRight: "10px", float: "right"}} color="secondary" onClick={handleClickOpen}>
+      <Button style={{textTransform: 'none', float: "right"}} color="secondary" onClick={handleClickOpen}>
         <ClearIcon className={classes.textIcon}/> Stop all activity
       </Button>
       <Dialog
