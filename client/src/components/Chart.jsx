@@ -102,7 +102,7 @@ class Chart extends React.Component {
       return
     }
     await fetch("/time_series/" + this.props.dataSource + "/" + this.props.experiment + "?" + new URLSearchParams({
-        filter_mod_N: Math.max(Math.floor(Math.min(this.props.deltaHours, this.props.lookback)/2), 1),
+        filter_mod_N: Math.max(Math.floor(Math.min(this.props.deltaHours, this.props.lookback)), 1),
         lookback: this.props.lookback
       }))
       .then((response) => {

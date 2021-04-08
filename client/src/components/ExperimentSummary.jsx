@@ -165,7 +165,7 @@ function ButtonConfirmStopProcessDialog() {
         <DialogTitle id="alert-dialog-title">{"End experiment?"}</DialogTitle>
         <DialogContent>
           <DialogContentText id="alert-dialog-description">
-            This will halt all activies (stirring, dosing, optical density reading, etc.) in all Pioreactor units. You can start them again. Do you wish to end the experiment?
+            This will halt all activies (stirring, dosing, optical density reading, etc.) in all Pioreactor units. You can manually start them again later. Do you wish to end the experiment?
           </DialogContentText>
         </DialogContent>
         <DialogActions>

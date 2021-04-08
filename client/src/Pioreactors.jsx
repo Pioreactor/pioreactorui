@@ -1097,6 +1097,7 @@ function SettingsActionsDialogAll(props) {
     ].join("/");
     message.qos = 1;
     try{
+      client.publish(message);
       setSnackbarOpen(true)
     }
     catch (e) {
@@ -1596,8 +1597,8 @@ function PioreactorCard(props){
             </div>
             <div style={{display: "flex", justifyContent: "flex-end", flexDirection: "row", flexWrap: "wrap"}}>
               <div>
-                <Button style={{textTransform: 'none', float: "right" }} disabled={!isUnitActive} color="primary">
-                  <SettingsIcon color={!isUnitActive ? "disabled" : "primary"} className={classes.textIcon}/> Calibrate
+                <Button style={{textTransform: 'none', float: "right" }} disabled={true} color="primary">
+                  <SettingsIcon color={"disabled"} className={classes.textIcon}/> Calibrate
                 </Button>
               </div>
               <div>
