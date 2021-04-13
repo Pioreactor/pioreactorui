@@ -121,6 +121,24 @@ function Overview(props) {
               />
             </Grid>
            }
+            {( props.config['ui.overview.charts'] && (props.config['ui.overview.charts']['temperature'] === "1")) &&
+            <Grid item xs={12}>
+              <Chart
+                config={props.config}
+                isODReading={true}
+                dataSource="temperature_readings"
+                title="Temperature of vials"
+                topic="temperature_control/temperature"
+                yAxisLabel="temperature, ℃"
+                experiment={experimentMetadata.experiment}
+                deltaHours={experimentMetadata.delta_hours}
+                interpolation="stepAfter"
+                lookback={10000}
+                deltaHours={1} // hack to make all points display
+                yAxisTickFormat={(t) => `${t.toFixed(1)}`}
+              />
+            </Grid>
+           }
           </Grid>
 
           <Grid item xs={12} md={4} container spacing={2} justify="flex-end" style={{height: "100%"}}>

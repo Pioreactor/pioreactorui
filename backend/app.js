@@ -169,7 +169,7 @@ app.get('/recent_logs/:experiment', function (req, res) {
   }
 
   db.query(
-    `SELECT timestamp, level=="ERROR" as is_error, level=="WARNING" as is_warning, pioreactor_unit, ("[" || task || "]" || " " || message) as message FROM logs where ${levelString} and experiment=:experiment and source="app" ORDER BY timestamp DESC LIMIT 50;`,
+    `SELECT timestamp, level=="ERROR" as is_error, level=="WARNING" as is_warning, pioreactor_unit, ("[" || task || "]" || " " || message) as message FROM logs where ${levelString} and (experiment=:experiment OR experiment="$experiment") ORDER BY timestamp DESC LIMIT 50;`,
     {experiment: experiment, levelString: levelString},
     {timestamp: String, is_error: Boolean, is_warning: Boolean, pioreactor_unit: String, message: String},
     function (err, rows) {
@@ -190,6 +190,26 @@ app.get('/time_series/growth_rates/:experiment', function (req, res) {
 
   db.query(
     "SELECT json_object('series', json_group_array(unit), 'data', json_group_array(data)) FROM (SELECT pioreactor_unit as unit, json_group_array(json_object('x', timestamp, 'y', round(rate, 5))) as data FROM growth_rates WHERE experiment=:experiment AND RANDOM() % :filterModN = 0 GROUP BY 1);",
+    {experiment: experiment, filterModN: filterModN},
+    {results: String},
+    function (err, rows) {
+      if (err){
+        console.log(err)
+        res.sendStatus(500)
+      } else {
+        res.send(rows[0]['results'])
+      }
+    })
+})
+
+
+app.get('/time_series/temperature_readings/:experiment', function (req, res) {
+  const experiment = req.params.experiment
+  const queryObject = url.parse(req.url, true).query; // assume that all query params are optional args for the job
+  const filterModN = queryObject['filter_mod_N'] || 100
+
+  db.query(
+    "SELECT json_object('series', json_group_array(unit), 'data', json_group_array(data)) FROM (SELECT pioreactor_unit as unit, json_group_array(json_object('x', timestamp, 'y', round(temperature_c, 2))) as data FROM temperature_readings WHERE experiment=:experiment AND RANDOM() % :filterModN = 0 GROUP BY 1);",
     {experiment: experiment, filterModN: filterModN},
     {results: String},
     function (err, rows) {
@@ -346,7 +366,6 @@ app.post('/export_datasets', function(req, res) {
           res.json({filename: m})
       }
       else{
-        console.log(m)
         res.sendStatus(500)
       }
     });

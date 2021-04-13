@@ -170,6 +170,11 @@ class Chart extends React.Component {
     if (message.retained){
       return
     }
+
+    if (!message.payloadString){
+      return
+    }
+
     const currentTime = moment().local()
 
     var key = this.props.isODReading

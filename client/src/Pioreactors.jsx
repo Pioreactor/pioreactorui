@@ -7,7 +7,8 @@ import Grid from '@material-ui/core/Grid';
 import Header from "./components/Header"
 import PropTypes from 'prop-types';
 
-import { makeStyles } from '@material-ui/core/styles';
+import { makeStyles, withStyles } from '@material-ui/core/styles';
+import { palette } from '@material-ui/system';
 import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/Card';
 import {Typography} from '@material-ui/core';
@@ -35,6 +36,7 @@ import EditIcon from '@material-ui/icons/Edit';
 import FlareIcon from '@material-ui/icons/Flare';
 import SettingsIcon from '@material-ui/icons/Settings';
 
+
 import {parseINIString} from "./utilities"
 import ButtonChangeDosingDialog from "./components/ButtonChangeDosingDialog"
 import ButtonChangeLEDDialog from "./components/ButtonChangeLEDDialog"
@@ -46,7 +48,7 @@ import TactileButtonNotification from "./components/TactileButtonNotification";
 
 const readyGreen = "#4caf50"
 const disconnectedGrey = "grey"
-const errorRed = "#DE3618"
+const lostRed = "#DE3618"
 
 const useStyles = makeStyles((theme) => ({
   textIcon: {
@@ -118,6 +120,7 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
+
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
 
@@ -151,7 +154,7 @@ function UnitSettingDisplay(props) {
     "ready":         {display: "On", color: readyGreen},
     "sleeping":      {display: "Paused", color: disconnectedGrey},
     "disconnected":  {display: "Off", color: disconnectedGrey},
-    "lost":          {display: "Lost", color: errorRed},
+    "lost":          {display: "Lost", color: lostRed},
     "NA":            {display: "Not available", color: disconnectedGrey},
   }
   const value = props.value || ""
@@ -278,7 +281,7 @@ function AddNewPioreactor(props){
     event.preventDefault()
     if (!name) {
       setIsError(true)
-      setErrorMsg("Fill in the new name.")
+      setErrorMsg("Provide a name for the new Pioreactor")
       return
     }
     setIsError(false)
@@ -317,8 +320,8 @@ function AddNewPioreactor(props){
       <p> To add a new Pioreactor, you'll need the following: </p>
       <ul>
         <li>A RaspberryPi, with power cord</li>
-        <li>A microSD card</li>
-        <li>A computer with internet access that can read & write to the microSD card</li>
+        <li>A blank microSD card</li>
+        <li>A computer with the <a href="https://www.raspberrypi.org/software/">RaspberryPi Imager</a> installed and that can read & write to the microSD card</li>
         <li>The Pioreactor hardware hat</li>
       </ul>
       <p> With that all ready, let's begin: </p>
@@ -360,7 +363,7 @@ function AddNewPioreactor(props){
       </div>
 
       <div style={{minHeight: "50px"}}>
-        {isError? <p><b>{errorMsg}</b></p> : <p></p>}
+        {isError? <p><Box color="error.main">{errorMsg}</Box></p> : <p></p>}
         {isRunning? <p>Installation is occuring in the background. You may navigate away from this page, including adding more Pioreactors. </p> : <p> </p>}
       </div>
 
@@ -1571,7 +1574,7 @@ function PioreactorCard(props){
     setClient(client)
   },[props.config, props.experiment])
 
-  const indicatorDotColor = (monitorJobState === "disconnected") ? disconnectedGrey : ((monitorJobState === "lost") ? errorRed : readyGreen)
+  const indicatorDotColor = (monitorJobState === "disconnected") ? disconnectedGrey : ((monitorJobState === "lost") ? lostRed : readyGreen)
   const indicatorDotShadow = (monitorJobState === "disconnected") ? 0 : 6
   const indicatorLabel = (monitorJobState === "disconnected") ? (isUnitActive ? "Offline, need to power up" : "Offline, change inventory status in config.ini") : ((monitorJobState === "lost") ? "Lost, something went wrong..." : "Online")
 

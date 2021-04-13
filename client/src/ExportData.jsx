@@ -128,10 +128,10 @@ const CheckboxesGroup = (props) => {
 
           <FormControlLabel
             control={<Checkbox checked={props.isChecked.experiments} onChange={props.handleChange} name="experiments" />}
-            label="Experiment description"
+            label="Experiment metadata"
           />
           <Typography variant="caption" className={classes.caption} gutterBottom>
-            The most recent description of the experiment.
+            The description and other metadata from the experiment.
           </Typography>
 
           <FormControlLabel
@@ -147,7 +147,7 @@ const CheckboxesGroup = (props) => {
             label="Dosing event log"
           />
           <Typography variant="caption" className={classes.caption} gutterBottom>
-            A detailed log table of all dosing events, including the volume exchanged, and the source of who or what trigger the event.
+            A detailed log table of all dosing events, including the volume exchanged, and the source of who or what triggered the event.
           </Typography>
 
           <FormControlLabel
@@ -270,7 +270,7 @@ function ExportDataFormContainer() {
   };
 
   const runningFeedback = isRunning ? <CircularProgress color="white" size={24}/> : "Export"
-  const errorFeedbackOrDefault = isError ? errorMsg : "Querying large tables may take up to a minute or so."
+  const errorFeedbackOrDefault = isError ? <Box color="error.main">{errorMsg}</Box>: "Querying large tables may take up to a minute or so."
   return (
     <React.Fragment>
       <div>
