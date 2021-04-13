@@ -125,7 +125,6 @@ function Overview(props) {
             <Grid item xs={12}>
               <Chart
                 config={props.config}
-                isODReading={true}
                 dataSource="temperature_readings"
                 title="Temperature of vials"
                 topic="temperature_control/temperature"
