@@ -127,6 +127,14 @@ const CheckboxesGroup = (props) => {
           </Typography>
 
           <FormControlLabel
+            control={<Checkbox checked={props.isChecked.temperature_readings} onChange={props.handleChange} name="temperature_readings" />}
+            label="Temperature readings"
+          />
+          <Typography variant="caption" className={classes.caption} gutterBottom>
+            The time series of temperature readings from the Pioreactors. Same data as presented in the "Temperature of vials" chart in the Experiment Overview.
+          </Typography>
+
+          <FormControlLabel
             control={<Checkbox checked={props.isChecked.experiments} onChange={props.handleChange} name="experiments" />}
             label="Experiment metadata"
           />
@@ -177,6 +185,15 @@ const CheckboxesGroup = (props) => {
           </Typography>
 
           <FormControlLabel
+            control={<Checkbox checked={props.isChecked.temperature_automation_settings} onChange={props.handleChange} name="temperature_automation_settings" />}
+            label="Temperature automation changelog"
+          />
+          <Typography variant="caption" className={classes.caption} gutterBottom>
+            Whenever a temperature automation is updated (new automation, new setting, etc.), a new row is recorded. You can reconstruct all the temperature automation states
+            from this dataset.
+          </Typography>
+
+          <FormControlLabel
             control={<Checkbox checked={props.isChecked.kalman_filter_outputs} onChange={props.handleChange} name="kalman_filter_outputs" />}
             label="Kalman Filter outputs"
           />
@@ -217,7 +234,9 @@ function ExportDataFormContainer() {
       alt_media_fraction: false,
       dosing_automation_settings: false,
       led_automation_settings: false,
+      temperature_automation_settings: false,
       kalman_filter_outputs: false,
+      temperature_readings: false
     }
   });
 

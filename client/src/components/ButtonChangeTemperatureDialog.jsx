@@ -42,7 +42,7 @@ const useStyles = makeStyles((theme) => ({
 
 function SilentForm(props){
   const classes = useStyles();
-  const defaults = {duration: 60}
+  const defaults = {duration: 10}
 
   useEffect(() => {
     props.updateParent(defaults)
@@ -60,7 +60,7 @@ function SilentForm(props){
         label="Duration between events"
         defaultValue={defaults.duration}
         InputProps={{
-          endAdornment: <InputAdornment position="end">min</InputAdornment>,
+          endAdornment: <InputAdornment position="end">sec</InputAdornment>,
         }}
         variant="outlined"
         onChange={onSettingsChange}
@@ -69,15 +69,60 @@ function SilentForm(props){
 )}
 
 
-function ButtonChangeLEDDialog(props) {
+
+function PIDStable(props){
+  const classes = useStyles();
+  const defaults = {duration: 10, target_temperature: 25}
+
+  useEffect(() => {
+    props.updateParent(defaults)
+  }, [])
+
+
+  const onSettingsChange = (e) => {
+    props.updateParent({[e.target.id]: e.target.value})
+  }
+
+  return (
+    <div>
+      <TextField
+        size="small"
+        id="duration"
+        label="Duration between events"
+        defaultValue={defaults.duration}
+        InputProps={{
+          endAdornment: <InputAdornment position="end">sec</InputAdornment>,
+        }}
+        variant="outlined"
+        onChange={onSettingsChange}
+        className={classes.textFieldCompact}
+      />
+      <TextField
+        size="small"
+        id="target_temperature"
+        defaultValue={defaults.target_temperature}
+        InputProps={{
+          endAdornment: <InputAdornment position="end">℃</InputAdornment>,
+        }}
+        variant="outlined"
+        onChange={onSettingsChange}
+        className={classes.textFieldCompact}
+        label="Target temperature"
+      />
+    </div>
+)}
+
+
+function ButtonChangeTemperatureDialog(props) {
   const classes = useStyles();
   const [open, setOpen] = useState(false);
-  const [algoSettings, setAlgoSettings] = useState({led_automation: "silent"})
+  const [algoSettings, setAlgoSettings] = useState({temperature_automation: "silent"})
   const [isClicked, setIsClicked] = useState(false)
   const [client, setClient] = useState(null)
 
   const algos = [
     {name: "Silent", key: "silent"},
+    {name: "PIDStable", key: "pid_stable"},
   ]
 
   useEffect(() => {
@@ -90,12 +135,12 @@ function ButtonChangeLEDDialog(props) {
     if (props.config.remote && props.config.remote.ws_url) {
       client = new Client(
         `ws://${props.config.remote.ws_url}/`,
-        "webui_ButtonChangeLEDDialog" + Math.random()
+        "webui_ButtonChangeTemperatureDialog" + Math.random()
       )}
     else {
       client = new Client(
         `${props.config['network.topology']['leader_address']}`, 9001,
-        "webui_ButtonChangeLEDDialog" + Math.random()
+        "webui_ButtonChangeTemperatureDialog" + Math.random()
       );
     }
 
@@ -112,7 +157,7 @@ function ButtonChangeLEDDialog(props) {
   };
 
   const handleAlgoSelectionChange = (e) => {
-    setAlgoSettings({led_automation: e.target.value})
+    setAlgoSettings({temperature_automation: e.target.value})
   }
 
   const updateFromChild = (setting) => {
@@ -120,9 +165,11 @@ function ButtonChangeLEDDialog(props) {
   }
 
   const switchToForm = () => {
-    switch(algoSettings.led_automation) {
+    switch(algoSettings.temperature_automation) {
       case "silent":
         return <SilentForm updateParent={updateFromChild}/>
+      case "pid_stable":
+        return <PIDStable updateParent={updateFromChild}/>
       default:
         return <div></div>
     }
@@ -136,8 +183,8 @@ function ButtonChangeLEDDialog(props) {
       "pioreactor",
       props.unit,
       props.experiment,
-      "led_control",
-      "led_automation",
+      "temperature_control",
+      "temperature_automation",
       "set",
     ].join("/");
     message.qos = 2;
@@ -155,10 +202,10 @@ function ButtonChangeLEDDialog(props) {
       style={{marginTop: "10px"}}
       size="small"
       color="primary"
-      disabled={!props.currentLEDAutomation}
+      disabled={!props.currentTemperatureAutomation}
       onClick={handleClickOpen}
     >
-      Change LED automation
+      Change temperature automation
     </Button>
     <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title" PaperProps={{style: {height: "100%"}}}>
       <DialogTitle>
@@ -166,12 +213,12 @@ function ButtonChangeLEDDialog(props) {
           <PioreactorIcon style={{verticalAlign: "middle", fontSize: "1.2em"}}/> {props.title || ((props.config['ui.rename'] && props.config['ui.rename'][props.unit]) ? `${props.config['ui.rename'][props.unit]} (${props.unit})` : `${props.unit}`)}
         </Typography>
         <Typography className={classes.unitTitleDialog}>
-          LED automation
+          Temperature automation
         </Typography>
       </DialogTitle>
       <DialogContent>
         <Typography variant="body2" component="p" gutterBottom>
-          LED automations control how and when to provide light to the Pioreactor. The settings below can be changed later. Learn more about <a target="_blank" rel="noopener noreferrer" href="https://pioreactor.com/pages/LED-automations">LED automations</a>.
+          Temperature automations control the temperature of the Pioreactor's vial. The settings below can be changed later. Learn more about <a target="_blank" rel="noopener noreferrer" href="https://pioreactor.com/pages/temperature-automations">temperature automations</a>.
         </Typography>
 
         <form>
@@ -208,4 +255,4 @@ function ButtonChangeLEDDialog(props) {
 )}
 
 
-export default ButtonChangeLEDDialog;
+export default ButtonChangeTemperatureDialog;

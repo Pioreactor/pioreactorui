@@ -366,7 +366,7 @@ function ButtonChangeDosingDialog(props) {
       style={{marginTop: "10px"}}
       size="small"
       color="primary"
-      disabled={!props.currentDosingautomation}
+      disabled={!props.currentDosingAutomation}
       onClick={handleClickOpen}
     >
       Change dosing automation
