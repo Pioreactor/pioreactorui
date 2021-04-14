@@ -171,7 +171,7 @@ app.get('/recent_logs/:experiment', function (req, res) {
   db.query(
     `SELECT timestamp, level=="ERROR" as is_error, level=="WARNING" as is_warning, pioreactor_unit, message, task FROM logs where ${levelString} and (experiment=:experiment OR experiment="$experiment") ORDER BY timestamp DESC LIMIT 50;`,
     {experiment: experiment, levelString: levelString},
-    {timestamp: String, is_error: Boolean, is_warning: Boolean, pioreactor_unit: String, message: String},
+    {timestamp: String, is_error: Boolean, is_warning: Boolean, pioreactor_unit: String, message: String, task: String},
     function (err, rows) {
       if (err){
         console.log(err)
