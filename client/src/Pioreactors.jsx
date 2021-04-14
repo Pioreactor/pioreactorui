@@ -4,11 +4,9 @@ import { Client, Message } from "paho-mqtt";
 import React, {useState, useEffect} from "react";
 
 import Grid from '@material-ui/core/Grid';
-import Header from "./components/Header"
 import PropTypes from 'prop-types';
 
-import { makeStyles, withStyles } from '@material-ui/core/styles';
-import { palette } from '@material-ui/system';
+import { makeStyles } from '@material-ui/core/styles';
 import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/Card';
 import {Typography} from '@material-ui/core';
@@ -2008,17 +2006,13 @@ function Pioreactors(props) {
 
     return (
         <Grid container spacing={2} >
-          <Grid item xs={12}><Header /></Grid>
-          <Grid item xs={12} />
-          <Grid item xs={12} />
 
-          <Grid item md={1} xs={1}/>
-          <Grid item md={10} xs={12}>
+
+          <Grid item md={12} xs={12}>
             <PioreactorHeader config={props.config} experiment={experimentMetadata.experiment}/>
             <ActiveUnits experiment={experimentMetadata.experiment} config={props.config} units={props.config['network.inventory'] ? entries(props.config['network.inventory']).filter((v) => v[1] === "1").map((v) => v[0]) : [] }/>
             <InactiveUnits experiment={experimentMetadata.experiment} config={props.config} units={props.config['network.inventory'] ? entries(props.config['network.inventory']).filter((v) => v[1] === "0").map((v) => v[0]) : [] }/>
           </Grid>
-          <Grid item md={1} xs={1}/>
           {props.config['ui.rename'] ? <TactileButtonNotification config={props.config}/> : null}
         </Grid>
     )

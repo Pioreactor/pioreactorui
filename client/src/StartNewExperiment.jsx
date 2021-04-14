@@ -14,7 +14,6 @@ import Step from '@material-ui/core/Step';
 import StepLabel from '@material-ui/core/StepLabel';
 import TextField from '@material-ui/core/TextField';
 
-import Header from "./components/Header"
 import CleaningScript from "./components/CleaningScript"
 import StartSensors from "./components/StartSensors"
 import StartCalculations from "./components/StartCalculations"
@@ -49,7 +48,6 @@ const useStyles = makeStyles((theme) => ({
     width: "95%"
   },
 }));
-
 
 
 
@@ -321,13 +319,9 @@ function StartNewExperiment(props) {
     }, [props.title])
     return (
         <Grid container spacing={2} >
-          <Grid item xs={12}><Header /></Grid>
-
-          <Grid item xs={1}/>
-          <Grid item xs={10}>
-            <div><StartNewExperimentContainer config={props.config}/></div>
+          <Grid item xs={12} md={12}>
+            <StartNewExperimentContainer config={props.config}/>
           </Grid>
-          <Grid item xs={1}/>
         </Grid>
     )
 }

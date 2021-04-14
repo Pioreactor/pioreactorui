@@ -20,9 +20,6 @@ import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
 
 
-import Header from "./components/Header"
-
-
 const useStyles = makeStyles((theme) => ({
   title: {
     fontSize: 14,
@@ -214,16 +211,10 @@ function Updates(props) {
   }, [props.title])
     return (
         <Grid container spacing={2} >
-          <Grid item xs={12}><Header /></Grid>
-          <Grid item md={12} xs={1}/>
-          <Grid item md={12} xs={1}/>
-
-          <Grid item md={1} xs={1}/>
-          <Grid item md={10} xs={12}>
+          <Grid item md={12} xs={12}>
             <PageHeader/>
             <ChangelogContainer/>
           </Grid>
-          <Grid item md={1} xs={1}/>
         </Grid>
     )
 }

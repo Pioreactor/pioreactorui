@@ -2,7 +2,6 @@ import React from "react";
 
 import Grid from "@material-ui/core/Grid";
 import Button from "@material-ui/core/Button";
-import Header from "./components/Header";
 import LogTable from "./components/LogTable";
 import ExperimentSummary from "./components/ExperimentSummary";
 import Chart from "./components/Chart";
@@ -32,22 +31,13 @@ function Overview(props) {
   return (
       <React.Fragment>
         <Grid container spacing={2} justify="space-between">
-          <Grid item xs={12} style={{paddingRight: "0px"}}>
-            <Header />
-          </Grid>
-          <Grid item xs={1} md={12}/>
-          <Grid item xs={1} md={12}/>
 
-
-          <Grid item xs={12} md={1}/>
-          <Grid item xs={12} md={10}>
+          <Grid item xs={12} md={12}>
             <ExperimentSummary experimentMetadata={experimentMetadata}/>
           </Grid>
-          <Grid item xs={12} md={1}/>
 
 
-          <Grid item xs={12} md={1}/>
-          <Grid item xs={12} md={6} container spacing={2} justify="flex-start" style={{paddingLeft: 0, height: "100%"}}>
+          <Grid item xs={12} md={7} container spacing={2} justify="flex-start" style={{height: "100%"}}>
 
 
             {( props.config['ui.overview.charts'] && (props.config['ui.overview.charts']['implied_growth_rate'] === "1")) &&
@@ -130,7 +120,6 @@ function Overview(props) {
                 topic="temperature_control/temperature"
                 yAxisLabel="temperature, ℃"
                 experiment={experimentMetadata.experiment}
-                deltaHours={experimentMetadata.delta_hours}
                 interpolation="stepAfter"
                 lookback={10000}
                 yAxisDomain={[10, 50]}
@@ -141,7 +130,7 @@ function Overview(props) {
            }
           </Grid>
 
-          <Grid item xs={12} md={4} container spacing={2} justify="flex-end" style={{height: "100%"}}>
+          <Grid item xs={12} md={5} container spacing={2} justify="flex-end" style={{height: "100%"}}>
 
 
             {( props.config['ui.overview.cards'] && (props.config['ui.overview.cards']['dosings'] === "1")) &&
@@ -158,10 +147,7 @@ function Overview(props) {
               </Grid>
             }
 
-
           </Grid>
-
-          <Grid item xs={1} md={1}/>
         </Grid>
         {props.config['ui.rename'] ? <TactileButtonNotification config={props.config}/> : null}
       </React.Fragment>

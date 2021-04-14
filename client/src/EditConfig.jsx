@@ -13,8 +13,6 @@ import CircularProgress from '@material-ui/core/CircularProgress';
 
 import { CodeFlaskReact } from "react-codeflask"
 
-import Header from "./components/Header"
-
 const useStyles = makeStyles((theme) => ({
   root: {
     marginTop: "15px"
@@ -226,15 +224,9 @@ function EditConfig(props) {
     }, [props.title])
     return (
         <Grid container spacing={2} >
-          <Grid item xs={12}><Header /></Grid>
-          <Grid item md={12} xs={1}/>
-          <Grid item md={12} xs={1}/>
-
-          <Grid item md={1} xs={1}/>
-          <Grid item md={10} xs={12}>
+          <Grid item md={12} xs={12}>
              <EditConfigContainer/>
           </Grid>
-          <Grid item md={1} xs={1}/>
         </Grid>
     )
 }

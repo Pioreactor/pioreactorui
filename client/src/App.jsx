@@ -10,6 +10,7 @@ import Pioreactors from "./Pioreactors";
 import StartNewExperiment from "./StartNewExperiment";
 import EditConfig from "./EditConfig";
 import Updates from "./Updates";
+import SideNavAndHeader from "./components/SideNavAndHeader";
 
 import "fontsource-roboto/300-normal.css"
 import "fontsource-roboto/400-normal.css"
@@ -61,37 +62,42 @@ function App() {
   return (
     <MuiThemeProvider theme={theme}>
       <CssBaseline />
-      <Router>
-        <div className="pageContainer">
-          <Switch>
-            <Route path="/export-data">
-              <ExportData config={config} title="Pioreactor ~ Export data"/>
-              <TactileButtonNotification config={config}/>
-            </Route>
-            <Route path="/start-new-experiment">
-              <StartNewExperiment config={config} title="Pioreactor ~ Start new experiment" />
-              <TactileButtonNotification config={config}/>
-            </Route>
-            <Route path="/overview">
-              <ExperimentOverview config={config} title="Pioreactor ~ Overview"/>
-            </Route>
-            <Route path="/config">
-              <EditConfig config={config} title="Pioreactor ~ Configuration"/>
-              <TactileButtonNotification config={config}/>
-            </Route>f
-            <Route path="/pioreactors">
-              <Pioreactors config={config} title="Pioreactor ~ Pioreactors"/>
-            </Route>
-            <Route path="/Updates">
-              <Updates config={config} title="Pioreactor ~ Updates"/>
-              <TactileButtonNotification config={config}/>
-            </Route>
-            <Route path="/">
-              <ExperimentOverview config={config} title="Pioreactor ~ Pioreactor"/>
-            </Route>
-          </Switch>
-        </div>
-      </Router>
+      <div style={{display: 'flex'}}>
+        <SideNavAndHeader />
+        <main style={{flexGrow: 1, paddingTop: theme.spacing(9), paddingLeft: theme.spacing(4), paddingRight: theme.spacing(4)}}>
+          <Router>
+            <div className="pageContainer">
+              <Switch>
+                <Route path="/export-data">
+                  <ExportData config={config} title="Pioreactor ~ Export data"/>
+                  <TactileButtonNotification config={config}/>
+                </Route>
+                <Route path="/start-new-experiment">
+                  <StartNewExperiment config={config} title="Pioreactor ~ Start new experiment" />
+                  <TactileButtonNotification config={config}/>
+                </Route>
+                <Route path="/overview">
+                  <ExperimentOverview config={config} title="Pioreactor ~ Overview"/>
+                </Route>
+                <Route path="/config">
+                  <EditConfig config={config} title="Pioreactor ~ Configuration"/>
+                  <TactileButtonNotification config={config}/>
+                </Route>f
+                <Route path="/pioreactors">
+                  <Pioreactors config={config} title="Pioreactor ~ Pioreactors"/>
+                </Route>
+                <Route path="/Updates">
+                  <Updates config={config} title="Pioreactor ~ Updates"/>
+                  <TactileButtonNotification config={config}/>
+                </Route>
+                <Route path="/">
+                  <ExperimentOverview config={config} title="Pioreactor ~ Pioreactor"/>
+                </Route>
+              </Switch>
+            </div>
+          </Router>
+        </main>
+      </div>
     </MuiThemeProvider>
   );
 }

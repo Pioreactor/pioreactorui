@@ -2,7 +2,6 @@ import React from "react";
 import moment from "moment";
 
 import Grid from '@material-ui/core/Grid';
-import Header from "./components/Header"
 
 import { makeStyles } from '@material-ui/core/styles';
 import FormLabel from '@material-ui/core/FormLabel';
@@ -349,15 +348,9 @@ function ExportData(props) {
     }, [props.title]);
     return (
         <Grid container spacing={2} >
-          <Grid item xs={12}><Header /></Grid>
-          <Grid item xs={12} />
-          <Grid item xs={12} />
-
-          <Grid item md={2} xs={1}/>
-          <Grid item md={8} xs={12}>
+          <Grid item md={12} xs={12}>
             <ExportDataFormContainer/>
           </Grid>
-          <Grid item md={2} xs={1}/>
         </Grid>
     )
 }
