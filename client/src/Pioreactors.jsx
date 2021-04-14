@@ -32,10 +32,9 @@ import Tab from '@material-ui/core/Tab';
 import Button from "@material-ui/core/Button";
 import AddIcon from '@material-ui/icons/Add';
 import ClearIcon from '@material-ui/icons/Clear';
-import EditIcon from '@material-ui/icons/Edit';
 import FlareIcon from '@material-ui/icons/Flare';
 import SettingsIcon from '@material-ui/icons/Settings';
-
+import TuneIcon from '@material-ui/icons/Tune';
 
 import {parseINIString} from "./utilities"
 import ButtonChangeDosingDialog from "./components/ButtonChangeDosingDialog"
@@ -649,7 +648,7 @@ function SettingsActionsDialog(props) {
   return (
     <div>
     <Button style={{textTransform: 'none', float: "right" }} disabled={props.disabled} onClick={handleClickOpen} color="primary">
-      <EditIcon color={props.disabled ? "disabled" : "primary"} className={classes.textIcon}/> Edit
+      <SettingsIcon color={props.disabled ? "disabled" : "primary"} className={classes.textIcon}/> Manage
     </Button>
     <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
       <DialogTitle>
@@ -1254,7 +1253,7 @@ function SettingsActionsDialogAll(props) {
   return (
     <React.Fragment>
     <Button style={{textTransform: 'none', float: "right" }} onClick={handleClickOpen} color="primary">
-      <EditIcon className={classes.textIcon}/> Edit all Pioreactors
+      <SettingsIcon className={classes.textIcon}/> Manage all Pioreactors
     </Button>
     <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
       <DialogTitle style={{backgroundColor: "#edeaf9"}}>
@@ -1722,7 +1721,7 @@ function PioreactorCard(props){
             <div style={{display: "flex", justifyContent: "flex-end", flexDirection: "row", flexWrap: "wrap"}}>
               <div>
                 <Button style={{textTransform: 'none', float: "right" }} disabled={true} color="primary">
-                  <SettingsIcon color={"disabled"} className={classes.textIcon}/> Calibrate
+                  <TuneIcon color={"disabled"} className={classes.textIcon}/> Calibrate
                 </Button>
               </div>
               <div>
