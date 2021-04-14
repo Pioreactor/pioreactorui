@@ -381,7 +381,7 @@ ${this.renameAndFormatSeries(d.datum.childName)}: ${Math.round(d.datum.y * 1000)
             gutter={15}
             rowGutter={5}
             style={{
-              labels: { fontSize: 14 },
+              labels: { fontSize: 13 },
               data: { stroke: "#485157", strokeWidth: 0.5, size: 6.5 },
             }}
             data={this.state.names.map(this.selectLegendData)}
