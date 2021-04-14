@@ -40,6 +40,16 @@ const useStyles = theme => ({
   }
 });
 
+const levelMappingToOrdinal = {
+  NOTSET: 0,
+  DEBUG: 1,
+  INFO: 2,
+  WARNING: 3,
+  ERROR: 4,
+  CRITICAL: 5
+}
+
+
 class LogTable extends React.Component {
   constructor(props) {
     super(props);
@@ -89,7 +99,7 @@ class LogTable extends React.Component {
   }
 
   onConnect() {
-      this.client.subscribe(["pioreactor", "+", this.props.experiment, "app_logs_for_ui"].join("/"))
+      this.client.subscribe(["pioreactor", "+", this.props.experiment, "logs", "+"].join("/"))
   }
 
   onMessageArrived(message) {
@@ -97,9 +107,14 @@ class LogTable extends React.Component {
       this.state.listOfLogs.pop()
     }
     const unit = message.topic.split("/")[1]
-    const payload = message.payloadString
+    const payload = JSON.parse(message.payloadString)
+
+    if (levelMappingToOrdinal[payload.level] < levelMappingToOrdinal[this.props.config.logging.ui_log_level]){
+      return
+    }
+
     this.state.listOfLogs.unshift(
-      {timestamp: moment.utc().format('YYYY-MM-DD[T]HH:mm:ss.SSSSS[Z]'), pioreactor_unit: unit, message: payload, is_error: payload.includes("Error"), is_warning: payload.includes("Warning")}
+      {timestamp: moment.utc().format('YYYY-MM-DD[T]HH:mm:ss.SSSSS[Z]'), pioreactor_unit: unit, message: payload.message, task: payload.task, is_error: (payload.level === "ERROR"), is_warning: (payload.level === "WARNING")}
     )
     this.setState({
       listOfLogs: this.state.listOfLogs
@@ -139,7 +154,7 @@ class LogTable extends React.Component {
                     <TableCell className={clsx(classes.tightCell, classes.smallText, {[classes.errorLog]: log.is_error, [classes.warningLog]: log.is_warning})}>
                       <span title={moment.utc(log.timestamp, 'YYYY-MM-DD[T]HH:mm:ss.SSSSS[Z]').local().format('YYYY-MM-DD HH:mm:sss')}>{moment.utc(log.timestamp, 'YYYY-MM-DD[T]HH:mm:ss.SSSSS[Z]').local().format('HH:mm:ss')} </span>
                     </TableCell>
-                    <TableCell className={clsx(classes.tightCell, classes.smallText, {[classes.errorLog]: log.is_error, [classes.warningLog]: log.is_warning})}> {log.message} </TableCell>
+                    <TableCell className={clsx(classes.tightCell, classes.smallText, {[classes.errorLog]: log.is_error, [classes.warningLog]: log.is_warning})}> {`[${log.task}] ${log.message}`} </TableCell>
                     <TableCell className={clsx(classes.tightCell, classes.smallText, {[classes.errorLog]: log.is_error, [classes.warningLog]: log.is_warning})}> {this.renameUnit(log.pioreactor_unit)}</TableCell>
                   </TableRow>
                   ))

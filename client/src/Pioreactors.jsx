@@ -121,6 +121,9 @@ const useStyles = makeStyles((theme) => ({
   },
   unitSettingsSubtext:{
     fontSize: "11px"
+  },
+  unitSettingsSubtextEmpty:{
+    minHeight: "15px"
   }
 }));
 
@@ -173,6 +176,7 @@ function UnitSettingDisplay(props) {
           {displaySettings.display}
         </div>
         {props.subtext && <div className={classes.unitSettingsSubtext}><code>{props.subtext}</code></div>}
+        {!props.subtext && <div className={classes.unitSettingsSubtextEmpty}></div>}
         </React.Fragment>
     )}
   } else if (props.isLEDIntensity) {
@@ -817,26 +821,6 @@ function SettingsActionsDialog(props) {
             className={classes.textFieldWide}
           />
 
-          <Divider className={classes.divider} />
-          <Typography  gutterBottom>
-            Target Temperature
-          </Typography>
-          <Typography variant="body2" component="p">
-            Change the target temperature. Lower bound is the ambient temperature, and
-            upperbound is 50℃.
-          </Typography>
-          <TextField
-            size="small"
-            id="temperature_automation/target_temperature"
-            label="Target temperature"
-            defaultValue={props.targetTemperature}
-            InputProps={{
-              endAdornment: <InputAdornment position="end">℃</InputAdornment>,
-            }}
-            variant="outlined"
-            onKeyPress={setPioreactorJobAttrOnEnter}
-            className={classes.textFieldWide}
-          />
 
           <Divider className={classes.divider} />
           <Typography  gutterBottom>
@@ -875,6 +859,26 @@ function SettingsActionsDialog(props) {
             defaultValue={props.targetGrowthRate}
             InputProps={{
               endAdornment: <InputAdornment position="end">h⁻¹</InputAdornment>,
+            }}
+            variant="outlined"
+            onKeyPress={setPioreactorJobAttrOnEnter}
+            className={classes.textFieldWide}
+          />
+          <Divider className={classes.divider} />
+          <Typography  gutterBottom>
+            Target Temperature
+          </Typography>
+          <Typography variant="body2" component="p">
+            Change the target temperature. Lower bound is the ambient temperature, and
+            upperbound is 50℃.
+          </Typography>
+          <TextField
+            size="small"
+            id="temperature_automation/target_temperature"
+            label="Target temperature"
+            defaultValue={props.targetTemperature}
+            InputProps={{
+              endAdornment: <InputAdornment position="end">℃</InputAdornment>,
             }}
             variant="outlined"
             onKeyPress={setPioreactorJobAttrOnEnter}
@@ -1922,19 +1926,6 @@ function PioreactorCard(props){
           </div>
           <div className={classes.textbox}>
             <Typography variant="body2" style={{fontSize: "0.82rem"}} className={clsx({[classes.disabledText]: !isUnitActive})}>
-              Target temperature
-            </Typography>
-            <UnitSettingDisplay
-              precision={2}
-              value={targetTemperature}
-              measurementUnit="℃"
-              isUnitActive={isUnitActive}
-              default={"—"}
-              className={classes.alignRight}
-            />
-          </div>
-          <div className={classes.textbox}>
-            <Typography variant="body2" style={{fontSize: "0.82rem"}} className={clsx({[classes.disabledText]: !isUnitActive})}>
               Time between dosing events
             </Typography>
             <UnitSettingDisplay
@@ -1956,6 +1947,19 @@ function PioreactorCard(props){
               default="—"
               className={classes.alignRight}
               isLEDIntensity
+            />
+          </div>
+          <div className={classes.textbox}>
+            <Typography variant="body2" style={{fontSize: "0.82rem"}} className={clsx({[classes.disabledText]: !isUnitActive})}>
+              Target temperature
+            </Typography>
+            <UnitSettingDisplay
+              precision={2}
+              value={targetTemperature}
+              measurementUnit="℃"
+              isUnitActive={isUnitActive}
+              default={"—"}
+              className={classes.alignRight}
             />
           </div>
         </div>

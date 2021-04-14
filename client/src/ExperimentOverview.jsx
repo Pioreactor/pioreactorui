@@ -133,6 +133,7 @@ function Overview(props) {
                 deltaHours={experimentMetadata.delta_hours}
                 interpolation="stepAfter"
                 lookback={10000}
+                yAxisDomain={[10, 50]}
                 deltaHours={1} // hack to make all points display
                 yAxisTickFormat={(t) => `${t.toFixed(1)}`}
               />

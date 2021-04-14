@@ -116,7 +116,7 @@ app.post("/run/:job/:unit", function(req, res) {
     unit = req.params.unit
     job = req.params.job
 
-    if (!["stirring", "od_reading", "growth_rate_calculating", "led_control", "dosing_control", "tempature_control", "add_media", "remove_waste", "add_alt_media", "led_intensity"].includes(job)){
+    if (!["stirring", "od_reading", "growth_rate_calculating", "led_control", "dosing_control", "temperature_control", "add_media", "remove_waste", "add_alt_media", "led_intensity"].includes(job)){
       // this solves a security problem: one could put any command as job, ex: "stirring && rm -rf /"
       res.sendStatus(400)
       return
@@ -169,7 +169,7 @@ app.get('/recent_logs/:experiment', function (req, res) {
   }
 
   db.query(
-    `SELECT timestamp, level=="ERROR" as is_error, level=="WARNING" as is_warning, pioreactor_unit, ("[" || task || "]" || " " || message) as message FROM logs where ${levelString} and (experiment=:experiment OR experiment="$experiment") ORDER BY timestamp DESC LIMIT 50;`,
+    `SELECT timestamp, level=="ERROR" as is_error, level=="WARNING" as is_warning, pioreactor_unit, message, task FROM logs where ${levelString} and (experiment=:experiment OR experiment="$experiment") ORDER BY timestamp DESC LIMIT 50;`,
     {experiment: experiment, levelString: levelString},
     {timestamp: String, is_error: Boolean, is_warning: Boolean, pioreactor_unit: String, message: String},
     function (err, rows) {
@@ -413,11 +413,12 @@ app.post("/create_experiment", function (req, res) {
           return
         }
         else{
+          db.ignoreErrors = true; // this is a hack to avoid dblite from freezing when we get a db is locked.
           var insert = 'INSERT INTO experiments (timestamp, experiment, description) VALUES (?,?,?)'
           db.query(insert, [req.body.timestamp, req.body.experiment, req.body.description], function(err, rows){
             if (err){
-              // TODO: maybe here we should fire event for updating MQTT
               console.log(err)
+              next(err)
               res.sendStatus(500)
             } else {
               res.sendStatus(200)
