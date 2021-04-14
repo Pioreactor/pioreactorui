@@ -81,7 +81,7 @@ const useStyles = makeStyles((theme) => ({
     color: "rgba(0, 0, 0, 0.38)",
   },
   textbox:{
-    width: "112px",
+    width: "126px",
     marginTop: "10px"
   },
   textboxLabel:{
@@ -118,6 +118,9 @@ const useStyles = makeStyles((theme) => ({
   jobButton: {
     paddingRight: "15px",
     paddingLeft: "15px"
+  },
+  unitSettingsSubtext:{
+    fontSize: "11px"
   }
 }));
 
@@ -165,9 +168,12 @@ function UnitSettingDisplay(props) {
     } else {
       var displaySettings = stateDisplay[value]
       return (
+        <React.Fragment>
         <div style={{ color: displaySettings.color, fontWeight: 500}}>
           {displaySettings.display}
         </div>
+        {props.subtext && <div className={classes.unitSettingsSubtext}><code>{props.subtext}</code></div>}
+        </React.Fragment>
     )}
   } else if (props.isLEDIntensity) {
     if (!props.isUnitActive || value === "—" || value === "") {
@@ -888,7 +894,7 @@ function SettingsActionsDialog(props) {
             {props.dosingControlJobState === "disconnected" &&
 
               <React.Fragment>
-              You can change the dosing automation after starting the job.
+              You can change the dosing automation after starting the Dosing control activity.
               </React.Fragment>
             }
           </Typography>
@@ -897,7 +903,7 @@ function SettingsActionsDialog(props) {
             unit={props.unit}
             config={props.config}
             experiment={props.experiment}
-            currentDosingautomation={props.dosingAutomation}
+            currentDosingAutomation={props.dosingAutomation}
           />
           <Divider className={classes.divider} />
           <Typography  gutterBottom>
@@ -913,7 +919,7 @@ function SettingsActionsDialog(props) {
             {props.ledControlJobState === "disconnected" &&
 
               <React.Fragment>
-              You can change the LED automation after starting the job.
+              You can change the LED automation after starting the LED control activity.
               </React.Fragment>
             }
           </Typography>
@@ -922,7 +928,7 @@ function SettingsActionsDialog(props) {
             unit={props.unit}
             config={props.config}
             experiment={props.experiment}
-            currentLEDautomation={props.ledAutomation}
+            currentLEDAutomation={props.ledAutomation}
           />
           <Divider className={classes.divider} />
 
@@ -939,7 +945,7 @@ function SettingsActionsDialog(props) {
             {props.temperatureControlJobState === "disconnected" &&
 
               <React.Fragment>
-              You can change the temperature automation after starting the job.
+              You can change the temperature automation after starting the Temperature control activity.
               </React.Fragment>
             }
           </Typography>
@@ -1031,7 +1037,7 @@ function SettingsActionsDialog(props) {
 
           <Divider className={classes.divider} />
           <Typography  gutterBottom>
-            Temperature controlling
+            Temperature control
           </Typography>
 
           <Typography variant="body2" component="p" gutterBottom>
@@ -1383,14 +1389,44 @@ function SettingsActionsDialogAll(props) {
             Dosing automation
           </Typography>
           <Typography variant="body2" component="p" gutterBottom>
-              Learn more about <a target="_blank" rel="noopener noreferrer" href="https://github.com/Pioreactor/pioreactor/.ex/dosing-automations">dosing automations</a>.
+              Learn more about <a target="_blank" rel="noopener noreferrer" href="https://pioreactor.com/pages/Dosing-automations">dosing automations</a>.
           </Typography>
 
           <ButtonChangeDosingDialog
             unit={props.unit}
             config={props.config}
             experiment={props.experiment}
-            currentDosingautomation={true}
+            currentDosingAutomation={true}
+            title="All active Pioreactors"
+          />
+          <Divider className={classes.divider} />
+          <Typography  gutterBottom>
+            LED automation
+          </Typography>
+          <Typography variant="body2" component="p" gutterBottom>
+              Learn more about <a target="_blank" rel="noopener noreferrer" href="https://pioreactor.com/pages/LED-automations">LED automations</a>.
+          </Typography>
+
+          <ButtonChangeLEDDialog
+            unit={props.unit}
+            config={props.config}
+            experiment={props.experiment}
+            currentLEDAutomation={true}
+            title="All active Pioreactors"
+          />
+          <Divider className={classes.divider} />
+          <Typography  gutterBottom>
+            Temperature automation
+          </Typography>
+          <Typography variant="body2" component="p" gutterBottom>
+              Learn more about <a target="_blank" rel="noopener noreferrer" href="https://pioreactor.com/pages/temperature-automations">temperature automations</a>.
+          </Typography>
+
+          <ButtonChangeTemperatureDialog
+            unit={props.unit}
+            config={props.config}
+            experiment={props.experiment}
+            currentTemperatureAutomation={true}
             title="All active Pioreactors"
           />
           <Divider className={classes.divider} />
@@ -1739,7 +1775,7 @@ function PioreactorCard(props){
         }}
         >
           <div className={classes.textbox}>
-            <Typography variant="body2" style={{fontSize: "0.85rem"}} className={clsx({[classes.disabledText]: !isUnitActive})}>
+            <Typography variant="body2" style={{fontSize: "0.82rem"}} className={clsx({[classes.disabledText]: !isUnitActive})}>
               Stirring
             </Typography>
             <UnitSettingDisplay
@@ -1750,7 +1786,7 @@ function PioreactorCard(props){
             />
           </div>
           <div className={classes.textbox}>
-            <Typography variant="body2" style={{fontSize: "0.85rem"}} className={clsx({[classes.disabledText]: !isUnitActive})}>
+            <Typography variant="body2" style={{fontSize: "0.82rem"}} className={clsx({[classes.disabledText]: !isUnitActive})}>
               Optical density
             </Typography>
             <UnitSettingDisplay
@@ -1761,7 +1797,7 @@ function PioreactorCard(props){
             />
           </div>
           <div className={classes.textbox}>
-            <Typography variant="body2" style={{fontSize: "0.85rem"}} className={clsx({[classes.disabledText]: !isUnitActive})}>
+            <Typography variant="body2" style={{fontSize: "0.82rem"}} className={clsx({[classes.disabledText]: !isUnitActive})}>
               Growth rate
             </Typography>
             <UnitSettingDisplay
@@ -1772,42 +1808,45 @@ function PioreactorCard(props){
             />
           </div>
           <div className={classes.textbox}>
-            <Typography variant="body2" style={{fontSize: "0.85rem"}} className={clsx({[classes.disabledText]: !isUnitActive})}>
+            <Typography variant="body2" style={{fontSize: "0.82rem"}} className={clsx({[classes.disabledText]: !isUnitActive})}>
               Dosing control
             </Typography>
             <UnitSettingDisplay
               value={dosingControlJobState}
               isUnitActive={isUnitActive}
               default="disconnected"
+              subtext={dosingAutomation}
               isStateSetting
             />
           </div>
           <div className={classes.textbox}>
-            <Typography variant="body2" style={{fontSize: "0.85rem"}} className={clsx({[classes.disabledText]: !isUnitActive})}>
+            <Typography variant="body2" style={{fontSize: "0.82rem"}} className={clsx({[classes.disabledText]: !isUnitActive})}>
               LED control
             </Typography>
             <UnitSettingDisplay
               value={ledControlJobState}
               isUnitActive={isUnitActive}
               default="disconnected"
+              subtext={ledAutomation}
               isStateSetting
             />
           </div>
           <div className={classes.textbox}>
-            <Typography variant="body2" style={{fontSize: "0.85rem"}} className={clsx({[classes.disabledText]: !isUnitActive})}>
+            <Typography variant="body2" style={{fontSize: "0.82rem"}} className={clsx({[classes.disabledText]: !isUnitActive})}>
               Temperature control
             </Typography>
             <UnitSettingDisplay
               value={temperatureControlJobState}
               isUnitActive={isUnitActive}
+              subtext={tempAutomation}
               default="NA"
               isStateSetting
             />
           </div>
         </div>
       </div>
-      <Divider/>
 
+      <Divider/>
 
       <div style={{
           display: "flex",
@@ -1816,7 +1855,7 @@ function PioreactorCard(props){
         }}>
         <div className={classes.textboxLabel}>
           <Typography variant="body2" component="body1">
-            <Box fontWeight="fontWeightBold"  className={clsx({[classes.disabledText]: !isUnitActive})}>
+            <Box fontWeight="fontWeightBold" className={clsx({[classes.disabledText]: !isUnitActive})}>
               Settings:
             </Box>
           </Typography>
@@ -1832,7 +1871,7 @@ function PioreactorCard(props){
         }}
         >
           <div className={classes.textbox}>
-            <Typography variant="body2" style={{fontSize: "0.85rem"}} className={clsx({[classes.disabledText]: !isUnitActive})}>
+            <Typography variant="body2" style={{fontSize: "0.82rem"}} className={clsx({[classes.disabledText]: !isUnitActive})}>
               Stirring speed
             </Typography>
             <UnitSettingDisplay
@@ -1843,7 +1882,7 @@ function PioreactorCard(props){
             />
           </div>
           <div className={classes.textbox}>
-            <Typography variant="body2" style={{fontSize: "0.85rem"}} className={clsx({[classes.disabledText]: !isUnitActive})}>
+            <Typography variant="body2" style={{fontSize: "0.82rem"}} className={clsx({[classes.disabledText]: !isUnitActive})}>
               Volume / dosing
             </Typography>
             <UnitSettingDisplay
@@ -1856,19 +1895,20 @@ function PioreactorCard(props){
             />
           </div>
           <div className={classes.textbox}>
-            <Typography variant="body2" style={{fontSize: "0.85rem"}} className={clsx({[classes.disabledText]: !isUnitActive})}>
+            <Typography variant="body2" style={{fontSize: "0.82rem"}} className={clsx({[classes.disabledText]: !isUnitActive})}>
               Target OD
             </Typography>
             <UnitSettingDisplay
               precision={2}
               value={targetOD}
+              measurementUnit=" AU"
               isUnitActive={isUnitActive}
               default={"—"}
               className={classes.alignRight}
             />
           </div>
           <div className={classes.textbox}>
-            <Typography variant="body2" style={{fontSize: "0.85rem"}} className={clsx({[classes.disabledText]: !isUnitActive})}>
+            <Typography variant="body2" style={{fontSize: "0.82rem"}} className={clsx({[classes.disabledText]: !isUnitActive})}>
               Target growth rate
             </Typography>
             <UnitSettingDisplay
@@ -1881,52 +1921,20 @@ function PioreactorCard(props){
             />
           </div>
           <div className={classes.textbox}>
-            <Typography variant="body2" style={{fontSize: "0.85rem"}} className={clsx({[classes.disabledText]: !isUnitActive})}>
+            <Typography variant="body2" style={{fontSize: "0.82rem"}} className={clsx({[classes.disabledText]: !isUnitActive})}>
               Target temperature
             </Typography>
             <UnitSettingDisplay
               precision={2}
               value={targetTemperature}
+              measurementUnit="℃"
               isUnitActive={isUnitActive}
               default={"—"}
               className={classes.alignRight}
             />
           </div>
           <div className={classes.textbox}>
-            <Typography variant="body2" style={{fontSize: "0.85rem"}} className={clsx({[classes.disabledText]: !isUnitActive})}>
-              Dosing automation
-            </Typography>
-            <UnitSettingDisplay
-              value={dosingAutomation}
-              isUnitActive={isUnitActive}
-              default="—"
-              className={classes.alignRight}
-            />
-          </div>
-          <div className={classes.textbox}>
-            <Typography variant="body2" style={{fontSize: "0.85rem"}} className={clsx({[classes.disabledText]: !isUnitActive})}>
-              LED automation
-            </Typography>
-            <UnitSettingDisplay
-              value={ledAutomation}
-              isUnitActive={isUnitActive}
-              default="—"
-              className={classes.alignRight}
-            />
-          </div>
-          <div className={classes.textbox}>
-            <Typography variant="body2" style={{fontSize: "0.85rem"}} className={clsx({[classes.disabledText]: !isUnitActive})}>
-              Temperature automation
-            </Typography>
-            <UnitSettingDisplay
-              value={tempAutomation}
-              isUnitActive={isUnitActive}
-              default="—"
-              className={classes.alignRight}
-            />
-          </div>
-          <div className={classes.textbox}>
-            <Typography variant="body2" style={{fontSize: "0.85rem"}} className={clsx({[classes.disabledText]: !isUnitActive})}>
+            <Typography variant="body2" style={{fontSize: "0.82rem"}} className={clsx({[classes.disabledText]: !isUnitActive})}>
               Time between dosing events
             </Typography>
             <UnitSettingDisplay
@@ -1939,7 +1947,7 @@ function PioreactorCard(props){
             />
           </div>
           <div className={classes.textbox}>
-            <Typography variant="body2" style={{fontSize: "0.85rem"}} className={clsx({[classes.disabledText]: !isUnitActive})}>
+            <Typography variant="body2" style={{fontSize: "0.82rem"}} className={clsx({[classes.disabledText]: !isUnitActive})}>
               LED intensity
             </Typography>
             <UnitSettingDisplay
