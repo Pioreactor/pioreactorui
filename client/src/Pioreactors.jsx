@@ -78,7 +78,7 @@ const useStyles = makeStyles((theme) => ({
     color: "rgba(0, 0, 0, 0.38)",
   },
   textbox:{
-    width: "126px",
+    width: "127px",
     marginTop: "10px"
   },
   textboxLabel:{
@@ -1759,7 +1759,7 @@ function PioreactorCard(props){
           flexDirection: "row",
         }}>
         <div className={classes.textboxLabel}>
-          <Typography variant="body2" component="body1">
+          <Typography variant="body2">
             <Box fontWeight="fontWeightBold" className={clsx({[classes.disabledText]: !isUnitActive})}>
               Activities:
             </Box>
@@ -1855,7 +1855,7 @@ function PioreactorCard(props){
           flexDirection: "row",
         }}>
         <div className={classes.textboxLabel}>
-          <Typography variant="body2" component="body1">
+          <Typography variant="body2">
             <Box fontWeight="fontWeightBold" className={clsx({[classes.disabledText]: !isUnitActive})}>
               Settings:
             </Box>

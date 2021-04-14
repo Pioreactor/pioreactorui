@@ -123,7 +123,7 @@ function Overview(props) {
                 interpolation="stepAfter"
                 lookback={10000}
                 yAxisDomain={[10, 50]}
-                deltaHours={1} // hack to make all points display
+                deltaHours={experimentMetadata.delta_hours}
                 yAxisTickFormat={(t) => `${t.toFixed(1)}`}
               />
             </Grid>

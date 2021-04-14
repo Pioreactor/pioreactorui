@@ -102,7 +102,7 @@ class Chart extends React.Component {
       return
     }
     await fetch("/time_series/" + this.props.dataSource + "/" + this.props.experiment + "?" + new URLSearchParams({
-        filter_mod_N: Math.max(Math.floor(Math.min(this.props.deltaHours, this.props.lookback)), 1),
+        filter_mod_N: Math.max(Math.floor(1.25 * Math.min(this.props.deltaHours, this.props.lookback)), 1),
         lookback: this.props.lookback
       }))
       .then((response) => {
@@ -330,14 +330,14 @@ ${this.renameAndFormatSeries(d.datum.childName)}: ${Math.round(d.datum.y * 1000)
             y={30}
             textAnchor="middle"
             style={{
-              fontSize: 15,
+              fontSize: 16,
               fontFamily: "inherit",
             }}
           />
           <VictoryAxis
             style={{
               tickLabels: {
-                fontSize: 13,
+                fontSize: 14,
                 padding: 5,
                 fontFamily: "inherit",
               },
@@ -363,7 +363,7 @@ ${this.renameAndFormatSeries(d.datum.childName)}: ${Math.round(d.datum.y * 1000)
             }
             style={{
               tickLabels: {
-                fontSize: 13,
+                fontSize: 14,
                 padding: 5,
                 fontFamily: "inherit",
               },
@@ -371,7 +371,7 @@ ${this.renameAndFormatSeries(d.datum.childName)}: ${Math.round(d.datum.y * 1000)
           />
           <VictoryLegend
             x={65}
-            y={267}
+            y={270}
             symbolSpacer={6}
             itemsPerRow={5}
             name={"legend"}
@@ -381,7 +381,7 @@ ${this.renameAndFormatSeries(d.datum.childName)}: ${Math.round(d.datum.y * 1000)
             gutter={15}
             rowGutter={5}
             style={{
-              labels: { fontSize: 12 },
+              labels: { fontSize: 14 },
               data: { stroke: "#485157", strokeWidth: 0.5, size: 6.5 },
             }}
             data={this.state.names.map(this.selectLegendData)}
