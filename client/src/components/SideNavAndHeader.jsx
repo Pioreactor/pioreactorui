@@ -22,7 +22,7 @@ import OpenInNewIcon from '@material-ui/icons/OpenInNew';
 import PioreactorIcon from './PioreactorIcon';
 
 
-const drawerWidth = 240;
+const drawerWidth = 212;
 
 const useStyles = makeStyles((theme) => ({
   root: {

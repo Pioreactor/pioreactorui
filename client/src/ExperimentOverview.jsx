@@ -130,11 +130,11 @@ function Overview(props) {
            }
           </Grid>
 
-          <Grid item xs={12} md={5} container spacing={2} justify="flex-end" style={{height: "100%"}}>
+          <Grid item xs={12} md={5} container spacing={1} justify="flex-end" style={{height: "100%"}}>
 
 
             {( props.config['ui.overview.cards'] && (props.config['ui.overview.cards']['dosings'] === "1")) &&
-              <Grid item xs={12} style={{padding: "10px 0px"}}>
+              <Grid item xs={12} >
                 <MediaCard experiment={experimentMetadata.experiment} config={props.config}/>
                 <Button href="/pioreactors" color="primary" style={{textTransform: "none", verticalAlign: "middle", margin: "0px 3px"}}> <PioreactorIcon style={{ fontSize: 17 }} color="primary"/> See all Pioreactor details </Button>
               </Grid>
@@ -142,7 +142,7 @@ function Overview(props) {
 
 
             {( props.config['ui.overview.cards'] && (props.config['ui.overview.cards']['event_logs'] === "1")) &&
-              <Grid item xs={12} style={{padding: "10px 0px"}}>
+              <Grid item xs={12}>
                 <LogTable experiment={experimentMetadata.experiment} config={props.config}/>
               </Grid>
             }
