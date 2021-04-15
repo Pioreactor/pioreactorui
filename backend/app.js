@@ -153,13 +153,13 @@ app.get('/recent_logs/:experiment', function (req, res) {
   const minLevel = queryObject['min_level'] || "INFO"
 
   if (minLevel == "DEBUG"){
-    levelString = '(level == "ERROR" or level == "WARN" or level == "INFO" or level == "DEBUG")'
+    levelString = '(level == "ERROR" or level == "WARNING" or level == "INFO" or level == "DEBUG")'
   }
   else if (minLevel == "INFO") {
-    levelString = '(level == "ERROR" or level == "INFO" or level == "WARN")'
+    levelString = '(level == "ERROR" or level == "INFO" or level == "WARNING")'
   }
-  else if (minLevel == "WARN") {
-    levelString = '(level == "ERROR" or level == "WARN")'
+  else if (minLevel == "WARNING") {
+    levelString = '(level == "ERROR" or level == "WARNING")'
   }
   else if (minLevel == "ERROR") {
     levelString = '(level == "ERROR")'
@@ -169,7 +169,7 @@ app.get('/recent_logs/:experiment', function (req, res) {
   }
 
   db.query(
-    `SELECT timestamp, level=="ERROR" as is_error, level=="WARNING" as is_warning, pioreactor_unit, message, task FROM logs where ${levelString} and (experiment=:experiment OR experiment="$experiment") ORDER BY timestamp DESC LIMIT 50;`,
+    `SELECT timestamp, level=="ERROR" as is_error, level=="WARNINGING" as is_warning, pioreactor_unit, message, task FROM logs where ${levelString} and (experiment=:experiment OR experiment="$experiment") ORDER BY timestamp DESC LIMIT 50;`,
     {experiment: experiment, levelString: levelString},
     {timestamp: String, is_error: Boolean, is_warning: Boolean, pioreactor_unit: String, message: String, task: String},
     function (err, rows) {

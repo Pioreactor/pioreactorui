@@ -61,6 +61,9 @@ const useStyles = makeStyles((theme) => ({
       color: 'rgba(0, 0, 0, 0)',
       fontSize: "18px",
   },
+  listItemIcon: {
+    minWidth: "40px"
+  }
 }));
 
 
@@ -83,46 +86,40 @@ export default function SideNavAndHeader() {
       <List>
 
         <ListItem href="/overview" component="a" button key={"overview"} selected={isSelected("/") || isSelected("/overview")}>
-          <ListItemIcon><DashboardIcon color={(isSelected("/") || isSelected("/overview")) ? "primary" : "inherit"}/> </ListItemIcon>
+          <ListItemIcon className={classes.listItemIcon}><DashboardIcon color={(isSelected("/") || isSelected("/overview")) ? "primary" : "inherit"}/> </ListItemIcon>
           <ListItemText primaryTypographyProps={{color: isSelected("/") || isSelected("/overview") ? "primary" : "inherit"}} primary={"Overview"} />
         </ListItem>
 
         <ListItem button href="/pioreactors"  component="a" key={"pioreactors"} selected={isSelected("/pioreactors")}>
-          <ListItemIcon> <PioreactorIcon color={isSelected("/pioreactors") ? "primary" : "inherit"}/> </ListItemIcon>
+          <ListItemIcon className={classes.listItemIcon}> <PioreactorIcon color={isSelected("/pioreactors") ? "primary" : "inherit"}/> </ListItemIcon>
           <ListItemText primaryTypographyProps={{color: isSelected("/pioreactors") ? "primary" : "inherit"}} primary={"Pioreactors"} />
         </ListItem>
 
-
-      </List>
-      <Divider />
-      <List>
-
         <ListItem button href="/config"  component="a" key={"config"} selected={isSelected("/config")}>
-          <ListItemIcon> <SettingsIcon color={isSelected("/config") ? "primary" : "inherit"}/> </ListItemIcon>
+          <ListItemIcon className={classes.listItemIcon}> <SettingsIcon color={isSelected("/config") ? "primary" : "inherit"}/> </ListItemIcon>
           <ListItemText primaryTypographyProps={{color: isSelected("/config") ? "primary" : "inherit"}} primary={"Configuration"} />
         </ListItem>
 
         <ListItem href="/export-data" component="a" button key={"export_data"} selected={isSelected("/export-data")}>
-          <ListItemIcon><SaveAltIcon color={isSelected("/export-data") ? "primary" : "inherit"}/> </ListItemIcon>
+          <ListItemIcon className={classes.listItemIcon}><SaveAltIcon color={isSelected("/export-data") ? "primary" : "inherit"}/> </ListItemIcon>
           <ListItemText primaryTypographyProps={{color: isSelected("/export-data") ? "primary" : "inherit"}} primary={"Export data"} />
         </ListItem>
 
-      </List>
-      <Divider />
-      <List>
         <ListItem href="/updates" component="a" button key="updates" selected={isSelected("/updates")}>
-          <ListItemIcon><UpdateIcon color={isSelected("/updates") ? "primary" : "inherit"}/> </ListItemIcon>
+          <ListItemIcon className={classes.listItemIcon}><UpdateIcon color={isSelected("/updates") ? "primary" : "inherit"}/> </ListItemIcon>
           <ListItemText primaryTypographyProps={{color: isSelected("/updates") ? "primary" : "inherit"}} primary={"Updates"} />
         </ListItem>
+
         <div className={classes.hiddenIconContainer}>
           <ListItem target="_blank" rel="noopener noreferrer" href="https://pioreactor.com/pages/documentation" component="a" button key="help">
-            <ListItemIcon><HelpOutlineIcon/> </ListItemIcon>
+            <ListItemIcon className={classes.listItemIcon}><HelpOutlineIcon/> </ListItemIcon>
             <ListItemText primary={"Help"}/>
             <ListItemSecondaryAction>
                 <OpenInNewIcon className={classes.hiddenIcon}/>
             </ListItemSecondaryAction>
           </ListItem>
         </div>
+
       </List>
     </div>
   );
