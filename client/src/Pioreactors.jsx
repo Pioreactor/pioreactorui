@@ -42,6 +42,7 @@ import ActionDosingForm from "./components/ActionDosingForm"
 import ActionLEDForm from "./components/ActionLEDForm"
 import PioreactorIcon from "./components/PioreactorIcon"
 import TactileButtonNotification from "./components/TactileButtonNotification";
+import UnderlineSpan from "./components/UnderlineSpan";
 
 
 const readyGreen = "#4caf50"
@@ -121,6 +122,10 @@ const useStyles = makeStyles((theme) => ({
   },
   unitSettingsSubtextEmpty:{
     minHeight: "15px"
+  },
+  ledBlock:{
+    width: "55px",
+    display: "inline-block"
   }
 }));
 
@@ -181,15 +186,30 @@ function UnitSettingDisplay(props) {
       return <div style={{ color: disconnectedGrey, fontSize: "13px"}}> {props.default} </div>;
     } else {
       const ledIntensities = JSON.parse(value)
+        // the | {} is here to protect against the UI loading from a broken config.
+      const invertedLEDMap = Object.fromEntries(Object.entries(props.config['leds']).map(([k, v]) => [v, k]))
+      const A = (invertedLEDMap['A']) ? (invertedLEDMap['A'].replace("_", " ")) : null
+      const B = (invertedLEDMap['B']) ? (invertedLEDMap['B'].replace("_", " ")) : null
+      const C = (invertedLEDMap['C']) ? (invertedLEDMap['C'].replace("_", " ")) : null
+      const D = (invertedLEDMap['D']) ? (invertedLEDMap['D'].replace("_", " ")) : null
+
       return(
         <div style={{fontSize: "13px"}}>
           <div>
-            <span style={{width: "55px", display: "inline-block"}}>A: {ledIntensities["A"]}%</span>
-            <span style={{width: "55px", display: "inline-block"}}>B: {ledIntensities["B"]}% </span>
+            <span className={classes.ledBlock}>
+              <UnderlineSpan title={A ? A : null}>A</UnderlineSpan>: {ledIntensities["A"]}%
+            </span>
+            <span className={classes.ledBlock}>
+              <UnderlineSpan title={B ? B : null}>B</UnderlineSpan>: {ledIntensities["B"]}%
+            </span>
           </div>
           <div>
-            <span style={{width: "55px", display: "inline-block"}}>C: {ledIntensities["C"]}%</span>
-            <span style={{width: "55px", display: "inline-block"}}>D: {ledIntensities["D"]}% </span>
+            <span className={classes.ledBlock}>
+              <UnderlineSpan title={C ? C : null}>C</UnderlineSpan>: {ledIntensities["C"]}%
+            </span>
+            <span className={classes.ledBlock}>
+              <UnderlineSpan title={D ? D : null}>D</UnderlineSpan>: {ledIntensities["D"]}%
+            </span>
           </div>
         </div>
       )
@@ -514,9 +534,18 @@ function SettingsActionsDialog(props) {
     };
   }
 
-  function startPioreactorJob(job_attr){
+  function startPioreactorJob(job){
     return function() {
-      fetch("/run/" + job_attr + "/" + props.unit, {method: "POST"}).then(res => {
+      fetch("/run/" + job + "/" + props.unit, {method: "POST"}).then(res => {
+      })
+    }
+  }
+
+  function stopPioreactorJob(job){
+    return function() {
+      // try killing it both ways. Is that a good idea?
+      setPioreactorJobState(job, "disconnected")
+      fetch("/stop/" + job + "/" + props.unit, {method: "POST"}).then(res => {
       })
     }
   }
@@ -582,11 +611,6 @@ function SettingsActionsDialog(props) {
                 onClick={startPioreactorJob(job)}
             buttonText="Start"
           />
-          <PatientButton
-            color="secondary"
-            onClick={setPioreactorJobState(job, "disconnected")}
-            buttonText="Stop"
-          />
         </div>)
       case "disconnected":
        return (<div>
@@ -608,7 +632,7 @@ function SettingsActionsDialog(props) {
           />
           <PatientButton
             color="secondary"
-            onClick={setPioreactorJobState(job, "disconnected")}
+            onClick={stopPioreactorJob(job)}
             buttonText="Stop"
           />
         </div>)
@@ -623,7 +647,7 @@ function SettingsActionsDialog(props) {
             />
             <PatientButton
               color="secondary"
-              onClick={setPioreactorJobState(job, "disconnected")}
+              onClick={stopPioreactorJob(job)}
               buttonText="Stop"
             />
           </div>
@@ -640,8 +664,7 @@ function SettingsActionsDialog(props) {
   const ledButtons = createUserButtonsBasedOnState(props.ledControlJobState, "led_control")
   const tempButtons = createUserButtonsBasedOnState(props.temperatureControlJobState, "temperature_control")
 
-  // the | {} is here to protect against the UI loading from a broken config.
-  const invertedLEDMap = Object.fromEntries(Object.entries(props.config['leds'] | {}).map(([k, v]) => [v, k]))
+  const invertedLEDMap = Object.fromEntries(Object.entries(props.config['leds']).map(([k, v]) => [v, k]))
 
   return (
     <div>
@@ -1006,7 +1029,7 @@ function SettingsActionsDialog(props) {
             {props.dosingControlJobState === "disconnected" &&
 
               <React.Fragment>
-              Dosing events will initially start in <span className={"underlineSpan"} title="silent mode performs no dosing operations."><code>silent</code></span> mode, and can be changed after.
+              Dosing events will initially start in <UnderlineSpan  title="silent mode performs no dosing operations."> <code>silent</code> </UnderlineSpan>  mode, and can be changed after.
               Learn more about <a target="_blank" rel="noopener noreferrer" href="https://pioreactor.com/pages/dosing-automations">dosing automations</a>.
               </React.Fragment>
             }
@@ -1028,7 +1051,7 @@ function SettingsActionsDialog(props) {
             {props.ledControlJobState === "disconnected" &&
 
               <React.Fragment>
-              LED controls will initially start in <span className={"underlineSpan"} title="silent mode performs no dosing operations."><code>silent</code></span> mode, and can be changed after.
+              LED controls will initially start in <UnderlineSpan title="silent mode performs no LED adjustments."><code>silent</code></UnderlineSpan> mode, and can be changed after.
               Learn more about <a target="_blank" rel="noopener noreferrer" href="https://pioreactor.com/pages/led-automations">LED automations</a>.
               </React.Fragment>
             }
@@ -1051,7 +1074,7 @@ function SettingsActionsDialog(props) {
             {props.temperatureControlJobState === "disconnected" &&
 
               <React.Fragment>
-              Temperature controls will initially start in <span className={"underlineSpan"} title="silent mode performs no dosing operations."><code>silent</code></span> mode, and can be changed after.
+              Temperature controls will initially start in <UnderlineSpan title="silent mode performs no temperature adjustments."><code>silent</code></UnderlineSpan> mode, and can be changed after.
               Learn more about <a target="_blank" rel="noopener noreferrer" href="https://pioreactor.com/pages/temperature-automations">temperature automations</a>.
               </React.Fragment>
             }
@@ -1161,6 +1184,7 @@ function SettingsActionsDialogAll(props) {
       fetch("/run/" + job + "/" + props.unit, {method: "POST"})
     }
   }
+
 
   function setPioreactorJobAttr(job_attr, value) {
     var message = new Message(String(value));
@@ -1943,6 +1967,7 @@ function PioreactorCard(props){
               isUnitActive={isUnitActive}
               default="—"
               className={classes.alignRight}
+              config={props.config}
               isLEDIntensity
             />
           </div>

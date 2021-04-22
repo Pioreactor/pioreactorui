@@ -86,6 +86,20 @@ function ExperimentSummaryForm(props) {
 
   }
 
+  function populateFields(){
+    fetch("/get_latest_experiment")
+      .then((response) => {
+        return response.json();
+      })
+      .then((data) => {
+        setExpName(data.experiment)
+        setDescription(data.description)
+      });
+  }
+
+
+
+
   function killExistingJobs(){
      fetch('/stop_all', {method: "POST"})
   }
@@ -141,6 +155,7 @@ function ExperimentSummaryForm(props) {
               error={formError}
               id="expName"
               label="Experiment name"
+              value={expName}
               required className={`${classes.halfTextField} ${classes.textField}`}
               onChange={onExpNameChange}
               helperText={helperText}
@@ -165,14 +180,19 @@ function ExperimentSummaryForm(props) {
               rowsMax={4}
               placeholder={"Add a description: what microbe are you using? What is the media composition? This description can always be changed later."}
               multiline
+              value={description}
               className={classes.textField}
               onChange={onDescChange}
               fullWidth={true}
             />
           </Grid>
-          <Grid item xs={12} md={10}/>
-          <Grid item xs={12} md={2}>
-            <Button variant="contained" color="primary" onClick={onSubmit}> Create </Button>
+
+          <Grid item xs={12} md={4}/>
+          <Grid item xs={12} md={8}>
+            <div style={{display: "flex", justifyContent: "space-between"}}>
+              <Button size="small" color="primary" onClick={populateFields}>Populate with previous experiment</Button>
+              <Button variant="contained" color="primary" onClick={onSubmit}> Create </Button>
+            </div>
           </Grid>
         </Grid>
         </FormGroup>

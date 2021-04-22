@@ -81,7 +81,7 @@ app.get('/updates', function(req, res) {
 //////////////// PIOREACTOR CONTROL ////////////////////
 
 app.post('/stop_all', function (req, res) {
-  const jobs = ["add_media", "add_alt_media", "remove_waste", 'dosing_control', 'stirring', 'od_reading', 'growth_rate_calculating', 'led_control']
+  const jobs = ["add_media", "add_alt_media", "remove_waste", 'dosing_control', 'temperature_control', 'stirring', 'od_reading', 'growth_rate_calculating', 'led_control']
   execFile("pios", ["kill"].concat(jobs).concat(["-y"]), (error, stdout, stderr) => {
     if (error) {
         console.log(error)
@@ -169,7 +169,7 @@ app.get('/recent_logs/:experiment', function (req, res) {
   }
 
   db.query(
-    `SELECT timestamp, level=="ERROR" as is_error, level=="WARNINGING" as is_warning, pioreactor_unit, message, task FROM logs where ${levelString} and (experiment=:experiment OR experiment="$experiment") ORDER BY timestamp DESC LIMIT 50;`,
+    `SELECT timestamp, level=="ERROR" as is_error, level=="WARNING" as is_warning, pioreactor_unit, message, task FROM logs where ${levelString} and (experiment=:experiment OR experiment="$experiment") ORDER BY timestamp DESC LIMIT 50;`,
     {experiment: experiment, levelString: levelString},
     {timestamp: String, is_error: Boolean, is_warning: Boolean, pioreactor_unit: String, message: String, task: String},
     function (err, rows) {

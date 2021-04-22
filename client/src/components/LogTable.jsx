@@ -19,7 +19,7 @@ import TableRow from '@material-ui/core/TableRow';
 
 const useStyles = theme => ({
   tightCell: {
-    padding: "8px 2px 6px 4px",
+    padding: "6px 10px 6px 10px",
     fontSize: 13,
   },
   smallText: {
@@ -142,9 +142,10 @@ class LogTable extends React.Component {
             <Table stickyHeader size="small" aria-label="log table">
                <TableHead>
                 <TableRow>
-                  <TableCell className={clsx(classes.headerCell)}>Timestamp</TableCell>
-                  <TableCell className={clsx(classes.headerCell)}>Message</TableCell>
+                  <TableCell className={clsx(classes.headerCell)}>Time</TableCell>
                   <TableCell className={clsx(classes.headerCell)}>Pioreactor</TableCell>
+                  <TableCell className={clsx(classes.headerCell)}>Source</TableCell>
+                  <TableCell className={clsx(classes.headerCell)}>Message</TableCell>
                 </TableRow>
               </TableHead>
 
@@ -152,10 +153,11 @@ class LogTable extends React.Component {
                 {this.state.listOfLogs.map((log, i) => (
                   <TableRow key={i}>
                     <TableCell className={clsx(classes.tightCell, classes.smallText, {[classes.errorLog]: log.is_error, [classes.warningLog]: log.is_warning})}>
-                      <span title={moment.utc(log.timestamp, 'YYYY-MM-DD[T]HH:mm:ss.SSSSS[Z]').local().format('YYYY-MM-DD HH:mm:sss')}>{moment.utc(log.timestamp, 'YYYY-MM-DD[T]HH:mm:ss.SSSSS[Z]').local().format('HH:mm:ss')} </span>
+                      <span title={moment.utc(log.timestamp, 'YYYY-MM-DD[T]HH:mm:ss.SSSSS[Z]').local().format('YYYY-MM-DD HH:mm:ss.SS')}>{moment.utc(log.timestamp, 'YYYY-MM-DD[T]HH:mm:ss.SSSSS[Z]').local().format('HH:mm:ss')} </span>
                     </TableCell>
-                    <TableCell className={clsx(classes.tightCell, classes.smallText, {[classes.errorLog]: log.is_error, [classes.warningLog]: log.is_warning})}> {`[${log.task}] ${log.message}`} </TableCell>
                     <TableCell className={clsx(classes.tightCell, classes.smallText, {[classes.errorLog]: log.is_error, [classes.warningLog]: log.is_warning})}> {this.renameUnit(log.pioreactor_unit)}</TableCell>
+                    <TableCell className={clsx(classes.tightCell, classes.smallText, {[classes.errorLog]: log.is_error, [classes.warningLog]: log.is_warning})}>{log.task.replace(/_/g, ' ')}</TableCell>
+                    <TableCell className={clsx(classes.tightCell, classes.smallText, {[classes.errorLog]: log.is_error, [classes.warningLog]: log.is_warning})}>{log.message}</TableCell>
                   </TableRow>
                   ))
                 }
