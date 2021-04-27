@@ -63,7 +63,7 @@ function ExperimentSummaryForm(props) {
   function publishExpNameToMQTT(){
 
     function onConnect() {
-      var message = new Message(expName);
+      var message = new Message(expName.trim());
       message.destinationName = "pioreactor/latest_experiment"
       message.qos = 1;
       message.retained = true;
@@ -113,7 +113,7 @@ function ExperimentSummaryForm(props) {
     }
     fetch('create_experiment',{
         method: "POST",
-        body: JSON.stringify({experiment : expName, timestamp: timestamp.toISOString(), description: description}),
+        body: JSON.stringify({experiment : expName.trim(), timestamp: timestamp.toISOString(), description: description}),
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json'
@@ -136,7 +136,7 @@ function ExperimentSummaryForm(props) {
   }
 
   const onExpNameChange = (e) => {
-    setExpName(e.target.value.trim())
+    setExpName(e.target.value)
   }
   const onDescChange = (e) => {
     setDescription(e.target.value)

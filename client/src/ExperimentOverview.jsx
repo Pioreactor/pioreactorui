@@ -108,7 +108,7 @@ function Overview(props) {
                 deltaHours={experimentMetadata.delta_hours}
                 interpolation="stepAfter"
                 lookback={parseInt(props.config['ui.overview.settings']['raw_od_lookback_hours'])}
-                yAxisTickFormat={(t) => `${t.toFixed(4)}`}
+                yAxisTickFormat={(t) => `${t.toFixed(3)}`}
               />
             </Grid>
            }

@@ -81,8 +81,7 @@ app.get('/updates', function(req, res) {
 //////////////// PIOREACTOR CONTROL ////////////////////
 
 app.post('/stop_all', function (req, res) {
-  const jobs = ["add_media", "add_alt_media", "remove_waste", 'dosing_control', 'temperature_control', 'stirring', 'od_reading', 'growth_rate_calculating', 'led_control']
-  execFile("pios", ["kill"].concat(jobs).concat(["-y"]), (error, stdout, stderr) => {
+  execFile("pios", ["kill"].concat(["--all"]).concat(["-y"]), (error, stdout, stderr) => {
     if (error) {
         console.log(error)
     }
@@ -115,12 +114,6 @@ app.post('/stop/:job/:unit', function (req, res) {
 app.post("/run/:job/:unit", function(req, res) {
     unit = req.params.unit
     job = req.params.job
-
-    if (!["stirring", "od_reading", "growth_rate_calculating", "led_control", "dosing_control", "temperature_control", "add_media", "remove_waste", "add_alt_media", "led_intensity"].includes(job)){
-      // this solves a security problem: one could put any command as job, ex: "stirring && rm -rf /"
-      res.sendStatus(400)
-      return
-    }
 
     // TODO: is this a security risk?
     options = Object.entries(req.body).map(k_v => [`--${k_v[0].replace(/_/g, "-")} ${k_v[1]}`])
@@ -165,12 +158,12 @@ app.get('/recent_logs/:experiment', function (req, res) {
     levelString = '(level == "ERROR")'
   }
   else{
-    levelString = '(level == "ERROR" or level == "INFO")'
+    levelString = '(level == "ERROR" or level == "INFO" or level == "WARNING")'
   }
 
   db.query(
-    `SELECT timestamp, level=="ERROR" as is_error, level=="WARNING" as is_warning, pioreactor_unit, message, task FROM logs where ${levelString} and (experiment=:experiment OR experiment="$experiment") ORDER BY timestamp DESC LIMIT 50;`,
-    {experiment: experiment, levelString: levelString},
+    `SELECT timestamp, level=="ERROR" as is_error, level=="WARNING" as is_warning, pioreactor_unit, message, task FROM logs where ${levelString} and (experiment=:experiment OR experiment=:universalExperiment) ORDER BY timestamp DESC LIMIT 50;`,
+    {experiment: experiment, universalExperiment: "$experiment",  levelString: levelString},
     {timestamp: String, is_error: Boolean, is_warning: Boolean, pioreactor_unit: String, message: String, task: String},
     function (err, rows) {
       if (err){
