@@ -162,7 +162,7 @@ app.get('/recent_logs/:experiment', function (req, res) {
   }
 
   db.query(
-    `SELECT timestamp, level=="ERROR" as is_error, level=="WARNING" as is_warning, pioreactor_unit, message, task FROM logs where ${levelString} and (experiment=:experiment OR experiment=:universalExperiment) ORDER BY timestamp DESC LIMIT 50;`,
+    `SELECT timestamp, level=="ERROR" as is_error, level=="WARNING" as is_warning, pioreactor_unit, message, task FROM logs where ${levelString} and (experiment=:experiment OR experiment=:universalExperiment) and timestamp > strftime('%Y-%m-%dT%H:%M:%S', datetime('now', '-24 hours')) ORDER BY timestamp DESC LIMIT 50;`,
     {experiment: experiment, universalExperiment: "$experiment",  levelString: levelString},
     {timestamp: String, is_error: Boolean, is_warning: Boolean, pioreactor_unit: String, message: String, task: String},
     function (err, rows) {

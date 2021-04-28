@@ -136,7 +136,7 @@ class LogTable extends React.Component {
         <CardContent>
           <Typography variant="h6" component="h2">
             <Box fontWeight="fontWeightRegular">
-              Event Logs
+              Recent event logs
             </Box>
           </Typography>
           <TableContainer style={{ height: "700px", width: "100%", overflowY: "scroll"}}>
