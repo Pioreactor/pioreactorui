@@ -177,8 +177,8 @@ class Chart extends React.Component {
 
     const currentTime = moment().local()
 
-    var key = this.props.isODReading
-      ? message.topic.split("/")[1] + "-" + message.topic.split("/")[5]
+    var key = this.props.isODReading //TODO: change this variable name, something like: IsPartitionedBySensor
+      ? message.topic.split("/")[1] + "-" + message.topic.split("/")[6]
       : message.topic.split("/")[1];
 
     try {
