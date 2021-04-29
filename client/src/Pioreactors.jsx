@@ -1670,7 +1670,7 @@ function PioreactorCard(props){
     [["pioreactor", unit, experiment, "dosing_control/dosing_automation"    ].join("/")]: setDosingAutomation,
     [["pioreactor", unit, experiment, "led_control/led_automation"          ].join("/")]: setLedAutomation,
     [["pioreactor", unit, experiment, "temperature_control/temperature_automation" ].join("/")]: setTempAutomation,
-    [["pioreactor", unit, "$experiment", "leds/intensity"                   ].join("/")]: setLEDIntensity,
+    [["pioreactor", unit, experiment, "leds/intensity"                   ].join("/")]: setLEDIntensity,
   }
 
 
