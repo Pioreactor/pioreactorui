@@ -47,7 +47,7 @@ function Overview(props) {
                 config={props.config}
                 dataSource="growth_rates"
                 title="Implied growth rate"
-                topic="growth_rate"
+                topic="growth_rate_calculating/growth_rate"
                 yAxisLabel="Growth rate, h⁻¹"
                 experiment={experimentMetadata.experiment}
                 deltaHours={experimentMetadata.delta_hours}
@@ -84,7 +84,7 @@ function Overview(props) {
                 isODReading={true}
                 dataSource="od_readings_filtered"
                 title="Normalized optical density"
-                topic="od_filtered/+/+"
+                topic="growth_rate_calculating/od_filtered/+/+"
                 yAxisLabel="Current OD / initial OD"
                 experiment={experimentMetadata.experiment}
                 deltaHours={experimentMetadata.delta_hours}
@@ -102,7 +102,7 @@ function Overview(props) {
                 isODReading={true}
                 dataSource="od_readings_raw"
                 title="Optical density"
-                topic="od_raw/+/+"
+                topic="od_reading/od_raw/+/+"
                 yAxisLabel="Voltage"
                 experiment={experimentMetadata.experiment}
                 deltaHours={experimentMetadata.delta_hours}
