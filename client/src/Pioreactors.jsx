@@ -474,6 +474,105 @@ function PatientButton(props) {
   )
 }
 
+function CalibrateDialog(props) {
+  const classes = useStyles();
+  const [open, setOpen] = useState(false);
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState("");
+  const [tabValue, setTabValue] = React.useState(0);
+
+
+  const handleTabChange = (event, newValue) => {
+    setTabValue(newValue);
+  };
+
+  const handleClickOpen = () => {
+    setOpen(true);
+  };
+
+  const handleClose = () => {
+    setTabValue(0)
+    setOpen(false);
+  };
+
+
+  function startPioreactorJob(job){
+    return function() {
+      fetch("/run/" + job + "/" + props.unit, {method: "POST"}).then(res => {
+      })
+    }
+  }
+
+
+  function createUserButtonsBasedOnState(jobState, job){
+
+    switch (jobState){
+      case "disconnected":
+       return (<div>
+               <PatientButton
+                color="primary"
+                variant="contained"
+                onClick={startPioreactorJob(job)}
+                buttonText="Start"
+               />
+              </div>)
+      default:
+        return(<div></div>)
+    }
+   }
+
+  const blankODButton = createUserButtonsBasedOnState(props.odBlankJobState, "od_blank")
+
+
+  return (
+    <React.Fragment>
+      <Button style={{textTransform: 'none', float: "right" }} color="primary" onClick={handleClickOpen}>
+        <TuneIcon className={classes.textIcon}/> Calibrate
+      </Button>
+      <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
+        <DialogTitle>
+          <Typography className={classes.suptitle}>
+            <PioreactorIcon style={{verticalAlign: "middle", fontSize: "1.2em"}}/> {(props.config['ui.rename'] &&  props.config['ui.rename'][props.unit]) ? `${props.config['ui.rename'][props.unit]} / ${props.unit}` : `${props.unit}`}
+          </Typography>
+        <Tabs
+          value={tabValue}
+          onChange={handleTabChange}
+          indicatorColor="primary"
+          textColor="primary"
+          variant="scrollable"
+          scrollButtons="auto"
+          >
+          <Tab label="Blanks"/>
+          <Tab label="Dosing" disabled={true}/>
+        </Tabs>
+        </DialogTitle>
+        <DialogContent>
+          <TabPanel value={tabValue} index={0}>
+            <Typography  gutterBottom>
+             Record optical density of blank (optional)
+            </Typography>
+            <Typography variant="body2" component="p" gutterBottom>
+              For more accurate growth rate and biomass inferences, you can subtract out the
+              media's optical density. Turn on stirring, add the blank vial, and let this run. Pioreactor
+              will store the reading and use it internally. See more information on <a href=""> using blanks</a>.
+            </Typography>
+
+            {blankODButton}
+
+            <Typography variant="body2" component="p" style={{marginTop: "20px"}}>
+              Recorded optical density of blank vial: <code>{props.odBlankReading ? `${props.odBlankReading}V` : "—"}</code>
+            </Typography>
+            <Divider className={classes.divider} />
+
+          </TabPanel>
+        </DialogContent>
+      </Dialog>
+  </React.Fragment>)
+}
+
+
+
+
 
 
 function SettingsActionsDialog(props) {
@@ -487,6 +586,7 @@ function SettingsActionsDialog(props) {
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue);
   };
+
 
   useEffect(() => {
     async function fetchData() {
@@ -514,23 +614,7 @@ function SettingsActionsDialog(props) {
 
   function setPioreactorJobState(job, state) {
     return function sendMessage() {
-      var message = new Message(String(state));
-      message.destinationName = [
-        "pioreactor",
-        props.unit,
-        props.experiment,
-        job,
-        "$state",
-        "set",
-      ].join("/");
-      message.qos = 1;
-      try{
-        props.client.publish(message);
-      }
-      catch (e){
-        console.log(e)
-        setTimeout(() => {sendMessage()}, 750)
-      }
+      setPioreactorJobAttr(`${job}/$state`, state)
     };
   }
 
@@ -543,10 +627,8 @@ function SettingsActionsDialog(props) {
 
   function stopPioreactorJob(job){
     return function() {
-      // try killing it both ways. Is that a good idea?
       setPioreactorJobState(job, "disconnected")
-      fetch("/stop/" + job + "/" + props.unit, {method: "POST"}).then(res => {
-      })
+      //fetch("/stop/" + job + "/" + props.unit, {method: "POST"}).then(res => {})
     }
   }
 
@@ -1651,6 +1733,8 @@ function PioreactorCard(props){
   const [ledAutomation, setLedAutomation] = useState(null);
   const [tempAutomation, setTempAutomation] = useState(null);
   const [ledIntensity, setLEDIntensity] = useState("");
+  const [odBlankReading, setOdBlankReading] = useState(null);
+  const [odBlankJobState, setOdBlankJobState] = useState("disconnected")
 
   const topicsToCallback = {
     [["pioreactor", unit, experiment, "led_control/$state"                  ].join("/")]: setLEDControlJobState,
@@ -1670,7 +1754,9 @@ function PioreactorCard(props){
     [["pioreactor", unit, experiment, "dosing_control/dosing_automation"    ].join("/")]: setDosingAutomation,
     [["pioreactor", unit, experiment, "led_control/led_automation"          ].join("/")]: setLedAutomation,
     [["pioreactor", unit, experiment, "temperature_control/temperature_automation" ].join("/")]: setTempAutomation,
-    [["pioreactor", unit, experiment, "leds/intensity"                   ].join("/")]: setLEDIntensity,
+    [["pioreactor", unit, experiment, "leds/intensity"                      ].join("/")]: setLEDIntensity,
+    [["pioreactor", unit, experiment, "od_blank/mean"                       ].join("/")]: setOdBlankReading,
+    [["pioreactor", unit, experiment, "od_blank/$state"                     ].join("/")]: setOdBlankJobState,
   }
 
 
@@ -1742,9 +1828,15 @@ function PioreactorCard(props){
             </div>
             <div style={{display: "flex", justifyContent: "flex-end", flexDirection: "row", flexWrap: "wrap"}}>
               <div>
-                <Button style={{textTransform: 'none', float: "right" }} disabled={true} color="primary">
-                  <TuneIcon color={"disabled"} className={classes.textIcon}/> Calibrate
-                </Button>
+              <CalibrateDialog
+                config={props.config}
+                client={client}
+                odBlankReading={odBlankReading}
+                odBlankJobState={odBlankJobState}
+                experiment={experiment}
+                unit={unit}
+                disabled={!isUnitActive}
+              />
               </div>
               <div>
                 <FlashLEDButton client={client} disabled={!isUnitActive} config={props.config} unit={unit}/>
@@ -1752,6 +1844,8 @@ function PioreactorCard(props){
               <SettingsActionsDialog
                 config={props.config}
                 client={client}
+                unit={unit}
+                disabled={!isUnitActive}
                 stirringJobState={stirringJobState}
                 ODReadingJobState={ODReadingJobState}
                 growthRateJobState={growthRateJobState}
@@ -1769,8 +1863,6 @@ function PioreactorCard(props){
                 ledAutomation={ledAutomation}
                 tempAutomation={tempAutomation}
                 experiment={experiment}
-                unit={unit}
-                disabled={!isUnitActive}
               />
             </div>
           </div>
