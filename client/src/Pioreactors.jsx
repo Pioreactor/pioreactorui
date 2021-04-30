@@ -553,14 +553,14 @@ function CalibrateDialog(props) {
             </Typography>
             <Typography variant="body2" component="p" gutterBottom>
               For more accurate growth rate and biomass inferences, you can subtract out the
-              media's optical density. Turn on stirring, add the blank vial, and let this run. Pioreactor
-              will store the reading and use it internally. See more information on <a href=""> using blanks</a>.
+              media's optical density. Turn on stirring, add the blank vial, and let this run. Your Pioreactor
+              will store the reading and use it internally for this experiment. See our documentation for more information on <a href="">using blanks</a>.
             </Typography>
 
             {blankODButton}
 
             <Typography variant="body2" component="p" style={{marginTop: "20px"}}>
-              Recorded optical density of blank vial: <code>{props.odBlankReading ? `${props.odBlankReading}V` : "—"}</code>
+              Recorded optical density of blank vial: <code>{props.odBlankReading ? Object.entries(JSON.parse(props.odBlankReading)).map( ([k, v]) => `${k}:${v.toFixed(4)}` ).join(", ") : "—"}</code>
             </Typography>
             <Divider className={classes.divider} />
 
@@ -1733,7 +1733,7 @@ function PioreactorCard(props){
   const [ledAutomation, setLedAutomation] = useState(null);
   const [tempAutomation, setTempAutomation] = useState(null);
   const [ledIntensity, setLEDIntensity] = useState("");
-  const [odBlankReading, setOdBlankReading] = useState(null);
+  const [odBlankReading, setOdBlankReading] = useState('{"90/0": 0.0014362837512564273, "135/1": 0.0133212323222}');
   const [odBlankJobState, setOdBlankJobState] = useState("disconnected")
 
   const topicsToCallback = {
