@@ -182,7 +182,7 @@ app.get('/time_series/growth_rates/:experiment', function (req, res) {
   const filterModN = queryObject['filter_mod_N'] || 100
 
   db.query(
-    "SELECT json_object('series', json_group_array(unit), 'data', json_group_array(data)) FROM (SELECT pioreactor_unit as unit, json_group_array(json_object('x', timestamp, 'y', round(rate, 5))) as data FROM growth_rates WHERE experiment=:experiment AND RANDOM() % :filterModN = 0 GROUP BY 1);",
+    "SELECT json_object('series', json_group_array(unit), 'data', json_group_array(data)) FROM (SELECT pioreactor_unit as unit, json_group_array(json_object('x', timestamp, 'y', round(rate, 5))) as data FROM growth_rates WHERE experiment=:experiment AND ((ROWID * 0.61803398875) - cast(ROWID * 0.61803398875 as int) < 1.0/:filterModN) GROUP BY 1);",
     {experiment: experiment, filterModN: filterModN},
     {results: String},
     function (err, rows) {
@@ -223,7 +223,7 @@ app.get('/time_series/od_readings_filtered/:experiment', function (req, res) {
   const lookback = queryObject['lookback'] || 4
 
   db.query(
-    "SELECT json_object('series', json_group_array(unit), 'data', json_group_array(data)) FROM (SELECT pioreactor_unit || '-' || channel as unit, json_group_array(json_object('x', timestamp, 'y', round(normalized_od_reading, 7))) as data FROM od_readings_filtered WHERE experiment=:experiment AND RANDOM() % :filterModN in (0, 1) and timestamp > strftime('%Y-%m-%dT%H:%M:%S', datetime('now', :lookback)) GROUP BY 1);",
+    "SELECT json_object('series', json_group_array(unit), 'data', json_group_array(data)) FROM (SELECT pioreactor_unit || '-' || channel as unit, json_group_array(json_object('x', timestamp, 'y', round(normalized_od_reading, 7))) as data FROM od_readings_filtered WHERE experiment=:experiment AND ((ROWID * 0.61803398875) - cast(ROWID * 0.61803398875 as int) < 1.0/:filterModN) AND timestamp > strftime('%Y-%m-%dT%H:%M:%S', datetime('now', :lookback)) GROUP BY 1);",
     {experiment: experiment, filterModN: filterModN, lookback: `-${lookback} hours`},
     {results: String},
     function (err, rows) {
@@ -244,7 +244,7 @@ app.get('/time_series/od_readings_raw/:experiment', function (req, res) {
   const lookback = queryObject['lookback'] || 4
 
   db.query(
-    "SELECT json_object('series', json_group_array(unit), 'data', json_group_array(data)) FROM (SELECT pioreactor_unit || '-' || channel as unit, json_group_array(json_object('x', timestamp, 'y', round(od_reading_v, 7))) as data FROM od_readings_raw WHERE experiment=:experiment AND RANDOM() % :filterModN in (0, 1) and timestamp > strftime('%Y-%m-%dT%H:%M:%S', datetime('now', :lookback)) GROUP BY 1);",
+    "SELECT json_object('series', json_group_array(unit), 'data', json_group_array(data)) FROM (SELECT pioreactor_unit || '-' || channel as unit, json_group_array(json_object('x', timestamp, 'y', round(od_reading_v, 7))) as data FROM od_readings_raw WHERE experiment=:experiment AND ((ROWID * 0.61803398875) - cast(ROWID * 0.61803398875 as int) < 1.0/:filterModN) and timestamp > strftime('%Y-%m-%dT%H:%M:%S', datetime('now', :lookback)) GROUP BY 1);",
     {experiment: experiment, filterModN: filterModN, lookback: `-${lookback} hours`},
     {results: String},
     function (err, rows) {
