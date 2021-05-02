@@ -526,8 +526,8 @@ function CalibrateDialog(props) {
 
   return (
     <React.Fragment>
-      <Button style={{textTransform: 'none', float: "right" }} color="primary" onClick={handleClickOpen}>
-        <TuneIcon className={classes.textIcon}/> Calibrate
+      <Button style={{textTransform: 'none', float: "right" }} color="primary" disabled={props.disabled} onClick={handleClickOpen}>
+        <TuneIcon color={props.disabled ? "disabled" : "primary"} className={classes.textIcon}/> Calibrate
       </Button>
       <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
         <DialogTitle>
@@ -549,18 +549,18 @@ function CalibrateDialog(props) {
         <DialogContent>
           <TabPanel value={tabValue} index={0}>
             <Typography  gutterBottom>
-             Record optical density of blank (optional)
+             Record optical densities of blank (optional)
             </Typography>
             <Typography variant="body2" component="p" gutterBottom>
               For more accurate growth rate and biomass inferences, you can subtract out the
-              media's optical density. Turn on stirring, add the blank vial, and let this run. Your Pioreactor
-              will store the reading and use it internally for this experiment. See our documentation for more information on <a href="">using blanks</a>.
+              media's optical density per sensor. Turn on stirring, add the blank vial, and start below. Your Pioreactor
+              will store the readings and use them internally for this experiment. See our documentation for more information on <a href="">using blanks</a>.
             </Typography>
 
             {blankODButton}
 
             <Typography variant="body2" component="p" style={{marginTop: "20px"}}>
-              Recorded optical density of blank vial: <code>{props.odBlankReading ? Object.entries(JSON.parse(props.odBlankReading)).map( ([k, v]) => `${k}:${v.toFixed(4)}` ).join(", ") : "—"}</code>
+              Recorded optical densities of blank vial: <code>{props.odBlankReading ? Object.entries(JSON.parse(props.odBlankReading)).map( ([k, v]) => `${k}:${v.toFixed(4)}` ).join(", ") : "—"}</code>
             </Typography>
             <Divider className={classes.divider} />
 
@@ -1828,18 +1828,18 @@ function PioreactorCard(props){
             </div>
             <div style={{display: "flex", justifyContent: "flex-end", flexDirection: "row", flexWrap: "wrap"}}>
               <div>
-              <CalibrateDialog
-                config={props.config}
-                client={client}
-                odBlankReading={odBlankReading}
-                odBlankJobState={odBlankJobState}
-                experiment={experiment}
-                unit={unit}
-                disabled={!isUnitActive}
-              />
+                <FlashLEDButton client={client} disabled={!isUnitActive} config={props.config} unit={unit}/>
               </div>
               <div>
-                <FlashLEDButton client={client} disabled={!isUnitActive} config={props.config} unit={unit}/>
+                <CalibrateDialog
+                  config={props.config}
+                  client={client}
+                  odBlankReading={odBlankReading}
+                  odBlankJobState={odBlankJobState}
+                  experiment={experiment}
+                  unit={unit}
+                  disabled={!isUnitActive}
+                />
               </div>
               <SettingsActionsDialog
                 config={props.config}

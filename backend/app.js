@@ -202,7 +202,7 @@ app.get('/time_series/temperature_readings/:experiment', function (req, res) {
   const filterModN = queryObject['filter_mod_N'] || 100
 
   db.query(
-    "SELECT json_object('series', json_group_array(unit), 'data', json_group_array(data)) FROM (SELECT pioreactor_unit as unit, json_group_array(json_object('x', timestamp, 'y', round(temperature_c, 2))) as data FROM temperature_readings WHERE experiment=:experiment AND RANDOM() % :filterModN = 0 GROUP BY 1);",
+    "SELECT json_object('series', json_group_array(unit), 'data', json_group_array(data)) FROM (SELECT pioreactor_unit as unit, json_group_array(json_object('x', timestamp, 'y', round(temperature_c, 2))) as data FROM temperature_readings WHERE experiment=:experiment AND ((ROWID * 0.61803398875) - cast(ROWID * 0.61803398875 as int) < 1.0/:filterModN) GROUP BY 1);",
     {experiment: experiment, filterModN: filterModN},
     {results: String},
     function (err, rows) {
