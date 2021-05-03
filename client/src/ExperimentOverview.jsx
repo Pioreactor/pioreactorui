@@ -121,10 +121,10 @@ function Overview(props) {
                 topic="temperature_control/temperature"
                 yAxisLabel="temperature, ℃"
                 experiment={experimentMetadata.experiment}
+                deltaHours={experimentMetadata.delta_hours}
                 interpolation="stepAfter"
                 lookback={10000}
-                yAxisDomain={[10, 50]}
-                deltaHours={experimentMetadata.delta_hours}
+                yAxisDomain={[20, 40]}
                 yAxisTickFormat={(t) => `${t.toFixed(1)}`}
               />
             </Grid>

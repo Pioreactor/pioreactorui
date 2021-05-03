@@ -210,8 +210,9 @@ function EditConfigContainer(){
       </div>
       <Card className={classes.root}>
         <CardContent className={classes.cardContent}>
-          <p>Update the <code>config.ini</code> files. The shared <code>config.ini</code> will be deployed to <em>all</em> Pioreactors, but configuration can be overwritten by editing specific Pioreactor's <code>config.ini</code>. <a href="https://pioreactor.com/pages/Configuration-via-config-ini" target="_blank" rel="noopener noreferrer">Learn more about Pioreactor configuration</a>.</p>
+          <p>Update the <code>config.ini</code> files. The shared <code>config.ini</code> will be deployed to <em>all</em> Pioreactors, but configuration can be overwritten by editing specific Pioreactor's <code>config.ini</code>.</p>
           <EditableCodeDiv/>
+          <p style={{textAlign: "center", marginTop: "30px"}}><a href="https://pioreactor.com/pages/Configuration-via-config-ini" target="_blank" rel="noopener noreferrer">💡 Learn more about Pioreactor configuration</a>.</p>
         </CardContent>
       </Card>
     </React.Fragment>

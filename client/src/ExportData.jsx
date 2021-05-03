@@ -23,7 +23,7 @@ const useStyles = makeStyles((theme) => ({
     marginTop: "15px"
   },
   formControl: {
-    margin: theme.spacing(3),
+    margin: theme.spacing(2),
   },
   title: {
     fontSize: 14,
@@ -69,7 +69,6 @@ function ExperimentSelection(props) {
     <div className={classes.root}>
       <FormControl component="fieldset" className={classes.formControl}>
 
-      <FormLabel component="legend">Experiment</FormLabel>
         <Select
           native
           value={props.ExperimentSelection}
@@ -215,7 +214,7 @@ const CheckboxesGroup = (props) => {
 )}
 
 
-function ExportDataFormContainer() {
+function ExportDataContainer() {
   const classes = useStyles();
   const [isRunning, setIsRunning] = React.useState(false)
   const [isError, setIsError] = React.useState(false)
@@ -288,12 +287,12 @@ function ExportDataFormContainer() {
   };
 
   const runningFeedback = isRunning ? <CircularProgress color="white" size={24}/> : "Export"
-  const errorFeedbackOrDefault = isError ? <Box color="error.main">{errorMsg}</Box>: "Querying large tables may take up to a minute or so."
+  const errorFeedbackOrDefault = isError ? <Box color="error.main">{errorMsg}</Box>: ""
   return (
     <React.Fragment>
       <div>
         <div>
-          <Typography variant="h5" component="h1">
+          <Typography variant="h5" component="h2">
             <Box fontWeight="fontWeightBold">
               Export Experiment Data
             </Box>
@@ -302,9 +301,10 @@ function ExportDataFormContainer() {
 
       </div>
       <Card className={classes.root}>
+
         <CardContent className={classes.cardContent}>
           <form>
-            <Grid container spacing={1}>
+            <Grid container spacing={0}>
               <Grid item xs={12} md={12}>
                 <ExperimentSelection
                 experimentSelection={state.experimentSelection}
@@ -332,7 +332,9 @@ function ExportDataFormContainer() {
                 <p style={{marginLeft: 24}}>{errorFeedbackOrDefault}</p>
 
               </Grid>
-              <Grid item xs={12}/>
+              <Grid item xs={12}>
+                <p style={{textAlign: "center", marginTop: "30px"}}>💡 <a href="https://pioreactor.com/pages/exporting-data" target="_blank" rel="noopener noreferrer">Learn more about data exporting</a>.</p>
+              </Grid>
             </Grid>
           </form>
         </CardContent>
@@ -349,7 +351,7 @@ function ExportData(props) {
     return (
         <Grid container spacing={2} >
           <Grid item md={12} xs={12}>
-            <ExportDataFormContainer/>
+            <ExportDataContainer/>
           </Grid>
         </Grid>
     )

@@ -171,6 +171,7 @@ function UnitSettingDisplay(props) {
     if (!props.isUnitActive) {
       return <div className={clsx({[classes.disabledText]: !props.isUnitActive})}> {stateDisplay[value].display} </div>;
     } else {
+      console.log(value)
       var displaySettings = stateDisplay[value]
       return (
         <React.Fragment>
@@ -516,6 +517,14 @@ function CalibrateDialog(props) {
                 buttonText="Start"
                />
               </div>)
+      case "ready":
+       return (<div>
+               <PatientButton
+                color="primary"
+                variant="contained"
+                buttonText="Running..."
+               />
+              </div>)
       default:
         return(<div></div>)
     }
@@ -553,9 +562,18 @@ function CalibrateDialog(props) {
             </Typography>
             <Typography variant="body2" component="p" gutterBottom>
               For more accurate growth rate and biomass inferences, you can subtract out the
-              media's optical density per sensor. Turn on stirring, add the blank vial, and start below. Your Pioreactor
-              will store the readings and use them internally for this experiment. See our documentation for more information on <a href="">using blanks</a>.
+              media's optical density per sensor. Read more about <a href="">using blanks</a>.
             </Typography>
+
+            <div style={{display: "flex", marginBottom: "10px"}}>
+              <span style={{marginRight: "5px"}}>Stirring:</span>
+              <UnitSettingDisplay
+                value={props.stirringJobState}
+                isUnitActive={true}
+                default="disconnected"
+                isStateSetting
+              />
+            </div>
 
             {blankODButton}
 
@@ -613,7 +631,7 @@ function SettingsActionsDialog(props) {
 
 
   function setPioreactorJobState(job, state) {
-    return function sendMessage() {
+    return function() {
       setPioreactorJobAttr(`${job}/$state`, state)
     };
   }
@@ -627,7 +645,7 @@ function SettingsActionsDialog(props) {
 
   function stopPioreactorJob(job){
     return function() {
-      setPioreactorJobState(job, "disconnected")
+      setPioreactorJobAttr(`${job}/$state`, "disconnected")
       //fetch("/stop/" + job + "/" + props.unit, {method: "POST"}).then(res => {})
     }
   }
@@ -1676,7 +1694,6 @@ function FlashLEDButton(props){
 
   const onClick = () => {
     setFlashing(true)
-
     const sendMessage = () => {
       var message = new Message("1");
       message.destinationName = [
@@ -1836,6 +1853,7 @@ function PioreactorCard(props){
                   client={client}
                   odBlankReading={odBlankReading}
                   odBlankJobState={odBlankJobState}
+                  stirringJobState={stirringJobState}
                   experiment={experiment}
                   unit={unit}
                   disabled={!isUnitActive}
