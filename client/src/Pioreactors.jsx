@@ -1750,7 +1750,7 @@ function PioreactorCard(props){
   const [ledAutomation, setLedAutomation] = useState(null);
   const [tempAutomation, setTempAutomation] = useState(null);
   const [ledIntensity, setLEDIntensity] = useState("");
-  const [odBlankReading, setOdBlankReading] = useState('{"90/0": 0.0014362837512564273, "135/1": 0.0133212323222}');
+  const [odBlankReading, setOdBlankReading] = useState(null);
   const [odBlankJobState, setOdBlankJobState] = useState("disconnected")
 
   const topicsToCallback = {
