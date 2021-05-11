@@ -88,7 +88,7 @@ app.post('/stop_all', function (req, res) {
     if (stderr) {
         console.log(stderr)
     }
-    console.log(`stdout: ${stdout}`);
+    console.log(stdout);
   })
   res.sendStatus(200)
 });
@@ -106,7 +106,7 @@ app.post('/stop/:job/:unit', function (req, res) {
     if (stderr) {
         console.log(stderr)
     }
-    console.log(`stdout: ${stdout}`);
+    console.log(stdout);
   })
   res.sendStatus(200)
 });
@@ -126,10 +126,10 @@ app.post("/run/:job/:unit", function(req, res) {
         }
         if (stderr) {
             console.log(error)
-            res.sendStatus(500);
+            res.sendStatus(200);
             return;
         }
-        console.log(`stdout: ${stdout}`);
+        console.log(stdout);
         res.sendStatus(200)
     });
 })
@@ -451,9 +451,6 @@ app.post("/add_new_pioreactor", function (req, res) {
 
 
 
-
-
-
 /////////// CONFIG CONTROL ////////////////
 
 app.get("/get_config/:filename", function(req, res) {
@@ -479,13 +476,14 @@ app.post("/delete_config", function(req, res) {
   execFile("rm", [configPath], (error, stdout, stderr) => {
       if (error) {
           console.log(error)
+          res.sendStatus(500)
       }
       if (stderr) {
           console.log(stderr)
       }
-      console.log(`stdout: ${stdout}`);
+      console.log(stdout);
+      res.sendStatus(200)
   })
-  res.sendStatus(200)
 });
 
 
@@ -513,10 +511,10 @@ app.post("/save_new_config", function(req, res) {
           }
           else if (stderr) {
               console.log(stderr)
-              res.sendStatus(500);
+              res.sendStatus(200);
           }
           else{
-            console.log(`stdout: ${stdout}`);
+            console.log(stdout);
             res.sendStatus(200)
           }
       });

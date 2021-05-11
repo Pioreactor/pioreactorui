@@ -107,13 +107,23 @@ export default function ActionPumpForm(props) {
         >
           {props.action.replace(/_/g, " ")}
         </Button>
-        <Button
-          size="small"
-          color="secondary"
-          onClick={stopPump}
-        >
-          Interrupt
-        </Button>
+        <div>
+          {props.action == "add_media" && <Button
+            size="small"
+            color="primary"
+            onClick={stopPump}
+          >
+            Run continuously
+          </Button>
+        }
+          <Button
+            size="small"
+            color="secondary"
+            onClick={stopPump}
+          >
+            Interrupt
+          </Button>
+        </div>
       </div>
       <Snackbar
         anchorOrigin={{vertical: "bottom", horizontal: "center"}}

@@ -156,6 +156,18 @@ TabPanel.propTypes = {
 };
 
 
+function UnitSettingDisplaySubtext(props){
+  const classes = useStyles();
+
+  if (props.subtext){
+    return <div className={classes.unitSettingsSubtext}><code>{props.subtext}</code></div>
+  }
+  else{
+    return <div className={classes.unitSettingsSubtextEmpty}></div>
+  };
+}
+
+
 function UnitSettingDisplay(props) {
   const classes = useStyles();
   const stateDisplay = {
@@ -171,15 +183,13 @@ function UnitSettingDisplay(props) {
     if (!props.isUnitActive) {
       return <div className={clsx({[classes.disabledText]: !props.isUnitActive})}> {stateDisplay[value].display} </div>;
     } else {
-      console.log(value)
       var displaySettings = stateDisplay[value]
       return (
         <React.Fragment>
-        <div style={{ color: displaySettings.color, fontWeight: 500}}>
-          {displaySettings.display}
-        </div>
-        {props.subtext && <div className={classes.unitSettingsSubtext}><code>{props.subtext}</code></div>}
-        {!props.subtext && <div className={classes.unitSettingsSubtextEmpty}></div>}
+          <div style={{ color: displaySettings.color, fontWeight: 500}}>
+            {displaySettings.display}
+          </div>
+          <UnitSettingDisplaySubtext subtext={props.subtext}/>
         </React.Fragment>
     )}
   } else if (props.isLEDIntensity) {
@@ -195,37 +205,48 @@ function UnitSettingDisplay(props) {
       const D = (invertedLEDMap['D']) ? (invertedLEDMap['D'].replace("_", " ")) : null
 
       return(
-        <div style={{fontSize: "13px"}}>
-          <div>
-            <span className={classes.ledBlock}>
-              <UnderlineSpan title={A ? A : null}>A</UnderlineSpan>: {ledIntensities["A"]}%
-            </span>
-            <span className={classes.ledBlock}>
-              <UnderlineSpan title={B ? B : null}>B</UnderlineSpan>: {ledIntensities["B"]}%
-            </span>
+        <React.Fragment>
+          <div style={{fontSize: "13px"}}>
+            <div>
+              <span className={classes.ledBlock}>
+                <UnderlineSpan title={A ? A : null}>A</UnderlineSpan>: {ledIntensities["A"]}%
+              </span>
+              <span className={classes.ledBlock}>
+                <UnderlineSpan title={B ? B : null}>B</UnderlineSpan>: {ledIntensities["B"]}%
+              </span>
+            </div>
+            <div>
+              <span className={classes.ledBlock}>
+                <UnderlineSpan title={C ? C : null}>C</UnderlineSpan>: {ledIntensities["C"]}%
+              </span>
+              <span className={classes.ledBlock}>
+                <UnderlineSpan title={D ? D : null}>D</UnderlineSpan>: {ledIntensities["D"]}%
+              </span>
+            </div>
           </div>
-          <div>
-            <span className={classes.ledBlock}>
-              <UnderlineSpan title={C ? C : null}>C</UnderlineSpan>: {ledIntensities["C"]}%
-            </span>
-            <span className={classes.ledBlock}>
-              <UnderlineSpan title={D ? D : null}>D</UnderlineSpan>: {ledIntensities["D"]}%
-            </span>
-          </div>
-        </div>
+          <UnitSettingDisplaySubtext subtext={props.subtext}/>
+        </React.Fragment>
       )
     }
   } else {
     if (!props.isUnitActive || value === "—" || value === "") {
-      return <div style={{ color: disconnectedGrey, fontSize: "13px"}}> {props.default} </div>;
+      return (
+        <React.Fragment>
+          <div style={{ color: disconnectedGrey, fontSize: "13px"}}> {props.default} </div>
+          <UnitSettingDisplaySubtext subtext={props.subtext}/>
+        </React.Fragment>
+      );
     } else {
       return (
-        <div style={{ fontSize: "13px"}}>
-          {(typeof value === "string"
-            ? value
-            : +value.toFixed(props.precision)) +
-            (props.measurementUnit ? props.measurementUnit : "")}
-        </div>
+        <React.Fragment>
+          <div style={{ fontSize: "13px"}}>
+            {(typeof value === "string"
+              ? value
+              : +value.toFixed(props.precision)) +
+              (props.measurementUnit ? props.measurementUnit : "")}
+          </div>
+          <UnitSettingDisplaySubtext subtext={props.subtext}/>
+        </React.Fragment>
       );
     }
   }
@@ -478,8 +499,6 @@ function PatientButton(props) {
 function CalibrateDialog(props) {
   const classes = useStyles();
   const [open, setOpen] = useState(false);
-  const [snackbarOpen, setSnackbarOpen] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState("");
   const [tabValue, setTabValue] = React.useState(0);
 
 
@@ -522,7 +541,7 @@ function CalibrateDialog(props) {
                <PatientButton
                 color="primary"
                 variant="contained"
-                buttonText="Running..."
+                buttonText="Running"
                />
               </div>)
       default:
@@ -800,6 +819,14 @@ function SettingsActionsDialog(props) {
           </Typography>
           <ActionDosingForm action="add_media" unit={props.unit} />
           <Divider className={classes.divider} />
+          <Typography  gutterBottom>
+            Remove waste
+          </Typography>
+          <Typography variant="body2" component="p">
+            Run the waste pump{props.isPlural ? "s" : ""} for a set duration (seconds), or a set volume (mL).
+          </Typography>
+          <ActionDosingForm action="remove_waste" unit={props.unit} />
+          <Divider className={classes.divider} />
           <Typography gutterBottom>
             Add alternative media
           </Typography>
@@ -808,14 +835,6 @@ function SettingsActionsDialog(props) {
             volume (mL).
           </Typography>
           <ActionDosingForm action="add_alt_media" unit={props.unit} />
-          <Divider className={classes.divider} />
-          <Typography  gutterBottom>
-            Remove waste
-          </Typography>
-          <Typography variant="body2" component="p">
-            Run the waste pump{props.isPlural ? "s" : ""} for a set duration (seconds), or a set volume (mL).
-          </Typography>
-          <ActionDosingForm action="remove_waste" unit={props.unit} />
           <Divider className={classes.divider} />
         </TabPanel>
 
@@ -864,8 +883,8 @@ function SettingsActionsDialog(props) {
             Stirring speed
           </Typography>
           <Typography variant="body2" component="p">
-            Modify the stirring speed (arbitrary units). This will effect the
-            optical density reading. Too low and the fan may completely stop.
+            Modify the stirring RPM. This will effect the
+            optical density reading. Too low and the stirring may completely stop.
           </Typography>
           <div className={classes.slider}>
             <Slider
@@ -2012,6 +2031,7 @@ function PioreactorCard(props){
             <UnitSettingDisplay
               value={stirringDC}
               isUnitActive={isUnitActive}
+              measurementUnit=" RPM"
               default="—"
               className={classes.alignRight}
             />
