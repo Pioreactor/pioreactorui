@@ -51,6 +51,17 @@ export default function ActionPumpForm(props) {
     fetch(`/stop/${props.action}/${props.unit}`, {method: "POST"})
   }
 
+  function runPumpContinuously(e) {
+      fetch(`/run/add_media/${props.unit}`, {
+        method: "POST",
+        body: JSON.stringify({continuously: "", source_of_event: "UI"}),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        }
+      });
+  }
+
   const handleSnackbarClose = () => {
     setOpenSnackbar(false);
   };
@@ -108,10 +119,10 @@ export default function ActionPumpForm(props) {
           {props.action.replace(/_/g, " ")}
         </Button>
         <div>
-          {props.action == "add_media" && <Button
+          {props.action === "add_media" && <Button
             size="small"
             color="primary"
-            onClick={stopPump}
+            onClick={runPumpContinuously}
           >
             Run continuously
           </Button>

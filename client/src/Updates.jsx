@@ -159,7 +159,8 @@ function PageHeader(props) {
           {version}
         </Box>
         <Box fontWeight="fontWeightBold" style={{margin: "10px 2px 10px 2px", display:"inline-block"}}>
-          <UpdateIcon style={{ fontSize: 14, verticalAlign: "middle" }}/> Latest version available:
+            <UpdateIcon style={{ fontSize: 14, verticalAlign: "middle" }}/>
+          Latest version available:
         </Box>
         <Box fontWeight="fontWeightRegular" style={{marginRight: "20px", display:"inline-block"}}>
           {latestVersion}

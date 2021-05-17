@@ -222,7 +222,7 @@ function ChemostatForm(props){
 
 function ContinuousCycleForm(props){
   const classes = useStyles();
-  const defaults = {duration: 0.17, volume: 0.25, skip_first_run: true}
+  const defaults = {duration: null, skip_first_run: false}
 
   useEffect(() => {
     props.updateParent(defaults)
@@ -233,32 +233,7 @@ function ContinuousCycleForm(props){
   }
 
   return (
-      <div>
-        <TextField
-          size="small"
-          id="duration"
-          label="Duration between events"
-          defaultValue={defaults.duration}
-          InputProps={{
-            endAdornment: <InputAdornment position="end">min</InputAdornment>,
-          }}
-          variant="outlined"
-          onChange={onSettingsChange}
-          className={classes.textFieldCompact}
-        />
-        <TextField
-          size="small"
-          id="volume"
-          label="Volume"
-          defaultValue={defaults.volume}
-          InputProps={{
-            endAdornment: <InputAdornment position="end">mL</InputAdornment>,
-          }}
-          variant="outlined"
-          onChange={onSettingsChange}
-          className={classes.textFieldCompact}
-        />
-    </div>
+    <div/>
 )}
 
 

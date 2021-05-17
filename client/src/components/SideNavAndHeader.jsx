@@ -2,8 +2,8 @@ import React from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import Drawer from '@material-ui/core/Drawer';
 import List from '@material-ui/core/List';
-import Divider from '@material-ui/core/Divider';
 import ListItem from '@material-ui/core/ListItem';
+import Badge from '@material-ui/core/Badge';
 import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
@@ -72,6 +72,34 @@ export default function SideNavAndHeader() {
   const classes = useStyles();
 
   const [mobileOpen, setMobileOpen] = React.useState(false);
+  const [version, setVersion] = React.useState(null)
+  const [latestVersion, setLatestVersion] = React.useState(null)
+
+  React.useEffect(() => {
+    async function getCurrentApp() {
+         await fetch("/get_app_version")
+        .then((response) => {
+          return response.text();
+        })
+        .then((data) => {
+          setVersion(data)
+        });
+      }
+
+    async function getLatestVersion() {
+         await fetch("https://api.github.com/repos/pioreactor/pioreactor/releases/latest")
+        .then((response) => {
+          return response.json();
+        })
+        .then((data) => {
+          setLatestVersion(data['name'])
+        });
+      }
+
+      getCurrentApp()
+      getLatestVersion()
+  }, [])
+
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
@@ -106,8 +134,12 @@ export default function SideNavAndHeader() {
         </ListItem>
 
         <ListItem href="/updates" component="a" button key="updates" selected={isSelected("/updates")}>
-          <ListItemIcon className={classes.listItemIcon}><UpdateIcon color={isSelected("/updates") ? "primary" : "inherit"}/> </ListItemIcon>
-          <ListItemText primaryTypographyProps={{color: isSelected("/updates") ? "primary" : "inherit"}} primary={"Updates"} />
+          <ListItemIcon className={classes.listItemIcon}>
+            <Badge variant="dot" color="secondary" invisible={!((version) && (version !== latestVersion))}>
+              <UpdateIcon color={isSelected("/updates") ? "primary" : "inherit"}/>
+            </Badge>
+          </ListItemIcon>
+          <ListItemText primaryTypographyProps={{color: isSelected("/updates") ? "primary" : "inherit"}} primary={"Updates"}/>
         </ListItem>
 
         <div className={classes.hiddenIconContainer}>
