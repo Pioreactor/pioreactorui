@@ -328,7 +328,6 @@ app.post("/update_app", function (req, res) {
 app.get('/get_app_version', function(req, res) {
 
   var versionPath = path.join(process.env.PIOREACTOR_SOURCE_CODE, "pioreactor", "version.py");
-  console.log(fs.readFileSync(versionPath, "utf8"))
   res.send(fs.readFileSync(versionPath, "utf8").match(/\d{2}\.\d{1,2}\.\d{1,2}/)[0])
 
   // // this is too slow:
