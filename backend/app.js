@@ -326,29 +326,28 @@ app.post("/update_app", function (req, res) {
 })
 
 app.get('/get_app_version', function(req, res) {
-  execFile("pio", ["version"], (error, stdout, stderr) => {
-      if (error) {
-          console.log(error)
-      }
-      if (stderr) {
-          console.log(stderr)
-      }
-      res.send(stdout)
-  })
+
+  var versionPath = path.join(process.env.PIOREACTOR_SOURCE_CODE, "pioreactor", "version.py");
+  console.log(fs.readFileSync(versionPath, "utf8"))
+  res.send(fs.readFileSync(versionPath, "utf8").match(/\d{2}\.\d{1,2}\.\d{1,2}/)[0])
+
+  // // this is too slow:
+  // execFile("pio", ["version"], (error, stdout, stderr) => {
+  //     if (error) {
+  //         console.log(error)
+  //     }
+  //     if (stderr) {
+  //         console.log(stderr)
+  //     }
+  //     res.send(stdout)
+  // })
 })
 
 
 app.get('/get_changelog', function(req, res) {
   converter = new showdown.Converter()
-  execFile("/bin/cat", ["CHANGELOG.md"], {cwd: process.env.PIOREACTOR_SOURCE_CODE}, (error, stdout, stderr) => {
-      if (error) {
-          console.log(error)
-      }
-      if (stderr) {
-          console.log(stderr)
-      }
-      res.send(converter.makeHtml(stdout))
-  })
+  var changelogPath = path.join(process.env.PIOREACTOR_SOURCE_CODE, "CHANGELOG.md");
+  res.send(converter.makeHtml(fs.readFileSync(changelogPath, "utf8")))
 })
 
 app.post('/export_datasets', function(req, res) {
