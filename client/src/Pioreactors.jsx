@@ -523,6 +523,19 @@ function CalibrateDialog(props) {
     }
   }
 
+  function clearBlank() {
+    return function() {
+      var message = new Message("");
+      message.destinationName = [
+        "pioreactor",
+        props.unit,
+        props.experiment,
+        "od_blank",
+        "mean",
+      ].join("/");
+      props.client.publish(message);
+    }
+  }
 
   function createUserButtonsBasedOnState(jobState, job){
 
@@ -597,7 +610,7 @@ function CalibrateDialog(props) {
             {blankODButton}
 
             <Typography variant="body2" component="p" style={{marginTop: "20px"}}>
-              Recorded optical densities of blank vial: <code>{props.odBlankReading ? Object.entries(JSON.parse(props.odBlankReading)).map( ([k, v]) => `${k}:${v.toFixed(4)}` ).join(", ") : "—"}</code>
+              Recorded optical densities of blank vial: <code>{props.odBlankReading ? Object.entries(JSON.parse(props.odBlankReading)).map( ([k, v]) => `${k}:${v.toFixed(4)}` ).join(", ") : "—"}</code> <Button color="primary" size="small" disabled={!props.odBlankReading} onClick={clearBlank()}>Clear</Button>
             </Typography>
             <Divider className={classes.divider} />
 
