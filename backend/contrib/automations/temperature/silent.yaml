@@ -1,0 +1,8 @@
+---
+name: Silent
+key: silent
+fields:
+  - name: duration
+    default: 10
+    unit: sec
+    label: Duration between events

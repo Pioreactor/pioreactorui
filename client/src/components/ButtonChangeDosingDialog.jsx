@@ -5,9 +5,7 @@ import { Client, Message } from "paho-mqtt";
 import { makeStyles } from "@material-ui/styles";
 import Button from "@material-ui/core/Button";
 import Typography from "@material-ui/core/Typography";
-import TextField from "@material-ui/core/TextField";
 import Checkbox from "@material-ui/core/Checkbox";
-import InputAdornment from "@material-ui/core/InputAdornment";
 import Dialog from '@material-ui/core/Dialog';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
@@ -16,15 +14,11 @@ import FormControl from '@material-ui/core/FormControl';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Select from '@material-ui/core/Select';
 import PioreactorIcon from "./PioreactorIcon"
+import AutomationForm from "./AutomationForm"
 
 
 const useStyles = makeStyles((theme) => ({
-  textFieldCompact: {
-    marginTop: theme.spacing(3),
-    marginRight: theme.spacing(2),
-    marginBottom: theme.spacing(0),
-    width: "30ch",
-  },
+
   formControl: {
     marginTop: theme.spacing(2)
   },
@@ -44,39 +38,6 @@ const useStyles = makeStyles((theme) => ({
 
 
 
-function DosingAutomationForm(props){
-  const classes = useStyles();
-  const defaults = Object.assign({}, ...props.fields.map(field => ({[field.name]: field.default})))
-
-  useEffect(() => {
-    props.updateParent(defaults)
-  }, [props.fields])
-
-  const onSettingsChange = (e) => {
-    props.updateParent({[e.target.id]: e.target.value})
-  }
-  var listOfTextField = props.fields.map(field =>
-        <TextField
-          size="small"
-          id={field.name}
-          key={field.name}
-          label={field.label}
-          defaultValue={field.default}
-          InputProps={{
-            endAdornment: <InputAdornment position="end">{field.unit}</InputAdornment>,
-          }}
-          variant="outlined"
-          onChange={onSettingsChange}
-          className={classes.textFieldCompact}
-        />
-  )
-
-  return (
-      <div>
-        {listOfTextField}
-    </div>
-)}
-
 
 function ButtonChangeDosingDialog(props) {
   const classes = useStyles();
@@ -86,6 +47,24 @@ function ButtonChangeDosingDialog(props) {
   const [client, setClient] = useState(null)
   const [automations, setAutomations] = useState({})
 
+
+  useEffect(() => {
+    async function fetchDosingAutomations() {
+      await fetch("/contrib/automations/dosing")
+        .then((response) => {
+            if (response.ok) {
+              return response.json();
+            } else {
+              throw new Error('Something went wrong');
+            }
+          })
+        .then((listOfAuto) => {
+          setAutomations(Object.assign({}, ...listOfAuto.map(auto => ({ [auto.key]: auto}))))
+        })
+        .catch((error) => {})
+    }
+    fetchDosingAutomations();
+  }, [])
 
   useEffect(() => {
     // MQTT - client ids should be unique
@@ -108,23 +87,6 @@ function ButtonChangeDosingDialog(props) {
 
     client.connect();
     setClient(client)
-
-
-    async function fetchDosingAutomations() {
-      await fetch("/contrib/automations/dosing")
-        .then((response) => {
-            if (response.ok) {
-              return response.json();
-            } else {
-              throw new Error('Something went wrong');
-            }
-          })
-        .then((listOfAuto) => {
-          setAutomations(Object.assign({}, ...listOfAuto.map(auto => ({ [auto.key]: auto}))))
-        })
-        .catch((error) => {})
-    }
-    fetchDosingAutomations();
 
   },[props.config])
 
@@ -201,13 +163,14 @@ function ButtonChangeDosingDialog(props) {
             <FormLabel component="legend">Automation</FormLabel>
             <Select
               native
+              value={algoSettings["dosing_automation"]}
               onChange={handleAlgoSelectionChange}
               style={{maxWidth: "200px"}}
             >
               {Object.keys(automations).map((key) => <option id={key} value={key} key={"change-io" + key}>{automations[key].name}</option>)}
             </Select>
 
-            {Object.keys(automations).length > 0 && <DosingAutomationForm fields={automations[algoSettings["dosing_automation"]].fields} updateParent={updateFromChild}/>}
+            {Object.keys(automations).length > 0 && <AutomationForm fields={automations[algoSettings["dosing_automation"]].fields} updateParent={updateFromChild}/>}
 
             <FormControlLabel
               control={<Checkbox checked={algoSettings.skip_first_run}

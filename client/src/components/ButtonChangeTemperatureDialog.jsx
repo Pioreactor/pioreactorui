@@ -5,8 +5,6 @@ import { Client, Message } from "paho-mqtt";
 import { makeStyles } from "@material-ui/styles";
 import Button from "@material-ui/core/Button";
 import Typography from "@material-ui/core/Typography";
-import TextField from "@material-ui/core/TextField";
-import InputAdornment from "@material-ui/core/InputAdornment";
 import Dialog from '@material-ui/core/Dialog';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
@@ -14,15 +12,9 @@ import FormLabel from '@material-ui/core/FormLabel';
 import FormControl from '@material-ui/core/FormControl';
 import Select from '@material-ui/core/Select';
 import PioreactorIcon from "./PioreactorIcon"
-
+import AutomationForm from "./AutomationForm"
 
 const useStyles = makeStyles((theme) => ({
-  textFieldCompact: {
-    marginTop: theme.spacing(3),
-    marginRight: theme.spacing(2),
-    marginBottom: theme.spacing(0),
-    width: "30ch",
-  },
   formControl: {
     marginTop: theme.spacing(2)
   },
@@ -40,90 +32,34 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-function SilentForm(props){
-  const classes = useStyles();
-  const defaults = {duration: 10}
-
-  useEffect(() => {
-    props.updateParent(defaults)
-  }, [])
-
-
-  const onSettingsChange = (e) => {
-    props.updateParent({[e.target.id]: e.target.value})
-  }
-
-  return (
-      <TextField
-        size="small"
-        id="duration"
-        label="Duration between events"
-        defaultValue={defaults.duration}
-        InputProps={{
-          endAdornment: <InputAdornment position="end">sec</InputAdornment>,
-        }}
-        variant="outlined"
-        onChange={onSettingsChange}
-        className={classes.textFieldCompact}
-      />
-)}
-
-
-
-function PIDStable(props){
-  const classes = useStyles();
-  const defaults = {duration: 10, target_temperature: 25}
-
-  useEffect(() => {
-    props.updateParent(defaults)
-  }, [])
-
-
-  const onSettingsChange = (e) => {
-    props.updateParent({[e.target.id]: e.target.value})
-  }
-
-  return (
-    <div>
-      <TextField
-        size="small"
-        id="duration"
-        label="Duration between events"
-        defaultValue={defaults.duration}
-        InputProps={{
-          endAdornment: <InputAdornment position="end">sec</InputAdornment>,
-        }}
-        variant="outlined"
-        onChange={onSettingsChange}
-        className={classes.textFieldCompact}
-      />
-      <TextField
-        size="small"
-        id="target_temperature"
-        defaultValue={defaults.target_temperature}
-        InputProps={{
-          endAdornment: <InputAdornment position="end">℃</InputAdornment>,
-        }}
-        variant="outlined"
-        onChange={onSettingsChange}
-        className={classes.textFieldCompact}
-        label="Target temperature"
-      />
-    </div>
-)}
-
 
 function ButtonChangeTemperatureDialog(props) {
   const classes = useStyles();
   const [open, setOpen] = useState(false);
-  const [algoSettings, setAlgoSettings] = useState({temperature_automation: "silent"})
+  const [algoSettings, setAlgoSettings] = useState({temperature_automation: "silent", skip_first_run: false})
   const [isClicked, setIsClicked] = useState(false)
   const [client, setClient] = useState(null)
+  const [automations, setAutomations] = useState({})
 
-  const algos = [
-    {name: "Silent", key: "silent"},
-    {name: "PIDStable", key: "pid_stable"},
-  ]
+
+  useEffect(() => {
+    async function fetchTemperatureAutomations() {
+      await fetch("/contrib/automations/temperature")
+        .then((response) => {
+            if (response.ok) {
+              return response.json();
+            } else {
+              throw new Error('Something went wrong');
+            }
+          })
+        .then((listOfAuto) => {
+          setAutomations(Object.assign({}, ...listOfAuto.map(auto => ({ [auto.key]: auto}))))
+        })
+        .catch((error) => {})
+    }
+    fetchTemperatureAutomations();
+  }, [])
+
 
   useEffect(() => {
     // MQTT - client ids should be unique
@@ -164,16 +100,6 @@ function ButtonChangeTemperatureDialog(props) {
     setAlgoSettings(prevState => ({...prevState, ...setting}))
   }
 
-  const switchToForm = () => {
-    switch(algoSettings.temperature_automation) {
-      case "silent":
-        return <SilentForm updateParent={updateFromChild}/>
-      case "pid_stable":
-        return <PIDStable updateParent={updateFromChild}/>
-      default:
-        return <div></div>
-    }
-  }
 
   const onSubmit = (event) => {
     event.preventDefault()
@@ -223,19 +149,17 @@ function ButtonChangeTemperatureDialog(props) {
 
         <form>
           <FormControl component="fieldset" className={classes.formControl}>
-          <FormLabel component="legend">automation</FormLabel>
+          <FormLabel component="legend">Automation</FormLabel>
             <Select
               native
-              value={algoSettings.mode}
+              value={algoSettings["temperature_automation"]}
               onChange={handleAlgoSelectionChange}
               style={{maxWidth: "200px"}}
             >
-              {algos.map((v) => {
-                return <option id={v.key} value={v.key} key={"change-io" + v.key}>{v.name}</option>
-                }
-              )}
+              {Object.keys(automations).map((key) => <option id={key} value={key} key={"change-io" + key}>{automations[key].name}</option>)}
+
             </Select>
-            {switchToForm()}
+            {Object.keys(automations).length > 0 && <AutomationForm fields={automations[algoSettings["temperature_automation"]].fields} updateParent={updateFromChild}/>}
             <Button
               type="submit"
               variant="contained"

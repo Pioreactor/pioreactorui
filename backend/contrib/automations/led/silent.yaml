@@ -1,0 +1,8 @@
+---
+name: Silent
+key: silent
+fields:
+  - name: duration
+    default: 30
+    unit: min
+    label: Duration between events
