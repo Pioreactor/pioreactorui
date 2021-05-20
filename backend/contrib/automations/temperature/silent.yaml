@@ -2,7 +2,7 @@
 name: Silent
 key: silent
 fields:
-  - name: duration
+  - key: duration
     default: 10
     unit: sec
     label: Duration between events
