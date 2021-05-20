@@ -610,7 +610,7 @@ function CalibrateDialog(props) {
             {blankODButton}
 
             <Typography variant="body2" component="p" style={{marginTop: "20px"}}>
-              Recorded optical densities of blank vial: <code>{props.odBlankReading ? Object.entries(JSON.parse(props.odBlankReading)).map( ([k, v]) => `${k}:${v.toFixed(4)}` ).join(", ") : "—"}</code> <Button color="primary" size="small" disabled={!props.odBlankReading} onClick={clearBlank()}>Clear</Button>
+              Recorded optical densities of blank vial: <code>{props.odBlankReading ? Object.entries(JSON.parse(props.odBlankReading)).map( ([k, v]) => `${k}:${v.toFixed(3)}` ).join(", ") : "—"}</code> <Button color="primary" size="small" disabled={!props.odBlankReading} onClick={clearBlank()}>Clear</Button>
             </Typography>
             <Divider className={classes.divider} />
 
@@ -927,7 +927,7 @@ function SettingsActionsDialog(props) {
 
           <div style={{marginLeft: "20px"}}>
             <FormControlLabel
-              control={<Switch checked={props.stirringDynamic} onChange={setPioreactorStirringDynamic} color="primary"/>}
+              control={<Switch checked={props.stirringDynamic === 1} onChange={setPioreactorStirringDynamic} color="primary"/>}
             />
           </div>
 

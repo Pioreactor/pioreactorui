@@ -1,0 +1,12 @@
+---
+name: Chemostat
+key: chemostat
+fields:
+  - name: duration
+    default: 20
+    unit: min
+    label: Duration between events
+  - name: volume
+    default: 0.5
+    unit: mL
+    label: Max volume

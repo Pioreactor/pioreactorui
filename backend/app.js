@@ -6,11 +6,12 @@ require('dotenv').config()
 const url = require('url');
 const { execFile } = require("child_process");
 const cp = require('child_process');
-var dblite = require('dblite')
+const dblite = require('dblite')
 const fs = require('fs')
-var expressStaticGzip = require("express-static-gzip");
+const expressStaticGzip = require("express-static-gzip");
 const compression = require('compression');
-var showdown  = require('showdown');
+const showdown  = require('showdown');
+const yaml = require('js-yaml');
 
 const app = express()
 app.use(bodyParser.json());
@@ -310,6 +311,19 @@ app.get("/recent_media_rates/:experiment", function (req, res) {
 
 
 ////////////// MISC ///////////////////
+
+
+app.get("/contrib/automations/:type", function(req, res) {
+  try {
+    const automationPath = path.join(process.env.CONTRIB_FOLDER, "automations", req.params.type)
+    var files = fs.readdirSync(automationPath).filter(fn => (fn.endsWith('.yml') || fn.endsWith('.yaml')));
+    var jsonDesc = files.map(file => yaml.load(fs.readFileSync(path.join(automationPath, file))))
+    res.json(jsonDesc)
+  } catch (e) {
+    console.log(e);
+    res.sendStatus(500)
+  }
+})
 
 
 app.post("/update_app", function (req, res) {

@@ -42,201 +42,40 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-function SilentForm(props){
+
+
+function DosingAutomationForm(props){
   const classes = useStyles();
-  const defaults = {duration: 60}
+  const defaults = Object.assign({}, ...props.fields.map(field => ({[field.name]: field.default})))
 
   useEffect(() => {
     props.updateParent(defaults)
-  }, [])
-
+  }, [props.fields])
 
   const onSettingsChange = (e) => {
     props.updateParent({[e.target.id]: e.target.value})
   }
-
-  return (
-      <TextField
-        size="small"
-        id="duration"
-        label="Duration between events"
-        defaultValue={defaults.duration}
-        InputProps={{
-          endAdornment: <InputAdornment position="end">min</InputAdornment>,
-        }}
-        variant="outlined"
-        onChange={onSettingsChange}
-        className={classes.textFieldCompact}
-      />
-)}
-
-function PIDTurbidostatForm(props){
-  const classes = useStyles();
-  const defaults = {duration: 30, volume: 0.75, target_od: 1.5, skip_first_run: false}
-
-  useEffect(() => {
-    props.updateParent(defaults)
-  }, [])
-
-
-  const onSettingsChange = (e) => {
-    props.updateParent({[e.target.id]: e.target.value})
-  }
+  var listOfTextField = props.fields.map(field =>
+        <TextField
+          size="small"
+          id={field.name}
+          key={field.name}
+          label={field.label}
+          defaultValue={field.default}
+          InputProps={{
+            endAdornment: <InputAdornment position="end">{field.unit}</InputAdornment>,
+          }}
+          variant="outlined"
+          onChange={onSettingsChange}
+          className={classes.textFieldCompact}
+        />
+  )
 
   return (
       <div>
-        <TextField
-          size="small"
-          id="duration"
-          defaultValue={defaults.duration}
-          InputProps={{
-            endAdornment: <InputAdornment position="end">min</InputAdornment>,
-          }}
-          variant="outlined"
-          onChange={onSettingsChange}
-          className={classes.textFieldCompact}
-          label="Duration between events"
-        />
-        <TextField
-          size="small"
-          id="volume"
-          label="Max volume"
-          defaultValue={defaults.volume}
-          InputProps={{
-            endAdornment: <InputAdornment position="end">mL</InputAdornment>,
-          }}
-          variant="outlined"
-          onChange={onSettingsChange}
-          className={classes.textFieldCompact}
-        />
-        <TextField
-          size="small"
-          id="target_od"
-          label="Target OD"
-          defaultValue={defaults.target_od}
-          InputProps={{
-            endAdornment: <InputAdornment position="end">AU</InputAdornment>,
-          }}
-          variant="outlined"
-          onChange={onSettingsChange}
-          className={classes.textFieldCompact}
-        />
+        {listOfTextField}
     </div>
 )}
-
-function PIDMorbidostatForm(props){
-  const classes = useStyles();
-  const defaults = {duration: 60, target_growth_rate: 0.1, target_od: 1.5}
-
-  useEffect(() => {
-    props.updateParent(defaults)
-  }, [])
-
-  const onSettingsChange = (e) => {
-    props.updateParent({[e.target.id]: e.target.value})
-  }
-
-  return (
-      <div>
-        <TextField
-          size="small"
-          id="duration"
-          label="Duration between events"
-          defaultValue={defaults.duration}
-          InputProps={{
-            endAdornment: <InputAdornment position="end">min</InputAdornment>,
-          }}
-          variant="outlined"
-          onChange={onSettingsChange}
-          className={classes.textFieldCompact}
-        />
-        <TextField
-          size="small"
-          id="target_od"
-          label="Target OD"
-          defaultValue={defaults.target_od}
-          InputProps={{
-            endAdornment: <InputAdornment position="end">AU</InputAdornment>,
-          }}
-          variant="outlined"
-          onChange={onSettingsChange}
-          className={classes.textFieldCompact}
-        />
-        <TextField
-          size="small"
-          id="target_growth_rate"
-          label="Target growth rate"
-          defaultValue={defaults.target_growth_rate}
-          InputProps={{
-            endAdornment: <InputAdornment position="end">h⁻¹</InputAdornment>,
-          }}
-          variant="outlined"
-          onChange={onSettingsChange}
-          className={classes.textFieldCompact}
-        />
-    </div>
-)}
-
-
-function ChemostatForm(props){
-  const classes = useStyles();
-  const defaults = {duration: 20, volume: 0.5}
-
-  useEffect(() => {
-    props.updateParent(defaults)
-  }, [])
-
-  const onSettingsChange = (e) => {
-    props.updateParent({[e.target.id]: e.target.value})
-  }
-
-  return (
-      <div>
-        <TextField
-          size="small"
-          id="duration"
-          label="Duration between events"
-          defaultValue={defaults.duration}
-          InputProps={{
-            endAdornment: <InputAdornment position="end">min</InputAdornment>,
-          }}
-          variant="outlined"
-          onChange={onSettingsChange}
-          className={classes.textFieldCompact}
-        />
-        <TextField
-          size="small"
-          id="volume"
-          label="Volume"
-          defaultValue={defaults.volume}
-          InputProps={{
-            endAdornment: <InputAdornment position="end">mL</InputAdornment>,
-          }}
-          variant="outlined"
-          onChange={onSettingsChange}
-          className={classes.textFieldCompact}
-        />
-    </div>
-)}
-
-
-function ContinuousCycleForm(props){
-  const classes = useStyles();
-  const defaults = {duration: null, skip_first_run: false}
-
-  useEffect(() => {
-    props.updateParent(defaults)
-  }, [])
-
-  const onSettingsChange = (e) => {
-    props.updateParent({[e.target.id]: e.target.value})
-  }
-
-  return (
-    <div/>
-)}
-
-
 
 
 function ButtonChangeDosingDialog(props) {
@@ -245,14 +84,8 @@ function ButtonChangeDosingDialog(props) {
   const [algoSettings, setAlgoSettings] = useState({dosing_automation: "silent", skip_first_run: false})
   const [isClicked, setIsClicked] = useState(false)
   const [client, setClient] = useState(null)
+  const [automations, setAutomations] = useState({})
 
-  const algos = [
-    {name: "Silent", key: "silent"},
-    {name: "Chemostat", key: "chemostat"},
-    {name: "PID Morbidostat",  key: "pid_morbidostat"},
-    {name: "PID Turbidostat",  key: "pid_turbidostat"},
-    {name: "Continuous Cycle",  key: "continuous_cycle"},
-  ]
 
   useEffect(() => {
     // MQTT - client ids should be unique
@@ -273,8 +106,26 @@ function ButtonChangeDosingDialog(props) {
       );
     }
 
-    client.connect({timeout: 180});
+    client.connect();
     setClient(client)
+
+
+    async function fetchDosingAutomations() {
+      await fetch("/contrib/automations/dosing")
+        .then((response) => {
+            if (response.ok) {
+              return response.json();
+            } else {
+              throw new Error('Something went wrong');
+            }
+          })
+        .then((listOfAuto) => {
+          setAutomations(Object.assign({}, ...listOfAuto.map(auto => ({ [auto.key]: auto}))))
+        })
+        .catch((error) => {})
+    }
+    fetchDosingAutomations();
+
   },[props.config])
 
   const handleClickOpen = () => {
@@ -295,23 +146,6 @@ function ButtonChangeDosingDialog(props) {
 
   const updateFromChild = (setting) => {
     setAlgoSettings(prevState => ({...prevState, ...setting}))
-  }
-
-  const switchToForm = () => {
-    switch(algoSettings.dosing_automation) {
-      case "silent":
-        return <SilentForm updateParent={updateFromChild}/>
-      case "pid_turbidostat":
-        return <PIDTurbidostatForm updateParent={updateFromChild}/>
-      case "pid_morbidostat":
-        return <PIDMorbidostatForm updateParent={updateFromChild}/>
-      case "chemostat":
-        return <ChemostatForm updateParent={updateFromChild}/>
-      case "continuous_cycle":
-        return <ContinuousCycleForm updateParent={updateFromChild}/>
-      default:
-        return <div></div>
-    }
   }
 
   const onSubmit = (event) => {
@@ -335,6 +169,8 @@ function ButtonChangeDosingDialog(props) {
     }
     setOpen(false);
   }
+
+
   return (
     <div>
     <Button
@@ -365,13 +201,14 @@ function ButtonChangeDosingDialog(props) {
             <FormLabel component="legend">Automation</FormLabel>
             <Select
               native
-              value={algoSettings.mode}
               onChange={handleAlgoSelectionChange}
               style={{maxWidth: "200px"}}
             >
-              {algos.map((v) => <option id={v.key} value={v.key} key={"change-io" + v.key}>{v.name}</option>)}
+              {Object.keys(automations).map((key) => <option id={key} value={key} key={"change-io" + key}>{automations[key].name}</option>)}
             </Select>
-            {switchToForm()}
+
+            {Object.keys(automations).length > 0 && <DosingAutomationForm fields={automations[algoSettings["dosing_automation"]].fields} updateParent={updateFromChild}/>}
+
             <FormControlLabel
               control={<Checkbox checked={algoSettings.skip_first_run}
                                   color="primary"

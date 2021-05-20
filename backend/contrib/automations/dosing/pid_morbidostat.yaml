@@ -1,0 +1,16 @@
+---
+key: pid_morbidostat
+name: PID Morbidostat
+fields:
+  - name: duration
+    default: 60
+    unit: min
+    label: Duration between events
+  - name: target_od
+    default: 1.5
+    unit: AU
+    label: Target OD
+  - name: target_growth_rate
+    default: 0.1
+    unit: h⁻¹
+    label: Target growth rate

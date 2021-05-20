@@ -1,0 +1,16 @@
+---
+name: PID Turbidostat
+key: pid_turbidostat
+fields:
+  - name: duration
+    default: 30
+    unit: min
+    label: Duration between events
+  - name: target_od
+    default: 1.5
+    unit: AU
+    label: Target OD
+  - name: volume
+    default: 0.75
+    unit: mL
+    label: Max volume
