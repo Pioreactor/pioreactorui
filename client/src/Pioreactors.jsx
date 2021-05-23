@@ -459,7 +459,7 @@ function PioreactorHeader(props) {
           </Box>
         </Typography>
         <div >
-          <SettingsActionsDialogAll unit={'$broadcast'} config={props.config} experiment={props.experiment}/>
+          <SettingsActionsDialogAll config={props.config} experiment={props.experiment}/>
           <AddNewPioreactor config={props.config}/>
           <ButtonConfirmStopProcessDialog/>
         </div>
@@ -1006,11 +1006,13 @@ function SettingsActionsDialog(props) {
 function SettingsActionsDialogAll(props) {
 
   const classes = useStyles();
+  const unit = "$broadcast"
   const [open, setOpen] = useState(false);
   const [client, setClient] = useState(null);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [tabValue, setTabValue] = React.useState(0);
+  const [jobs, setJobs] = React.useState({});
 
   const humanReadableJobs = {
     "od_reading":  "optical density reading",
@@ -1024,14 +1026,38 @@ function SettingsActionsDialogAll(props) {
     "temperature_automation":  "temperature control",
   }
 
-  const handleTabChange = (event, newValue) => {
-    setTabValue(newValue);
-  };
+
+  useEffect(() => {
+    function fetchContribBackgroundJobs() {
+      fetch("/contrib/background_jobs")
+        .then((response) => {
+            if (response.ok) {
+              return response.json();
+            } else {
+              throw new Error('Something went wrong');
+            }
+          })
+        .then((listOfJobs) => {
+          for (const job of listOfJobs){
+            var metaData_ = {state: "disconnected", metadata: {name: job.name, subtext: job.subtext, display: job.display, description: job.description, key: job.job_name}}
+            for(var i = 0; i < job["editable_settings"].length; ++i){
+              var field = job["editable_settings"][i]
+              metaData_[field.key] = {value: field.default, label: field.label, type: field.type, unit: field.unit, display: field.display, description: field.description}
+            }
+            setJobs((prev) => ({...prev, [job.job_name]: metaData_}))
+          }
+        })
+        .catch((error) => {})
+    }
+    fetchContribBackgroundJobs();
+  }, [])
+
 
   useEffect(() => {
     if (!props.config['network.topology']){
       return
     }
+
     var client
     if (props.config.remote && props.config.remote.ws_url) {
       client = new Client(
@@ -1049,14 +1075,18 @@ function SettingsActionsDialogAll(props) {
   },[props.config])
 
 
+  const handleTabChange = (event, newValue) => {
+    setTabValue(newValue);
+  };
+
   function setPioreactorJobState(job, state) {
     return function sendMessage() {
       var message = new Message(String(state));
       message.destinationName = [
         "pioreactor",
-        props.unit,
+        unit,
         props.experiment,
-        job,
+        job.metadata.key,
         "$state",
         "set",
       ].join("/");
@@ -1074,7 +1104,7 @@ function SettingsActionsDialogAll(props) {
           "disconnected":  "Stopping",
           "ready":  "Resuming",
         }
-        setSnackbarMessage(`${verbs[state]} ${humanReadableJobs[job]} on all active Pioreactors`)
+        setSnackbarMessage(`${verbs[state]} ${job.metadata.name.toLowerCase()} on all active Pioreactors`)
         setSnackbarOpen(true)
       }
     };
@@ -1082,9 +1112,9 @@ function SettingsActionsDialogAll(props) {
 
   function startPioreactorJob(job){
     return function() {
-      setSnackbarMessage(`Starting ${humanReadableJobs[job]} on all active Pioreactors`)
+      setSnackbarMessage(`Starting ${job.metadata.name.toLowerCase()} on all active Pioreactors`)
       setSnackbarOpen(true)
-      fetch("/run/" + job + "/" + props.unit, {method: "POST"})
+      fetch("/run/" + job.metadata.key + "/" + unit, {method: "POST"})
     }
   }
 
@@ -1093,7 +1123,7 @@ function SettingsActionsDialogAll(props) {
     var message = new Message(String(value));
     message.destinationName = [
       "pioreactor",
-      props.unit,
+      unit,
       props.experiment,
       job_attr,
       "set",
@@ -1132,7 +1162,7 @@ function SettingsActionsDialogAll(props) {
 
 
   function createUserButtonsBasedOnState(job){
-    return (<div key={job}>
+    return (<div key={job.key}>
         <Button
           className={classes.jobButton}
           disableElevation
@@ -1168,12 +1198,9 @@ function SettingsActionsDialogAll(props) {
       </div>
   )}
 
-  const odButtons = createUserButtonsBasedOnState("od_reading")
-  const grButtons = createUserButtonsBasedOnState("growth_rate_calculating")
-  const dosingButtons = createUserButtonsBasedOnState("dosing_control")
-  const ledButtons = createUserButtonsBasedOnState("led_control")
-  const tempButtons = createUserButtonsBasedOnState("temperature_control")
-  const stirringButtons = createUserButtonsBasedOnState("stirring")
+
+  const buttons = Object.fromEntries(Object.entries(jobs).map( ([job_key, job], i) => [job_key, createUserButtonsBasedOnState(job)]))
+
 
   return (
     <React.Fragment>
@@ -1201,118 +1228,56 @@ function SettingsActionsDialogAll(props) {
       </DialogTitle>
       <DialogContent>
 
-        <TabPanel value={tabValue} index={3}>
-          <Typography style={{textTransform: "capitalize"}}>
-            Channel A
-          </Typography>
-          <ActionLEDForm channel="A" unit={props.unit} />
-          <Divider className={classes.divider} />
+        <TabPanel value={tabValue} index={0}>
+          {Object.entries(jobs)
+            .filter(([job_key, job]) => job.metadata.display)
+            .map(([job_key, job]) =>
+            <div key={job_key}>
+              <Typography gutterBottom>
+                {job.metadata.name}
+              </Typography>
+              <Typography variant="body2" component="p" gutterBottom>
+                <div dangerouslySetInnerHTML={{__html: job.metadata.description}}/>
+              </Typography>
 
-          <Typography style={{textTransform: "capitalize"}}>
-            Channel B
-          </Typography>
-          <ActionLEDForm channel="B" unit={props.unit} />
-          <Divider className={classes.divider} />
+              {buttons[job_key]}
 
-          <Typography style={{textTransform: "capitalize"}}>
-            Channel C
-          </Typography>
-          <ActionLEDForm channel="C" unit={props.unit} />
-
-          <Divider className={classes.divider} />
-          <Typography style={{textTransform: "capitalize"}}>
-            Channel D
-          </Typography>
-          <ActionLEDForm channel="D" unit={props.unit} />
-
-          <Divider className={classes.divider} />
+              <Divider className={classes.divider} />
+            </div>
+          )}
         </TabPanel>
 
         <TabPanel value={tabValue} index={1}>
-          <Typography gutterBottom>
-            Volume / dosing
-          </Typography>
-          <Typography variant="body2" component="p">
-            Change the volume per dilution. Typical values are between 0.0mL and
-            1.0mL.
-          </Typography>
-          <TextField
-            size="small"
-            id="dosing_automation/volume"
-            label="Volume / dosing"
-            defaultValue={props.volume}
-            InputProps={{
-              endAdornment: <InputAdornment position="end">mL</InputAdornment>,
-            }}
-            variant="outlined"
-            onKeyPress={setPioreactorJobAttrOnEnter}
-            className={classes.textFieldWide}
-          />
+          {Object.values(jobs)
+            .filter(job => job.metadata.display)
+            .map(job =>
+            Object.entries(job)
+              .filter(([key, setting]) => (key !== "state") && (key !== "metadata"))
+              .filter(([_, setting]) => setting.display)
+              .map(([key, setting]) =>
+            <React.Fragment>
+              <Typography  gutterBottom>
+                {setting.label}
+              </Typography>
+              <Typography variant="body2" component="p">
+                {setting.description}
+              </Typography>
+              <TextField
+                size="small"
+                id={`${job.metadata.key.replace("_control", "_automation")}/${key}`}
+                defaultValue={setting.value}
+                InputProps={{
+                  endAdornment: <InputAdornment position="end">{setting.unit}</InputAdornment>,
+                }}
+                variant="outlined"
+                onKeyPress={setPioreactorJobAttrOnEnter}
+                className={classes.textFieldCompact}
+              />
+              <Divider className={classes.divider} />
+            </React.Fragment>
 
-          <Divider className={classes.divider} />
-          <Typography  gutterBottom>
-            Target Temperature
-          </Typography>
-          <Typography variant="body2" component="p">
-            Change the target temperature. Lower bound is the ambient temperature, and
-            upperbound is 50℃.
-          </Typography>
-          <TextField
-            size="small"
-            id="temperature_automation/target_temperature"
-            label="Target temperature"
-            defaultValue={props.targetTemperature}
-            InputProps={{
-              endAdornment: <InputAdornment position="end">℃</InputAdornment>,
-            }}
-            variant="outlined"
-            onKeyPress={setPioreactorJobAttrOnEnter}
-            className={classes.textFieldWide}
-          />
+          ))}
 
-          <Divider className={classes.divider} />
-          <Typography  gutterBottom>
-            Duration between dosing events
-          </Typography>
-          <Typography variant="body2" component="p">
-            Change how long to wait between dilutions. Typically between 15 and 90 minutes. Changing this will immediately trigger
-            a dosing event.
-          </Typography>
-          <TextField
-            size="small"
-            id="dosing_automation/duration"
-            label="Duration"
-            defaultValue={props.duration}
-            InputProps={{
-              endAdornment: <InputAdornment position="end">min</InputAdornment>,
-            }}
-            variant="outlined"
-            onKeyPress={setPioreactorJobAttrOnEnter}
-            className={classes.textFieldWide}
-          />
-
-          <Divider className={classes.divider} />
-          <Typography  gutterBottom>
-            Target growth rate
-          </Typography>
-          <Typography variant="body2" component="p">
-            Change the target hourly growth rate - only applicable in{" "}
-            <code>morbidostat</code> mode. Typical values are between 0.05h⁻¹ and
-            0.4h⁻¹.
-          </Typography>
-          <TextField
-            size="small"
-            id="dosing_automation/target_growth_rate"
-            label="Target growth rate"
-            defaultValue={props.targetGrowthRate}
-            InputProps={{
-              endAdornment: <InputAdornment position="end">h⁻¹</InputAdornment>,
-            }}
-            variant="outlined"
-            onKeyPress={setPioreactorJobAttrOnEnter}
-            className={classes.textFieldWide}
-          />
-          <Divider className={classes.divider} />
           <Typography  gutterBottom>
             Dosing automation
           </Typography>
@@ -1321,7 +1286,7 @@ function SettingsActionsDialogAll(props) {
           </Typography>
 
           <ButtonChangeDosingDialog
-            unit={props.unit}
+            unit={unit}
             config={props.config}
             experiment={props.experiment}
             currentDosingAutomation={true}
@@ -1336,7 +1301,7 @@ function SettingsActionsDialogAll(props) {
           </Typography>
 
           <ButtonChangeLEDDialog
-            unit={props.unit}
+            unit={unit}
             config={props.config}
             experiment={props.experiment}
             currentLEDAutomation={true}
@@ -1351,7 +1316,7 @@ function SettingsActionsDialogAll(props) {
           </Typography>
 
           <ButtonChangeTemperatureDialog
-            unit={props.unit}
+            unit={unit}
             config={props.config}
             experiment={props.experiment}
             currentTemperatureAutomation={true}
@@ -1360,72 +1325,6 @@ function SettingsActionsDialogAll(props) {
           <Divider className={classes.divider} />
 
         </TabPanel>
-
-        <TabPanel value={tabValue} index={0}>
-          <Typography gutterBottom>
-            Stirring
-          </Typography>
-          <Typography variant="body2" component="p" gutterBottom>
-            Start, stop or pause the stirring on all the Pioreactors. Stirring is needed for homogenous mixing.
-          </Typography>
-
-          {stirringButtons}
-
-          <Divider className={classes.divider} />
-          <Typography gutterBottom>
-            Optical density
-          </Typography>
-          <Typography variant="body2" component="p" gutterBottom>
-            Pausing the optical density readings will also pause
-            downstream activities that rely on optical density readings, like growth
-            rates.
-          </Typography>
-
-          {odButtons}
-
-          <Divider className={classes.divider} />
-          <Typography  gutterBottom>
-            Growth rate
-          </Typography>
-          <Typography variant="body2" component="p" gutterBottom>
-            Pausing the growth rate calculating will also pause
-            downstream activities that rely on it, like dosing events.
-          </Typography>
-
-          {grButtons}
-
-          <Divider className={classes.divider} />
-          <Typography  gutterBottom>
-            Dosing control
-          </Typography>
-          <Typography variant="body2" component="p" gutterBottom>
-            Dosing events will initially start in <span className={"underlineSpan"} title="silent mode performs no IO operations."><code>silent</code></span> mode, and can be changed after.
-            Learn more about <a target="_blank" rel="noopener noreferrer" href="https://pioreactor.com/pages/dosing-automations">dosing automations</a>.
-          </Typography>
-
-            {dosingButtons}
-          <Divider className={classes.divider} />
-          <Typography  gutterBottom>
-            LED control
-          </Typography>
-          <Typography variant="body2" component="p" gutterBottom>
-            LED control will initially start in <span className={"underlineSpan"} title="silent mode performs no IO operations."><code>silent</code></span> mode, and can be changed after.
-            Learn more about <a target="_blank" rel="noopener noreferrer" href="https://pioreactor.com/pages/led-automations">LED automations</a>.
-          </Typography>
-
-            {ledButtons}
-          <Divider className={classes.divider} />
-          <Typography  gutterBottom>
-            Temperature control
-          </Typography>
-          <Typography variant="body2" component="p" gutterBottom>
-            Temperature control will initially start in <span className={"underlineSpan"} title="silent mode performs no IO operations."><code>silent</code></span> mode, and can be changed after.
-            Learn more about <a target="_blank" rel="noopener noreferrer" href="https://pioreactor.com/pages/temperature-automations">temperature automations</a>.
-          </Typography>
-
-            {tempButtons}
-          <Divider className={classes.divider} />
-        </TabPanel>
         <TabPanel value={tabValue} index={2}>
           <Typography  gutterBottom>
             Add media
@@ -1433,7 +1332,7 @@ function SettingsActionsDialogAll(props) {
           <Typography variant="body2" component="p">
             Run the media pump{props.isPlural ? "s" : ""} for a set duration (seconds), or a set volume (mL).
           </Typography>
-          <ActionDosingForm action="add_media" unit={props.unit} />
+          <ActionDosingForm action="add_media" unit={unit} />
           <Divider className={classes.divider} />
           <Typography gutterBottom>
             Add alternative media
@@ -1442,7 +1341,7 @@ function SettingsActionsDialogAll(props) {
             Run the alternative media pump{props.isPlural ? "s" : ""} for a set duration (seconds), or a set
             volume (mL).
           </Typography>
-          <ActionDosingForm action="add_alt_media" unit={props.unit} />
+          <ActionDosingForm action="add_alt_media" unit={unit} />
           <Divider className={classes.divider} />
           <Typography  gutterBottom>
             Remove waste
@@ -1450,9 +1349,38 @@ function SettingsActionsDialogAll(props) {
           <Typography variant="body2" component="p">
             Run the waste pump{props.isPlural ? "s" : ""} for a set duration (seconds), or a set volume (mL).
           </Typography>
-          <ActionDosingForm action="remove_waste" unit={props.unit} />
+          <ActionDosingForm action="remove_waste" unit={unit} />
           <Divider className={classes.divider} />
         </TabPanel>
+
+        <TabPanel value={tabValue} index={3}>
+          <Typography style={{textTransform: "capitalize"}}>
+            Channel A
+          </Typography>
+          <ActionLEDForm channel="A" unit={unit} />
+          <Divider className={classes.divider} />
+
+          <Typography style={{textTransform: "capitalize"}}>
+            Channel B
+          </Typography>
+          <ActionLEDForm channel="B" unit={unit} />
+          <Divider className={classes.divider} />
+
+          <Typography style={{textTransform: "capitalize"}}>
+            Channel C
+          </Typography>
+          <ActionLEDForm channel="C" unit={unit} />
+
+          <Divider className={classes.divider} />
+          <Typography style={{textTransform: "capitalize"}}>
+            Channel D
+          </Typography>
+          <ActionLEDForm channel="D" unit={unit} />
+
+          <Divider className={classes.divider} />
+        </TabPanel>
+
+
       </DialogContent>
     </Dialog>
     <Snackbar
@@ -1462,7 +1390,7 @@ function SettingsActionsDialogAll(props) {
       message={snackbarMessage}
       autoHideDuration={7000}
       resumeHideDuration={2000}
-      key={"snackbar" + props.unit + "settings"}
+      key={"snackbar" + unit + "settings"}
     />
     </React.Fragment>
   );
@@ -1571,7 +1499,7 @@ function PioreactorCard(props){
 
   useEffect(() => {
     const onConnect = () => {
-      client.subscribe(["pioreactor", unit, "$experiment", "monitor/$state"].join());
+      client.subscribe(["pioreactor", unit, "$experiment", "monitor", "$state"].join("/"));
 
       for (const job of Object.keys(jobs)) {
         if (job === "monitor") {continue;}
