@@ -3,7 +3,7 @@ name: LED control
 job_name: led_control
 subtext: led_automation
 display: true
-description:  Start an LED automation. Initially starts as <code>silent</code> automation. Learn more about <a href="">LED automations</a>.
+description:  Start an LED automation. Initially starts as <code>silent</code> automation. Learn more about <a href="https://pioreactor.com/pages/LED-automations">LED automations</a>.
 editable_settings:
   - key: led_automation
     type: text

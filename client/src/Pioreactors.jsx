@@ -18,11 +18,8 @@ import DialogContentText from '@material-ui/core/DialogContentText';
 import Box from '@material-ui/core/Box';
 import Divider from '@material-ui/core/Divider';
 import CircularProgress from '@material-ui/core/CircularProgress';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
-import Slider from '@material-ui/core/Slider';
 import Snackbar from '@material-ui/core/Snackbar';
 import TextField from '@material-ui/core/TextField';
-import Switch from '@material-ui/core/Switch';
 import Tooltip from '@material-ui/core/Tooltip';
 import InputAdornment from '@material-ui/core/InputAdornment';
 import Tabs from '@material-ui/core/Tabs';
@@ -34,7 +31,6 @@ import FlareIcon from '@material-ui/icons/Flare';
 import SettingsIcon from '@material-ui/icons/Settings';
 import TuneIcon from '@material-ui/icons/Tune';
 
-import {parseINIString} from "./utilities"
 import ButtonChangeDosingDialog from "./components/ButtonChangeDosingDialog"
 import ButtonChangeLEDDialog from "./components/ButtonChangeLEDDialog"
 import ButtonChangeTemperatureDialog from "./components/ButtonChangeTemperatureDialog"
@@ -1014,18 +1010,6 @@ function SettingsActionsDialogAll(props) {
   const [tabValue, setTabValue] = React.useState(0);
   const [jobs, setJobs] = React.useState({});
 
-  const humanReadableJobs = {
-    "od_reading":  "optical density reading",
-    "growth_rate_calculating":  "growth rate activity",
-    "stirring":  "stirring",
-    "dosing_automation":  "dosing control",
-    "dosing_control":  "dosing control",
-    "led_control":  "LED control",
-    "led_automation":  "LED control",
-    "temperature_control":  "temperature control",
-    "temperature_automation":  "temperature control",
-  }
-
 
   useEffect(() => {
     function fetchContribBackgroundJobs() {
@@ -1038,14 +1022,16 @@ function SettingsActionsDialogAll(props) {
             }
           })
         .then((listOfJobs) => {
+          var jobs_ = {}
           for (const job of listOfJobs){
             var metaData_ = {state: "disconnected", metadata: {name: job.name, subtext: job.subtext, display: job.display, description: job.description, key: job.job_name}}
             for(var i = 0; i < job["editable_settings"].length; ++i){
               var field = job["editable_settings"][i]
               metaData_[field.key] = {value: field.default, label: field.label, type: field.type, unit: field.unit, display: field.display, description: field.description}
             }
-            setJobs((prev) => ({...prev, [job.job_name]: metaData_}))
+            jobs_[job.job_name] = metaData_
           }
+          setJobs((prev) => ({...prev, ...jobs_}))
         })
         .catch((error) => {})
     }
@@ -1482,14 +1468,16 @@ function PioreactorCard(props){
             }
           })
         .then((listOfJobs) => {
+          var jobs_ = {}
           for (const job of listOfJobs){
             var metaData_ = {state: "disconnected", metadata: {name: job.name, subtext: job.subtext, display: job.display, description: job.description, key: job.job_name}}
             for(var i = 0; i < job["editable_settings"].length; ++i){
               var field = job["editable_settings"][i]
               metaData_[field.key] = {value: field.default, label: field.label, type: field.type, unit: field.unit, display: field.display, description: field.description}
             }
-            setJobs((prev) => ({...prev, [job.job_name]: metaData_}))
+            jobs_[job.job_name] = metaData_
           }
+          setJobs((prev) => ({...prev, ...jobs_}))
           setFetchComplete(true)
         })
         .catch((error) => {})
@@ -1523,7 +1511,6 @@ function PioreactorCard(props){
         job = job.replace("_automation", "_control")
         setJobs((prev) => ({...prev, [job]: {...prev[job], [setting]: {...prev[job][setting], value: payload }}}))
       } else {
-        console.log(job, setting)
         setJobs((prev) => ({...prev, [job]: {...prev[job], [setting]: {...prev[job][setting], value: payload }}}))
       }
     }
@@ -1555,7 +1542,7 @@ function PioreactorCard(props){
     client.onMessageArrived = onMessageArrived
     client.connect({onSuccess: onConnect, reconnect: true});
     setClient(client)
-  },[props.config, props.experiment, fetchComplete])
+  },[props.config, experiment, fetchComplete, isUnitActive])
 
   const indicatorDotColor = (jobs.monitor.state === "disconnected") ? disconnectedGrey : ((jobs.monitor.state === "lost") ? lostRed : readyGreen)
   const indicatorDotShadow = (jobs.monitor.state === "disconnected") ? 0 : 6

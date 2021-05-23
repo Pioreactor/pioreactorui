@@ -3,7 +3,7 @@ name: Temperature control
 job_name: temperature_control
 subtext: temperature_automation
 display: true
-description: Start a temperature automation. Initially starts as <code>silent</code> automation. Learn more about <a href="">temperature automations</a>.
+description: Start a temperature automation. Initially starts as <code>silent</code> automation. Learn more about <a href="https://pioreactor.com/pages/temperature-automations">temperature automations</a>.
 editable_settings:
   - key: target_temperature
     unit: ℃
