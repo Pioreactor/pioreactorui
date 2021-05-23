@@ -2,6 +2,7 @@
 name: od blank
 job_name: od_blank
 display: false
+source: app
 editable_settings:
   - key: mean
     display: false

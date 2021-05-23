@@ -2,6 +2,7 @@
 name: led intensity
 job_name: leds
 display: false
+source: app
 editable_settings:
   - key: intensity
     label: LED intensity

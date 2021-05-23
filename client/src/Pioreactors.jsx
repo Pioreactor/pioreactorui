@@ -792,7 +792,7 @@ function SettingsActionsDialog(props) {
             .map(([job_key, job]) =>
             <div key={job_key}>
               <Typography gutterBottom>
-                {job.metadata.name}
+                {job.metadata.name} {job.metadata.source !== "app" ? `(Installed by ${job.metadata.source})` : ""}
               </Typography>
               <Typography variant="body2" component="p" gutterBottom>
                 <div dangerouslySetInnerHTML={{__html: job.metadata.description}}/>
@@ -1024,7 +1024,7 @@ function SettingsActionsDialogAll(props) {
         .then((listOfJobs) => {
           var jobs_ = {}
           for (const job of listOfJobs){
-            var metaData_ = {state: "disconnected", metadata: {name: job.name, subtext: job.subtext, display: job.display, description: job.description, key: job.job_name}}
+            var metaData_ = {state: "disconnected", metadata: {name: job.name, subtext: job.subtext, display: job.display, description: job.description, key: job.job_name, source:job.source}}
             for(var i = 0; i < job["editable_settings"].length; ++i){
               var field = job["editable_settings"][i]
               metaData_[field.key] = {value: field.default, label: field.label, type: field.type, unit: field.unit, display: field.display, description: field.description}
@@ -1470,7 +1470,7 @@ function PioreactorCard(props){
         .then((listOfJobs) => {
           var jobs_ = {}
           for (const job of listOfJobs){
-            var metaData_ = {state: "disconnected", metadata: {name: job.name, subtext: job.subtext, display: job.display, description: job.description, key: job.job_name}}
+            var metaData_ = {state: "disconnected", metadata: {name: job.name, subtext: job.subtext, display: job.display, description: job.description, key: job.job_name, source: job.source}}
             for(var i = 0; i < job["editable_settings"].length; ++i){
               var field = job["editable_settings"][i]
               metaData_[field.key] = {value: field.default, label: field.label, type: field.type, unit: field.unit, display: field.display, description: field.description}
