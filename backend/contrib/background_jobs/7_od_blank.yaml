@@ -1,0 +1,7 @@
+---
+name: od blank
+job_name: od_blank
+display: false
+editable_settings:
+  - key: mean
+    display: false

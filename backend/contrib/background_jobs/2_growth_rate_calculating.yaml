@@ -1,0 +1,6 @@
+---
+name: Growth rate
+job_name: growth_rate_calculating
+editable_settings: []
+display: true
+description: Pausing the growth rate calculating will also pause downstream activities that rely on it, like dosing events.

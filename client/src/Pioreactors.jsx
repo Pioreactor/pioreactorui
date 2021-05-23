@@ -100,10 +100,8 @@ const useStyles = makeStyles((theme) => ({
     maxWidth: "220px",
   },
   textFieldCompact: {
-    marginTop: theme.spacing(3),
-    marginRight: theme.spacing(2),
-    marginBottom: theme.spacing(0),
-    width: "30ch",
+    marginTop: "15px",
+    width: "120px",
   },
   slider: {
     width: "70%",
@@ -126,6 +124,14 @@ const useStyles = makeStyles((theme) => ({
   ledBlock:{
     width: "55px",
     display: "inline-block"
+  },
+  rowOfUnitSettingDisplay:{
+    display: "flex",
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "flex-start",
+    alignItems: "stretch",
+    alignContent: "stretch",
   }
 }));
 
@@ -526,6 +532,7 @@ function CalibrateDialog(props) {
   function clearBlank() {
     return function() {
       var message = new Message("");
+      message.retained = true
       message.destinationName = [
         "pioreactor",
         props.unit,
@@ -627,7 +634,6 @@ function CalibrateDialog(props) {
 
 function SettingsActionsDialog(props) {
   const classes = useStyles();
-  const [defaultStirring, setDefaultStirring] = useState(0);
   const [open, setOpen] = useState(false);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
@@ -636,30 +642,6 @@ function SettingsActionsDialog(props) {
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue);
   };
-
-
-  useEffect(() => {
-    async function fetchData() {
-      await fetch("/get_config/config_" + props.unit + ".ini")
-        .then((response) => {
-            if (response.ok) {
-              return response.text();
-            } else {
-              throw new Error('Something went wrong');
-            }
-          })
-        .then((config) => {
-          config = parseINIString(config);
-          setDefaultStirring(
-            config["stirring"]["duty_cycle"]
-          );
-        })
-        .catch((error) => {})
-    }
-    if (!props.disabled) {
-      fetchData();
-    }
-  }, [props.disabled, props.unit]);
 
 
   function setPioreactorJobState(job, state) {
@@ -709,14 +691,6 @@ function SettingsActionsDialog(props) {
     }
   }
 
-  function setPioreactorStirring(e, value) {
-    setPioreactorJobAttr("stirring/duty_cycle", value);
-  }
-
-  function setPioreactorStirringDynamic(e, value) {
-    setPioreactorJobAttr("stirring/dc_increase_between_adc_readings", value ? 1 : 0);
-  }
-
 
   const handleClickOpen = () => {
     setOpen(true);
@@ -736,7 +710,7 @@ function SettingsActionsDialog(props) {
 
     switch (jobState){
       case "lost":
-        return (<div>
+        return (<div key={"patient_buttons_" + job}>
           <PatientButton
             color="secondary"
             variant="contained"
@@ -745,7 +719,7 @@ function SettingsActionsDialog(props) {
           />
         </div>)
       case "disconnected":
-       return (<div>
+       return (<div key={"patient_buttons_" + job}>
                <PatientButton
                 color="primary"
                 variant="contained"
@@ -755,7 +729,7 @@ function SettingsActionsDialog(props) {
               </div>)
       case "init":
       case "ready":
-        return (<div>
+        return (<div key={"patient_buttons_" + job}>
           <PatientButton
             color="secondary"
             variant="contained"
@@ -770,7 +744,7 @@ function SettingsActionsDialog(props) {
         </div>)
       case "sleeping":
         return (
-          <div>
+          <div key={"patient_buttons_" + job}>
             <PatientButton
               color="primary"
               variant="contained"
@@ -785,18 +759,11 @@ function SettingsActionsDialog(props) {
           </div>
           )
       default:
-        return(<div></div>)
+        return(<div key={"patient_buttons_" + job}></div>)
     }
    }
-
-  const stirringButtons = createUserButtonsBasedOnState(props.stirringJobState, "stirring")
-  const odButtons = createUserButtonsBasedOnState(props.ODReadingJobState, "od_reading")
-  const grButtons = createUserButtonsBasedOnState(props.growthRateJobState, "growth_rate_calculating")
-  const dosingButtons = createUserButtonsBasedOnState(props.dosingControlJobState, "dosing_control")
-  const ledButtons = createUserButtonsBasedOnState(props.ledControlJobState, "led_control")
-  const tempButtons = createUserButtonsBasedOnState(props.temperatureControlJobState, "temperature_control")
-
   const invertedLEDMap = Object.fromEntries(Object.entries(props.config['leds']).map(([k, v]) => [v, k]))
+  const buttons = Object.fromEntries(Object.entries(props.jobs).map( ([job_key, job], i) => [job_key, createUserButtonsBasedOnState(job.state, job_key)]))
 
   return (
     <div>
@@ -823,6 +790,136 @@ function SettingsActionsDialog(props) {
       </Tabs>
       </DialogTitle>
       <DialogContent>
+        <TabPanel value={tabValue} index={0}>
+          {Object.entries(props.jobs)
+            .filter(([job_key, job]) => job.metadata.display)
+            .map(([job_key, job]) =>
+            <div key={job_key}>
+              <Typography gutterBottom>
+                {job.metadata.name}
+              </Typography>
+              <Typography variant="body2" component="p" gutterBottom>
+                <div dangerouslySetInnerHTML={{__html: job.metadata.description}}/>
+              </Typography>
+
+              {buttons[job_key]}
+
+              <Divider className={classes.divider} />
+            </div>
+          )}
+        </TabPanel>
+
+        <TabPanel value={tabValue} index={1}>
+          {Object.values(props.jobs)
+            .filter(job => job.metadata.display)
+            .map(job =>
+            Object.entries(job)
+              .filter(([key, setting]) => (key !== "state") && (key !== "metadata"))
+              .filter(([_, setting]) => setting.display)
+              .map(([key, setting]) =>
+            <React.Fragment>
+              <Typography  gutterBottom>
+                {setting.label}
+              </Typography>
+              <Typography variant="body2" component="p">
+                {setting.description}
+              </Typography>
+              <TextField
+                size="small"
+                id={`${job.metadata.key.replace("_control", "_automation")}/${key}`}
+                defaultValue={setting.value}
+                InputProps={{
+                  endAdornment: <InputAdornment position="end">{setting.unit}</InputAdornment>,
+                }}
+                variant="outlined"
+                onKeyPress={setPioreactorJobAttrOnEnter}
+                className={classes.textFieldCompact}
+              />
+              <Divider className={classes.divider} />
+            </React.Fragment>
+
+          ))}
+
+
+          <Typography  gutterBottom>
+            Dosing automation
+          </Typography>
+          <Typography variant="body2" component="p" gutterBottom>
+            {props.jobs.dosing_control && props.jobs.dosing_control.state !== "disconnected" &&
+              <React.Fragment>
+              Currently running dosing automation <code>{props.jobs.dosing_control.dosing_automation.value}</code>.
+              Learn more about <a target="_blank" rel="noopener noreferrer" href="https://pioreactor.com/pages/dosing-automations">dosing automations</a>.
+              </React.Fragment>
+            }
+            {props.jobs.dosing_control && props.jobs.dosing_control.state === "disconnected" &&
+
+              <React.Fragment>
+              You can change the dosing automation after starting the Dosing control activity.
+              </React.Fragment>
+            }
+          </Typography>
+
+          <ButtonChangeDosingDialog
+            unit={props.unit}
+            config={props.config}
+            experiment={props.experiment}
+            currentDosingAutomation={props.jobs.dosing_control && props.jobs.dosing_control.dosing_automation.value}
+          />
+          <Divider className={classes.divider} />
+          <Typography  gutterBottom>
+            LED automation
+          </Typography>
+          <Typography variant="body2" component="p" gutterBottom>
+            {props.jobs.led_control && props.jobs.led_control.state !== "disconnected" &&
+              <React.Fragment>
+              Currently running LED automation <code>{props.props.jobs.led_control.led_automation.value}</code>.
+              Learn more about <a target="_blank" rel="noopener noreferrer" href="https://pioreactor.com/pages/led-automations">LED automations</a>.
+              </React.Fragment>
+            }
+            {props.jobs.led_control && props.jobs.led_control.state  === "disconnected" &&
+
+              <React.Fragment>
+              You can change the LED automation after starting the LED control activity.
+              </React.Fragment>
+            }
+          </Typography>
+
+          <ButtonChangeLEDDialog
+            unit={props.unit}
+            config={props.config}
+            experiment={props.experiment}
+            currentLEDAutomation={props.jobs.led_control && props.jobs.led_control.led_automation.value}
+          />
+          <Divider className={classes.divider} />
+
+          <Typography  gutterBottom>
+            Temperature automation
+          </Typography>
+          <Typography variant="body2" component="p" gutterBottom>
+            {props.jobs.temperature_control && props.jobs.temperature_control.state !== "disconnected" &&
+              <React.Fragment>
+              Currently running temperature automation <code>{props.jobs.temperature_control.temperature_automation.value}</code>.
+              Learn more about <a target="_blank" rel="noopener noreferrer" href="https://pioreactor.com/pages/temperature-automations">temperature automations</a>.
+              </React.Fragment>
+            }
+            {props.jobs.temperature_control && props.jobs.temperature_control.state === "disconnected" &&
+
+              <React.Fragment>
+              You can change the temperature automation after starting the Temperature control activity.
+              </React.Fragment>
+            }
+          </Typography>
+
+          <ButtonChangeTemperatureDialog
+            unit={props.unit}
+            config={props.config}
+            experiment={props.experiment}
+            currentTemperatureAutomation={props.jobs.temperature_control && props.jobs.temperature_control.temperature_automation.value}
+          />
+          <Divider className={classes.divider} />
+
+        </TabPanel>
+
         <TabPanel value={tabValue} index={2}>
           <Typography  gutterBottom>
             Add media
@@ -852,7 +949,6 @@ function SettingsActionsDialog(props) {
         </TabPanel>
 
         <TabPanel value={tabValue} index={3}>
-
           <Typography className={clsx(classes.suptitle)} color="textSecondary">
             {(invertedLEDMap['A']) ? "Channel A" : ""}
           </Typography>
@@ -888,334 +984,9 @@ function SettingsActionsDialog(props) {
             {(invertedLEDMap['D']) ? (invertedLEDMap['D'].replace("_", " ").replace("led", "LED")) : "Channel D" }
           </Typography>
           <ActionLEDForm channel="D" unit={props.unit} />
-
           <Divider className={classes.divider} />
         </TabPanel>
-        <TabPanel value={tabValue} index={1}>
-          <Typography  gutterBottom>
-            Stirring speed
-          </Typography>
-          <Typography variant="body2" component="p">
-            Modify the stirring RPM. This will effect the
-            optical density reading. Too low and the stirring may completely stop.
-          </Typography>
-          <div className={classes.slider}>
-            <Slider
-              defaultValue={parseInt(props.stirringDC)}
-              aria-labelledby="discrete-slider-custom"
-              step={1}
-              valueLabelDisplay="on"
-              id={"stirring/duty_cycle_" + props.unit}
-              key={"stirring/duty_cycle_" + props.unit}
-              onChangeCommitted={setPioreactorStirring}
-              marks={[
-                { value: 0, label: "0", key: "slider-0" },
-                { value: defaultStirring, label: "Default: " + defaultStirring, key: "slider-default"},
-                { value: 100, label: "100", key: "slider-100" },
-              ]}
-            />
-          </div>
 
-          <Divider className={classes.divider} />
-          <Typography  gutterBottom>
-            Dynamic stirring adjustments
-          </Typography>
-          <Typography variant="body2" component="p">
-            Enable adjusting of stirring speed when not taking optical density measurements. Turning this on
-            increases the oxygen transfer rate.
-          </Typography>
-
-          <div style={{marginLeft: "20px"}}>
-            <FormControlLabel
-              control={<Switch checked={props.stirringDynamic === 1} onChange={setPioreactorStirringDynamic} color="primary"/>}
-            />
-          </div>
-
-          <Divider className={classes.divider} />
-          <Typography gutterBottom>
-            Volume / dosing
-          </Typography>
-          <Typography variant="body2" component="p">
-            Change the volume per dilution. Typical values are between 0.0mL and
-            1.0mL.
-          </Typography>
-          <TextField
-            size="small"
-            id="dosing_automation/volume"
-            label="Volume / dosing"
-            defaultValue={props.volume}
-            InputProps={{
-              endAdornment: <InputAdornment position="end">mL</InputAdornment>,
-            }}
-            variant="outlined"
-            onKeyPress={setPioreactorJobAttrOnEnter}
-            className={classes.textFieldWide}
-          />
-
-          <Divider className={classes.divider} />
-          <Typography  gutterBottom>
-            Target OD
-          </Typography>
-          <Typography variant="body2" component="p">
-            Change the target optical density. Typical values are between 1.0 and
-            2.5 (arbitrary units)
-          </Typography>
-          <TextField
-            size="small"
-            id="dosing_automation/target_od"
-            label="Target optical density"
-            defaultValue={props.targetOD}
-            InputProps={{
-              endAdornment: <InputAdornment position="end">AU</InputAdornment>,
-            }}
-            variant="outlined"
-            onKeyPress={setPioreactorJobAttrOnEnter}
-            className={classes.textFieldWide}
-          />
-
-
-          <Divider className={classes.divider} />
-          <Typography  gutterBottom>
-            Duration between dosing events
-          </Typography>
-          <Typography variant="body2" component="p">
-            Change how long to wait between dilutions. Typically between 5 and 90 minutes. Changing this will immediately trigger
-            a dosing event.
-          </Typography>
-          <TextField
-            size="small"
-            id="dosing_automation/duration"
-            label="Duration"
-            defaultValue={props.duration}
-            InputProps={{
-              endAdornment: <InputAdornment position="end">min</InputAdornment>,
-            }}
-            variant="outlined"
-            onKeyPress={setPioreactorJobAttrOnEnter}
-            className={classes.textFieldWide}
-          />
-
-          <Divider className={classes.divider} />
-          <Typography  gutterBottom>
-            Target growth rate
-          </Typography>
-          <Typography variant="body2" component="p">
-            Change the target hourly growth rate - only applicable in{" "}
-            <code>morbidostat</code> mode. Typical values are between 0.05h⁻¹ and
-            0.4h⁻¹.
-          </Typography>
-          <TextField
-            size="small"
-            id="dosing_automation/target_growth_rate"
-            label="Target growth rate"
-            defaultValue={props.targetGrowthRate}
-            InputProps={{
-              endAdornment: <InputAdornment position="end">h⁻¹</InputAdornment>,
-            }}
-            variant="outlined"
-            onKeyPress={setPioreactorJobAttrOnEnter}
-            className={classes.textFieldWide}
-          />
-          <Divider className={classes.divider} />
-          <Typography  gutterBottom>
-            Target Temperature
-          </Typography>
-          <Typography variant="body2" component="p">
-            Change the target temperature. Lower bound is the ambient temperature, and
-            upperbound is 50℃.
-          </Typography>
-          <TextField
-            size="small"
-            id="temperature_automation/target_temperature"
-            label="Target temperature"
-            defaultValue={props.targetTemperature}
-            InputProps={{
-              endAdornment: <InputAdornment position="end">℃</InputAdornment>,
-            }}
-            variant="outlined"
-            onKeyPress={setPioreactorJobAttrOnEnter}
-            className={classes.textFieldWide}
-          />
-          <Divider className={classes.divider} />
-          <Typography  gutterBottom>
-            Dosing automation
-          </Typography>
-          <Typography variant="body2" component="p" gutterBottom>
-            {props.dosingControlJobState !== "disconnected" &&
-              <React.Fragment>
-              Currently running dosing automation <code>{props.dosingAutomation}</code>.
-              Learn more about <a target="_blank" rel="noopener noreferrer" href="https://pioreactor.com/pages/dosing-automations">dosing automations</a>.
-              </React.Fragment>
-            }
-            {props.dosingControlJobState === "disconnected" &&
-
-              <React.Fragment>
-              You can change the dosing automation after starting the Dosing control activity.
-              </React.Fragment>
-            }
-          </Typography>
-
-          <ButtonChangeDosingDialog
-            unit={props.unit}
-            config={props.config}
-            experiment={props.experiment}
-            currentDosingAutomation={props.dosingAutomation}
-          />
-          <Divider className={classes.divider} />
-          <Typography  gutterBottom>
-            LED automation
-          </Typography>
-          <Typography variant="body2" component="p" gutterBottom>
-            {props.ledControlJobState !== "disconnected" &&
-              <React.Fragment>
-              Currently running LED automation <code>{props.ledAutomation}</code>.
-              Learn more about <a target="_blank" rel="noopener noreferrer" href="https://pioreactor.com/pages/led-automations">LED automations</a>.
-              </React.Fragment>
-            }
-            {props.ledControlJobState === "disconnected" &&
-
-              <React.Fragment>
-              You can change the LED automation after starting the LED control activity.
-              </React.Fragment>
-            }
-          </Typography>
-
-          <ButtonChangeLEDDialog
-            unit={props.unit}
-            config={props.config}
-            experiment={props.experiment}
-            currentLEDAutomation={props.ledAutomation}
-          />
-          <Divider className={classes.divider} />
-
-          <Typography  gutterBottom>
-            Temperature automation
-          </Typography>
-          <Typography variant="body2" component="p" gutterBottom>
-            {props.temperatureControlJobState !== "disconnected" &&
-              <React.Fragment>
-              Currently running temperature automation <code>{props.tempAutomation}</code>.
-              Learn more about <a target="_blank" rel="noopener noreferrer" href="https://pioreactor.com/pages/temperature-automations">temperature automations</a>.
-              </React.Fragment>
-            }
-            {props.temperatureControlJobState === "disconnected" &&
-
-              <React.Fragment>
-              You can change the temperature automation after starting the Temperature control activity.
-              </React.Fragment>
-            }
-          </Typography>
-
-          <ButtonChangeTemperatureDialog
-            unit={props.unit}
-            config={props.config}
-            experiment={props.experiment}
-            currentTemperatureAutomation={props.tempAutomation}
-          />
-          <Divider className={classes.divider} />
-        </TabPanel>
-        <TabPanel value={tabValue} index={0}>
-          <Typography gutterBottom>
-            Stirring
-          </Typography>
-          <Typography variant="body2" component="p" gutterBottom>
-            Start, stop or pause the stirring on the Pioreactor. Stirring is needed for homogenous mixing.
-          </Typography>
-
-          {stirringButtons}
-
-          <Divider className={classes.divider} />
-          <Typography gutterBottom>
-            Optical density
-          </Typography>
-          <Typography variant="body2" component="p" gutterBottom>
-            Pausing the optical density readings will also pause
-            downstream activities that rely on optical density readings, like growth
-            rates.
-          </Typography>
-
-          {odButtons}
-
-          <Divider className={classes.divider} />
-          <Typography  gutterBottom>
-            Growth rate
-          </Typography>
-          <Typography variant="body2" component="p" gutterBottom>
-            Pausing the growth rate calculating will also pause
-            downstream activities that rely on it, like dosing events.
-          </Typography>
-
-          {grButtons}
-
-          <Divider className={classes.divider} />
-          <Typography  gutterBottom>
-            Dosing control
-          </Typography>
-          <Typography variant="body2" component="p" gutterBottom>
-            {props.dosingControlJobState !== "disconnected" &&
-              <React.Fragment>
-              Currently running dosing automation <code>{props.dosingAutomation}</code>.
-              Learn more about <a target="_blank" rel="noopener noreferrer" href="https://pioreactor.com/pages/dosing-automations">dosing automations</a>.
-              </React.Fragment>
-            }
-            {props.dosingControlJobState === "disconnected" &&
-
-              <React.Fragment>
-              Dosing events will initially start in <UnderlineSpan  title="silent mode performs no dosing operations."> <code>silent</code> </UnderlineSpan>  mode, and can be changed after.
-              Learn more about <a target="_blank" rel="noopener noreferrer" href="https://pioreactor.com/pages/dosing-automations">dosing automations</a>.
-              </React.Fragment>
-            }
-          </Typography>
-
-            {dosingButtons}
-
-          <Divider className={classes.divider} />
-          <Typography  gutterBottom>
-            LED control
-          </Typography>
-          <Typography variant="body2" component="p" gutterBottom>
-            {props.ledControlJobState !== "disconnected" &&
-              <React.Fragment>
-              Currently running LED automation <code>{props.ledAutomation}</code>.
-              Learn more about <a target="_blank" rel="noopener noreferrer" href="https://pioreactor.com/pages/led-automations">LED automations</a>.
-              </React.Fragment>
-            }
-            {props.ledControlJobState === "disconnected" &&
-
-              <React.Fragment>
-              LED controls will initially start in <UnderlineSpan title="silent mode performs no LED adjustments."><code>silent</code></UnderlineSpan> mode, and can be changed after.
-              Learn more about <a target="_blank" rel="noopener noreferrer" href="https://pioreactor.com/pages/led-automations">LED automations</a>.
-              </React.Fragment>
-            }
-          </Typography>
-
-            {ledButtons}
-
-          <Divider className={classes.divider} />
-          <Typography  gutterBottom>
-            Temperature control
-          </Typography>
-
-          <Typography variant="body2" component="p" gutterBottom>
-            {props.temperatureControlJobState !== "disconnected" &&
-              <React.Fragment>
-              Currently running temperature automation <code>{props.tempAutomation}</code>.
-              Learn more about <a target="_blank" rel="noopener noreferrer" href="https://pioreactor.com/pages/temperature-automations">temperature automations</a>.
-              </React.Fragment>
-            }
-            {props.temperatureControlJobState === "disconnected" &&
-
-              <React.Fragment>
-              Temperature controls will initially start in <UnderlineSpan title="silent mode performs no temperature adjustments."><code>silent</code></UnderlineSpan> mode, and can be changed after.
-              Learn more about <a target="_blank" rel="noopener noreferrer" href="https://pioreactor.com/pages/temperature-automations">temperature automations</a>.
-              </React.Fragment>
-            }
-          </Typography>
-
-            {tempButtons}
-
-          <Divider className={classes.divider} />
-        </TabPanel>
       </DialogContent>
     </Dialog>
     <Snackbar
@@ -1361,7 +1132,7 @@ function SettingsActionsDialogAll(props) {
 
 
   function createUserButtonsBasedOnState(job){
-    return (<div>
+    return (<div key={job}>
         <Button
           className={classes.jobButton}
           disableElevation
@@ -1761,65 +1532,72 @@ function PioreactorCard(props){
   const unit = props.unit
   const isUnitActive = props.isUnitActive
   const experiment = props.experiment
+  const [fetchComplete, setFetchComplete] = useState(false)
 
   const [client, setClient] = useState(null)
+  const [jobs, setJobs] = useState({
+    monitor: {
+      state : "disconnected", metadata: {display: false}
+    },
+  })
 
-  const [stirringJobState, setStirringJobState] = useState("disconnected");
-  const [ODReadingJobState, setODReadingJobState] = useState("disconnected");
-  const [growthRateJobState, setGrowthRateJobState] = useState("disconnected");
-  const [dosingControlJobState, setSosingControlJobState] = useState("disconnected");
-  const [monitorJobState, setMonitorJobState] = useState("disconnected");
-  const [temperatureControlJobState, setTemperatureControlJobState] = useState("disconnected");
-  const [ledControlJobState, setLEDControlJobState] = useState("disconnected");
-  const [stirringDC, setStirringDC] = useState(0);
-  const [stirringDynamic, setStirringDynamic] = useState(0);
-  const [targetOD, setTargetOD] = useState(0);
-  const [targetTemperature, setTargetTemperature] = useState(0);
-  const [duration, setDuration] = useState(0);
-  const [targetGrowthRate, setTargetGrowthRate] = useState(0);
-  const [volume, setVolume] = useState(0);
-  const [dosingAutomation, setDosingAutomation] = useState(null);
-  const [ledAutomation, setLedAutomation] = useState(null);
-  const [tempAutomation, setTempAutomation] = useState(null);
-  const [ledIntensity, setLEDIntensity] = useState("");
-  const [odBlankReading, setOdBlankReading] = useState(null);
-  const [odBlankJobState, setOdBlankJobState] = useState("disconnected")
-
-  const topicsToCallback = {
-    [["pioreactor", unit, experiment, "led_control/$state"                  ].join("/")]: setLEDControlJobState,
-    [["pioreactor", unit, experiment, "stirring/$state"                     ].join("/")]: setStirringJobState,
-    [["pioreactor", unit, experiment, "od_reading/$state"                   ].join("/")]: setODReadingJobState,
-    [["pioreactor", unit, experiment, "dosing_control/$state"               ].join("/")]: setSosingControlJobState,
-    [["pioreactor", unit, experiment, "growth_rate_calculating/$state"      ].join("/")]: setGrowthRateJobState,
-    [["pioreactor", unit, experiment, "temperature_control/$state"          ].join("/")]: setTemperatureControlJobState,
-    [["pioreactor", unit, "$experiment", "monitor/$state"                   ].join("/")]: setMonitorJobState,
-    [["pioreactor", unit, experiment, "stirring/duty_cycle"                 ].join("/")]: setStirringDC,
-    [["pioreactor", unit, experiment, "stirring/dc_increase_between_adc_readings" ].join("/")]: setStirringDynamic,
-    [["pioreactor", unit, experiment, "dosing_automation/target_od"         ].join("/")]: setTargetOD,
-    [["pioreactor", unit, experiment, "temperature_automation/target_temperature" ].join("/")]: setTargetTemperature,
-    [["pioreactor", unit, experiment, "dosing_automation/duration"          ].join("/")]: setDuration,
-    [["pioreactor", unit, experiment, "dosing_automation/target_growth_rate"].join("/")]: setTargetGrowthRate,
-    [["pioreactor", unit, experiment, "dosing_automation/volume"            ].join("/")]: setVolume,
-    [["pioreactor", unit, experiment, "dosing_control/dosing_automation"    ].join("/")]: setDosingAutomation,
-    [["pioreactor", unit, experiment, "led_control/led_automation"          ].join("/")]: setLedAutomation,
-    [["pioreactor", unit, experiment, "temperature_control/temperature_automation" ].join("/")]: setTempAutomation,
-    [["pioreactor", unit, experiment, "leds/intensity"                      ].join("/")]: setLEDIntensity,
-    [["pioreactor", unit, experiment, "od_blank/mean"                       ].join("/")]: setOdBlankReading,
-    [["pioreactor", unit, experiment, "od_blank/$state"                     ].join("/")]: setOdBlankJobState,
-  }
 
 
   useEffect(() => {
+    function fetchContribBackgroundJobs() {
+      fetch("/contrib/background_jobs")
+        .then((response) => {
+            if (response.ok) {
+              return response.json();
+            } else {
+              throw new Error('Something went wrong');
+            }
+          })
+        .then((listOfJobs) => {
+          for (const job of listOfJobs){
+            var metaData_ = {state: "disconnected", metadata: {name: job.name, subtext: job.subtext, display: job.display, description: job.description, key: job.job_name}}
+            for(var i = 0; i < job["editable_settings"].length; ++i){
+              var field = job["editable_settings"][i]
+              metaData_[field.key] = {value: field.default, label: field.label, type: field.type, unit: field.unit, display: field.display, description: field.description}
+            }
+            setJobs((prev) => ({...prev, [job.job_name]: metaData_}))
+          }
+          setFetchComplete(true)
+        })
+        .catch((error) => {})
+    }
+    fetchContribBackgroundJobs();
+  }, [])
+
+  useEffect(() => {
     const onConnect = () => {
-      for (const topic of Object.keys(topicsToCallback)) {
-        client.subscribe(topic);
+      client.subscribe(["pioreactor", unit, "$experiment", "monitor/$state"].join());
+
+      for (const job of Object.keys(jobs)) {
+        if (job === "monitor") {continue;}
+        client.subscribe(["pioreactor", unit, experiment, job, "$state"].join("/"));
+        for (const setting of Object.keys(jobs[job])){
+          if ((setting !== "state") && (setting !== "metadata")){
+            client.subscribe(["pioreactor", unit, experiment, setting.endsWith("_automation") ? job : job.replace("_control", "_automation"), setting].join("/"));
+          }
+        }
       }
     }
 
     const onMessageArrived = (message) => {
       var parsedFloat = parseFloat(message.payloadString); // try to parse it as a float first
-      var payload = isNaN(parsedFloat) ? message.payloadString : parsedFloat
-      topicsToCallback[message.topic](payload)
+      var payload = isNaN(parsedFloat) ? message.payloadString : parsedFloat;
+      var [job, setting] = message.topic.split('/').slice(-2)
+      if (setting === "$state"){
+        setJobs((prev) => ({...prev, [job]: {...prev[job], state: payload}}))
+      } else if (job.endsWith("_automation")) {
+        // needed because settings are attached to _automations, not _control
+        job = job.replace("_automation", "_control")
+        setJobs((prev) => ({...prev, [job]: {...prev[job], [setting]: {...prev[job][setting], value: payload }}}))
+      } else {
+        console.log(job, setting)
+        setJobs((prev) => ({...prev, [job]: {...prev[job], [setting]: {...prev[job][setting], value: payload }}}))
+      }
     }
 
     if (!props.config['network.topology']){
@@ -1849,11 +1627,12 @@ function PioreactorCard(props){
     client.onMessageArrived = onMessageArrived
     client.connect({onSuccess: onConnect, reconnect: true});
     setClient(client)
-  },[props.config, props.experiment])
+  },[props.config, props.experiment, fetchComplete])
 
-  const indicatorDotColor = (monitorJobState === "disconnected") ? disconnectedGrey : ((monitorJobState === "lost") ? lostRed : readyGreen)
-  const indicatorDotShadow = (monitorJobState === "disconnected") ? 0 : 6
-  const indicatorLabel = (monitorJobState === "disconnected") ? (isUnitActive ? "Offline, need to power up" : "Offline, change inventory status in config.ini") : ((monitorJobState === "lost") ? "Lost, something went wrong..." : "Online")
+  const indicatorDotColor = (jobs.monitor.state === "disconnected") ? disconnectedGrey : ((jobs.monitor.state === "lost") ? lostRed : readyGreen)
+  const indicatorDotShadow = (jobs.monitor.state === "disconnected") ? 0 : 6
+  const indicatorLabel = (jobs.monitor.state === "disconnected") ? (isUnitActive ? "Offline, need to power up" : "Offline, change inventory status in config.ini") : ((jobs.monitor.state === "lost") ? "Lost, something went wrong..." : "Online")
+
 
   return (
     <Card className={classes.pioreactorCard} id={unit}>
@@ -1883,9 +1662,9 @@ function PioreactorCard(props){
                 <CalibrateDialog
                   config={props.config}
                   client={client}
-                  odBlankReading={odBlankReading}
-                  odBlankJobState={odBlankJobState}
-                  stirringJobState={stirringJobState}
+                  odBlankReading={jobs['od_blank'] ? jobs['od_blank'].mean.value : null}
+                  odBlankJobState={jobs['od_blank'] ? jobs['od_blank'].state : null}
+                  stirringJobState={jobs['stirring'] ? jobs['stirring'].state : null}
                   experiment={experiment}
                   unit={unit}
                   disabled={!isUnitActive}
@@ -1896,23 +1675,8 @@ function PioreactorCard(props){
                 client={client}
                 unit={unit}
                 disabled={!isUnitActive}
-                stirringJobState={stirringJobState}
-                ODReadingJobState={ODReadingJobState}
-                growthRateJobState={growthRateJobState}
-                dosingControlJobState={dosingControlJobState}
-                ledControlJobState={ledControlJobState}
-                temperatureControlJobState={temperatureControlJobState}
-                stirringDC={stirringDC}
-                stirringDynamic={stirringDynamic}
-                targetGrowthRate={targetGrowthRate}
-                volume={volume}
-                duration={duration}
-                targetOD={targetOD}
-                targetTemperature={targetTemperature}
-                dosingAutomation={dosingAutomation}
-                ledAutomation={ledAutomation}
-                tempAutomation={tempAutomation}
                 experiment={experiment}
+                jobs={jobs}
               />
             </div>
           </div>
@@ -1932,84 +1696,25 @@ function PioreactorCard(props){
           </Typography>
         </div>
         <div
-         style={{
-          display: "flex",
-          flexDirection: "row",
-          flexWrap: "wrap",
-          justifyContent: "flex-start",
-          alignItems: "stretch",
-          alignContent: "stretch",
-        }}
+         className={classes.rowOfUnitSettingDisplay}
         >
-          <div className={classes.textbox}>
-            <Typography variant="body2" style={{fontSize: "0.82rem"}} className={clsx({[classes.disabledText]: !isUnitActive})}>
-              Stirring
-            </Typography>
-            <UnitSettingDisplay
-              value={stirringJobState}
-              isUnitActive={isUnitActive}
-              default="disconnected"
-              isStateSetting
-            />
-          </div>
-          <div className={classes.textbox}>
-            <Typography variant="body2" style={{fontSize: "0.82rem"}} className={clsx({[classes.disabledText]: !isUnitActive})}>
-              Optical density
-            </Typography>
-            <UnitSettingDisplay
-              value={ODReadingJobState}
-              isUnitActive={isUnitActive}
-              default="disconnected"
-              isStateSetting
-            />
-          </div>
-          <div className={classes.textbox}>
-            <Typography variant="body2" style={{fontSize: "0.82rem"}} className={clsx({[classes.disabledText]: !isUnitActive})}>
-              Growth rate
-            </Typography>
-            <UnitSettingDisplay
-              value={growthRateJobState}
-              isUnitActive={isUnitActive}
-              default="disconnected"
-              isStateSetting
-            />
-          </div>
-          <div className={classes.textbox}>
-            <Typography variant="body2" style={{fontSize: "0.82rem"}} className={clsx({[classes.disabledText]: !isUnitActive})}>
-              Dosing control
-            </Typography>
-            <UnitSettingDisplay
-              value={dosingControlJobState}
-              isUnitActive={isUnitActive}
-              default="disconnected"
-              subtext={dosingAutomation}
-              isStateSetting
-            />
-          </div>
-          <div className={classes.textbox}>
-            <Typography variant="body2" style={{fontSize: "0.82rem"}} className={clsx({[classes.disabledText]: !isUnitActive})}>
-              LED control
-            </Typography>
-            <UnitSettingDisplay
-              value={ledControlJobState}
-              isUnitActive={isUnitActive}
-              default="disconnected"
-              subtext={ledAutomation}
-              isStateSetting
-            />
-          </div>
-          <div className={classes.textbox}>
-            <Typography variant="body2" style={{fontSize: "0.82rem"}} className={clsx({[classes.disabledText]: !isUnitActive})}>
-              Temperature control
-            </Typography>
-            <UnitSettingDisplay
-              value={temperatureControlJobState}
-              isUnitActive={isUnitActive}
-              subtext={tempAutomation}
-              default="NA"
-              isStateSetting
-            />
-          </div>
+          {Object.values(jobs)
+              .filter(job => job.metadata.display)
+              .map(job => (
+            <div className={classes.textbox} key={job.metadata.key}>
+              <Typography variant="body2" style={{fontSize: "0.82rem"}} className={clsx({[classes.disabledText]: !isUnitActive})}>
+                {job.metadata.name}
+              </Typography>
+              <UnitSettingDisplay
+                value={job.state}
+                isUnitActive={isUnitActive}
+                default="disconnected"
+                subtext={job.metadata.subtext ? job[job.metadata.subtext].value : null}
+                isStateSetting
+              />
+            </div>
+         ))}
+
         </div>
       </div>
 
@@ -2028,105 +1733,28 @@ function PioreactorCard(props){
           </Typography>
         </div>
         <div
-         style={{
-          display: "flex",
-          flexDirection: "row",
-          flexWrap: "wrap",
-          justifyContent: "flex-start",
-          alignItems: "stretch",
-          alignContent: "stretch",
-        }}
+         className={classes.rowOfUnitSettingDisplay}
         >
-          <div className={classes.textbox}>
-            <Typography variant="body2" style={{fontSize: "0.82rem"}} className={clsx({[classes.disabledText]: !isUnitActive})}>
-              Stirring speed
-            </Typography>
-            <UnitSettingDisplay
-              value={stirringDC}
-              isUnitActive={isUnitActive}
-              measurementUnit=" RPM"
-              default="—"
-              className={classes.alignRight}
-            />
-          </div>
-          <div className={classes.textbox}>
-            <Typography variant="body2" style={{fontSize: "0.82rem"}} className={clsx({[classes.disabledText]: !isUnitActive})}>
-              Volume / dosing
-            </Typography>
-            <UnitSettingDisplay
-              precision={2}
-              measurementUnit="mL"
-              value={volume}
-              isUnitActive={isUnitActive}
-              default="—"
-              className={classes.alignRight}
-            />
-          </div>
-          <div className={classes.textbox}>
-            <Typography variant="body2" style={{fontSize: "0.82rem"}} className={clsx({[classes.disabledText]: !isUnitActive})}>
-              Target OD
-            </Typography>
-            <UnitSettingDisplay
-              precision={2}
-              value={targetOD}
-              measurementUnit=" AU"
-              isUnitActive={isUnitActive}
-              default={"—"}
-              className={classes.alignRight}
-            />
-          </div>
-          <div className={classes.textbox}>
-            <Typography variant="body2" style={{fontSize: "0.82rem"}} className={clsx({[classes.disabledText]: !isUnitActive})}>
-              Target growth rate
-            </Typography>
-            <UnitSettingDisplay
-              precision={2}
-              measurementUnit="h⁻¹"
-              value={targetGrowthRate}
-              isUnitActive={isUnitActive}
-              default="—"
-              className={classes.alignRight}
-            />
-          </div>
-          <div className={classes.textbox}>
-            <Typography variant="body2" style={{fontSize: "0.82rem"}} className={clsx({[classes.disabledText]: !isUnitActive})}>
-              Time between dosing events
-            </Typography>
-            <UnitSettingDisplay
-              precision={0}
-              measurementUnit="m"
-              value={duration}
-              isUnitActive={isUnitActive}
-              default="—"
-              className={classes.alignRight}
-            />
-          </div>
-          <div className={classes.textbox}>
-            <Typography variant="body2" style={{fontSize: "0.82rem"}} className={clsx({[classes.disabledText]: !isUnitActive})}>
-              LED intensity
-            </Typography>
-            <UnitSettingDisplay
-              value={ledIntensity}
-              isUnitActive={isUnitActive}
-              default="—"
-              className={classes.alignRight}
-              config={props.config}
-              isLEDIntensity
-            />
-          </div>
-          <div className={classes.textbox}>
-            <Typography variant="body2" style={{fontSize: "0.82rem"}} className={clsx({[classes.disabledText]: !isUnitActive})}>
-              Target temperature
-            </Typography>
-            <UnitSettingDisplay
-              precision={2}
-              value={targetTemperature}
-              measurementUnit="℃"
-              isUnitActive={isUnitActive}
-              default={"—"}
-              className={classes.alignRight}
-            />
-          </div>
+          {Object.values(jobs).map(job =>
+            Object.entries(job)
+              .filter(([key, setting]) => (key !== "state") && (key !== "metadata"))
+              .filter(([_, setting]) => setting.display)
+              .map(([key, setting]) =>
+            <div className={classes.textbox} key={job.metadata.key + key}>
+              <Typography variant="body2" style={{fontSize: "0.82rem"}} className={clsx({[classes.disabledText]: !isUnitActive})}>
+                {setting.label}
+              </Typography>
+              <UnitSettingDisplay
+                value={setting.value}
+                isUnitActive={isUnitActive}
+                measurementUnit={setting.unit}
+                default="—"
+                className={classes.alignRight}
+                isLEDIntensity={setting.label === "LED intensity"}
+                config={props.config}
+              />
+            </div>
+         ))}
         </div>
       </div>
 

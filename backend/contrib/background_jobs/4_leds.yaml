@@ -1,0 +1,9 @@
+---
+name: led intensity
+job_name: leds
+display: false
+editable_settings:
+  - key: intensity
+    label: LED intensity
+    type: text
+    display: true
