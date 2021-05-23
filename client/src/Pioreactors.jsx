@@ -472,9 +472,9 @@ function PatientButton(props) {
 
   useEffect(
     () => {
-      setButtonText(props.buttonText)
+      setButtonText(buttonText)
     }
-  , [props.buttonText])
+  , [buttonText])
 
   function wrappingOnClick() {
     function f() {
@@ -921,7 +921,7 @@ function SettingsActionsDialog(props) {
             Add media
           </Typography>
           <Typography variant="body2" component="p">
-            Run the media pump{props.isPlural ? "s" : ""} for a set duration (seconds), or a set volume (mL).
+            Run the media pump for a set duration (seconds), or a set volume (mL).
           </Typography>
           <ActionDosingForm action="add_media" unit={props.unit} />
           <Divider className={classes.divider} />
@@ -929,7 +929,7 @@ function SettingsActionsDialog(props) {
             Remove waste
           </Typography>
           <Typography variant="body2" component="p">
-            Run the waste pump{props.isPlural ? "s" : ""} for a set duration (seconds), or a set volume (mL).
+            Run the waste pump for a set duration (seconds), or a set volume (mL).
           </Typography>
           <ActionDosingForm action="remove_waste" unit={props.unit} />
           <Divider className={classes.divider} />
@@ -937,7 +937,7 @@ function SettingsActionsDialog(props) {
             Add alternative media
           </Typography>
           <Typography variant="body2" component="p">
-            Run the alternative media pump{props.isPlural ? "s" : ""} for a set duration (seconds), or a set
+            Run the alternative media pump for a set duration (seconds), or a set
             volume (mL).
           </Typography>
           <ActionDosingForm action="add_alt_media" unit={props.unit} />
@@ -999,7 +999,7 @@ function SettingsActionsDialog(props) {
 }
 
 
-function SettingsActionsDialogAll(props) {
+function SettingsActionsDialogAll({config, experiment}) {
 
   const classes = useStyles();
   const unit = "$broadcast"
@@ -1040,25 +1040,25 @@ function SettingsActionsDialogAll(props) {
 
 
   useEffect(() => {
-    if (!props.config['network.topology']){
+    if (!config['network.topology']){
       return
     }
 
     var client
-    if (props.config.remote && props.config.remote.ws_url) {
+    if (config.remote && config.remote.ws_url) {
       client = new Client(
-        `ws://${props.config.remote.ws_url}/`,
+        `ws://${config.remote.ws_url}/`,
         "webui_SettingsActionsDialogAll" + Math.random()
       )}
     else {
       client = new Client(
-        `${props.config['network.topology']['leader_address']}`, 9001,
+        `${config['network.topology']['leader_address']}`, 9001,
         "webui_SettingsActionsDialogAll" + Math.random()
       );
     }
     client.connect({timeout: 180, reconnect: true});
     setClient(client)
-  },[props.config])
+  },[config])
 
 
   const handleTabChange = (event, newValue) => {
@@ -1071,7 +1071,7 @@ function SettingsActionsDialogAll(props) {
       message.destinationName = [
         "pioreactor",
         unit,
-        props.experiment,
+        experiment,
         job.metadata.key,
         "$state",
         "set",
@@ -1110,7 +1110,7 @@ function SettingsActionsDialogAll(props) {
     message.destinationName = [
       "pioreactor",
       unit,
-      props.experiment,
+      experiment,
       job_attr,
       "set",
     ].join("/");
@@ -1273,8 +1273,8 @@ function SettingsActionsDialogAll(props) {
 
           <ButtonChangeDosingDialog
             unit={unit}
-            config={props.config}
-            experiment={props.experiment}
+            config={config}
+            experiment={experiment}
             currentDosingAutomation={true}
             title="All active Pioreactors"
           />
@@ -1288,8 +1288,8 @@ function SettingsActionsDialogAll(props) {
 
           <ButtonChangeLEDDialog
             unit={unit}
-            config={props.config}
-            experiment={props.experiment}
+            config={config}
+            experiment={experiment}
             currentLEDAutomation={true}
             title="All active Pioreactors"
           />
@@ -1303,8 +1303,8 @@ function SettingsActionsDialogAll(props) {
 
           <ButtonChangeTemperatureDialog
             unit={unit}
-            config={props.config}
-            experiment={props.experiment}
+            config={config}
+            experiment={experiment}
             currentTemperatureAutomation={true}
             title="All active Pioreactors"
           />
@@ -1316,7 +1316,7 @@ function SettingsActionsDialogAll(props) {
             Add media
           </Typography>
           <Typography variant="body2" component="p">
-            Run the media pump{props.isPlural ? "s" : ""} for a set duration (seconds), or a set volume (mL).
+            Run the media pumps for a set duration (seconds), or a set volume (mL).
           </Typography>
           <ActionDosingForm action="add_media" unit={unit} />
           <Divider className={classes.divider} />
@@ -1324,7 +1324,7 @@ function SettingsActionsDialogAll(props) {
             Add alternative media
           </Typography>
           <Typography variant="body2" component="p">
-            Run the alternative media pump{props.isPlural ? "s" : ""} for a set duration (seconds), or a set
+            Run the alternative media pumps for a set duration (seconds), or a set
             volume (mL).
           </Typography>
           <ActionDosingForm action="add_alt_media" unit={unit} />
@@ -1333,7 +1333,7 @@ function SettingsActionsDialogAll(props) {
             Remove waste
           </Typography>
           <Typography variant="body2" component="p">
-            Run the waste pump{props.isPlural ? "s" : ""} for a set duration (seconds), or a set volume (mL).
+            Run the waste pumps for a set duration (seconds), or a set volume (mL).
           </Typography>
           <ActionDosingForm action="remove_waste" unit={unit} />
           <Divider className={classes.divider} />
@@ -1446,6 +1446,7 @@ function PioreactorCard(props){
   const unit = props.unit
   const isUnitActive = props.isUnitActive
   const experiment = props.experiment
+  const config = props.config
   const [fetchComplete, setFetchComplete] = useState(false)
 
   const [client, setClient] = useState(null)
@@ -1542,7 +1543,7 @@ function PioreactorCard(props){
     client.onMessageArrived = onMessageArrived
     client.connect({onSuccess: onConnect, reconnect: true});
     setClient(client)
-  },[props.config, experiment, fetchComplete, isUnitActive])
+  },[config, experiment, fetchComplete, isUnitActive])
 
   const indicatorDotColor = (jobs.monitor.state === "disconnected") ? disconnectedGrey : ((jobs.monitor.state === "lost") ? lostRed : readyGreen)
   const indicatorDotShadow = (jobs.monitor.state === "disconnected") ? 0 : 6
@@ -1696,11 +1697,11 @@ function InactiveUnits(props){
     </React.Fragment>
 )}
 
-function Pioreactors(props) {
+function Pioreactors({title, config}) {
     const [experimentMetadata, setExperimentMetadata] = React.useState({})
 
     React.useEffect(() => {
-      document.title = props.title;
+      document.title = title;
       async function getLatestExperiment() {
            await fetch("/get_latest_experiment")
           .then((response) => {
@@ -1711,7 +1712,7 @@ function Pioreactors(props) {
           });
         }
       getLatestExperiment()
-    }, [props.title])
+    }, [title])
 
     const entries = (a) => Object.entries(a)
 
@@ -1720,11 +1721,11 @@ function Pioreactors(props) {
 
 
           <Grid item md={12} xs={12}>
-            <PioreactorHeader config={props.config} experiment={experimentMetadata.experiment}/>
-            <ActiveUnits experiment={experimentMetadata.experiment} config={props.config} units={props.config['network.inventory'] ? entries(props.config['network.inventory']).filter((v) => v[1] === "1").map((v) => v[0]) : [] }/>
-            <InactiveUnits experiment={experimentMetadata.experiment} config={props.config} units={props.config['network.inventory'] ? entries(props.config['network.inventory']).filter((v) => v[1] === "0").map((v) => v[0]) : [] }/>
+            <PioreactorHeader config={config} experiment={experimentMetadata.experiment}/>
+            <ActiveUnits experiment={experimentMetadata.experiment} config={config} units={config['network.inventory'] ? entries(config['network.inventory']).filter((v) => v[1] === "1").map((v) => v[0]) : [] }/>
+            <InactiveUnits experiment={experimentMetadata.experiment} config={config} units={config['network.inventory'] ? entries(config['network.inventory']).filter((v) => v[1] === "0").map((v) => v[0]) : [] }/>
           </Grid>
-          {props.config['ui.rename'] ? <TactileButtonNotification config={props.config}/> : null}
+          {config['ui.rename'] ? <TactileButtonNotification config={config}/> : null}
         </Grid>
     )
 }
