@@ -326,6 +326,20 @@ app.get("/contrib/automations/:type", function(req, res) {
 })
 
 
+app.get("/contrib/background_jobs", function(req, res) {
+  try {
+    const automationPath = path.join(process.env.CONTRIB_FOLDER, "background_jobs")
+    var files = fs.readdirSync(automationPath).filter(fn => (fn.endsWith('.yml') || fn.endsWith('.yaml')));
+    var jsonDesc = files.map(file => yaml.load(fs.readFileSync(path.join(automationPath, file))))
+    res.json(jsonDesc)
+  } catch (e) {
+    console.log(e);
+    res.sendStatus(500)
+  }
+})
+
+
+
 app.post("/update_app", function (req, res) {
     var child = cp.fork('./child_tasks/update_app');
     child.on('message', function(result) {
