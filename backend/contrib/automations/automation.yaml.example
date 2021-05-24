@@ -1,6 +1,6 @@
 ---
-name: my name
-key: my_name
+name: my name  # human readable name
+key: my_name   # the corresponding name of the automation from the Python code.
 fields:
   - key: duration
     default: 30
