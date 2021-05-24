@@ -41,6 +41,7 @@ const useStyles = makeStyles((theme) => ({
 
 function ButtonChangeDosingDialog(props) {
   const classes = useStyles();
+  const config = props.config
   const [open, setOpen] = useState(false);
   const [algoSettings, setAlgoSettings] = useState({dosing_automation: "silent", skip_first_run: false})
   const [isClicked, setIsClicked] = useState(false)
@@ -68,19 +69,19 @@ function ButtonChangeDosingDialog(props) {
 
   useEffect(() => {
     // MQTT - client ids should be unique
-    if (!props.config['network.topology']){
+    if (!config['network.topology']){
       return
     }
 
     var client
-    if (props.config.remote && props.config.remote.ws_url) {
+    if (config.remote && config.remote.ws_url) {
       client = new Client(
-        `ws://${props.config.remote.ws_url}/`,
+        `ws://${config.remote.ws_url}/`,
         "webui_ButtonChangeDosingDialog" + Math.random()
       )}
     else {
       client = new Client(
-        `${props.config['network.topology']['leader_address']}`, 9001,
+        `${config['network.topology']['leader_address']}`, 9001,
         "webui_ButtonChangeDosingDialog" + Math.random()
       );
     }
@@ -88,7 +89,7 @@ function ButtonChangeDosingDialog(props) {
     client.connect();
     setClient(client)
 
-  },[props.config])
+  },[config])
 
   const handleClickOpen = () => {
     setOpen(true);
@@ -132,7 +133,6 @@ function ButtonChangeDosingDialog(props) {
     setOpen(false);
   }
 
-
   return (
     <div>
     <Button
@@ -147,7 +147,7 @@ function ButtonChangeDosingDialog(props) {
     <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title" PaperProps={{style: {height: "100%"}}}>
       <DialogTitle>
         <Typography className={classes.suptitle}>
-          <PioreactorIcon style={{verticalAlign: "middle", fontSize: "1.2em"}}/> {props.title || ((props.config['ui.rename'] && props.config['ui.rename'][props.unit]) ? `${props.config['ui.rename'][props.unit]} (${props.unit})` : `${props.unit}`)}
+          <PioreactorIcon style={{verticalAlign: "middle", fontSize: "1.2em"}}/> {props.title || ((config['ui.rename'] && config['ui.rename'][props.unit]) ? `${config['ui.rename'][props.unit]} (${props.unit})` : `${props.unit}`)}
         </Typography>
         <Typography className={classes.unitTitleDialog}>
           Dosing automation

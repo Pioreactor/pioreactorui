@@ -15,18 +15,18 @@ const useStyles = makeStyles((theme) => ({
 
 
 
-function AutomationForm({fields, updateParent}){
+function AutomationForm(props){
   const classes = useStyles();
-  const defaults = Object.assign({}, ...fields.map(field => ({[field.key]: field.default})))
+  const defaults = Object.assign({}, ...props.fields.map(field => ({[field.key]: field.default})))
 
   useEffect(() => {
-    updateParent(defaults)
-  }, [fields, updateParent, defaults])
+    props.updateParent(defaults)
+  }, [props.fields])
 
   const onSettingsChange = (e) => {
-    updateParent({[e.target.id]: e.target.value})
+    props.updateParent({[e.target.id]: e.target.value})
   }
-  var listOfTextField = fields.map(field =>
+  var listOfTextField = props.fields.map(field =>
         <TextField
           size="small"
           id={field.key}
