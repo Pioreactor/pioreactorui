@@ -773,6 +773,15 @@ function SettingsActionsDialog(props) {
   const invertedLEDMap = Object.fromEntries(Object.entries(props.config['leds']).map(([k, v]) => [v, k]))
   const buttons = Object.fromEntries(Object.entries(props.jobs).map( ([job_key, job], i) => [job_key, createUserButtonsBasedOnState(job.state, job_key)]))
 
+  const stateDisplay = {
+    "init":          {display: "Starting", color: readyGreen},
+    "ready":         {display: "On", color: readyGreen},
+    "sleeping":      {display: "Paused", color: disconnectedGrey},
+    "disconnected":  {display: "Off", color: disconnectedGrey},
+    "lost":          {display: "Lost", color: lostRed},
+    "NA":            {display: "Not available", color: disconnectedGrey},
+  }
+
   return (
     <div>
     <Button style={{textTransform: 'none', float: "right" }} disabled={props.disabled} onClick={handleClickOpen} color="primary">
@@ -799,12 +808,21 @@ function SettingsActionsDialog(props) {
       </DialogTitle>
       <DialogContent>
         <TabPanel value={tabValue} index={0}>
+          {/* Activities panel */}
           {Object.entries(props.jobs)
             .filter(([job_key, job]) => job.metadata.display)
             .map(([job_key, job]) =>
             <div key={job_key}>
-              <Typography gutterBottom>
-                {job.metadata.name} {job.metadata.source !== "app" ? `(Installed by ${job.metadata.source})` : ""}
+              <div style={{justifyContent: "space-between", display: "flex"}}>
+                <Typography display="block">
+                  {job.metadata.name}
+                </Typography>
+                <Typography display="block" gutterBottom>
+                  <span style={{color:stateDisplay[job.state].color}}>{stateDisplay[job.state].display}</span>
+                </Typography>
+              </div>
+              <Typography variant="caption" display="block" gutterBottom color="textSecondary">
+                {job.metadata.source !== "app" ? `Installed by ${job.metadata.source}` : ""}
               </Typography>
               <Typography variant="body2" component="p" gutterBottom>
                 <div dangerouslySetInnerHTML={{__html: job.metadata.description}}/>
