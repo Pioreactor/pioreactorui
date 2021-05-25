@@ -472,9 +472,9 @@ function PatientButton(props) {
 
   useEffect(
     () => {
-      setButtonText(buttonText)
+      setButtonText(props.buttonText)
     }
-  , [buttonText])
+  , [props.buttonText])
 
   function wrappingOnClick() {
     function f() {
@@ -703,7 +703,6 @@ function SettingsActionsDialog(props) {
 
 
   function createUserButtonsBasedOnState(jobState, job){
-
     switch (jobState){
       case "lost":
         return (<div key={"patient_buttons_" + job}>
@@ -724,6 +723,19 @@ function SettingsActionsDialog(props) {
                />
               </div>)
       case "init":
+        return (<div key={"patient_buttons_" + job}>
+          <PatientButton
+            color="primary"
+            variant="contained"
+            onClick={()=>(false)}
+            buttonText=<CircularProgress color="inherit" size={22}/>
+          />
+          <PatientButton
+            color="secondary"
+            onClick={stopPioreactorJob(job)}
+            buttonText="Stop"
+          />
+        </div>)
       case "ready":
         return (<div key={"patient_buttons_" + job}>
           <PatientButton
