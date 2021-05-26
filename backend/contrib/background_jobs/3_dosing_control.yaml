@@ -37,3 +37,4 @@ editable_settings:
   - key: dosing_automation
     type: text
     display: false
+    default: ""

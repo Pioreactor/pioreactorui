@@ -42,7 +42,7 @@ const useStyles = makeStyles((theme) => ({
 
 
 
-function ExperimentSelection({experimentSelection, handleChange}) {
+function ExperimentSelection(props) {
   const classes = useStyles();
 
   const [experiments, setExperiments] = React.useState([{experiment: "<All experiments>"}])
@@ -55,14 +55,14 @@ function ExperimentSelection({experimentSelection, handleChange}) {
         })
         .then((data) => {
           setExperiments(prevState => [ ...data, ...prevState])
-          handleChange(data[0].experiment)
+          props.handleChange(data[0].experiment)
         });
       }
       getData()
-  }, [handleChange])
+  }, [])
 
   const handleExperimentSelectionChange = (e) => {
-    handleChange(e.target.value)
+    props.handleChange(e.target.value)
   }
 
   return (
@@ -71,7 +71,7 @@ function ExperimentSelection({experimentSelection, handleChange}) {
 
         <Select
           native
-          value={ExperimentSelection}
+          value={props.ExperimentSelection}
           onChange={handleExperimentSelectionChange}
           inputProps={{
             name: 'experiment',
@@ -344,10 +344,10 @@ function ExportDataContainer() {
 }
 
 
-function ExportData({title}) {
+function ExportData(props) {
     React.useEffect(() => {
-      document.title = title;
-    }, [title]);
+      document.title = props.title;
+    }, [props.title]);
     return (
         <Grid container spacing={2} >
           <Grid item md={12} xs={12}>

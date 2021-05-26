@@ -16,3 +16,4 @@ editable_settings:
   - key: temperature_automation
     type: text
     display: false
+    default: ""

@@ -180,7 +180,7 @@ function UnitSettingDisplay(props) {
     "lost":          {display: "Lost", color: lostRed},
     "NA":            {display: "Not available", color: disconnectedGrey},
   }
-  const value = props.value || ""
+  const value = props.value === null ?  ""  : props.value
   if (props.isStateSetting) {
     if (!props.isUnitActive) {
       return <div className={clsx({[classes.disabledText]: !props.isUnitActive})}> {stateDisplay[value].display} </div>;
@@ -898,7 +898,7 @@ function SettingsActionsDialog(props) {
           <Typography variant="body2" component="p" gutterBottom>
             {props.jobs.led_control && props.jobs.led_control.state !== "disconnected" &&
               <React.Fragment>
-              Currently running LED automation <code>{props.props.jobs.led_control.led_automation.value}</code>.
+              Currently running LED automation <code>{props.jobs.led_control.led_automation.value}</code>.
               Learn more about <a target="_blank" rel="noopener noreferrer" href="https://pioreactor.com/pages/led-automations">LED automations</a>.
               </React.Fragment>
             }
@@ -1057,7 +1057,7 @@ function SettingsActionsDialogAll({config, experiment}) {
             var metaData_ = {state: "disconnected", metadata: {name: job.name, subtext: job.subtext, display: job.display, description: job.description, key: job.job_name, source:job.source}}
             for(var i = 0; i < job["editable_settings"].length; ++i){
               var field = job["editable_settings"][i]
-              metaData_[field.key] = {value: field.default, label: field.label, type: field.type, unit: field.unit, display: field.display, description: field.description}
+              metaData_[field.key] = {value: field.default, label: field.label, type: field.type, unit: field.unit || null, display: field.display, description: field.description}
             }
             jobs_[job.job_name] = metaData_
           }
@@ -1504,7 +1504,7 @@ function PioreactorCard(props){
             var metaData_ = {state: "disconnected", metadata: {name: job.name, subtext: job.subtext, display: job.display, description: job.description, key: job.job_name, source: job.source}}
             for(var i = 0; i < job["editable_settings"].length; ++i){
               var field = job["editable_settings"][i]
-              metaData_[field.key] = {value: field.default, label: field.label, type: field.type, unit: field.unit, display: field.display, description: field.description}
+              metaData_[field.key] = {value: field.default, label: field.label, type: field.type, unit: field.unit || null, display: field.display, description: field.description}
             }
             jobs_[job.job_name] = metaData_
           }
@@ -1687,6 +1687,7 @@ function PioreactorCard(props){
               .filter(([_, setting]) => setting.display)
               .map(([key, setting]) =>
             <div className={classes.textbox} key={job.metadata.key + key}>
+              {console.log(setting)}
               <Typography variant="body2" style={{fontSize: "0.82rem"}} className={clsx({[classes.disabledText]: !isUnitActive})}>
                 {setting.label}
               </Typography>
@@ -1695,7 +1696,6 @@ function PioreactorCard(props){
                 isUnitActive={isUnitActive}
                 measurementUnit={setting.unit}
                 default="—"
-                className={classes.alignRight}
                 isLEDIntensity={setting.label === "LED intensity"}
                 config={props.config}
               />

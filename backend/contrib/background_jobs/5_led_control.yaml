@@ -9,3 +9,4 @@ editable_settings:
   - key: led_automation
     type: text
     display: false
+    default: ""

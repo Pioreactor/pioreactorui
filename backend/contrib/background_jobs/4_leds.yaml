@@ -8,3 +8,4 @@ editable_settings:
     label: LED intensity
     type: text
     display: true
+    default: ""
