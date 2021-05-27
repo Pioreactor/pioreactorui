@@ -87,7 +87,7 @@ app.get('/updates', function(req, res) {
 //////////////// PIOREACTOR CONTROL ////////////////////
 
 app.post('/stop_all', function (req, res) {
-  execFile("pios", ["kill"].concat(["--all"]).concat(["-y"]), (error, stdout, stderr) => {
+  execFile("pios", ["kill"].concat(["--all-jobs"]).concat(["-y"]), (error, stdout, stderr) => {
     if (error) {
         console.log(error)
     }
