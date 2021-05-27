@@ -10,6 +10,7 @@ import Pioreactors from "./Pioreactors";
 import StartNewExperiment from "./StartNewExperiment";
 import EditConfig from "./EditConfig";
 import Updates from "./Updates";
+import Plugins from "./Plugins";
 import SideNavAndHeader from "./components/SideNavAndHeader";
 
 import "fontsource-roboto/300-normal.css"
@@ -79,10 +80,14 @@ function App() {
                 <Route path="/overview">
                   <ExperimentOverview config={config} title="Pioreactor ~ Overview"/>
                 </Route>
+                <Route path="/plugins">
+                  <Plugins config={config} title="Pioreactor ~ Plugins"/>
+                  <TactileButtonNotification config={config}/>
+                </Route>
                 <Route path="/config">
                   <EditConfig config={config} title="Pioreactor ~ Configuration"/>
                   <TactileButtonNotification config={config}/>
-                </Route>f
+                </Route>
                 <Route path="/pioreactors">
                   <Pioreactors config={config} title="Pioreactor ~ Pioreactors"/>
                 </Route>

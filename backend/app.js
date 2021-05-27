@@ -61,6 +61,11 @@ app.get('/start-new-experiment', function(req, res) {
     res.sendFile(path.join(__dirname, 'build', 'index.html'));
 })
 
+app.get('/plugins', function(req, res) {
+    app.use("/", expressStaticGzip(path.join(__dirname, 'build')));
+    res.sendFile(path.join(__dirname, 'build', 'index.html'));
+})
+
 app.get('/config', function(req, res) {
     app.use("/", expressStaticGzip(path.join(__dirname, 'build')));
     res.sendFile(path.join(__dirname, 'build', 'index.html'));
@@ -302,6 +307,51 @@ app.get("/recent_media_rates/:experiment", function (req, res) {
     })
   }
   fetch()
+})
+
+
+//////////////// plugins //////////////////
+
+
+app.get('/get_installed_plugins', function(req, res) {
+
+  execFile("pio", ["list-plugins"], (error, stdout, stderr) => {
+      if (error) {
+          console.log(error)
+      }
+      if (stderr) {
+          console.log(stderr)
+      }
+      stdout=`[{"name": "pioreactor_custom_dosing_automation", "description": "Example dosing automation plugin", "version": "0.0.1", "homepage": null}, {"name": "pioreactor_air_bubbler", "description": "Add a air bubbler to your Pioreactor as a background job", "version": "0.0.11", "homepage": "https://github.com/Pioreactor/pioreactor-air-bubbler"}]`
+      res.send(stdout)
+  })
+})
+
+app.post('/install_plugin', function(req, res) {
+
+  execFile("pios", ["install-plugin", req.body.plugin_name], (error, stdout, stderr) => {
+      if (error) {
+          console.log(error)
+      }
+      if (stderr) {
+          console.log(stderr)
+      }
+      res.sendStatus(200)
+  })
+})
+
+
+app.post('/uninstall_plugin', function(req, res) {
+
+  execFile("pios", ["uninstall-plugin", req.body.plugin_name], (error, stdout, stderr) => {
+      if (error) {
+          console.log(error)
+      }
+      if (stderr) {
+          console.log(stderr)
+      }
+      res.sendStatus(200)
+  })
 })
 
 

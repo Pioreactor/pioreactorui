@@ -7,20 +7,21 @@ import Badge from '@material-ui/core/Badge';
 import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
+import Divider from '@material-ui/core/Divider';
 import MenuIcon from '@material-ui/icons/Menu';
 import IconButton from '@material-ui/core/IconButton';
-import SettingsIcon from '@material-ui/icons/Settings';
 import SaveAltIcon from '@material-ui/icons/SaveAlt';
-import DashboardIcon from '@material-ui/icons/Dashboard';
 import HelpOutlineIcon from '@material-ui/icons/HelpOutline';
 import UpdateIcon from '@material-ui/icons/Update';
 import Toolbar from '@material-ui/core/Toolbar';
 import {AppBar, Typography, Link, Button} from '@material-ui/core';
 import Hidden from '@material-ui/core/Hidden';
 import OpenInNewIcon from '@material-ui/icons/OpenInNew';
-
 import PioreactorIcon from './PioreactorIcon';
-
+import LibraryAddOutlinedIcon from '@material-ui/icons/LibraryAddOutlined';
+import DashboardOutlinedIcon from '@material-ui/icons/DashboardOutlined';
+import SettingsOutlinedIcon from '@material-ui/icons/SettingsOutlined';
+import InsertChartOutlinedIcon from '@material-ui/icons/InsertChartOutlined';
 
 const drawerWidth = 212;
 
@@ -63,6 +64,10 @@ const useStyles = makeStyles((theme) => ({
   },
   listItemIcon: {
     minWidth: "40px"
+  },
+  divider: {
+    marginTop: "15px",
+    marginBottom: "15px",
   }
 }));
 
@@ -114,7 +119,7 @@ export default function SideNavAndHeader() {
       <List>
 
         <ListItem href="/overview" component="a" button key={"overview"} selected={isSelected("/") || isSelected("/overview")}>
-          <ListItemIcon className={classes.listItemIcon}><DashboardIcon color={(isSelected("/") || isSelected("/overview")) ? "primary" : "inherit"}/> </ListItemIcon>
+          <ListItemIcon className={classes.listItemIcon}><DashboardOutlinedIcon color={(isSelected("/") || isSelected("/overview")) ? "primary" : "inherit"}/> </ListItemIcon>
           <ListItemText primaryTypographyProps={{color: isSelected("/") || isSelected("/overview") ? "primary" : "inherit"}} primary={"Overview"} />
         </ListItem>
 
@@ -123,14 +128,27 @@ export default function SideNavAndHeader() {
           <ListItemText primaryTypographyProps={{color: isSelected("/pioreactors") ? "primary" : "inherit"}} primary={"Pioreactors"} />
         </ListItem>
 
-        <ListItem button href="/config"  component="a" key={"config"} selected={isSelected("/config")}>
-          <ListItemIcon className={classes.listItemIcon}> <SettingsIcon color={isSelected("/config") ? "primary" : "inherit"}/> </ListItemIcon>
-          <ListItemText primaryTypographyProps={{color: isSelected("/config") ? "primary" : "inherit"}} primary={"Configuration"} />
-        </ListItem>
 
         <ListItem href="/export-data" component="a" button key={"export_data"} selected={isSelected("/export-data")}>
           <ListItemIcon className={classes.listItemIcon}><SaveAltIcon color={isSelected("/export-data") ? "primary" : "inherit"}/> </ListItemIcon>
           <ListItemText primaryTypographyProps={{color: isSelected("/export-data") ? "primary" : "inherit"}} primary={"Export data"} />
+        </ListItem>
+
+        <ListItem button href="/config"  component="a" key={"config"} selected={isSelected("/config")}>
+          <ListItemIcon className={classes.listItemIcon}> <SettingsOutlinedIcon color={isSelected("/config") ? "primary" : "inherit"}/> </ListItemIcon>
+          <ListItemText primaryTypographyProps={{color: isSelected("/config") ? "primary" : "inherit"}} primary={"Configuration"} />
+        </ListItem>
+
+        <ListItem disabled={true} button href="/analysis"  component="a" key={"analysis"} selected={isSelected("/analysis")}>
+          <ListItemIcon className={classes.listItemIcon}> <InsertChartOutlinedIcon color={isSelected("/analysis") ? "primary" : "inherit"}/> </ListItemIcon>
+          <ListItemText primaryTypographyProps={{color: isSelected("/analysis") ? "primary" : "inherit"}} primary={"Analysis"} />
+        </ListItem>
+
+        <Divider className={classes.divider} />
+
+        <ListItem href="/plugins" component="a" button key={"plugins"} selected={isSelected("/plugins-data")}>
+          <ListItemIcon className={classes.listItemIcon}><LibraryAddOutlinedIcon color={isSelected("/plugins") ? "primary" : "inherit"}/> </ListItemIcon>
+          <ListItemText primaryTypographyProps={{color: isSelected("/plugins") ? "primary" : "inherit"}} primary={"Plugins"} />
         </ListItem>
 
         <ListItem href="/updates" component="a" button key="updates" selected={isSelected("/updates")}>

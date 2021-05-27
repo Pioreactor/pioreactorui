@@ -5,7 +5,7 @@ import SvgIcon from '@material-ui/core/SvgIcon';
 
 function PioreactorIcon(props) {
   return (
-    <SvgIcon {...props}>
+    <SvgIcon {...props} >
         <g id="Page-1" stroke="none" strokeWidth="1" fill={props.fillColor || "none"} fillRule="evenodd">
             <g id="Experiment-Page-1" transform="translate(-728.000000, -1502.000000)" stroke="currentColor" strokeWidth="1.8">
                 <g id="pioreactor" transform="translate(729.000000, 1503.000000)">

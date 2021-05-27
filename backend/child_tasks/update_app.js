@@ -3,6 +3,7 @@ const { execFile } = require("child_process");
 
 process.on('message', function(v) {
     execFile("pio", ["update", "--app"], (error, stdout, stderr) => {
+        // why do I run pio update --app first?
         console.log(stdout)
         console.log(stderr)
         if (error) {
