@@ -315,14 +315,13 @@ app.get("/recent_media_rates/:experiment", function (req, res) {
 
 app.get('/get_installed_plugins', function(req, res) {
 
-  execFile("pio", ["list-plugins"], (error, stdout, stderr) => {
+  execFile("pio", ["list-plugins", "--json"], (error, stdout, stderr) => {
       if (error) {
           console.log(error)
       }
       if (stderr) {
           console.log(stderr)
       }
-      stdout=`[{"name": "pioreactor_custom_dosing_automation", "description": "Example dosing automation plugin", "version": "0.0.1", "homepage": null}, {"name": "pioreactor_air_bubbler", "description": "Add a air bubbler to your Pioreactor as a background job", "version": "0.0.11", "homepage": "https://github.com/Pioreactor/pioreactor-air-bubbler"}]`
       res.send(stdout)
   })
 })
