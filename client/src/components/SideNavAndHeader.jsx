@@ -139,7 +139,7 @@ export default function SideNavAndHeader() {
           <ListItemText primaryTypographyProps={{color: isSelected("/config") ? "primary" : "inherit"}} primary={"Configuration"} />
         </ListItem>
 
-        <ListItem disabled={true} button href="/analysis"  component="a" key={"analysis"} selected={isSelected("/analysis")}>
+        <ListItem button href="/analysis"  component="a" key={"analysis"} selected={isSelected("/analysis")}>
           <ListItemIcon className={classes.listItemIcon}> <InsertChartOutlinedIcon color={isSelected("/analysis") ? "primary" : "inherit"}/> </ListItemIcon>
           <ListItemText primaryTypographyProps={{color: isSelected("/analysis") ? "primary" : "inherit"}} primary={"Analysis"} />
         </ListItem>
