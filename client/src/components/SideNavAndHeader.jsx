@@ -153,7 +153,7 @@ export default function SideNavAndHeader() {
 
         <ListItem href="/updates" component="a" button key="updates" selected={isSelected("/updates")}>
           <ListItemIcon className={classes.listItemIcon}>
-            <Badge variant="dot" color="secondary" invisible={!((version) && (version !== latestVersion))}>
+            <Badge variant="dot" color="secondary" invisible={!((version) && (latestVersion) && (version !== latestVersion))}>
               <UpdateIcon color={isSelected("/updates") ? "primary" : "inherit"}/>
             </Badge>
           </ListItemIcon>

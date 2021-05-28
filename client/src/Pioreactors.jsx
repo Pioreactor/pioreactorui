@@ -201,28 +201,28 @@ function UnitSettingDisplay(props) {
       const ledIntensities = JSON.parse(value)
         // the | {} is here to protect against the UI loading from a broken config.
       const invertedLEDMap = Object.fromEntries(Object.entries(props.config['leds']).map(([k, v]) => [v, k]))
-      const A = (invertedLEDMap['A']) ? (invertedLEDMap['A'].replace("_", " ")) : null
-      const B = (invertedLEDMap['B']) ? (invertedLEDMap['B'].replace("_", " ")) : null
-      const C = (invertedLEDMap['C']) ? (invertedLEDMap['C'].replace("_", " ")) : null
-      const D = (invertedLEDMap['D']) ? (invertedLEDMap['D'].replace("_", " ")) : null
+      const renamedA = (invertedLEDMap['A']) ? (invertedLEDMap['A'].replace("_", " ")) : null
+      const renamedB = (invertedLEDMap['B']) ? (invertedLEDMap['B'].replace("_", " ")) : null
+      const renamedC = (invertedLEDMap['C']) ? (invertedLEDMap['C'].replace("_", " ")) : null
+      const renamedD = (invertedLEDMap['D']) ? (invertedLEDMap['D'].replace("_", " ")) : null
 
       return(
         <React.Fragment>
           <div style={{fontSize: "13px"}}>
             <div>
               <span className={classes.ledBlock}>
-                <UnderlineSpan title={A ? A : null}>A</UnderlineSpan>: {ledIntensities["A"]}%
+                <UnderlineSpan title={renamedA ? renamedA : null}>A</UnderlineSpan>: {ledIntensities["A"]}%
               </span>
               <span className={classes.ledBlock}>
-                <UnderlineSpan title={B ? B : null}>B</UnderlineSpan>: {ledIntensities["B"]}%
+                <UnderlineSpan title={renamedB ? renamedB : null}>B</UnderlineSpan>: {ledIntensities["B"]}%
               </span>
             </div>
             <div>
               <span className={classes.ledBlock}>
-                <UnderlineSpan title={C ? C : null}>C</UnderlineSpan>: {ledIntensities["C"]}%
+                <UnderlineSpan title={renamedC ? renamedC : null}>C</UnderlineSpan>: {ledIntensities["C"]}%
               </span>
               <span className={classes.ledBlock}>
-                <UnderlineSpan title={D ? D : null}>D</UnderlineSpan>: {ledIntensities["D"]}%
+                <UnderlineSpan title={renamedD ? renamedD : null}>D</UnderlineSpan>: {ledIntensities["D"]}%
               </span>
             </div>
           </div>
@@ -1695,6 +1695,7 @@ function PioreactorCard(props){
                 value={setting.value}
                 isUnitActive={isUnitActive}
                 measurementUnit={setting.unit}
+                precision={2}
                 default="—"
                 isLEDIntensity={setting.label === "LED intensity"}
                 config={props.config}

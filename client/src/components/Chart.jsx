@@ -102,7 +102,7 @@ class Chart extends React.Component {
       return
     }
     await fetch("/time_series/" + this.props.dataSource + "/" + this.props.experiment + "?" + new URLSearchParams({
-        filter_mod_N: Math.max(Math.floor(1.25 * Math.min(this.props.deltaHours, this.props.lookback)), 1),
+        filter_mod_N: Math.max(Math.floor(1.0 * Math.min(this.props.deltaHours, this.props.lookback)), 1),
         lookback: this.props.lookback
       }))
       .then((response) => {
@@ -232,21 +232,6 @@ class Chart extends React.Component {
   }
 
 
-  filterDataPoints(totalLength){
-    return function(value, index){
-      if (totalLength < 600){
-        return true
-      }
-      if ((index === 0) || (index === (totalLength - 1))){
-        return true
-      }
-      else if (index % Math.round(totalLength/600) === 0){
-        return true
-      } else {
-        return false
-      }
-    }
-  }
 
   createToolTip = (d) => {
       return `${d.datum.x.format("MMM DD HH:mm")}

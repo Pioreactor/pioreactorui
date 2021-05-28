@@ -66,6 +66,11 @@ app.get('/plugins', function(req, res) {
     res.sendFile(path.join(__dirname, 'build', 'index.html'));
 })
 
+app.get('/analysis', function(req, res) {
+    app.use("/", expressStaticGzip(path.join(__dirname, 'build')));
+    res.sendFile(path.join(__dirname, 'build', 'index.html'));
+})
+
 app.get('/config', function(req, res) {
     app.use("/", expressStaticGzip(path.join(__dirname, 'build')));
     res.sendFile(path.join(__dirname, 'build', 'index.html'));

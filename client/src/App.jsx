@@ -84,6 +84,10 @@ function App() {
                   <Plugins config={config} title="Pioreactor ~ Plugins"/>
                   <TactileButtonNotification config={config}/>
                 </Route>
+                <Route path="/analysis">
+                  <Plugins config={config} title="Pioreactor ~ Analysis"/>
+                  <TactileButtonNotification config={config}/>
+                </Route>
                 <Route path="/config">
                   <EditConfig config={config} title="Pioreactor ~ Configuration"/>
                   <TactileButtonNotification config={config}/>

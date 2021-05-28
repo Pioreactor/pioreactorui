@@ -1,3 +1,4 @@
+import { Hashicon } from "@emeraldpay/hashicon-react";
 import React from "react";
 
 import Grid from '@material-ui/core/Grid';
@@ -63,24 +64,15 @@ function PageHeader(props) {
 
 
 
-function ListAvailablePlugins(){
+function ListAvailablePlugins({alreadyInstalledPluginsNames}){
 
   const classes = useStyles();
 
-  const [installedPlugins, setInstalledPlugins] = React.useState([])
-
-  React.useEffect(() => {
-    async function getData() {
-         await fetch("/get_installed_plugins")
-        .then((response) => {
-          return response.json();
-        })
-        .then((json) => {
-          setInstalledPlugins(json)
-        });
-      }
-      getData()
-  }, [])
+  const availablePlugins = [
+    {name: 'PhotoPioreactor', homepage: '', description: "This is a test"},
+    {name: 'pioreactor-air-bubbler', homepage: '', description: "This is a test"},
+    {name: 'pioreactor-custom-dosing-automation', homepage: '', description: "This is a test"},
+  ]
 
   const installPlugin = (plugin_name) => () => (
       fetch('/install_plugin', {
@@ -96,11 +88,13 @@ function ListAvailablePlugins(){
   return (
     <div className={classes.pluginList}>
      <List dense={true}>
-        {installedPlugins.map(plugin =>
+        {availablePlugins
+            .filter(plugin => (!alreadyInstalledPluginsNames.includes(plugin.name)))
+            .map(plugin =>
           <ListItem key={plugin.name}>
             <ListItemAvatar>
-              <Avatar>
-                <ExtensionIcon />
+              <Avatar variant="square" style={{backgroundColor:"#FFFFFF"}}>
+                <Hashicon value={plugin.name} size={40} />
               </Avatar>
             </ListItemAvatar>
             <ListItemText
@@ -144,24 +138,11 @@ function ListAvailablePlugins(){
 
 
 
-function ListInstalledPlugins(){
+function ListInstalledPlugins({installedPlugins}){
 
   const classes = useStyles();
 
-  const [installedPlugins, setInstalledPlugins] = React.useState([])
 
-  React.useEffect(() => {
-    async function getData() {
-         await fetch("/get_installed_plugins")
-        .then((response) => {
-          return response.json();
-        })
-        .then((json) => {
-          setInstalledPlugins(json)
-        });
-      }
-      getData()
-  }, [])
 
 
   const uninstallPlugin = (plugin_name) => () => (
@@ -181,8 +162,8 @@ function ListInstalledPlugins(){
         {installedPlugins.map(plugin =>
           <ListItem key={plugin.name}>
             <ListItemAvatar>
-              <Avatar>
-                <ExtensionIcon />
+              <Avatar variant="square" style={{backgroundColor:"#FFFFFF"}}>
+                <Hashicon value={plugin.name} size={40} />
               </Avatar>
             </ListItemAvatar>
             <ListItemText
@@ -227,6 +208,21 @@ function ListInstalledPlugins(){
 function PluginContainer(){
   const classes = useStyles();
 
+  const [installedPlugins, setInstalledPlugins] = React.useState([])
+
+  React.useEffect(() => {
+    async function getData() {
+         await fetch("/get_installed_plugins")
+        .then((response) => {
+          return response.json();
+        })
+        .then((json) => {
+          setInstalledPlugins(json)
+        });
+      }
+      getData()
+  }, [])
+
 
   return(
     <React.Fragment>
@@ -238,13 +234,13 @@ function PluginContainer(){
          <Typography variant="h6" component="h3">
           Installed plugins
          </Typography>
-          <ListInstalledPlugins/>
+          <ListInstalledPlugins installedPlugins={installedPlugins}/>
 
 
          <Typography variant="h6" component="h3">
           Available plugins from the community
          </Typography>
-          <ListAvailablePlugins/>
+          <ListAvailablePlugins alreadyInstalledPluginsNames={installedPlugins.map(plugin => plugin.name)}/>
 
 
           <p style={{textAlign: "center", marginTop: "30px"}}><span role="img">💡</span> Learn more about Pioreactor  <a href="https://pioreactor.com/pages/installing-and-managing-plugins" target="_blank" rel="noopener noreferrer">plugins</a>.</p>
