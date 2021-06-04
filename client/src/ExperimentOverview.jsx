@@ -124,7 +124,7 @@ function Overview(props) {
                 deltaHours={experimentMetadata.delta_hours}
                 interpolation="stepAfter"
                 lookback={10000}
-                yAxisDomain={[20, 40]}
+                yAxisDomain={[22.5, 37.5]}
                 yAxisTickFormat={(t) => `${t.toFixed(1)}`}
               />
             </Grid>

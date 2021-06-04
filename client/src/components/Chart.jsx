@@ -101,8 +101,9 @@ class Chart extends React.Component {
     if (!this.props.experiment){
       return
     }
+    const tweak = 0.95 // increase to filter more
     await fetch("/time_series/" + this.props.dataSource + "/" + this.props.experiment + "?" + new URLSearchParams({
-        filter_mod_N: Math.max(Math.floor(1.0 * Math.min(this.props.deltaHours, this.props.lookback)), 1),
+        filter_mod_N: Math.max(Math.floor(tweak * Math.min(this.props.deltaHours, this.props.lookback)), 1),
         lookback: this.props.lookback
       }))
       .then((response) => {

@@ -36,7 +36,8 @@ class EditableCodeDiv extends React.Component {
       openSnackbar: false,
       filename: "config.ini",
       snackbarMsg: "",
-      isRunning: false,
+      buttonText: "Save",
+      hasChangedSinceSave: true,
       availableConfigs: [
         {name: "shared config.ini", filename: "config.ini"},
       ]
@@ -68,7 +69,7 @@ class EditableCodeDiv extends React.Component {
   }
 
   saveCurrentCode() {
-    this.setState({isRunning: true})
+    this.setState({buttonText: <CircularProgress color="inherit" size={24}/>})
     fetch('/save_new_config',{
         method: "POST",
         body: JSON.stringify({code :this.state.code, filename: this.state.filename}),
@@ -79,11 +80,11 @@ class EditableCodeDiv extends React.Component {
       })
     .then(res => {
       if (res.ok) {
-        this.setState({snackbarMsg: this.state.filename + " saved and synced."})
+        this.setState({snackbarMsg: this.state.filename + " saved and synced.", hasChangedSinceSave: false, buttonText: "Saved"})
       } else {
-        this.setState({snackbarMsg: "Hm. Something when wrong saving or syncing..."})
+        this.setState({snackbarMsg: "Hm. Something when wrong saving or syncing...", hasChangedSinceSave: true, buttonText: "Save"})
       }
-      this.setState({openSnackbar: true, isRunning: false});
+      this.setState({openSnackbar: true});
     })
   }
 
@@ -124,7 +125,7 @@ class EditableCodeDiv extends React.Component {
   }
 
   onTextChange = (code) => {
-    this.setState({code: code})
+    this.setState({code: code, hasChangedSinceSave: true, buttonText: "Save"})
   }
 
   handleSnackbarClose = () => {
@@ -132,7 +133,6 @@ class EditableCodeDiv extends React.Component {
   };
 
   render() {
-    const runningFeedback = this.state.isRunning ? <CircularProgress color="inherit" size={24}/> : "Save"
     return (
       <React.Fragment>
         <div>
@@ -167,8 +167,9 @@ class EditableCodeDiv extends React.Component {
             color="primary"
             variant="contained"
             onClick={this.saveCurrentCode}
+            disabled={!this.state.hasChangedSinceSave}
             >
-            {runningFeedback}
+            {this.state.buttonText}
           </Button>
           <Button
             style={{margin: "5px 10px 5px 10px"}}
