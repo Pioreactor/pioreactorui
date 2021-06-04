@@ -89,7 +89,7 @@ function Overview(props) {
                 experiment={experimentMetadata.experiment}
                 deltaHours={experimentMetadata.delta_hours}
                 interpolation="stepAfter"
-                lookback={parseInt(props.config['ui.overview.settings']['filtered_od_lookback_hours'])}
+                lookback={1}
                 yAxisTickFormat={(t) => `${t.toFixed(2)}`}
               />
             </Grid>
@@ -107,7 +107,7 @@ function Overview(props) {
                 experiment={experimentMetadata.experiment}
                 deltaHours={experimentMetadata.delta_hours}
                 interpolation="stepAfter"
-                lookback={parseInt(props.config['ui.overview.settings']['raw_od_lookback_hours'])}
+                lookback={parseFloat(props.config['ui.overview.settings']['raw_od_lookback_hours'])}
                 yAxisTickFormat={(t) => `${t.toFixed(3)}`}
               />
             </Grid>
