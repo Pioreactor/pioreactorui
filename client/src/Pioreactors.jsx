@@ -200,11 +200,11 @@ function UnitSettingDisplay(props) {
     } else {
       const ledIntensities = JSON.parse(value)
         // the | {} is here to protect against the UI loading from a broken config.
-      const invertedLEDMap = Object.fromEntries(Object.entries(props.config['leds']).map(([k, v]) => [v, k]))
-      const renamedA = (invertedLEDMap['A']) ? (invertedLEDMap['A'].replace("_", " ")) : null
-      const renamedB = (invertedLEDMap['B']) ? (invertedLEDMap['B'].replace("_", " ")) : null
-      const renamedC = (invertedLEDMap['C']) ? (invertedLEDMap['C'].replace("_", " ")) : null
-      const renamedD = (invertedLEDMap['D']) ? (invertedLEDMap['D'].replace("_", " ")) : null
+      const LEDMap = props.config['leds']
+      const renamedA = (LEDMap['A']) ? (LEDMap['A'].replace("_", " ")) : null
+      const renamedB = (LEDMap['B']) ? (LEDMap['B'].replace("_", " ")) : null
+      const renamedC = (LEDMap['C']) ? (LEDMap['C'].replace("_", " ")) : null
+      const renamedD = (LEDMap['D']) ? (LEDMap['D'].replace("_", " ")) : null
 
       return(
         <React.Fragment>
@@ -770,7 +770,7 @@ function SettingsActionsDialog(props) {
         return(<div key={"patient_buttons_" + job}></div>)
     }
    }
-  const invertedLEDMap = Object.fromEntries(Object.entries(props.config['leds']).map(([k, v]) => [v, k]))
+  const LEDMap = props.config['leds']
   const buttons = Object.fromEntries(Object.entries(props.jobs).map( ([job_key, job], i) => [job_key, createUserButtonsBasedOnState(job.state, job_key)]))
 
   const stateDisplay = {
@@ -976,38 +976,38 @@ function SettingsActionsDialog(props) {
 
         <TabPanel value={tabValue} index={3}>
           <Typography className={clsx(classes.suptitle)} color="textSecondary">
-            {(invertedLEDMap['A']) ? "Channel A" : ""}
+            {(LEDMap['A']) ? "Channel A" : ""}
           </Typography>
           <Typography style={{textTransform: "capitalize"}}>
-            {(invertedLEDMap['A']) ? (invertedLEDMap['A'].replace("_", " ").replace("led", "LED")) : "Channel A" }
+            {(LEDMap['A']) ? (LEDMap['A'].replace("_", " ").replace("led", "LED")) : "Channel A" }
           </Typography>
           <ActionLEDForm channel="A" unit={props.unit} />
           <Divider className={classes.divider} />
 
           <Typography className={clsx(classes.suptitle)} color="textSecondary">
-            {(invertedLEDMap['B']) ? "Channel B" : ""}
+            {(LEDMap['B']) ? "Channel B" : ""}
           </Typography>
           <Typography style={{textTransform: "capitalize"}}>
-            {(invertedLEDMap['B']) ? (invertedLEDMap['B'].replace("_", " ").replace("led", "LED")) : "Channel B" }
+            {(LEDMap['B']) ? (LEDMap['B'].replace("_", " ").replace("led", "LED")) : "Channel B" }
           </Typography>
           <ActionLEDForm channel="B" unit={props.unit} />
           <Divider className={classes.divider} />
 
           <Typography className={clsx(classes.suptitle)} color="textSecondary">
-            {(invertedLEDMap['C']) ? "Channel C" : ""}
+            {(LEDMap['C']) ? "Channel C" : ""}
           </Typography>
           <Typography style={{textTransform: "capitalize"}}>
-            {(invertedLEDMap['C']) ? (invertedLEDMap['C'].replace("_", " ").replace("led", "LED")) : "Channel C" }
+            {(LEDMap['C']) ? (LEDMap['C'].replace("_", " ").replace("led", "LED")) : "Channel C" }
           </Typography>
 
           <ActionLEDForm channel="C" unit={props.unit} />
           <Divider className={classes.divider} />
 
           <Typography className={clsx(classes.suptitle)} color="textSecondary">
-            {(invertedLEDMap['D']) ? "Channel D" : ""}
+            {(LEDMap['D']) ? "Channel D" : ""}
           </Typography>
           <Typography style={{textTransform: "capitalize"}}>
-            {(invertedLEDMap['D']) ? (invertedLEDMap['D'].replace("_", " ").replace("led", "LED")) : "Channel D" }
+            {(LEDMap['D']) ? (LEDMap['D'].replace("_", " ").replace("led", "LED")) : "Channel D" }
           </Typography>
           <ActionLEDForm channel="D" unit={props.unit} />
           <Divider className={classes.divider} />
@@ -1687,7 +1687,6 @@ function PioreactorCard(props){
               .filter(([_, setting]) => setting.display)
               .map(([key, setting]) =>
             <div className={classes.textbox} key={job.metadata.key + key}>
-              {console.log(setting)}
               <Typography variant="body2" style={{fontSize: "0.82rem"}} className={clsx({[classes.disabledText]: !isUnitActive})}>
                 {setting.label}
               </Typography>

@@ -176,16 +176,19 @@ class Chart extends React.Component {
       return
     }
 
-    const currentTime = moment().local()
+    const payload = JSON.parse(message.payloadString)
+    const timestamp = moment.utc(payload.timestamp).local()
+    const value = parseFloat(payload[this.props.payloadKey])
+
 
     var key = this.props.isODReading //TODO: change this variable name, something like: IsPartitionedBySensor
-      ? message.topic.split("/")[1] + "-" + message.topic.split("/")[6]
+      ? message.topic.split("/")[1] + "-" + message.topic.split("/")[5]
       : message.topic.split("/")[1];
 
     try {
       if (!(key in this.state.seriesMap)){
         const newSeriesMap = {...this.state.seriesMap, [key]:  {
-          data: [{x: currentTime, y: parseFloat(message.payloadString)}],
+          data: [{x: timestamp, y: value}],
           name: key,
           color: getColorFromName(key)
         }}
@@ -197,8 +200,8 @@ class Chart extends React.Component {
       } else {
         // .push seems like bad state management, and maybe a hit to performance...
         this.state.seriesMap[key].data.push({
-          x: currentTime,
-          y: parseFloat(message.payloadString),
+          x: timestamp,
+          y: value,
         });
         this.setState({ seriesMap: this.state.seriesMap })
       }

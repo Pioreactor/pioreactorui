@@ -48,6 +48,7 @@ function Overview(props) {
                 dataSource="growth_rates"
                 title="Implied growth rate"
                 topic="growth_rate_calculating/growth_rate"
+                payloadKey="growth_rate"
                 yAxisLabel="Growth rate, h⁻¹"
                 experiment={experimentMetadata.experiment}
                 deltaHours={experimentMetadata.delta_hours}
@@ -66,6 +67,7 @@ function Overview(props) {
                 yAxisDomain={[0.00, 0.05]}
                 dataSource="alt_media_fraction"
                 interpolation="stepAfter"
+                payloadKey="alt_media_fraction"
                 title="Fraction of volume that is alternative media"
                 topic="alt_media_calculating/alt_media_fraction"
                 yAxisLabel="Fraction"
@@ -84,7 +86,8 @@ function Overview(props) {
                 isODReading={true}
                 dataSource="od_readings_filtered"
                 title="Normalized optical density"
-                topic="growth_rate_calculating/od_filtered/+/+"
+                payloadKey="od_filtered"
+                topic="growth_rate_calculating/od_filtered/+"
                 yAxisLabel="Current OD / initial OD"
                 experiment={experimentMetadata.experiment}
                 deltaHours={experimentMetadata.delta_hours}
@@ -102,7 +105,8 @@ function Overview(props) {
                 isODReading={true}
                 dataSource="od_readings_raw"
                 title="Optical density"
-                topic="od_reading/od_raw/+/+"
+                payloadKey="voltage"
+                topic="od_reading/od_raw/+"
                 yAxisLabel="Voltage"
                 experiment={experimentMetadata.experiment}
                 deltaHours={experimentMetadata.delta_hours}
@@ -120,6 +124,7 @@ function Overview(props) {
                 title="Temperature of vials"
                 topic="temperature_control/temperature"
                 yAxisLabel="temperature, ℃"
+                payloadKey="temperature"
                 experiment={experimentMetadata.experiment}
                 deltaHours={experimentMetadata.delta_hours}
                 interpolation="stepAfter"

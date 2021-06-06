@@ -26,7 +26,7 @@ export default function ActionLEDForm(props) {
   function onSubmit(e) {
     e.preventDefault();
     if (intensity !== EMPTYSTATE) {
-      // TODO: this should also fire an mqtt event to set it in LEDAlgorithm, in case that is running
+      // TODO: this could also fire an mqtt event to set it in LEDAlgorithm, in case that is running
       const params = { intensity: intensity, channel: props.channel, source_of_event: "UI"}
       fetch(`/run/led_intensity/${props.unit}`, {
         method: "POST",
