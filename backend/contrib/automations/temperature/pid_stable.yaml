@@ -2,10 +2,6 @@
 name: PID Stable
 key: pid_stable
 fields:
-  - key: duration
-    default: 10
-    unit: sec
-    label: Duration between updates
   - key: target_temperature
     default: 25
     unit: ℃

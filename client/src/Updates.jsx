@@ -18,7 +18,7 @@ import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
-
+import GitHubIcon from '@material-ui/icons/GitHub';
 
 const useStyles = makeStyles((theme) => ({
   title: {
@@ -105,10 +105,12 @@ function PageHeader(props) {
   const classes = useStyles();
   const [version, setVersion] = React.useState("")
   const [latestVersion, setLatestVersion] = React.useState("")
+  const [appCommitID, setAppCommitID] = React.useState("")
+  const [uiCommitID, setUICommitID] = React.useState("")
 
 
   React.useEffect(() => {
-    async function getCurrentApp() {
+    async function getCurrentAppVersion() {
          await fetch("/get_app_version")
         .then((response) => {
           return response.text();
@@ -118,7 +120,27 @@ function PageHeader(props) {
         });
       }
 
-    async function getLatestVersion() {
+    async function getCurrentAppCommitID() {
+         await fetch("/get_app_commit_id")
+        .then((response) => {
+          return response.text();
+        })
+        .then((data) => {
+          setAppCommitID(data)
+        });
+      }
+
+    async function getCurrentUICommitID() {
+         await fetch("/get_ui_commit_id")
+        .then((response) => {
+          return response.text();
+        })
+        .then((data) => {
+          setUICommitID(data)
+        });
+      }
+
+    async function getLatestAppVersion() {
          await fetch("https://api.github.com/repos/pioreactor/pioreactor/releases/latest")
         .then((response) => {
           return response.json();
@@ -128,8 +150,10 @@ function PageHeader(props) {
         });
       }
 
-      getCurrentApp()
-      getLatestVersion()
+      getCurrentAppVersion()
+      getCurrentAppCommitID()
+      getCurrentUICommitID()
+      getLatestAppVersion()
   }, [])
 
   return (
@@ -152,12 +176,28 @@ function PageHeader(props) {
       </div>
       <Divider/>
       <Typography variant="subtitle2">
+
         <Box fontWeight="fontWeightBold" style={{margin: "10px 2px 10px 2px", display:"inline-block"}}>
           <SystemUpdateAltIcon style={{ fontSize: 14, verticalAlign: "middle" }}/> Version installed:
         </Box>
         <Box fontWeight="fontWeightRegular" style={{marginRight: "20px", display:"inline-block"}}>
           {version}
         </Box>
+
+        <Box fontWeight="fontWeightBold" style={{margin: "10px 2px 10px 2px", display:"inline-block"}}>
+          <GitHubIcon style={{ fontSize: 14, verticalAlign: "middle" }}/> App git commit:
+        </Box>
+        <Box fontWeight="fontWeightRegular" style={{marginRight: "20px", display:"inline-block"}}>
+          <a href={`https://github.com/Pioreactor/pioreactor/commit/${appCommitID}`}><code>{appCommitID}</code></a>
+        </Box>
+
+        <Box fontWeight="fontWeightBold" style={{margin: "10px 2px 10px 2px", display:"inline-block"}}>
+          <GitHubIcon style={{ fontSize: 14, verticalAlign: "middle" }}/> UI git commit:
+        </Box>
+        <Box fontWeight="fontWeightRegular" style={{marginRight: "20px", display:"inline-block"}}>
+          <a href={`https://github.com/Pioreactor/pioreactorui/commit/${uiCommitID}`}><code>{uiCommitID}</code></a>
+        </Box>
+
         <Box fontWeight="fontWeightBold" style={{margin: "10px 2px 10px 2px", display:"inline-block"}}>
             <UpdateIcon style={{ fontSize: 14, verticalAlign: "middle" }}/>
           Latest version available:
@@ -165,6 +205,7 @@ function PageHeader(props) {
         <Box fontWeight="fontWeightRegular" style={{marginRight: "20px", display:"inline-block"}}>
           {latestVersion}
         </Box>
+
       </Typography>
     </div>
     </React.Fragment>

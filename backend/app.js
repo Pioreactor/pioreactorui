@@ -424,6 +424,36 @@ app.get('/get_app_version', function(req, res) {
   // })
 })
 
+app.get('/get_app_commit_id', function(req, res) {
+
+  var folder = process.env.PIOREACTOR_SOURCE_CODE
+  // git -C ~/pioreactor log -n1 --format="%h"
+  execFile("git", ["-C", folder, "log", "-n1", '--format=%h'], (error, stdout, stderr) => {
+      if (error) {
+          console.log(error)
+      }
+      if (stderr) {
+          console.log(stderr)
+      }
+      res.send(stdout)
+  })
+})
+
+app.get('/get_ui_commit_id', function(req, res) {
+
+  var folder = process.env.PIOREACTORUI_SOURCE_CODE
+  // git -C ~/pioreactor log -n1 --format="%h"
+  execFile("git", ["-C", folder, "log", "-n1", '--format=%h'], (error, stdout, stderr) => {
+      if (error) {
+          console.log(error)
+      }
+      if (stderr) {
+          console.log(stderr)
+      }
+      res.send(stdout)
+  })
+})
+
 
 app.get('/get_changelog', function(req, res) {
   converter = new showdown.Converter()

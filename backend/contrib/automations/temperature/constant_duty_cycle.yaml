@@ -1,0 +1,8 @@
+---
+name: Constant duty cycle
+key: constant_duty_cycle
+fields:
+  - key: duty_cycle
+    default: 10
+    unit: "%%"
+    label: Duty cycle
