@@ -126,9 +126,9 @@ function Overview(props) {
                 yAxisLabel="temperature, ℃"
                 payloadKey="temperature"
                 experiment={experimentMetadata.experiment}
-                deltaHours={experimentMetadata.delta_hours}
                 interpolation="stepAfter"
                 lookback={10000}
+                deltaHours={1} // hack to display all data points
                 yAxisDomain={[22.5, 37.5]}
                 yAxisTickFormat={(t) => `${t.toFixed(1)}`}
               />

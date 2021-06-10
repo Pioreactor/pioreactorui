@@ -157,7 +157,6 @@ function PageHeader(props) {
   }, [])
 
   return (
-    <React.Fragment>
     <div>
       <div style={{display: "flex", justifyContent: "space-between", marginBottom: "5px"}}>
         <Typography variant="h5" component="h1">
@@ -208,7 +207,6 @@ function PageHeader(props) {
 
       </Typography>
     </div>
-    </React.Fragment>
   )
 }
 
