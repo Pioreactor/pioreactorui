@@ -159,7 +159,7 @@ function ButtonChangeTemperatureDialog(props) {
               {Object.keys(automations).map((key) => <option id={key} value={key} key={"change-io" + key}>{automations[key].name}</option>)}
 
             </Select>
-            {Object.keys(automations).length > 0 && <AutomationForm fields={automations[algoSettings["temperature_automation"]].fields} updateParent={updateFromChild}/>}
+            {Object.keys(automations).length > 0 && <AutomationForm fields={automations[algoSettings["temperature_automation"]].fields} description={automations[algoSettings["temperature_automation"]].description} updateParent={updateFromChild}/>}
             <Button
               type="submit"
               variant="contained"

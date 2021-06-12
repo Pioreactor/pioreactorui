@@ -244,7 +244,7 @@ function UnitSettingDisplay(props) {
           <div style={{ fontSize: "13px"}}>
             {(typeof value === "string"
               ? value
-              : +value.toFixed(props.precision)) +
+              : +value.toFixed(props.precision)) + " " +
               (props.measurementUnit ? props.measurementUnit : "")}
           </div>
           <UnitSettingDisplaySubtext subtext={props.subtext}/>
@@ -679,11 +679,13 @@ function SettingsActionsDialog(props) {
     }
   }
 
-  function setPioreactorJobAttrOnEnter(e) {
-    if (e.key === "Enter") {
-      setPioreactorJobAttr(e.target.id, e.target.value);
-      setSnackbarMessage(`Updated to ${e.target.value}.`)
-      setSnackbarOpen(true)
+  function setPioreactorJobAttrOnEnter(measurementUnit) {
+    return function(e) {
+      if (e.key === "Enter") {
+        setPioreactorJobAttr(e.target.id, e.target.value);
+        setSnackbarMessage(`Updating to ${e.target.value} ${measurementUnit}.`)
+        setSnackbarOpen(true)
+      }
     }
   }
 
@@ -858,7 +860,7 @@ function SettingsActionsDialog(props) {
                   endAdornment: <InputAdornment position="end">{setting.unit}</InputAdornment>,
                 }}
                 variant="outlined"
-                onKeyPress={setPioreactorJobAttrOnEnter}
+                onKeyPress={setPioreactorJobAttrOnEnter(setting.unit)}
                 className={classes.textFieldCompact}
               />
               <Divider className={classes.divider} />
@@ -1155,11 +1157,13 @@ function SettingsActionsDialogAll({config, experiment}) {
     }
   }
 
-  function setPioreactorJobAttrOnEnter(e) {
-    if (e.key === "Enter") {
-      setPioreactorJobAttr(e.target.id, e.target.value);
-      setSnackbarMessage(`Updated to ${e.target.value}.`)
-      setSnackbarOpen(true)
+  function setPioreactorJobAttrOnEnter(measurementUnit) {
+    return function(e) {
+      if (e.key === "Enter") {
+        setPioreactorJobAttr(e.target.id, e.target.value);
+        setSnackbarMessage(`Updating to ${e.target.value} ${measurementUnit}.`)
+        setSnackbarOpen(true)
+      }
     }
   }
 
@@ -1286,7 +1290,7 @@ function SettingsActionsDialogAll({config, experiment}) {
                   endAdornment: <InputAdornment position="end">{setting.unit}</InputAdornment>,
                 }}
                 variant="outlined"
-                onKeyPress={setPioreactorJobAttrOnEnter}
+                onKeyPress={setPioreactorJobAttrOnEnter(setting.unit)}
                 className={classes.textFieldCompact}
               />
               <Divider className={classes.divider} />

@@ -170,7 +170,7 @@ function ButtonChangeDosingDialog(props) {
               {Object.keys(automations).map((key) => <option id={key} value={key} key={"change-io" + key}>{automations[key].name}</option>)}
             </Select>
 
-            {Object.keys(automations).length > 0 && <AutomationForm fields={automations[algoSettings["dosing_automation"]].fields} updateParent={updateFromChild}/>}
+            {Object.keys(automations).length > 0 && <AutomationForm fields={automations[algoSettings["dosing_automation"]].fields} description={automations[algoSettings["dosing_automation"]].description} updateParent={updateFromChild}/>}
 
             <FormControlLabel
               control={<Checkbox checked={algoSettings.skip_first_run}

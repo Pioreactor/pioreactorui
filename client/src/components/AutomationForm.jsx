@@ -43,7 +43,8 @@ function AutomationForm(props){
   )
 
   return (
-      <div>
+    <div>
+        <p> {props.description} </p>
         {listOfTextField}
     </div>
 )}

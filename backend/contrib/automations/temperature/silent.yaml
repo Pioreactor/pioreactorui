@@ -1,4 +1,5 @@
 ---
 name: Silent
 key: silent
+description: Apply no heating, only record the temperature.
 fields: []

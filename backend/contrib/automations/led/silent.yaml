@@ -1,6 +1,7 @@
 ---
 name: Silent
 key: silent
+description: Do nothing.
 fields:
   - key: duration
     default: 30

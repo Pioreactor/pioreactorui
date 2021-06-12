@@ -162,7 +162,7 @@ function ButtonChangeLEDDialog(props) {
 
             </Select>
 
-            {Object.keys(automations).length > 0 && <AutomationForm fields={automations[algoSettings["led_automation"]].fields} updateParent={updateFromChild}/>}
+            {Object.keys(automations).length > 0 && <AutomationForm fields={automations[algoSettings["led_automation"]].fields} description={automations[algoSettings["led_automation"]].description} updateParent={updateFromChild}/>}
 
             <Button
               type="submit"

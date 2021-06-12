@@ -1,6 +1,7 @@
 ---
 name: Chemostat
 key: chemostat
+description: Dose a constant volume of media on a fixed scheduale.
 fields:
   - key: duration
     default: 20
