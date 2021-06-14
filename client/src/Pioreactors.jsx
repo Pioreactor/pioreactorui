@@ -681,7 +681,7 @@ function SettingsActionsDialog(props) {
 
   function setPioreactorJobAttrOnEnter(measurementUnit) {
     return function(e) {
-      if (e.key === "Enter") {
+      if ((e.key === "Enter") && (e.target.value)) {
         setPioreactorJobAttr(e.target.id, e.target.value);
         setSnackbarMessage(`Updating to ${e.target.value} ${measurementUnit}.`)
         setSnackbarOpen(true)
@@ -1159,7 +1159,7 @@ function SettingsActionsDialogAll({config, experiment}) {
 
   function setPioreactorJobAttrOnEnter(measurementUnit) {
     return function(e) {
-      if (e.key === "Enter") {
+      if ((e.key === "Enter") && (e.target.value)) {
         setPioreactorJobAttr(e.target.id, e.target.value);
         setSnackbarMessage(`Updating to ${e.target.value} ${measurementUnit}.`)
         setSnackbarOpen(true)
@@ -1275,7 +1275,7 @@ function SettingsActionsDialogAll({config, experiment}) {
               .filter(([key, setting]) => (key !== "state") && (key !== "metadata"))
               .filter(([_, setting]) => setting.display)
               .map(([key, setting]) =>
-            <React.Fragment>
+            <React.Fragment key={key}>
               <Typography  gutterBottom>
                 {setting.label}
               </Typography>

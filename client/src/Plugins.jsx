@@ -67,12 +67,21 @@ function PageHeader(props) {
 function ListAvailablePlugins({alreadyInstalledPluginsNames}){
 
   const classes = useStyles();
+  const [availablePlugins, setAvailablePlugins] = React.useState([])
 
-  const availablePlugins = [
-    {name: 'PhotoPioreactor', homepage: '', description: "This is a test"},
-    {name: 'pioreactor-air-bubbler', homepage: '', description: "This is a test"},
-    {name: 'pioreactor-custom-dosing-automation', homepage: '', description: "This is a test"},
-  ]
+
+  React.useEffect(() => {
+    async function getData() {
+         await fetch("https://raw.githubusercontent.com/Pioreactor/list-of-plugins/main/plugins.json")
+        .then((response) => {
+          return response.json();
+        })
+        .then((json) => {
+          setAvailablePlugins(json)
+        });
+      }
+      getData()
+  }, [])
 
   const installPlugin = (plugin_name) => () => (
       fetch('/install_plugin', {
@@ -100,6 +109,7 @@ function ListAvailablePlugins({alreadyInstalledPluginsNames}){
             <ListItemText
               primary={plugin.name}
               secondary={plugin.description}
+              style={{maxWidth: "600px"}}
             />
             <ListItemSecondaryAction>
 
@@ -141,8 +151,6 @@ function ListAvailablePlugins({alreadyInstalledPluginsNames}){
 function ListInstalledPlugins({installedPlugins}){
 
   const classes = useStyles();
-
-
 
 
   const uninstallPlugin = (plugin_name) => () => (
