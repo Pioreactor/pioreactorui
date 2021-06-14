@@ -9,6 +9,7 @@ import Button from '@material-ui/core/Button';
 import Box from '@material-ui/core/Box';
 import {Typography} from '@material-ui/core';
 import OpenInNewIcon from '@material-ui/icons/OpenInNew';
+import Snackbar from '@material-ui/core/Snackbar';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemAvatar from '@material-ui/core/ListItemAvatar';
@@ -68,6 +69,8 @@ function ListAvailablePlugins({alreadyInstalledPluginsNames}){
 
   const classes = useStyles();
   const [availablePlugins, setAvailablePlugins] = React.useState([])
+  const [snackbarOpen, setSnackbarOpen] = React.useState(false)
+  const [snackbarMsg, setSnackbarMsg] = React.useState("")
 
 
   React.useEffect(() => {
@@ -84,6 +87,8 @@ function ListAvailablePlugins({alreadyInstalledPluginsNames}){
   }, [])
 
   const installPlugin = (plugin_name) => () => (
+      setSnackbarOpen(true),
+      setSnackbarMsg(`Installing ${plugin_name} in background...`),
       fetch('/install_plugin', {
         method: "POST",
         body: JSON.stringify({plugin_name: plugin_name}),
@@ -94,7 +99,12 @@ function ListAvailablePlugins({alreadyInstalledPluginsNames}){
       })
   )
 
+  const handleSnackbarClose = () => {
+    setSnackbarOpen(false)
+  }
+
   return (
+    <React.Fragment>
     <div className={classes.pluginList}>
      <List dense={true}>
         {availablePlugins
@@ -143,17 +153,30 @@ function ListAvailablePlugins({alreadyInstalledPluginsNames}){
         )}
       </List>
     </div>
+    <Snackbar
+      anchorOrigin={{vertical: "bottom", horizontal: "center"}}
+      open={snackbarOpen}
+      onClose={handleSnackbarClose}
+      message={snackbarMsg}
+      autoHideDuration={7000}
+      resumeHideDuration={2000}
+      key={"snackbar-installation"}
+    />
+    </React.Fragment>
   )
 }
 
 
 
 function ListInstalledPlugins({installedPlugins}){
-
+  const [snackbarOpen, setSnackbarOpen] = React.useState(false)
+  const [snackbarMsg, setSnackbarMsg] = React.useState("")
   const classes = useStyles();
 
 
   const uninstallPlugin = (plugin_name) => () => (
+      setSnackbarOpen(true),
+      setSnackbarMsg(`Uninstalling ${plugin_name} in background...`),
       fetch('/uninstall_plugin', {
         method: "POST",
         body: JSON.stringify({plugin_name: plugin_name}),
@@ -176,7 +199,7 @@ function ListInstalledPlugins({installedPlugins}){
             </ListItemAvatar>
             <ListItemText
               primary={plugin.name}
-              secondary={plugin.description}
+              secondary={`(${plugin.version}) ${plugin.description}`}
             />
             <ListItemSecondaryAction>
 
