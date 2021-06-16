@@ -88,7 +88,7 @@ function ListAvailablePlugins({alreadyInstalledPluginsNames}){
 
   const installPlugin = (plugin_name) => () => (
       setSnackbarOpen(true),
-      setSnackbarMsg(`Installing ${plugin_name} in background...`),
+      setSnackbarMsg(`Installing ${plugin_name} in the background...`),
       fetch('/install_plugin', {
         method: "POST",
         body: JSON.stringify({plugin_name: plugin_name}),
@@ -176,7 +176,7 @@ function ListInstalledPlugins({installedPlugins}){
 
   const uninstallPlugin = (plugin_name) => () => (
       setSnackbarOpen(true),
-      setSnackbarMsg(`Uninstalling ${plugin_name} in background...`),
+      setSnackbarMsg(`Uninstalling ${plugin_name} in the background...`),
       fetch('/uninstall_plugin', {
         method: "POST",
         body: JSON.stringify({plugin_name: plugin_name}),
@@ -198,8 +198,8 @@ function ListInstalledPlugins({installedPlugins}){
               </Avatar>
             </ListItemAvatar>
             <ListItemText
-              primary={plugin.name}
-              secondary={`(${plugin.version}) ${plugin.description}`}
+              primary={`${plugin.name} (${plugin.version})`}
+              secondary={plugin.description}
             />
             <ListItemSecondaryAction>
 

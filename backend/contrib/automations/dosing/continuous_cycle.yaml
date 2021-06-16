@@ -2,4 +2,8 @@
 key: continuous_cycle
 name: Continuous Cycle
 description: Continuously run the `media` pump. Useful for cleaning, or using the Pioreactor as an inline sensor. The `skip first run` below does nothing.
-fields: []
+fields:
+  - key: duty_cycle
+    default: 100
+    unit: "%"
+    label: Duty cycle
