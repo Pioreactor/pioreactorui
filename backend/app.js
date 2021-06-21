@@ -537,7 +537,6 @@ app.post("/update_experiment_desc", function (req, res, next) {
     db.ignoreErrors = true; // this is a hack to avoid dblite from freezing when we get a db is locked.
     db.query(update, [req.body.description, req.body.experiment], function(err, _){
         if (err){
-          console.log(err)
           next(err)
         } else {
           res.sendStatus(200)

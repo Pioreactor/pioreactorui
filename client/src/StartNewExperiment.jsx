@@ -108,9 +108,15 @@ function ExperimentSummaryForm(props) {
     e.preventDefault();
     if (expName === ""){
       setFormError(true)
-      setHelperText("Can't be blank")
+      setHelperText("Can't be blank.")
       return
     }
+    else if (expName.includes("#") || expName.includes("+")) {
+      setFormError(true)
+      setHelperText("Can't use # or + in experiment name.")
+      return
+    }
+
     fetch('create_experiment',{
         method: "POST",
         body: JSON.stringify({experiment : expName.trim(), timestamp: timestamp.toISOString(), description: description}),
