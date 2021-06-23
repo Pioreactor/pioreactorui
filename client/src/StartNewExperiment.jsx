@@ -111,11 +111,13 @@ function ExperimentSummaryForm(props) {
       setHelperText("Can't be blank.")
       return
     }
-    else if (expName.includes("#") || expName.includes("+")) {
+    else if (expName.includes("#") || expName.includes("+") || expName.includes("/")) {
       setFormError(true)
-      setHelperText("Can't use # or + in experiment name.")
+      setHelperText("Can't use #, / or + characters in experiment name.")
       return
     }
+
+    // TODO: confirm we are connected to MQTT
 
     fetch('create_experiment',{
         method: "POST",

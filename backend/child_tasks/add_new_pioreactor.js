@@ -6,8 +6,6 @@ process.on('message', function(newPioreactorName) {
     execFile("pio", ["add-pioreactor", newPioreactorName],
         { shell: "/bin/bash" },
         (error, stdout, stderr) => {
-        console.log(stdout)
-        console.log(stderr)
         if (error) {
             console.log(error)
             process.send({stderr: stderr});
