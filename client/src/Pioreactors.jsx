@@ -27,9 +27,19 @@ import Tab from '@material-ui/core/Tab';
 import Button from "@material-ui/core/Button";
 import AddIcon from '@material-ui/icons/Add';
 import ClearIcon from '@material-ui/icons/Clear';
+import ErrorIcon from '@material-ui/icons/Error';
+import CheckIcon from '@material-ui/icons/Check';
 import FlareIcon from '@material-ui/icons/Flare';
 import SettingsIcon from '@material-ui/icons/Settings';
 import TuneIcon from '@material-ui/icons/Tune';
+import CheckBoxOutlinedIcon from '@material-ui/icons/CheckBoxOutlined';
+import CheckBoxOutlineBlankIcon from '@material-ui/icons/CheckBoxOutlineBlank';
+import ListItemIcon from '@material-ui/core/ListItemIcon';
+import ListItemText from '@material-ui/core/ListItemText';
+import List from '@material-ui/core/List';
+import ListItem from '@material-ui/core/ListItem';
+import ListSubheader from '@material-ui/core/ListSubheader';
+
 
 import ButtonChangeDosingDialog from "./components/ButtonChangeDosingDialog"
 import ButtonChangeLEDDialog from "./components/ButtonChangeLEDDialog"
@@ -128,7 +138,14 @@ const useStyles = makeStyles((theme) => ({
     justifyContent: "flex-start",
     alignItems: "stretch",
     alignContent: "stretch",
-  }
+  },
+  testingListItemIcon: {
+    minWidth: "30px"
+  },
+  testingListItem : {
+    paddingTop: "0px",
+    paddingBottom: "0px",
+  },
 }));
 
 
@@ -618,6 +635,162 @@ function CalibrateDialog(props) {
             <Divider className={classes.divider} />
 
           </TabPanel>
+        </DialogContent>
+      </Dialog>
+  </React.Fragment>)
+}
+
+
+
+function SystemCheckDialog(props) {
+  const classes = useStyles();
+  const [open, setOpen] = useState(false);
+
+
+  const handleClickOpen = () => {
+    setOpen(true);
+  };
+
+  const handleClose = () => {
+    setOpen(false);
+  };
+
+
+  function startPioreactorJob(job){
+    return function() {
+      fetch("/run/" + job + "/" + props.unit, {method: "POST"}).then(res => {
+      })
+    }
+  }
+
+  function displayIcon(key, state){
+    if (props.systemCheckTests == null){
+      return <CheckBoxOutlineBlankIcon />
+    }
+    else if (props.systemCheckTests[key].value === 1){
+      return <CheckIcon style={{color: readyGreen}}/>
+    }
+    else if (props.systemCheckTests[key].value === 0){
+      return <ErrorIcon style={{color: lostRed}}/>
+    }
+    else if (state === "ready") {
+      return <CircularProgress size={20} />
+    }
+    else {
+      return <CheckBoxOutlineBlankIcon />
+    }
+  }
+
+
+  function createUserButtonsBasedOnState(jobState, job){
+
+    switch (jobState){
+      case "disconnected":
+       return (<div>
+               <PatientButton
+                color="primary"
+                variant="contained"
+                onClick={startPioreactorJob(job)}
+                buttonText="Start"
+               />
+              </div>)
+      case "ready":
+       return (<div>
+               <PatientButton
+                color="primary"
+                variant="contained"
+                buttonText="Running"
+               />
+              </div>)
+      default:
+        return(<div></div>)
+    }
+   }
+
+  const systemCheckButton = createUserButtonsBasedOnState(props.systemCheckState, "system_check")
+
+  return (
+    <React.Fragment>
+      <Button style={{textTransform: 'none', float: "right" }} color="primary" disabled={props.disabled} onClick={handleClickOpen}>
+        <CheckBoxOutlinedIcon color={props.disabled ? "disabled" : "primary"} className={classes.textIcon}/> System check
+      </Button>
+      <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
+        <DialogTitle>
+          <Typography className={classes.suptitle}>
+            <PioreactorIcon style={{verticalAlign: "middle", fontSize: "1.2em"}}/> {(props.config['ui.rename'] &&  props.config['ui.rename'][props.unit]) ? `${props.config['ui.rename'][props.unit]} / ${props.unit}` : `${props.unit}`}
+          </Typography>
+        </DialogTitle>
+        <DialogContent>
+          <Typography  gutterBottom>
+           System check
+          </Typography>
+          <Typography variant="body2" component="p" gutterBottom>
+            Perform a check of the heating & temperature sensor, LEDs & photodiodes, and stirring.
+          </Typography>
+
+            {systemCheckButton}
+            <Divider className={classes.divider} />
+
+            <List component="nav"
+              subheader={
+                <ListSubheader component="div" disableSticky={true} disableGutters={true}>
+                  LEDs & photodiodes
+                </ListSubheader>
+              }
+            >
+              <ListItem className={classes.testingListItem}>
+                <ListItemIcon className={classes.testingListItemIcon}>
+                  {displayIcon("pioreactor_hat_present", props.systemCheckState)}
+                </ListItemIcon>
+                <ListItemText primary="Pioreactor HAT detected" />
+              </ListItem>
+              <ListItem className={classes.testingListItem}>
+                <ListItemIcon className={classes.testingListItemIcon}>
+                  {displayIcon("atleast_one_correlation_between_pd_and_leds", props.systemCheckState)}
+                </ListItemIcon>
+                <ListItemText primary="Photodiode(s) is responsive to LED(s)" />
+              </ListItem>
+            </List>
+
+            <List component="nav"
+              subheader={
+                <ListSubheader component="div" disableSticky={true} disableGutters={true}>
+                  Heating & Temperature
+                </ListSubheader>
+              }
+            >
+              <ListItem className={classes.testingListItem}>
+                <ListItemIcon className={classes.testingListItemIcon}>
+                  {displayIcon("detect_heating_pcb", props.systemCheckState)}
+                </ListItemIcon>
+                <ListItemText primary="Temperature sensor is detected" />
+              </ListItem>
+
+              <ListItem className={classes.testingListItem}>
+                <ListItemIcon className={classes.testingListItemIcon}>
+                  {displayIcon("positive_correlation_between_temp_and_heating", props.systemCheckState)}
+                </ListItemIcon>
+                <ListItemText primary="Heating is responsive" />
+              </ListItem>
+            </List>
+
+
+            <List component="nav"
+              subheader={
+                <ListSubheader component="div" disableSticky={true} disableGutters={true}>
+                  Stirring
+                </ListSubheader>
+              }
+            >
+              <ListItem className={classes.testingListItem}>
+                <ListItemIcon className={classes.testingListItemIcon}>
+                  {displayIcon("positive_correlation_between_rpm_and_stirring", props.systemCheckState)}
+                </ListItemIcon>
+                <ListItemText primary="Stirring RPM is responsive" />
+              </ListItem>
+            </List>
+
+          <Divider className={classes.divider} />
         </DialogContent>
       </Dialog>
   </React.Fragment>)
@@ -1475,6 +1648,7 @@ function FlashLEDButton(props){
 )}
 
 
+
 function PioreactorCard(props){
   const classes = useStyles();
   const unit = props.unit
@@ -1505,7 +1679,7 @@ function PioreactorCard(props){
         .then((listOfJobs) => {
           var jobs_ = {}
           for (const job of listOfJobs){
-            var metaData_ = {state: "disconnected", metadata: {name: job.name, subtext: job.subtext, display: job.display, description: job.description, key: job.job_name, source: job.source}}
+            var metaData_ = {state: "disconnected", metadata: {name: job.name, subtext: job.subtext, display: job.display, description: job.description, key: job.job_name, source: job.source, is_testing: job.is_testing}}
             for(var i = 0; i < job["editable_settings"].length; ++i){
               var field = job["editable_settings"][i]
               metaData_[field.key] = {value: field.default, label: field.label, type: field.type, unit: field.unit || null, display: field.display, description: field.description}
@@ -1523,13 +1697,16 @@ function PioreactorCard(props){
   useEffect(() => {
     const onConnect = () => {
       client.subscribe(["pioreactor", unit, "$experiment", "monitor", "$state"].join("/"));
-
       for (const job of Object.keys(jobs)) {
         if (job === "monitor") {continue;}
-        client.subscribe(["pioreactor", unit, experiment, job, "$state"].join("/"));
+
+        // for some jobs (system_check), we use a different experiment name to not clutter datasets,
+        const experimentName = jobs[job].metadata.is_testing ? "testing_" + experiment : experiment
+
+        client.subscribe(["pioreactor", unit, experimentName, job, "$state"].join("/"));
         for (const setting of Object.keys(jobs[job])){
           if ((setting !== "state") && (setting !== "metadata")){
-            client.subscribe(["pioreactor", unit, experiment, setting.endsWith("_automation") ? job : job.replace("_control", "_automation"), setting].join("/"));
+            client.subscribe(["pioreactor", unit, experimentName, setting.endsWith("_automation") ? job : job.replace("_control", "_automation"), setting].join("/"));
           }
         }
       }
@@ -1607,6 +1784,16 @@ function PioreactorCard(props){
             <div style={{display: "flex", justifyContent: "flex-end", flexDirection: "row", flexWrap: "wrap"}}>
               <div>
                 <FlashLEDButton client={client} disabled={!isUnitActive} config={props.config} unit={unit}/>
+              </div>
+              <div>
+                <SystemCheckDialog
+                  client={client}
+                  disabled={!isUnitActive}
+                  config={props.config}
+                  unit={unit}
+                  systemCheckState={jobs['system_check'] ? jobs['system_check'].state : null}
+                  systemCheckTests={jobs['system_check'] ? jobs['system_check'] : null}
+                />
               </div>
               <div>
                 <CalibrateDialog

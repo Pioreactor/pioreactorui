@@ -20,11 +20,6 @@ app.use(compression());
 
 var db = dblite(process.env.DB_LOCATION)
 
-db.on('error', function (err) {
-  // log any DB errors.
-  console.error(err.toString());
-});
-
 
 // this is not secure, and I know it. It's fine for now, as the app isn't exposed to the internet.
 var staticUserAuth = basicAuth({

@@ -1,0 +1,19 @@
+---
+name: system check
+job_name: system_check
+display: false
+source: app
+is_testing: true
+editable_settings:
+  - key: all_tests
+    display: false
+  - key: detect_heating_pcb
+    display: false
+  - key: positive_correlation_between_temp_and_heating
+    display: false
+  - key: atleast_one_correlation_between_pd_and_leds
+    display: false
+  - key: positive_correlation_between_rpm_and_stirring
+    display: false
+  - key: pioreactor_hat_present
+    display: false
