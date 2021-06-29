@@ -507,6 +507,7 @@ function PatientButton(props) {
       style={{width: "70px", marginTop: "5px"}}
       color={props.color}
       variant={props.variant}
+      disabled={props.disabled}
       size="small"
       onClick={wrappingOnClick()}
     >
@@ -575,6 +576,7 @@ function CalibrateDialog(props) {
                 color="primary"
                 variant="contained"
                 buttonText="Running"
+                disabled={true}
                />
               </div>)
       default:
@@ -699,6 +701,7 @@ function SystemCheckDialog(props) {
                <PatientButton
                 color="primary"
                 variant="contained"
+                disabled={true}
                 buttonText="Running"
                />
               </div>)
@@ -746,9 +749,13 @@ function SystemCheckDialog(props) {
               </ListItem>
               <ListItem className={classes.testingListItem}>
                 <ListItemIcon className={classes.testingListItemIcon}>
-                  {displayIcon("atleast_one_correlation_between_pd_and_leds", props.systemCheckState)}
+                  {displayIcon("atleast_one_correlation_between_pds_and_leds", props.systemCheckState)}
                 </ListItemIcon>
-                <ListItemText primary="Photodiode(s) is responsive to LED(s)" />
+                <ListItemText primary="Photodiode(s) is responsive to LED(s)" secondary={
+                    props.systemCheckTests ?
+                      JSON.parse(props.systemCheckTests["correlations_between_pds_and_leds"].value).map(led_pd => `${led_pd[0]} ⇝ ${led_pd[1]}`).join(",  ") :
+                      ""
+                    }/>
               </ListItem>
             </List>
 
@@ -904,6 +911,7 @@ function SettingsActionsDialog(props) {
             variant="contained"
             onClick={()=>(false)}
             buttonText=<CircularProgress color="inherit" size={22}/>
+            disabled={true}
           />
           <PatientButton
             color="secondary"
@@ -1701,7 +1709,7 @@ function PioreactorCard(props){
         if (job === "monitor") {continue;}
 
         // for some jobs (system_check), we use a different experiment name to not clutter datasets,
-        const experimentName = jobs[job].metadata.is_testing ? "testing_" + experiment : experiment
+        const experimentName = jobs[job].metadata.is_testing ? "_testing_" + experiment : experiment
 
         client.subscribe(["pioreactor", unit, experimentName, job, "$state"].join("/"));
         for (const setting of Object.keys(jobs[job])){

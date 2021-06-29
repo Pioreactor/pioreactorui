@@ -11,8 +11,11 @@ editable_settings:
     display: false
   - key: positive_correlation_between_temp_and_heating
     display: false
-  - key: atleast_one_correlation_between_pd_and_leds
+  - key: atleast_one_correlation_between_pds_and_leds
     display: false
+  - key: correlations_between_pds_and_leds
+    display: false
+    default: '[]'
   - key: positive_correlation_between_rpm_and_stirring
     display: false
   - key: pioreactor_hat_present
