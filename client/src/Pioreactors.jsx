@@ -34,6 +34,7 @@ import SettingsIcon from '@material-ui/icons/Settings';
 import TuneIcon from '@material-ui/icons/Tune';
 import CheckBoxOutlinedIcon from '@material-ui/icons/CheckBoxOutlined';
 import CheckBoxOutlineBlankIcon from '@material-ui/icons/CheckBoxOutlineBlank';
+import IndeterminateCheckBoxIcon from '@material-ui/icons/IndeterminateCheckBox';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
 import List from '@material-ui/core/List';
@@ -667,7 +668,7 @@ function SystemCheckDialog(props) {
 
   function displayIcon(key, state){
     if (props.systemCheckTests == null){
-      return <CheckBoxOutlineBlankIcon />
+      return <IndeterminateCheckBoxIcon />
     }
     else if (props.systemCheckTests[key].value === 1){
       return <CheckIcon style={{color: readyGreen}}/>
@@ -679,7 +680,7 @@ function SystemCheckDialog(props) {
       return <CircularProgress size={20} />
     }
     else {
-      return <CheckBoxOutlineBlankIcon />
+      return <IndeterminateCheckBoxIcon />
     }
   }
 
