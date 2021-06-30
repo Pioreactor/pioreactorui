@@ -30,6 +30,11 @@ export default function ActionPumpForm(props) {
   const [isMLDisabled, setIsMLDisabled] = useState(false);
   const [isDurationDisabled, setIsDurationDisabled] = useState(false);
   const [openSnackbar, setOpenSnackbar] = useState(false);
+  const [snackbarMsg, setSnackbarMsg] = useState("");
+
+  const [formErrorDuration, setFormErrorDuration] = useState(false)
+  const [formErrorML, setFormErrorML] = useState(false)
+
 
   function onSubmit(e) {
     e.preventDefault();
@@ -43,6 +48,7 @@ export default function ActionPumpForm(props) {
           'Content-Type': 'application/json'
         }
       });
+      setSnackbarMsg(actionToAct[props.action] + (duration !== EMPTYSTATE ? (" for " +  duration + " seconds.") : (" until " + mL + "mL is reached.")))
       setOpenSnackbar(true);
     }
   }
@@ -52,14 +58,16 @@ export default function ActionPumpForm(props) {
   }
 
   function runPumpContinuously(e) {
-      fetch(`/run/add_media/${props.unit}`, {
-        method: "POST",
-        body: JSON.stringify({continuously: "", source_of_event: "UI"}),
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json'
-        }
-      });
+    fetch(`/run/add_media/${props.unit}`, {
+      method: "POST",
+      body: JSON.stringify({continuously: "", source_of_event: "UI"}),
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      }
+    })
+    setSnackbarMsg("Running media pump continuously")
+    setOpenSnackbar(true)
   }
 
   const handleSnackbarClose = () => {
@@ -67,18 +75,38 @@ export default function ActionPumpForm(props) {
   };
 
   function handleMLChange(e) {
-    setML(e.target.value);
+    const re = /^[0-9\.\b]+$/;
+
     setIsDurationDisabled(true);
     if (e.target.value === EMPTYSTATE) {
       setIsDurationDisabled(false);
     }
+
+    setML(e.target.value);
+
+    if (e.target.value === EMPTYSTATE || re.test(e.target.value)) {
+      setFormErrorML(false)
+    }
+    else {
+      setFormErrorML(true)
+    }
   }
 
   function handleDurationChange(e) {
-    setDuration(e.target.value);
+    const re = /^[0-9\.\b]+$/;
+
     setIsMLDisabled(true);
     if (e.target.value === EMPTYSTATE) {
       setIsMLDisabled(false);
+    }
+
+    setDuration(e.target.value);
+
+    if (e.target.value === EMPTYSTATE || re.test(e.target.value)) {
+      setFormErrorDuration(false)
+    }
+    else {
+      setFormErrorDuration(true)
     }
   }
 
@@ -86,6 +114,7 @@ export default function ActionPumpForm(props) {
     <form id={props.action} className={classes.actionForm}>
       <TextField
         name="mL"
+        error={formErrorML}
         value={mL}
         size="small"
         id={props.action + "_mL"}
@@ -98,6 +127,7 @@ export default function ActionPumpForm(props) {
       <TextField
         name="duration"
         value={duration}
+        error={formErrorDuration}
         size="small"
         id={props.action + "_duration"}
         label="seconds"
@@ -110,6 +140,7 @@ export default function ActionPumpForm(props) {
       <br />
       <div style={{display: "flex", justifyContent: "space-between"}}>
         <Button
+          disabled={formErrorML || formErrorDuration}
           type="submit"
           variant="contained"
           size="small"
@@ -140,7 +171,7 @@ export default function ActionPumpForm(props) {
         anchorOrigin={{vertical: "bottom", horizontal: "center"}}
         open={openSnackbar}
         onClose={handleSnackbarClose}
-        message={actionToAct[props.action] + (duration !== EMPTYSTATE ? (" for " +  duration + " seconds.") : (" until " + mL + "mL."))}
+        message={snackbarMsg}
         autoHideDuration={7000}
         key={"snackbar" + props.unit + props.action}
       />

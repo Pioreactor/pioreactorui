@@ -22,10 +22,12 @@ export default function ActionLEDForm(props) {
   const classes = useStyles();
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [intensity, setIntensity] = useState(EMPTYSTATE);
+  const [errorForm, setErrorForm] = useState(false);
 
   function onSubmit(e) {
+    const re = /^[0-9\.\b]+$/;
     e.preventDefault();
-    if (intensity !== EMPTYSTATE) {
+    if (intensity !== EMPTYSTATE && re.test(intensity)) {
       // TODO: this could also fire an mqtt event to set it in LEDAlgorithm, in case that is running
       const params = { intensity: intensity, channel: props.channel, source_of_event: "UI"}
       fetch(`/run/led_intensity/${props.unit}`, {
@@ -37,13 +39,22 @@ export default function ActionLEDForm(props) {
         }
       }
       );
+      setErrorForm(false)
       setOpenSnackbar(true);
+    } else {
+      setErrorForm(true)
     }
   }
 
 
   function handleChange(e) {
+    const re = /^[0-9\.\b]+$/;
     setIntensity(e.target.value);
+    if (e.target.value === '' || re.test(e.target.value)) {
+      setErrorForm(false)
+    } else {
+      setErrorForm(true)
+    }
   }
 
   const handleSnackbarClose = () => {
@@ -54,6 +65,7 @@ export default function ActionLEDForm(props) {
   return (
     <form id={props.action} className={classes.actionForm}>
       <TextField
+        error={errorForm}
         name="intensity"
         value={intensity}
         size="small"
