@@ -74,10 +74,6 @@ const useStyles = makeStyles((theme) => ({
     color: "rgba(0, 0, 0, 0.87)",
     fontWeight: 500,
   },
-  unitTitleDialog :{
-    fontSize: 20,
-    color: "rgba(0, 0, 0, 0.87)",
-  },
   suptitle: {
     fontSize: "13px",
     color: "rgba(0, 0, 0, 0.60)",
@@ -382,9 +378,7 @@ function AddNewPioreactor(props){
     </Button>
     <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
       <DialogTitle>
-        <Typography className={classes.unitTitleDialog}>
         Add new Pioreactor
-        </Typography>
       </DialogTitle>
       <DialogContent>
       <p> To add a new Pioreactor, you'll need the following: </p>
@@ -716,18 +710,16 @@ function SystemCheckDialog(props) {
   return (
     <React.Fragment>
       <Button style={{textTransform: 'none', float: "right" }} color="primary" disabled={props.disabled} onClick={handleClickOpen}>
-        <CheckBoxOutlinedIcon color={props.disabled ? "disabled" : "primary"} className={classes.textIcon}/> System check
+        <CheckBoxOutlinedIcon color={props.disabled ? "disabled" : "primary"} className={classes.textIcon}/> Self test
       </Button>
       <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
         <DialogTitle>
-          <Typography className={classes.suptitle}>
+          <Typography className={classes.suptitle} gutterBottom>
             <PioreactorIcon style={{verticalAlign: "middle", fontSize: "1.2em"}}/> {(props.config['ui.rename'] &&  props.config['ui.rename'][props.unit]) ? `${props.config['ui.rename'][props.unit]} / ${props.unit}` : `${props.unit}`}
           </Typography>
+           Self test
         </DialogTitle>
         <DialogContent>
-          <Typography  gutterBottom>
-           System check
-          </Typography>
           <Typography variant="body2" component="p" gutterBottom>
             Perform a check of the heating & temperature sensor, LEDs & photodiodes, and stirring.
           </Typography>
@@ -737,7 +729,7 @@ function SystemCheckDialog(props) {
 
             <List component="nav"
               subheader={
-                <ListSubheader component="div" disableSticky={true} disableGutters={true}>
+                <ListSubheader style={{lineHeight: "35px"}} component="div" disableSticky={true} disableGutters={true}>
                   LEDs & photodiodes
                 </ListSubheader>
               }
@@ -746,7 +738,7 @@ function SystemCheckDialog(props) {
                 <ListItemIcon className={classes.testingListItemIcon}>
                   {displayIcon("pioreactor_hat_present", props.systemCheckState)}
                 </ListItemIcon>
-                <ListItemText primary="Pioreactor HAT detected" />
+                <ListItemText primary="Pioreactor HAT is detected" />
               </ListItem>
               <ListItem className={classes.testingListItem}>
                 <ListItemIcon className={classes.testingListItemIcon}>
@@ -762,8 +754,8 @@ function SystemCheckDialog(props) {
 
             <List component="nav"
               subheader={
-                <ListSubheader component="div" disableSticky={true} disableGutters={true}>
-                  Heating & Temperature
+                <ListSubheader style={{lineHeight: "35px"}} component="div" disableSticky={true} disableGutters={true}>
+                  Heating & temperature
                 </ListSubheader>
               }
             >
@@ -785,7 +777,7 @@ function SystemCheckDialog(props) {
 
             <List component="nav"
               subheader={
-                <ListSubheader component="div" disableSticky={true} disableGutters={true}>
+                <ListSubheader style={{lineHeight: "35px"}} component="div" disableSticky={true} disableGutters={true}>
                   Stirring
                 </ListSubheader>
               }

@@ -130,7 +130,7 @@ function Overview(props) {
                 lookback={10000}
                 deltaHours={1} // hack to display all data points
                 yAxisDomain={[22.5, 37.5]}
-                yAxisTickFormat={(t) => `${t.toFixed(1)}`}
+                yAxisTickFormat={(t) => `${t.toFixed(0)}`}
               />
             </Grid>
            }
