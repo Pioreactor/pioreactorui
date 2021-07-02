@@ -203,7 +203,6 @@ function ListInstalledPlugins({installedPlugins}){
               secondary={plugin.description}
             />
             <ListItemSecondaryAction>
-
               <Button
                 onClick={uninstallPlugin(plugin.name)}
                 variant="text"

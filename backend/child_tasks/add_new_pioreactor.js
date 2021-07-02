@@ -8,9 +8,9 @@ process.on('message', function(newPioreactorName) {
         (error, stdout, stderr) => {
         if (error) {
             console.log(error)
-            process.send({stderr: stderr});
+            process.send({result: false, msg: stderr});
         } else {
-            process.send(0);
+            process.send({result: true, msg: ""});
         }
         process.exit(0)
     });

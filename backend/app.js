@@ -12,6 +12,9 @@ const expressStaticGzip = require("express-static-gzip");
 const compression = require('compression');
 const showdown  = require('showdown');
 const yaml = require('js-yaml');
+const mqtt = require('mqtt')
+const os = require("os");
+
 
 const app = express()
 app.use(bodyParser.json());
@@ -21,6 +24,11 @@ app.use(compression());
 var db = dblite(process.env.DB_LOCATION)
 
 
+// connect to MQTT for logging
+var client  = mqtt.connect('mqtt://localhost:1883')
+const LOG_TOPIC = `pioreactor/${os.hostname()}/$experiment/logs/ui`
+
+
 // this is not secure, and I know it. It's fine for now, as the app isn't exposed to the internet.
 var staticUserAuth = basicAuth({
     users: {
@@ -28,6 +36,18 @@ var staticUserAuth = basicAuth({
     },
     challenge: true
 })
+
+
+///////////// UTILS ////////////////////
+msgToJSON = (msg, level) => {
+  return JSON.stringify({message: msg, task: "UI", level: level})
+}
+
+publishToLog = (msg, level="DEBUG") => {
+  client.publish(LOG_TOPIC, msgToJSON(msg, level))
+}
+
+
 
 
 
@@ -89,12 +109,13 @@ app.get('/updates', function(req, res) {
 app.post('/stop_all', function (req, res) {
   execFile("pios", ["kill"].concat(["--all-jobs"]).concat(["-y"]), (error, stdout, stderr) => {
     if (error) {
+        publishToLog(error, "ERROR")
         console.log(error)
     }
     if (stderr) {
+        publishToLog(stderr)
         console.log(stderr)
     }
-    console.log(stdout);
   })
   res.sendStatus(200)
 });
@@ -107,11 +128,14 @@ app.post('/stop/:job/:unit', function (req, res) {
 
   execFile("pios", ["kill", job, "-y", "--units", req.params.unit], (error, stdout, stderr) => {
     if (error) {
+        publishToLog(error, "ERROR")
         console.log(error)
     }
     if (stderr) {
+        publishToLog(stderr)
         console.log(stderr)
     }
+    publishToLog(stdout)
     console.log(stdout);
   })
   res.sendStatus(200)
@@ -127,15 +151,18 @@ app.post("/run/:job/:unit", function(req, res) {
     execFile("pios", ["run", job, "-y", "--units", unit].concat(options), (error, stdout, stderr) => {
         if (error) {
             console.log(error)
-            res.sendStatus(500);
-            return;
+            publishToLog(error, "ERROR")
+            res.sendStatus(500)
+            return
         }
         if (stderr) {
-            console.log(error)
-            res.sendStatus(200);
-            return;
+            console.log(stderr)
+            publishToLog(stderr)
+            res.sendStatus(200)
+            return
         }
-        console.log(stdout);
+        publishToLog(stdout)
+        console.log(stdout)
         res.sendStatus(200)
     });
 })
@@ -173,6 +200,7 @@ app.get('/recent_logs/:experiment', function (req, res) {
     {timestamp: String, is_error: Boolean, is_warning: Boolean, pioreactor_unit: String, message: String, task: String},
     function (err, rows) {
       if (err){
+        publishToLog(err, "ERROR")
         console.log(err)
         res.sendStatus(500)
       } else {
@@ -193,6 +221,7 @@ app.get('/time_series/growth_rates/:experiment', function (req, res) {
     {results: String},
     function (err, rows) {
       if (err){
+        publishToLog(err, "ERROR")
         console.log(err)
         res.sendStatus(500)
       } else {
@@ -213,6 +242,7 @@ app.get('/time_series/temperature_readings/:experiment', function (req, res) {
     {results: String},
     function (err, rows) {
       if (err){
+        publishToLog(err, "ERROR")
         console.log(err)
         res.sendStatus(500)
       } else {
@@ -234,6 +264,7 @@ app.get('/time_series/od_readings_filtered/:experiment', function (req, res) {
     {results: String},
     function (err, rows) {
       if (err){
+        publishToLog(err, "ERROR")
         console.log(err)
         res.sendStatus(500)
       } else {
@@ -255,6 +286,7 @@ app.get('/time_series/od_readings_raw/:experiment', function (req, res) {
     {results: String},
     function (err, rows) {
       if (err){
+        publishToLog(err, "ERROR")
         console.log(err)
         res.sendStatus(500)
       } else {
@@ -273,6 +305,7 @@ app.get('/time_series/alt_media_fraction/:experiment', function (req, res) {
     {results: String},
     function (err, rows) {
       if (err){
+        publishToLog(err, "ERROR")
         console.log(err)
         res.sendStatus(500)
       } else {
@@ -292,6 +325,7 @@ app.get("/recent_media_rates/:experiment", function (req, res) {
       {pioreactor_unit: String, mediaRate: Number, altMediaRate: Number},
       function(err, rows) {
         if (err){
+          publishToLog(err, "ERROR")
           console.log(err)
           return setTimeout(fetch, 250)
         }
@@ -317,10 +351,12 @@ app.get('/get_installed_plugins', function(req, res) {
 
   execFile("pio", ["list-plugins", "--json"], (error, stdout, stderr) => {
       if (error) {
-          console.log(error)
+        publishToLog(error, "ERROR")
+        console.log(error)
       }
       if (stderr) {
-          console.log(stderr)
+        publishToLog(stderr)
+        console.log(stderr)
       }
       res.send(stdout)
   })
@@ -330,10 +366,12 @@ app.post('/install_plugin', function(req, res) {
 
   execFile("pios", ["install-plugin", req.body.plugin_name], (error, stdout, stderr) => {
       if (error) {
-          console.log(error)
+        publishToLog(error, "ERROR")
+        console.log(error)
       }
       if (stderr) {
-          console.log(stderr)
+        publishToLog(stderr)
+        console.log(stderr)
       }
       res.sendStatus(200)
   })
@@ -344,10 +382,12 @@ app.post('/uninstall_plugin', function(req, res) {
 
   execFile("pios", ["uninstall-plugin", req.body.plugin_name], (error, stdout, stderr) => {
       if (error) {
-          console.log(error)
+        publishToLog(error, "ERROR")
+        console.log(error)
       }
       if (stderr) {
-          console.log(stderr)
+        publishToLog(stderr)
+        console.log(stderr)
       }
       res.sendStatus(200)
   })
@@ -369,6 +409,7 @@ app.get("/contrib/automations/:type", function(req, res) {
     var jsonDesc = files.map(file => yaml.load(fs.readFileSync(path.join(automationPath, file))))
     res.json(jsonDesc)
   } catch (e) {
+    publishToLog(e, "ERROR")
     console.log(e);
     res.sendStatus(500)
   }
@@ -382,6 +423,7 @@ app.get("/contrib/background_jobs", function(req, res) {
     var jsonDesc = files.map(file => yaml.load(fs.readFileSync(path.join(automationPath, file))))
     res.json(jsonDesc)
   } catch (e) {
+    publishToLog(e, "ERROR")
     console.log(e);
     res.sendStatus(500)
   }
@@ -392,10 +434,11 @@ app.get("/contrib/background_jobs", function(req, res) {
 app.post("/update_app", function (req, res) {
     var child = cp.fork('./child_tasks/update_app');
     child.on('message', function(result) {
-      if (result) {
+      if (result.result) {
           res.sendStatus(200)
       }
       else{
+        publishToLog(result.msg, "ERROR")
         res.sendStatus(500)
       }
     });
@@ -425,10 +468,12 @@ app.get('/get_app_commit_id', function(req, res) {
   // git -C ~/pioreactor log -n1 --format="%h"
   execFile("git", ["-C", folder, "log", "-n1", '--format=%h'], (error, stdout, stderr) => {
       if (error) {
-          console.log(error)
+        publishToLog(error, "ERROR")
+        console.log(error)
       }
       if (stderr) {
-          console.log(stderr)
+        publishToLog(stderr)
+        console.log(stderr)
       }
       res.send(stdout)
   })
@@ -440,10 +485,12 @@ app.get('/get_ui_commit_id', function(req, res) {
   // git -C ~/pioreactor log -n1 --format="%h"
   execFile("git", ["-C", folder, "log", "-n1", '--format=%h'], (error, stdout, stderr) => {
       if (error) {
-          console.log(error)
+        publishToLog(error, "ERROR")
+        console.log(error)
       }
       if (stderr) {
-          console.log(stderr)
+        publishToLog(stderr)
+        console.log(stderr)
       }
       res.send(stdout)
   })
@@ -459,11 +506,13 @@ app.get('/get_changelog', function(req, res) {
 app.post('/export_datasets', function(req, res) {
     var child = cp.fork('./child_tasks/db_export');
 
-    child.on('message', function(m) {
-      if (m) {
-          res.json({filename: m})
+    child.on('message', function(result) {
+      if (result.result) {
+        publishToLog(result.msg)
+        res.json({filename: m.filename})
       }
       else{
+        publishToLog(result.msg, "ERROR")
         res.sendStatus(500)
       }
     });
@@ -477,6 +526,7 @@ app.get('/get_experiments', function (req, res) {
     ["experiment", "timestamp", "description"],
     function (err, rows) {
       if (err){
+        publishToLog(err, "ERROR")
         console.log(err)
         res.sendStatus(500)
       } else {
@@ -492,6 +542,7 @@ app.get('/get_latest_experiment', function (req, res) {
       {experiment: String, timestamp: String, description: String, delta_hours: Number},
       function (err, rows) {
         if (err) {
+          publishToLog(err, "ERROR")
           console.log(err)
           return setTimeout(fetch, 500)
         }
@@ -515,6 +566,7 @@ app.post("/create_experiment", function (req, res) {
           var insert = 'INSERT INTO experiments (timestamp, experiment, description) VALUES (?,?,?)'
           db.query(insert, [req.body.timestamp, req.body.experiment, req.body.description], function(err, rows){
             if (err){
+              publishToLog(err, "ERROR")
               console.log(err)
               next(err)
               res.sendStatus(500)
@@ -532,6 +584,7 @@ app.post("/update_experiment_desc", function (req, res, next) {
     db.ignoreErrors = true; // this is a hack to avoid dblite from freezing when we get a db is locked.
     db.query(update, [req.body.description, req.body.experiment], function(err, _){
         if (err){
+          publishToLog(err, "ERROR")
           next(err)
         } else {
           res.sendStatus(200)
@@ -542,12 +595,14 @@ app.post("/update_experiment_desc", function (req, res, next) {
 app.post("/add_new_pioreactor", function (req, res) {
     const newName = req.body.newPioreactorName
     var child = cp.fork('./child_tasks/add_new_pioreactor');
-    child.on('message', function(msg) {
-      if (msg == 0) {
+    child.on('message', function(result) {
+      if (result.result) {
+        publishToLog("Pioreactor added.")
         res.sendStatus(200)
       }
       else{
-        res.status(500).json(msg)
+        publishToLog(result.msg, "ERROR")
+        res.status(500).json(result.msg)
       }
     });
     child.send(newName);
@@ -579,10 +634,12 @@ app.post("/delete_config", function(req, res) {
 
   execFile("rm", [configPath], (error, stdout, stderr) => {
       if (error) {
+          publishToLog(error, "ERROR")
           console.log(error)
           res.sendStatus(500)
       }
       if (stderr) {
+          publishToLog(stderr)
           console.log(stderr)
       }
       console.log(stdout);
@@ -610,12 +667,14 @@ app.post("/save_new_config", function(req, res) {
     else {
       execFile("pios", ["sync-configs", "--units", units], (error, stdout, stderr) => {
           if (error) {
-              console.log(error)
-              res.sendStatus(500);
+            publishToLog(error, "ERROR")
+            console.log(error)
+            res.sendStatus(500);
           }
           else if (stderr) {
-              console.log(stderr)
-              res.sendStatus(200);
+            publishToLog(stderr)
+            console.log(stderr)
+            res.sendStatus(200);
           }
           else{
             console.log(stdout);
@@ -633,5 +692,6 @@ app.post("/save_new_config", function(req, res) {
 
 const PORT = process.env.PORT || 3000
 app.listen(PORT, () => {
+  publishToLog(`Listening on port ${PORT}`)
   console.log(`Listening on port ${PORT}`)
 });

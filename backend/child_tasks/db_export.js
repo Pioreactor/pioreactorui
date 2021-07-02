@@ -20,13 +20,10 @@ process.on('message', function(options) {
             ["run", "export_experiment_data", "--output", filename].concat(cmd_tables).concat(experimentOption),
             {cwd: "/home/pi/pioreactorui/backend/build/static/exports/"},
             (error, stdout, stderr) => {
-        console.log(stdout)
-        console.log(stderr)
         if (error) {
-            console.log(error)
-            process.send(false);
+            process.send({result: false, filename: null, msg: error});
         } else {
-            process.send(filename);
+            process.send({result: true, filename: filename, msg: stderr});
         }
         process.exit(0)
     });
