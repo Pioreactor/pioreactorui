@@ -108,7 +108,7 @@ function ButtonConfirmNewExperimentDialog() {
   return (
     <React.Fragment>
       <Button style={{textTransform: 'none', float: "right"}} color="primary" onClick={handleClickOpen}>
-        <AddIcon className={classes.textIcon}/> New experiment
+        <AddIcon fontSize="15" classes={{root: classes.textIcon}}/> New experiment
       </Button>
       <Dialog
         open={open}
@@ -155,7 +155,7 @@ function ButtonConfirmStopProcessDialog() {
   return (
     <React.Fragment>
       <Button style={{textTransform: 'none', float: "right"}} color="primary" onClick={handleClickOpen}>
-        <ClearIcon className={classes.textIcon}/> End experiment
+        <ClearIcon fontSize="15" classes={{root: classes.textIcon}}/> End experiment
       </Button>
       <Dialog
         open={open}
@@ -201,7 +201,7 @@ function ExperimentSummary(props){
           </Typography>
           <div >
             <Button href="/export-data" style={{textTransform: 'none', marginRight: "0px", float: "right"}} color="primary">
-              <GetAppIcon className={classes.textIcon}/> Export experiment data
+              <GetAppIcon fontSize="15" classes={{root: classes.textIcon}}/> Export experiment data
             </Button>
             <ButtonConfirmStopProcessDialog/>
             <ButtonConfirmNewExperimentDialog/>

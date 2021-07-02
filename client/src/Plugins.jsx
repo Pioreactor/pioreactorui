@@ -2,7 +2,7 @@ import { Hashicon } from "@emeraldpay/hashicon-react";
 import React from "react";
 
 import Grid from '@material-ui/core/Grid';
-import { makeStyles } from '@material-ui/core/styles';
+import { makeStyles } from '@material-ui/styles';
 import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/Card';
 import Button from '@material-ui/core/Button';
@@ -17,7 +17,6 @@ import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
 import ListItemText from '@material-ui/core/ListItemText';
 import DeleteIcon from '@material-ui/icons/Delete';
 import Avatar from '@material-ui/core/Avatar';
-import ExtensionIcon from '@material-ui/icons/Extension';
 import GetAppIcon from '@material-ui/icons/GetApp';
 
 const useStyles = makeStyles((theme) => ({
@@ -46,8 +45,6 @@ const useStyles = makeStyles((theme) => ({
 
 
 function PageHeader(props) {
-  const classes = useStyles();
-
   return (
     <React.Fragment>
     <div>
@@ -173,10 +170,13 @@ function ListInstalledPlugins({installedPlugins}){
   const [snackbarMsg, setSnackbarMsg] = React.useState("")
   const classes = useStyles();
 
+  const handleSnackbarClose = () => {
+    setSnackbarOpen(false)
+  }
 
-  const uninstallPlugin = (plugin_name) => () => (
-      setSnackbarOpen(true),
-      setSnackbarMsg(`Uninstalling ${plugin_name} in the background...`),
+  const uninstallPlugin = (plugin_name) => () => {
+      setSnackbarOpen(true);
+      setSnackbarMsg(`Uninstalling ${plugin_name} in the background...`);
       fetch('/uninstall_plugin', {
         method: "POST",
         body: JSON.stringify({plugin_name: plugin_name}),
@@ -185,9 +185,10 @@ function ListInstalledPlugins({installedPlugins}){
           'Content-Type': 'application/json'
         }
       })
-  )
+  }
 
   return (
+    <React.Fragment>
     <div className={classes.pluginList}>
      <List dense={true}>
         {installedPlugins.map(plugin =>
@@ -232,6 +233,16 @@ function ListInstalledPlugins({installedPlugins}){
         )}
       </List>
     </div>
+    <Snackbar
+      anchorOrigin={{vertical: "bottom", horizontal: "center"}}
+      open={snackbarOpen}
+      onClose={handleSnackbarClose}
+      message={snackbarMsg}
+      autoHideDuration={7000}
+      resumeHideDuration={2000}
+      key={"snackbar-installation"}
+    />
+    </React.Fragment>
   )
 }
 

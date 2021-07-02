@@ -3,7 +3,7 @@ import moment from "moment";
 import { Client, Message } from "paho-mqtt";
 
 import Grid from '@material-ui/core/Grid';
-import { makeStyles } from '@material-ui/core/styles';
+import { makeStyles } from '@material-ui/styles';
 import FormGroup from '@material-ui/core/FormGroup';
 import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/Card';

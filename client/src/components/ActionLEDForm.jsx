@@ -9,6 +9,7 @@ import InputAdornment from '@material-ui/core/InputAdornment';
 const useStyles = makeStyles({
   actionTextField: {
     padding: "0px 10px 0px 0px",
+    width: "160px",
   },
   actionForm: {
     padding: "10px 0px 0px 0px",
@@ -25,7 +26,7 @@ export default function ActionLEDForm(props) {
   const [errorForm, setErrorForm] = useState(false);
 
   function onSubmit(e) {
-    const re = /^[0-9\.\b]+$/;
+    const re = /^[0-9.\b]+$/;
     e.preventDefault();
     if (intensity !== EMPTYSTATE && re.test(intensity)) {
       // TODO: this could also fire an mqtt event to set it in LEDAlgorithm, in case that is running
@@ -48,7 +49,7 @@ export default function ActionLEDForm(props) {
 
 
   function handleChange(e) {
-    const re = /^[0-9\.\b]+$/;
+    const re = /^[0-9.\b]+$/;
     setIntensity(e.target.value);
     if (e.target.value === '' || re.test(e.target.value)) {
       setErrorForm(false)

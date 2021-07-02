@@ -1,7 +1,10 @@
 import React from "react";
 import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
-import { MuiThemeProvider, createMuiTheme } from "@material-ui/core/styles";
+import { ThemeProvider } from "@material-ui/core/styles";
 import CssBaseline from "@material-ui/core/CssBaseline";
+import { createTheme } from '@material-ui/core/styles';
+import { StyledEngineProvider } from '@material-ui/core/styles';
+
 
 import TactileButtonNotification from "./components/TactileButtonNotification";
 import ExperimentOverview from "./ExperimentOverview";
@@ -13,15 +16,15 @@ import Updates from "./Updates";
 import Plugins from "./Plugins";
 import SideNavAndHeader from "./components/SideNavAndHeader";
 
-import "fontsource-roboto/300-normal.css"
-import "fontsource-roboto/400-normal.css"
-import "fontsource-roboto/500-normal.css"
-import "fontsource-roboto/700-normal.css"
+import "@fontsource/roboto/300.css"
+import "@fontsource/roboto/400.css"
+import "@fontsource/roboto/500.css"
+import "@fontsource/roboto/700.css"
 import './styles.css';
 import {parseINIString} from "./utilities"
 
 
-const theme = createMuiTheme({
+const theme = createTheme({
   palette: {
     background: {
       default: "#f6f6f7",
@@ -31,6 +34,9 @@ const theme = createMuiTheme({
       main: '#5331CA',
       // dark: will be calculated from palette.primary.main,
       // contrastText: will be calculated to contrast with palette.primary.main
+    },
+    secondary: {
+      main: '#f44336',
     },
   },
 });
@@ -61,53 +67,57 @@ function App() {
   }, [])
 
   return (
-    <MuiThemeProvider theme={theme}>
-      <CssBaseline />
-      <div style={{display: 'flex'}}>
-        <SideNavAndHeader />
-        <main style={{flexGrow: 1, paddingTop: theme.spacing(9), paddingLeft: theme.spacing(4), paddingRight: theme.spacing(4)}}>
-          <Router>
-            <div className="pageContainer">
-              <Switch>
-                <Route path="/export-data">
-                  <ExportData config={config} title="Pioreactor ~ Export data"/>
-                  <TactileButtonNotification config={config}/>
-                </Route>
-                <Route path="/start-new-experiment">
-                  <StartNewExperiment config={config} title="Pioreactor ~ Start new experiment" />
-                  <TactileButtonNotification config={config}/>
-                </Route>
-                <Route path="/overview">
-                  <ExperimentOverview config={config} title="Pioreactor ~ Overview"/>
-                </Route>
-                <Route path="/plugins">
-                  <Plugins config={config} title="Pioreactor ~ Plugins"/>
-                  <TactileButtonNotification config={config}/>
-                </Route>
-                <Route path="/analysis">
-                  <Plugins config={config} title="Pioreactor ~ Analysis"/>
-                  <TactileButtonNotification config={config}/>
-                </Route>
-                <Route path="/config">
-                  <EditConfig config={config} title="Pioreactor ~ Configuration"/>
-                  <TactileButtonNotification config={config}/>
-                </Route>
-                <Route path="/pioreactors">
-                  <Pioreactors config={config} title="Pioreactor ~ Pioreactors"/>
-                </Route>
-                <Route path="/Updates">
-                  <Updates config={config} title="Pioreactor ~ Updates"/>
-                  <TactileButtonNotification config={config}/>
-                </Route>
-                <Route path="/">
-                  <ExperimentOverview config={config} title="Pioreactor ~ Pioreactor"/>
-                </Route>
-              </Switch>
-            </div>
-          </Router>
-        </main>
-      </div>
-    </MuiThemeProvider>
+    <React.StrictMode>
+    <StyledEngineProvider injectFirst>
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <div style={{display: 'flex'}}>
+          <SideNavAndHeader />
+          <main style={{flexGrow: 1, paddingTop: theme.spacing(9), paddingLeft: theme.spacing(4), paddingRight: theme.spacing(4)}}>
+            <Router>
+              <div className="pageContainer">
+                <Switch>
+                  <Route path="/export-data">
+                    <ExportData config={config} title="Pioreactor ~ Export data"/>
+                    <TactileButtonNotification config={config}/>
+                  </Route>
+                  <Route path="/start-new-experiment">
+                    <StartNewExperiment config={config} title="Pioreactor ~ Start new experiment" />
+                    <TactileButtonNotification config={config}/>
+                  </Route>
+                  <Route path="/overview">
+                    <ExperimentOverview config={config} title="Pioreactor ~ Overview"/>
+                  </Route>
+                  <Route path="/plugins">
+                    <Plugins config={config} title="Pioreactor ~ Plugins"/>
+                    <TactileButtonNotification config={config}/>
+                  </Route>
+                  <Route path="/analysis">
+                    <Plugins config={config} title="Pioreactor ~ Analysis"/>
+                    <TactileButtonNotification config={config}/>
+                  </Route>
+                  <Route path="/config">
+                    <EditConfig config={config} title="Pioreactor ~ Configuration"/>
+                    <TactileButtonNotification config={config}/>
+                  </Route>
+                  <Route path="/pioreactors">
+                    <Pioreactors config={config} title="Pioreactor ~ Pioreactors"/>
+                  </Route>
+                  <Route path="/Updates">
+                    <Updates config={config} title="Pioreactor ~ Updates"/>
+                    <TactileButtonNotification config={config}/>
+                  </Route>
+                  <Route path="/">
+                    <ExperimentOverview config={config} title="Pioreactor ~ Pioreactor"/>
+                  </Route>
+                </Switch>
+              </div>
+            </Router>
+          </main>
+        </div>
+      </ThemeProvider>
+    </StyledEngineProvider>
+    </React.StrictMode>
   );
 }
 

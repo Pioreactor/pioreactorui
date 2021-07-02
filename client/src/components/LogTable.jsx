@@ -167,7 +167,7 @@ class LogTable extends React.Component {
           </TableContainer>
         </CardContent>
       </Card>
-  )}
+    );}
 }
 
 

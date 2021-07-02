@@ -75,7 +75,7 @@ export default function ActionPumpForm(props) {
   };
 
   function handleMLChange(e) {
-    const re = /^[0-9\.\b]+$/;
+    const re = /^[0-9.\b]+$/;
 
     setIsDurationDisabled(true);
     if (e.target.value === EMPTYSTATE) {
@@ -93,7 +93,7 @@ export default function ActionPumpForm(props) {
   }
 
   function handleDurationChange(e) {
-    const re = /^[0-9\.\b]+$/;
+    const re = /^[0-9.\b]+$/;
 
     setIsMLDisabled(true);
     if (e.target.value === EMPTYSTATE) {

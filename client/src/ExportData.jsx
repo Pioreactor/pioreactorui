@@ -3,7 +3,7 @@ import moment from "moment";
 
 import Grid from '@material-ui/core/Grid';
 
-import { makeStyles } from '@material-ui/core/styles';
+import { makeStyles } from '@material-ui/styles';
 import FormLabel from '@material-ui/core/FormLabel';
 import FormControl from '@material-ui/core/FormControl';
 import FormGroup from '@material-ui/core/FormGroup';
@@ -14,8 +14,7 @@ import CardContent from '@material-ui/core/Card';
 import {Typography} from '@material-ui/core';
 import Select from '@material-ui/core/Select';
 import Box from '@material-ui/core/Box';
-import CircularProgress from '@material-ui/core/CircularProgress';
-import Button from "@material-ui/core/Button";
+import LoadingButton from "@material-ui/lab/LoadingButton";
 
 
 const useStyles = makeStyles((theme) => ({
@@ -49,16 +48,16 @@ function ExperimentSelection(props) {
 
   React.useEffect(() => {
     async function getData() {
-         await fetch("/get_experiments")
-        .then((response) => {
-          return response.json();
-        })
-        .then((data) => {
-          setExperiments(prevState => [ ...data, ...prevState])
-          props.handleChange(data[0].experiment)
-        });
-      }
-      getData()
+       await fetch("/get_experiments")
+      .then((response) => {
+        return response.json();
+      })
+      .then((data) => {
+        setExperiments(prevState => [ ...data, ...prevState])
+        props.handleChange(data[0].experiment)
+      });
+    }
+    getData()
   }, [])
 
   const handleExperimentSelectionChange = (e) => {
@@ -71,6 +70,7 @@ function ExperimentSelection(props) {
 
         <Select
           native
+          variant="standard"
           value={props.ExperimentSelection}
           onChange={handleExperimentSelectionChange}
           inputProps={{
@@ -286,7 +286,6 @@ function ExportDataContainer() {
     }));
   };
 
-  const runningFeedback = isRunning ? <CircularProgress color="white" size={24}/> : "Export"
   const errorFeedbackOrDefault = isError ? <Box color="error.main">{errorMsg}</Box>: ""
   return (
     <React.Fragment>
@@ -320,15 +319,16 @@ function ExportDataContainer() {
 
               <Grid item xs={0}/>
               <Grid item xs={12}>
-                <Button
+                <LoadingButton
                   type="submit"
                   variant="contained"
                   color="primary"
+                  loading={isRunning}
                   onClick={onSubmit}
                   style={{width: "120px", marginLeft: 24}}
                 >
-                  {runningFeedback}
-                </Button>
+                  Export
+                </LoadingButton>
                 <p style={{marginLeft: 24}}>{errorFeedbackOrDefault}</p>
 
               </Grid>

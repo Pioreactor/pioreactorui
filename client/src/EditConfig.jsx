@@ -1,7 +1,7 @@
 import React from "react";
 
 import Grid from '@material-ui/core/Grid';
-import { makeStyles } from '@material-ui/core/styles';
+import { makeStyles } from '@material-ui/styles';
 import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/Card';
 import Button from '@material-ui/core/Button';
@@ -139,6 +139,7 @@ class EditableCodeDiv extends React.Component {
           <Select
             style={{margin: "10px 10px 10px 10px"}}
             native
+            variant="standard"
             value={this.state.filename}
             onChange={this.onSelectionChange}
             inputProps={{

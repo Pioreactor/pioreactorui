@@ -6,7 +6,7 @@ import React, {useState, useEffect} from "react";
 import Grid from '@material-ui/core/Grid';
 import PropTypes from 'prop-types';
 
-import { makeStyles } from '@material-ui/core/styles';
+import { makeStyles } from '@material-ui/styles';
 import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/Card';
 import {Typography} from '@material-ui/core';
@@ -33,7 +33,6 @@ import FlareIcon from '@material-ui/icons/Flare';
 import SettingsIcon from '@material-ui/icons/Settings';
 import TuneIcon from '@material-ui/icons/Tune';
 import CheckBoxOutlinedIcon from '@material-ui/icons/CheckBoxOutlined';
-import CheckBoxOutlineBlankIcon from '@material-ui/icons/CheckBoxOutlineBlank';
 import IndeterminateCheckBoxIcon from '@material-ui/icons/IndeterminateCheckBox';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
@@ -58,7 +57,6 @@ const lostRed = "#DE3618"
 
 const useStyles = makeStyles((theme) => ({
   textIcon: {
-    fontSize: 15,
     verticalAlign: "middle",
     margin: "0px 3px"
   },
@@ -289,8 +287,8 @@ function ButtonConfirmStopProcessDialog() {
 
   return (
     <React.Fragment>
-      <Button style={{textTransform: 'none', float: "right"}} color="secondary" onClick={handleClickOpen}>
-        <ClearIcon className={classes.textIcon}/> Stop all activity
+      <Button style={{textTransform: 'none', float: "right" }} color="secondary" onClick={handleClickOpen}>
+        <ClearIcon fontSize="15" classes={{root: classes.textIcon}}/> Stop all activity
       </Button>
       <Dialog
         open={open}
@@ -374,7 +372,7 @@ function AddNewPioreactor(props){
   return (
     <React.Fragment>
     <Button onClick={handleClickOpen} style={{textTransform: 'none', float: "right", marginRight: "0px"}} color="primary">
-      <AddIcon className={classes.textIcon}/> Add new Pioreactor
+      <AddIcon fontSize="15" classes={{root: classes.textIcon}}/> Add new Pioreactor
     </Button>
     <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
       <DialogTitle>
@@ -585,7 +583,7 @@ function CalibrateDialog(props) {
   return (
     <React.Fragment>
       <Button style={{textTransform: 'none', float: "right" }} color="primary" disabled={props.disabled} onClick={handleClickOpen}>
-        <TuneIcon color={props.disabled ? "disabled" : "primary"} className={classes.textIcon}/> Calibrate
+        <TuneIcon color={props.disabled ? "disabled" : "primary"} fontSize="15" classes={{root: classes.textIcon}}/> Calibrate
       </Button>
       <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
         <DialogTitle>
@@ -648,7 +646,7 @@ function SystemCheckDialog(props) {
     setOpen(true);
   };
 
-  const handleClose = () => {
+  const OnClose = () => {
     setOpen(false);
   };
 
@@ -710,9 +708,9 @@ function SystemCheckDialog(props) {
   return (
     <React.Fragment>
       <Button style={{textTransform: 'none', float: "right" }} color="primary" disabled={props.disabled} onClick={handleClickOpen}>
-        <CheckBoxOutlinedIcon color={props.disabled ? "disabled" : "primary"} className={classes.textIcon}/> Self test
+        <CheckBoxOutlinedIcon color={props.disabled ? "disabled" : "primary"} fontSize="15" classes={{root: classes.textIcon}}/> Self test
       </Button>
-      <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
+      <Dialog open={open} onClose={OnClose}>
         <DialogTitle>
           <Typography className={classes.suptitle} gutterBottom>
             <PioreactorIcon style={{verticalAlign: "middle", fontSize: "1.2em"}}/> {(props.config['ui.rename'] &&  props.config['ui.rename'][props.unit]) ? `${props.config['ui.rename'][props.unit]} / ${props.unit}` : `${props.unit}`}
@@ -961,9 +959,9 @@ function SettingsActionsDialog(props) {
   return (
     <div>
     <Button style={{textTransform: 'none', float: "right" }} disabled={props.disabled} onClick={handleClickOpen} color="primary">
-      <SettingsIcon color={props.disabled ? "disabled" : "primary"} className={classes.textIcon}/> Manage
+      <SettingsIcon color={props.disabled ? "disabled" : "primary"} fontSize="15" classes={{root: classes.textIcon}}/> Manage
     </Button>
-    <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
+    <Dialog maxWidth={"sm"} fullWidth={true} open={open} onClose={handleClose}>
       <DialogTitle>
         <Typography className={classes.suptitle}>
           <PioreactorIcon style={{verticalAlign: "middle", fontSize: "1.2em"}}/> {(props.config['ui.rename'] &&  props.config['ui.rename'][props.unit]) ? `${props.config['ui.rename'][props.unit]} / ${props.unit}` : `${props.unit}`}
@@ -1130,7 +1128,7 @@ function SettingsActionsDialog(props) {
             Run the media pump for a set duration (seconds), or a set volume (mL).
           </Typography>
           <ActionDosingForm action="add_media" unit={props.unit} />
-          <Divider className={classes.divider} />
+          <Divider classes={{root: classes.divider}} />
           <Typography  gutterBottom>
             Remove waste
           </Typography>
@@ -1399,12 +1397,12 @@ function SettingsActionsDialogAll({config, experiment}) {
   return (
     <React.Fragment>
     <Button style={{textTransform: 'none', float: "right" }} onClick={handleClickOpen} color="primary">
-      <SettingsIcon className={classes.textIcon}/> Manage all Pioreactors
+      <SettingsIcon fontSize="15" classes={{root: classes.textIcon}}/> Manage all Pioreactors
     </Button>
-    <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
-      <DialogTitle style={{backgroundColor: "#edeaf9"}}>
+    <Dialog  maxWidth={"sm"} fullWidth={true}  open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
+      <DialogTitle style={{backgroundImage: "linear-gradient(to bottom left, rgba(83, 49, 202, 0.4), rgba(0,0,0,0))"}}>
         <Typography className={classes.suptitle}>
-          All active Pioreactors
+          <b>All active Pioreactors</b>
         </Typography>
       <Tabs
         value={tabValue}
@@ -1436,7 +1434,7 @@ function SettingsActionsDialogAll({config, experiment}) {
 
               {buttons[job_key]}
 
-              <Divider className={classes.divider} />
+              <Divider classes={{root: classes.divider}} />
             </div>
           )}
         </TabPanel>
@@ -1467,7 +1465,7 @@ function SettingsActionsDialogAll({config, experiment}) {
                 onKeyPress={setPioreactorJobAttrOnEnter(setting.unit)}
                 className={classes.textFieldCompact}
               />
-              <Divider className={classes.divider} />
+              <Divider classes={{root: classes.divider}} />
             </React.Fragment>
 
           ))}
@@ -1486,7 +1484,7 @@ function SettingsActionsDialogAll({config, experiment}) {
             currentDosingAutomation={true}
             title="All active Pioreactors"
           />
-          <Divider className={classes.divider} />
+          <Divider classes={{root: classes.divider}} />
           <Typography  gutterBottom>
             LED automation
           </Typography>
@@ -1644,7 +1642,7 @@ function FlashLEDButton(props){
 
   return (
     <Button style={{textTransform: 'none', float: "right"}} className={clsx({blinkled: flashing})} disabled={props.disabled} onClick={onClick} color="primary">
-      <FlareIcon color={props.disabled ? "disabled" : "primary"} className={classes.textIcon}/> <span >  Blink  </span>
+      <FlareIcon color={props.disabled ? "disabled" : "primary"} fontSize="15" classes={{root: classes.textIcon}}/> <span >  Blink  </span>
     </Button>
 )}
 

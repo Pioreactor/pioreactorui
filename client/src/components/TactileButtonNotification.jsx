@@ -1,6 +1,7 @@
 import React from "react";
 import { Client } from "paho-mqtt";
-import { Alert, AlertTitle } from '@material-ui/lab';
+import Alert from '@material-ui/core/Alert';
+import AlertTitle from '@material-ui/core/AlertTitle';
 
 import Snackbar from '@material-ui/core/Snackbar';
 

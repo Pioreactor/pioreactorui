@@ -1,5 +1,5 @@
 import React from 'react';
-import { makeStyles } from '@material-ui/core/styles';
+import { makeStyles } from '@material-ui/styles';
 import Drawer from '@material-ui/core/Drawer';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
@@ -37,21 +37,16 @@ const useStyles = makeStyles((theme) => ({
   },
   menuButton: {
     marginRight: theme.spacing(2),
-    [theme.breakpoints.up('sm')]: {
-      display: 'none',
-    },
   },
   drawerPaper: {
     width: drawerWidth,
-  },
-  appBar: {
-      zIndex: theme.zIndex.drawer + 1,
   },
   title: {
     flexGrow: 1,
   },
   appBarRoot: {
     flexGrow: 1,
+    zIndex: theme.zIndex.drawer + 1,
   },
   hiddenIconContainer: {
       "&:hover $hiddenIcon": {
@@ -178,18 +173,21 @@ export default function SideNavAndHeader() {
       <React.Fragment>
 
         <div className={classes.appBarRoot}>
-          <AppBar position="fixed" className={classes.appBar}>
+          <AppBar position="fixed" >
             <Toolbar variant="dense">
 
+            <Hidden smUp implementation="css">
               <IconButton
                 color="inherit"
                 aria-label="open drawer"
                 edge="start"
                 onClick={handleDrawerToggle}
-                className={classes.menuButton}
+                classes={{root: classes.menuButton}}
               >
                 <MenuIcon />
               </IconButton>
+            </Hidden>
+
 
               <Typography variant="h6" className={classes.title}>
                 <Link color="inherit" underline="none" href="/" className={classes.title}> <img alt="pioreactor logo" src="white_colour.png" style={{width: "120px", height: "29px"}}/> </Link>
@@ -216,7 +214,7 @@ export default function SideNavAndHeader() {
             {list()}
           </Drawer>
         </Hidden>
-        <Hidden xsDown implementation="css">
+        <Hidden mdDown implementation="css">
           <Drawer
             classes={{
               paper: classes.drawerPaper,

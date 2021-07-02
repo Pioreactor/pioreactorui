@@ -1,7 +1,7 @@
 import React from "react";
 
 import Grid from '@material-ui/core/Grid';
-import { makeStyles } from '@material-ui/core/styles';
+import { makeStyles } from '@material-ui/styles';
 import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/Card';
 import Button from '@material-ui/core/Button';
@@ -66,7 +66,7 @@ function ConfirmDialog() {
   return (
     <React.Fragment>
       <Button onClick={handleClickOpen} style={{textTransform: 'none', float: "right", marginRight: "0px"}} color="primary">
-        <UpdateIcon className={classes.textIcon}/> Update to latest release
+        <UpdateIcon fontSize="15" classes={{root: classes.textIcon}}/> Update to latest release
       </Button>
       <Dialog
         open={open}
@@ -168,7 +168,7 @@ function PageHeader(props) {
           <ConfirmDialog/>
           <Link color="inherit" underline="none" href="https://github.com/Pioreactor/pioreactor/releases" target="_blank" rel="noopener noreferrer">
             <Button style={{textTransform: 'none', float: "right", marginRight: "0px"}} color="primary">
-              <OpenInNewIcon className={classes.textIcon}/> View latest release
+              <OpenInNewIcon fontSize="15" classes={{root: classes.textIcon}}/> View latest release
             </Button>
           </Link>
         </div>
