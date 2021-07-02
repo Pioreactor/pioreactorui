@@ -509,7 +509,7 @@ app.post('/export_datasets', function(req, res) {
     child.on('message', function(result) {
       if (result.result) {
         publishToLog(result.msg)
-        res.json({filename: m.filename})
+        res.json({filename: result.filename})
       }
       else{
         publishToLog(result.msg, "ERROR")
@@ -602,7 +602,7 @@ app.post("/add_new_pioreactor", function (req, res) {
       }
       else{
         publishToLog(result.msg, "ERROR")
-        res.status(500).json(result.msg)
+        res.status(500).json(result)
       }
     });
     child.send(newName);

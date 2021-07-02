@@ -362,7 +362,7 @@ function AddNewPioreactor(props){
         if(!response.ok){
           setIsError(true)
           setIsRunning(false)
-          response.json().then(data => setErrorMsg(`Unable to complete installation. ${data.stderr}`))
+          response.json().then(data => setErrorMsg(`Unable to complete installation. ${data.msg}`))
         }
     })
   }
