@@ -141,6 +141,33 @@ const useStyles = makeStyles((theme) => ({
     paddingTop: "0px",
     paddingBottom: "0px",
   },
+  headerMenu: {
+    display: "flex",
+    justifyContent: "space-between",
+    marginBottom: "5px",
+    [theme.breakpoints.down('md')]:{
+      flexFlow: "nowrap",
+      flexDirection: "column",
+    }
+  },
+  cardHeaderSettings:{
+    display: "flex",
+    justifyContent: "space-between",
+    [theme.breakpoints.down('sm')]:{
+      flexFlow: "nowrap",
+      flexDirection: "column",
+    }
+  },
+  cardHeaderButtons: {
+    display: "flex",
+    justifyContent: "flex-end",
+    flexDirection: "row",
+    flexWrap: "wrap",
+    [theme.breakpoints.down('sm')]: {
+      justifyContent: "space-between",
+    }
+  },
+  headerButtons: {display: "flex", flexDirection: "row", justifyContent: "flex-start", flexFlow: "wrap"}
 }));
 
 
@@ -455,16 +482,16 @@ function AddNewPioreactor(props){
 
 
 function PioreactorHeader(props) {
-
+  const classes = useStyles()
   return (
     <div>
-      <div style={{display: "flex", justifyContent: "space-between", marginBottom: "5px"}}>
+      <div className={classes.headerMenu}>
         <Typography variant="h5" component="h1">
           <Box fontWeight="fontWeightBold">
             Pioreactors
           </Box>
         </Typography>
-        <div >
+        <div className={classes.headerButtons}>
           <SettingsActionsDialogAll config={props.config} experiment={props.experiment}/>
           <AddNewPioreactor config={props.config}/>
           <ButtonConfirmStopProcessDialog/>
@@ -595,8 +622,6 @@ function CalibrateDialog(props) {
           onChange={handleTabChange}
           indicatorColor="primary"
           textColor="primary"
-          variant="scrollable"
-          scrollButtons="auto"
           >
           <Tab label="Blanks"/>
           <Tab label="Dosing" disabled={true}/>
@@ -972,7 +997,8 @@ function SettingsActionsDialog(props) {
         indicatorColor="primary"
         textColor="primary"
         variant="scrollable"
-        scrollButtons="auto"
+        scrollButtons
+        allowScrollButtonsMobile
         >
         <Tab label="Activities"/>
         <Tab label="Settings"/>
@@ -1410,7 +1436,8 @@ function SettingsActionsDialogAll({config, experiment}) {
         indicatorColor="primary"
         textColor="primary"
         variant="scrollable"
-        scrollButtons="auto"
+        scrollButtons
+        allowScrollButtonsMobile
       >
         <Tab label="Activities"/>
         <Tab label="Settings"/>
@@ -1768,10 +1795,10 @@ function PioreactorCard(props){
           <Typography className={clsx(classes.suptitle)} color="textSecondary">
             {(props.config['ui.rename'] && props.config['ui.rename'][unit]) ? unit : ""}
           </Typography>
-          <div style={{display: "flex", justifyContent: "space-between"}}>
+          <div className={classes.cardHeaderSettings}>
             <div style={{display: "flex", justifyContent: "left"}}>
               <Typography className={clsx(classes.unitTitle, {[classes.disabledText]: !isUnitActive})} gutterBottom>
-                <PioreactorIcon color={isUnitActive ? "inherit" : "disabled"} style={{verticalAlign: "middle"}}/>
+                <PioreactorIcon color={isUnitActive ? "inherit" : "disabled"} style={{verticalAlign: "middle"}} sx={{ display: {xs: 'none', sm: 'none', md: 'inline' } }}/>
                 {(props.config['ui.rename'] && props.config['ui.rename'][unit]) ? props.config['ui.rename'][unit] : unit }
               </Typography>
               <Tooltip title={indicatorLabel} placement="right">
@@ -1780,7 +1807,7 @@ function PioreactorCard(props){
                 </div>
               </Tooltip>
             </div>
-            <div style={{display: "flex", justifyContent: "flex-end", flexDirection: "row", flexWrap: "wrap"}}>
+            <div className={classes.cardHeaderButtons}>
               <div>
                 <FlashLEDButton client={client} disabled={!isUnitActive} config={props.config} unit={unit}/>
               </div>

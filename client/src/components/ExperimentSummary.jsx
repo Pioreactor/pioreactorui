@@ -21,7 +21,7 @@ import DialogContentText from '@material-ui/core/DialogContentText';
 
 
 
-const useStyles = makeStyles({
+const useStyles = makeStyles((theme) => ({
   title: {
     fontSize: 14,
   },
@@ -36,7 +36,17 @@ const useStyles = makeStyles({
     verticalAlign: "middle",
     margin: "0px 3px"
   },
-});
+  headerMenu: {
+    display: "flex",
+    justifyContent: "space-between",
+    marginBottom: "5px",
+    [theme.breakpoints.down('md')]:{
+      flexFlow: "nowrap",
+      flexDirection: "column",
+    }
+  },
+  headerButtons: {display: "flex", flexDirection: "row", justifyContent: "flex-start", flexFlow: "wrap"}
+}));
 
 
 
@@ -193,13 +203,13 @@ function ExperimentSummary(props){
   return(
     <React.Fragment>
       <div>
-        <div style={{display: "flex", justifyContent: "space-between", marginBottom: "5px"}}>
+        <div className={classes.headerMenu}>
           <Typography variant="h5" component="h1">
             <Box fontWeight="fontWeightBold">
               {experiment}
             </Box>
           </Typography>
-          <div >
+          <div className={classes.headerButtons}>
             <Button href="/export-data" style={{textTransform: 'none', marginRight: "0px", float: "right"}} color="primary">
               <GetAppIcon fontSize="15" classes={{root: classes.textIcon}}/> Export experiment data
             </Button>
