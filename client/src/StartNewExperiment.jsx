@@ -17,7 +17,6 @@ import TextField from '@material-ui/core/TextField';
 import CleaningScript from "./components/CleaningScript"
 import StartSensors from "./components/StartSensors"
 import StartCalculations from "./components/StartCalculations"
-import clearChartCommand from "./components/clearChartCommand"
 
 
 const useStyles = makeStyles((theme) => ({
@@ -132,7 +131,6 @@ function ExperimentSummaryForm(props) {
           setHelperText("")
           setFormError(false);
           killExistingJobs()
-          clearChartCommand(props)
           props.handleNext()
         }
         else{
