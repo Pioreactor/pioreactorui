@@ -83,9 +83,9 @@ function ListAvailablePlugins({alreadyInstalledPluginsNames}){
       getData()
   }, [])
 
-  const installPlugin = (plugin_name) => () => (
-      setSnackbarOpen(true),
-      setSnackbarMsg(`Installing ${plugin_name} in the background...`),
+  const installPlugin = (plugin_name) => () => {
+      setSnackbarOpen(true);
+      setSnackbarMsg(`Installing ${plugin_name} in the background...`);
       fetch('/install_plugin', {
         method: "POST",
         body: JSON.stringify({plugin_name: plugin_name}),
@@ -93,8 +93,14 @@ function ListAvailablePlugins({alreadyInstalledPluginsNames}){
           'Accept': 'application/json',
           'Content-Type': 'application/json'
         }
+      }).then((response) => {
+        if (response.ok) {
+          window.location.reload();
+        } else {
+          throw new Error('Installation went wrong');
+        }
       })
-  )
+  }
 
   const handleSnackbarClose = () => {
     setSnackbarOpen(false)
@@ -183,6 +189,12 @@ function ListInstalledPlugins({installedPlugins}){
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json'
+        }
+      }).then((response) => {
+        if (response.ok) {
+          window.location.reload();
+        } else {
+          throw new Error('Uninstallation went wrong');
         }
       })
   }
