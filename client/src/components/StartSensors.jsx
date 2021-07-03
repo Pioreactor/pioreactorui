@@ -97,11 +97,16 @@ function StartSensors(props){
           config={props.config}
           isODReading={true}
           fontScale={1.0}
+          dataSource="od_readings_raw"
           interpolation="stepAfter"
           title="Optical density"
-          topic="od_raw/+/+"
+          topic="od_reading/od_raw/+"
           yAxisLabel="Voltage"
+          payloadKey="voltage"
           experiment="+"
+          deltaHours={1}
+          lookback={1}
+          yAxisTickFormat={(t) => `${t.toFixed(3)}`}
         />
       </Grid>
       <Grid item xs={2}/>
