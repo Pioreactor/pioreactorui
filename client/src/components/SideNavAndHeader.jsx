@@ -46,7 +46,9 @@ const useStyles = makeStyles((theme) => ({
   },
   appBarRoot: {
     flexGrow: 1,
-    zIndex: theme.zIndex.drawer + 1,
+    [theme.breakpoints.up('sm')]: {
+      zIndex: theme.zIndex.drawer + 1
+    }
   },
   hiddenIconContainer: {
       "&:hover $hiddenIcon": {
@@ -171,22 +173,20 @@ export default function SideNavAndHeader() {
 
   return (
       <React.Fragment>
-
         <div className={classes.appBarRoot}>
           <AppBar position="fixed" >
             <Toolbar variant="dense">
 
-            <Hidden smUp implementation="css">
               <IconButton
                 color="inherit"
                 aria-label="open drawer"
                 edge="start"
                 onClick={handleDrawerToggle}
                 classes={{root: classes.menuButton}}
+                sx={{ display: { xs: 'block', sm: 'none' } }}
               >
                 <MenuIcon />
               </IconButton>
-            </Hidden>
 
 
               <Typography variant="h6" className={classes.title}>
@@ -198,35 +198,33 @@ export default function SideNavAndHeader() {
             </Toolbar>
           </AppBar>
         </div>
-        <Hidden smUp implementation="css">
-          <Drawer
-            variant="temporary"
-            anchor="left"
-            open={mobileOpen}
-            onClose={handleDrawerToggle}
-            classes={{
-              paper: classes.drawerPaper,
-            }}
-            ModalProps={{
-              keepMounted: true, // Better open performance on mobile.
-            }}
-          >
-            {list()}
-          </Drawer>
-        </Hidden>
-        <Hidden mdDown implementation="css">
-          <Drawer
-            classes={{
-              paper: classes.drawerPaper,
-            }}
-            variant="permanent"
-            open
-            className={classes.drawer}
-          >
-            <Toolbar />
-            {list()}
-          </Drawer>
-        </Hidden>
+        <Drawer
+          variant="temporary"
+          anchor="left"
+          open={mobileOpen}
+          onClose={handleDrawerToggle}
+          classes={{
+            paper: classes.drawerPaper,
+          }}
+          ModalProps={{
+            keepMounted: true, // Better open performance on mobile.
+          }}
+          sx={{ display: { xs: 'block', sm: 'none' } }}
+        >
+          {list()}
+        </Drawer>
+        <Drawer
+          classes={{
+            paper: classes.drawerPaper,
+          }}
+          variant="permanent"
+          open
+          className={classes.drawer}
+          sx={{ display: { xs: 'none', sm: 'block' } }}
+        >
+          <Toolbar />
+          {list()}
+        </Drawer>
       </React.Fragment>
   );
 }
