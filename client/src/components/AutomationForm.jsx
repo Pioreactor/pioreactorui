@@ -9,7 +9,7 @@ const useStyles = makeStyles((theme) => ({
     marginTop: theme.spacing(3),
     marginRight: theme.spacing(2),
     marginBottom: theme.spacing(0),
-    width: "30ch",
+    width: "18ch",
   }
 }));
 

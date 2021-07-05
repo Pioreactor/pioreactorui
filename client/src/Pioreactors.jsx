@@ -492,9 +492,9 @@ function PioreactorHeader(props) {
           </Box>
         </Typography>
         <div className={classes.headerButtons}>
-          <SettingsActionsDialogAll config={props.config} experiment={props.experiment}/>
-          <AddNewPioreactor config={props.config}/>
           <ButtonConfirmStopProcessDialog/>
+          <AddNewPioreactor config={props.config}/>
+          <SettingsActionsDialogAll config={props.config} experiment={props.experiment}/>
         </div>
       </div>
       <Divider/>
@@ -1243,7 +1243,7 @@ function SettingsActionsDialogAll({config, experiment}) {
 
   useEffect(() => {
     function fetchContribBackgroundJobs() {
-      fetch("/contrib/background_jobs")
+      fetch("/contrib/jobs")
         .then((response) => {
             if (response.ok) {
               return response.json();
@@ -1694,7 +1694,7 @@ function PioreactorCard(props){
 
   useEffect(() => {
     function fetchContribBackgroundJobs() {
-      fetch("/contrib/background_jobs")
+      fetch("/contrib/jobs")
         .then((response) => {
             if (response.ok) {
               return response.json();
@@ -1865,7 +1865,7 @@ function PioreactorCard(props){
               .filter(job => job.metadata.display)
               .map(job => (
             <div className={classes.textbox} key={job.metadata.key}>
-              <Typography variant="body2" style={{fontSize: "0.82rem"}} className={clsx({[classes.disabledText]: !isUnitActive})}>
+              <Typography variant="body2" style={{fontSize: "0.84rem"}} className={clsx({[classes.disabledText]: !isUnitActive})}>
                 {job.metadata.name}
               </Typography>
               <UnitSettingDisplay
@@ -1904,7 +1904,7 @@ function PioreactorCard(props){
               .filter(([_, setting]) => setting.display)
               .map(([key, setting]) =>
             <div className={classes.textbox} key={job.metadata.key + key}>
-              <Typography variant="body2" style={{fontSize: "0.82rem"}} className={clsx({[classes.disabledText]: !isUnitActive})}>
+              <Typography variant="body2" style={{fontSize: "0.84rem"}} className={clsx({[classes.disabledText]: !isUnitActive})}>
                 {setting.label}
               </Typography>
               <UnitSettingDisplay

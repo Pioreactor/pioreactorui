@@ -161,7 +161,7 @@ function ListAvailablePlugins({alreadyInstalledPluginsNames}){
       open={snackbarOpen}
       onClose={handleSnackbarClose}
       message={snackbarMsg}
-      autoHideDuration={7000}
+      autoHideDuration={15000}
       resumeHideDuration={2000}
       key={"snackbar-installation"}
     />

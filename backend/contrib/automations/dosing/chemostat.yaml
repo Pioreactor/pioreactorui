@@ -10,4 +10,4 @@ fields:
   - key: volume
     default: 0.5
     unit: mL
-    label: Max volume
+    label: Volume / dose

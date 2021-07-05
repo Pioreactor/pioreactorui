@@ -163,6 +163,7 @@ function ButtonChangeDosingDialog(props) {
             <FormLabel component="legend">Automation</FormLabel>
             <Select
               native
+              variant="standard"
               value={algoSettings["dosing_automation"]}
               onChange={handleAlgoSelectionChange}
               style={{maxWidth: "200px"}}
@@ -183,7 +184,7 @@ function ButtonChangeDosingDialog(props) {
             <Button
               type="submit"
               variant="contained"
-              color={isClicked ? "default" : "primary" }
+              color={"primary" }
               onClick={onSubmit}
               style={{width: "120px", marginTop: "20px"}}
             >

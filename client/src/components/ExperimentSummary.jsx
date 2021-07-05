@@ -210,11 +210,11 @@ function ExperimentSummary(props){
             </Box>
           </Typography>
           <div className={classes.headerButtons}>
+            <ButtonConfirmNewExperimentDialog/>
+            <ButtonConfirmStopProcessDialog/>
             <Button href="/export-data" style={{textTransform: 'none', marginRight: "0px", float: "right"}} color="primary">
               <GetAppIcon fontSize="15" classes={{root: classes.textIcon}}/> Export experiment data
             </Button>
-            <ButtonConfirmStopProcessDialog/>
-            <ButtonConfirmNewExperimentDialog/>
           </div>
         </div>
 

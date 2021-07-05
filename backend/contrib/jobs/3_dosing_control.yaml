@@ -29,7 +29,7 @@ editable_settings:
     description: Change the target hourly growth rate - only applicable in morbidostat mode. Typical values are between 0.05h⁻¹ and 0.4h⁻¹.
   - key: duration
     unit: min
-    label: Time between dosing events
+    label: Time between dosing
     type: numeric
     default: null
     display: true
