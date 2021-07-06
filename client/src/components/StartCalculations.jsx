@@ -75,12 +75,17 @@ function StartCalculations(props){
       <Grid item xs={12}>
       <Chart
         config={props.config}
-        interpolation="stepAfter"
-        fontScale={1}
-        title="Implied growth rate"
-        topic="growth_rate"
-        yAxisLabel="Growth rate, h⁻¹"
         experiment={experiment}
+        dataSource="growth_rates"
+        interpolation="stepAfter"
+        title="Implied growth rate"
+        topic="growth_rate_calculating/growth_rate"
+        payloadKey="growth_rate"
+        yAxisLabel="Growth rate, h⁻¹"
+        yAxisDomain={[-0.02, 0.1]}
+        lookback={100000}
+        deltaHour={1}
+        yAxisTickFormat={(t) => `${t.toFixed(2)}`}
       />
       </Grid>
       <Grid item xs={2}/>

@@ -5,8 +5,6 @@ display: false
 source: app
 is_testing: true
 editable_settings:
-  - key: all_tests
-    display: false
   - key: detect_heating_pcb
     display: false
   - key: positive_correlation_between_temp_and_heating

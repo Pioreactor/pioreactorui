@@ -122,9 +122,9 @@ function ListAvailablePlugins({alreadyInstalledPluginsNames}){
             <ListItemText
               primary={plugin.name}
               secondary={plugin.description}
-              style={{maxWidth: "600px"}}
+              style={{maxWidth: "500px"}}
             />
-            <ListItemSecondaryAction>
+            <ListItemSecondaryAction sx={{display: {xs: 'contents', md: 'block'}}}>
 
               <Button
                 onClick={installPlugin(plugin.name)}
@@ -214,7 +214,7 @@ function ListInstalledPlugins({installedPlugins}){
               primary={`${plugin.name} (${plugin.version})`}
               secondary={plugin.description}
             />
-            <ListItemSecondaryAction>
+            <ListItemSecondaryAction sx={{display: {xs: 'contents', md: 'block'}}}>
               <Button
                 onClick={uninstallPlugin(plugin.name)}
                 variant="text"
