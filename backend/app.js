@@ -206,7 +206,7 @@ app.get('/recent_logs/:experiment', function (req, res) {
     WHERE
         ${levelString} and
         (experiment=:experiment OR experiment=:universalExperiment) and
-        timestamp >= MAX(strftime('%Y-%m-%dT%H:%M:%S', datetime('now', '-24 hours')), (SELECT timestamp FROM experiments ORDER BY timestamp DESC LIMIT 1))
+        timestamp >= strftime('%Y-%m-%dT%H:%M:%S', datetime('now', '-24 hours'))
     ORDER BY timestamp DESC
     LIMIT 50;
     `,
