@@ -43,7 +43,7 @@ msgToJSON = (msg, level) => {
 }
 
 publishToLog = (msg, level="DEBUG") => {
-  client.publish(LOG_TOPIC, msgToJSON(msg, level))
+  client.publish(LOG_TOPIC, msgToJSON(msg.trim(), level))
 }
 
 publishToErrorLog = (msg) => {
@@ -200,7 +200,16 @@ app.get('/recent_logs/:experiment', function (req, res) {
   }
 
   db.query(
-    `SELECT timestamp, level=="ERROR" as is_error, level=="WARNING" as is_warning, pioreactor_unit, message, task FROM logs where ${levelString} and (experiment=:experiment OR experiment=:universalExperiment) and timestamp > strftime('%Y-%m-%dT%H:%M:%S', datetime('now', '-24 hours')) ORDER BY timestamp DESC LIMIT 50;`,
+    `SELECT
+        timestamp, level=="ERROR" as is_error, level=="WARNING" as is_warning, pioreactor_unit, message, task
+    FROM logs
+    WHERE
+        ${levelString} and
+        (experiment=:experiment OR experiment=:universalExperiment) and
+        timestamp >= MAX(strftime('%Y-%m-%dT%H:%M:%S', datetime('now', '-24 hours')), (SELECT timestamp FROM experiments ORDER BY timestamp DESC LIMIT 1))
+    ORDER BY timestamp DESC
+    LIMIT 50;
+    `,
     {experiment: experiment, universalExperiment: "$experiment",  levelString: levelString},
     {timestamp: String, is_error: Boolean, is_warning: Boolean, pioreactor_unit: String, message: String, task: String},
     function (err, rows) {
@@ -590,7 +599,7 @@ app.post("/update_experiment_desc", function (req, res, next) {
     db.query(update, [req.body.description, req.body.experiment], function(err, _){
         if (err){
           publishToErrorLog(err)
-          next(err)
+          res.sendStatus(500)
         } else {
           res.sendStatus(200)
         }

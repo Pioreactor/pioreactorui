@@ -76,7 +76,7 @@ class EditableDescription extends React.Component {
         }
       }).then(res => {
         if (res.status !== 200){
-          console.log("didn't save")
+          console.log("Didn't save successfully.")
         }
       })
   };
@@ -94,8 +94,8 @@ class EditableDescription extends React.Component {
             disabled={false}
             onChange={this.handleChange} // handle innerHTML change
             onBlur={this.onBlur}
-            tagName="p"
-            style={{padding: "3px 3px 3px 2px", outline: "none"}}
+            tagName="div"
+            style={{padding: "3px 3px 3px 2px", outline: "none", fontSize: "14px"}}
           />
       </div>
     )
