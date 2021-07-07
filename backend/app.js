@@ -199,17 +199,7 @@ app.get('/recent_logs/:experiment', function (req, res) {
     levelString = '(level == "ERROR" or level == "INFO" or level == "WARNING")'
   }
 
-  db.query(
-    `SELECT
-        timestamp, level=="ERROR" as is_error, level=="WARNING" as is_warning, pioreactor_unit, message, task
-    FROM logs
-    WHERE
-        ${levelString} and
-        (experiment=:experiment OR experiment=:universalExperiment) and
-        timestamp >= strftime('%Y-%m-%dT%H:%M:%S', datetime('now', '-24 hours'))
-    ORDER BY timestamp DESC
-    LIMIT 50;
-    `,
+  db.query(`SELECT timestamp, level=="ERROR" as is_error, level=="WARNING" as is_warning, pioreactor_unit, message, task FROM logs WHERE ${levelString} and (experiment=:experiment OR experiment=:universalExperiment) and timestamp >= MAX(strftime('%Y-%m-%dT%H:%M:%S', datetime('now', '-24 hours')), (SELECT timestamp FROM experiments WHERE experiment=:experiment)) ORDER BY timestamp DESC LIMIT 50;`,
     {experiment: experiment, universalExperiment: "$experiment",  levelString: levelString},
     {timestamp: String, is_error: Boolean, is_warning: Boolean, pioreactor_unit: String, message: String, task: String},
     function (err, rows) {
