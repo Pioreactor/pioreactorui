@@ -62,6 +62,7 @@ class Chart extends React.Component {
     this.onMessageArrived = this.onMessageArrived.bind(this);
     this.selectLegendData = this.selectLegendData.bind(this);
     this.selectVictoryLines = this.selectVictoryLines.bind(this);
+    this.yTransformation = this.props.yTransformation || ((y) => y)
 
   }
 
@@ -243,7 +244,7 @@ class Chart extends React.Component {
 
   createToolTip = (d) => {
       return `${d.datum.x.format("MMM DD HH:mm")}
-${this.renameAndFormatSeries(d.datum.childName)}: ${Math.round(d.datum.y * 1000) / 1000}`
+${this.renameAndFormatSeries(d.datum.childName)}: ${Math.round(this.yTransformation(d.datum.y) * 1000) / 1000}`
   }
 
 
@@ -281,7 +282,7 @@ ${this.renameAndFormatSeries(d.datum.childName)}: ${Math.round(d.datum.y * 1000)
         }}
         data={this.state.seriesMap[name].data}
         x="x"
-        y="y"
+        y={(datum) => this.yTransformation(datum.y)}
       />
     );
   }

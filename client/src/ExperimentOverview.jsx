@@ -46,14 +46,15 @@ function Overview(props) {
               <Chart
                 config={props.config}
                 dataSource="growth_rates"
-                title="Implied growth rate"
+                title={props.config['ui.overview.settings']['doubling_time'] ?  "Implied doubling time" : "Implied growth rate"}
                 topic="growth_rate_calculating/growth_rate"
                 payloadKey="growth_rate"
-                yAxisLabel="Growth rate, h⁻¹"
+                yAxisLabel={props.config['ui.overview.settings']['doubling_time'] ? "Doubling time, h" : "Growth rate, h⁻¹"}
+                yTransformation={props.config['ui.overview.settings']['doubling_time'] ? (y) => 0.693147/y : (y) => y}
                 experiment={experimentMetadata.experiment}
                 deltaHours={experimentMetadata.delta_hours}
                 interpolation="stepAfter"
-                yAxisDomain={[-0.02, 0.1]}
+                yAxisDomain={props.config['ui.overview.settings']['doubling_time'] ? null : [-0.02, 0.1]}
                 lookback={100000}
                 yAxisTickFormat={(t) => `${t.toFixed(2)}`}
               />
