@@ -80,7 +80,7 @@ class Chart extends React.Component {
   componentDidMount() {
     this.getData()
 
-    if (!this.props.config['network.topology']){
+    if (!this.props.config || !this.props.config['network.topology']){
       return
     }
 
@@ -224,7 +224,7 @@ class Chart extends React.Component {
   }
 
   renameAndFormatSeries(name){
-    if (!this.props.config['ui.rename']){
+    if (!this.props.config || !this.props.config['ui.rename']){
       return name
     }
 

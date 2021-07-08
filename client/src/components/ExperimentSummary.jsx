@@ -1,13 +1,13 @@
 import React from 'react'
-import {makeStyles} from '@material-ui/styles';
+import moment from "moment";
 import Card from '@material-ui/core/Card';
+import {makeStyles} from '@material-ui/styles';
 import CardContent from '@material-ui/core/Card';
 import {Typography} from '@material-ui/core';
-import moment from "moment";
 import Box from '@material-ui/core/Box';
+import InputBase from '@material-ui/core/InputBase';
 import Divider from '@material-ui/core/Divider';
 import Button from '@material-ui/core/Button';
-import ContentEditable from 'react-contenteditable'
 import CalendarTodayIcon from '@material-ui/icons/CalendarToday';
 import TimelapseIcon from '@material-ui/icons/Timelapse';
 import GetAppIcon from '@material-ui/icons/GetApp';
@@ -70,7 +70,7 @@ class EditableDescription extends React.Component {
   saveToDatabaseOrSkip = () => {
     if (this.state.recentChange) {
       this.setState({recentChange: false})
-      setTimeout(this.saveToDatabaseOrSkip, 250)
+      setTimeout(this.saveToDatabaseOrSkip, 150)
     } else {
       fetch('update_experiment_desc', {
           method: "POST",
@@ -88,7 +88,12 @@ class EditableDescription extends React.Component {
       }
   }
 
+  onFocus = evt => {
+    evt.target.style.height = evt.target.scrollHeight + 'px'
+  }
+
   handleChange = evt => {
+    evt.target.style.height = evt.target.scrollHeight + 'px'
     this.setState({desc: evt.target.value});
     this.setState({recentChange: true})
     if (this.state.savingLoopActive){
@@ -96,7 +101,7 @@ class EditableDescription extends React.Component {
     }
     else {
       this.setState({savingLoopActive: true})
-      setTimeout(this.saveToDatabaseOrSkip, 250)
+      setTimeout(this.saveToDatabaseOrSkip, 150)
     }
   };
 
@@ -107,14 +112,13 @@ class EditableDescription extends React.Component {
         <Box fontWeight="fontWeightBold">
           Description:
         </Box>
-        <ContentEditable
-            innerRef={this.contentEditable}
-            html={this.state.desc} // innerHTML of the editable div
-            disabled={false}
-            onChange={this.handleChange} // handle innerHTML change
-            onBlur={this.onBlur}
-            tagName="div"
-            style={{padding: "3px 3px 3px 2px", outline: "none", fontSize: "14px"}}
+          <InputBase
+            placeholder={"Provide a description of your experiment."}
+            multiline
+            fullWidth={true}
+            onChange={this.handleChange}
+            value={this.state.desc}
+            style={{padding: "3px 3px 3px 2px", border: "none", fontSize: "14px", fontFamily: "Roboto", width: "100%", overflow: "hidden"}}
           />
       </div>
     )
