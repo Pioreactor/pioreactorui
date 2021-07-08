@@ -50,7 +50,7 @@ function Overview(props) {
                 topic="growth_rate_calculating/growth_rate"
                 payloadKey="growth_rate"
                 yAxisLabel={props.config['ui.overview.settings']['doubling_time'] ? "Doubling time, h" : "Growth rate, h⁻¹"}
-                yTransformation={props.config['ui.overview.settings']['doubling_time'] ? (y) => 0.693147/y : (y) => y}
+                yTransformation={props.config['ui.overview.settings']['doubling_time'] ? (y) => 0.693147/Math.max(y, 0.01)  : (y) => y}
                 experiment={experimentMetadata.experiment}
                 deltaHours={experimentMetadata.delta_hours}
                 interpolation="stepAfter"
