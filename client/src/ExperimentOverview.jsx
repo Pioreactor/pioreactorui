@@ -46,15 +46,15 @@ function Overview(props) {
               <Chart
                 config={props.config}
                 dataSource="growth_rates"
-                title={props.config['ui.overview.settings']['doubling_time'] ?  "Implied doubling time" : "Implied growth rate"}
+                title={props.config['ui.overview.settings']['doubling_time'] == "1" ?  "Implied doubling time" : "Implied growth rate"}
                 topic="growth_rate_calculating/growth_rate"
                 payloadKey="growth_rate"
-                yAxisLabel={props.config['ui.overview.settings']['doubling_time'] ? "Doubling time, h" : "Growth rate, h⁻¹"}
-                yTransformation={props.config['ui.overview.settings']['doubling_time'] ? (y) => 0.693147/Math.max(y, 0.01)  : (y) => y}
+                yAxisLabel={props.config['ui.overview.settings']['doubling_time'] == "1" ? "Doubling time, h" : "Growth rate, h⁻¹"}
+                yTransformation={props.config['ui.overview.settings']['doubling_time'] == "1" ? (y) => 0.693147/Math.max(y, 0.01)  : (y) => y}
                 experiment={experimentMetadata.experiment}
                 deltaHours={experimentMetadata.delta_hours}
                 interpolation="stepAfter"
-                yAxisDomain={props.config['ui.overview.settings']['doubling_time'] ? null : [-0.02, 0.1]}
+                yAxisDomain={props.config['ui.overview.settings']['doubling_time'] == "1" ? null : [-0.02, 0.1]}
                 lookback={100000}
                 yAxisTickFormat={(t) => `${t.toFixed(2)}`}
               />
