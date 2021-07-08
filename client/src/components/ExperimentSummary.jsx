@@ -56,6 +56,8 @@ class EditableDescription extends React.Component {
     this.contentEditable = React.createRef();
     this.state = {
       desc: "",
+      recentChange: false,
+      savingLoopActive: false
     };
   };
 
@@ -65,21 +67,37 @@ class EditableDescription extends React.Component {
     }
   }
 
+  saveToDatabaseOrSkip = () => {
+    if (this.state.recentChange) {
+      this.setState({recentChange: false})
+      setTimeout(this.saveToDatabaseOrSkip, 250)
+    } else {
+      fetch('update_experiment_desc', {
+          method: "POST",
+          body: JSON.stringify({experiment : this.props.experiment, description: this.state.desc}),
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          }
+        }).then(res => {
+          if (res.status !== 200){
+            console.log("Didn't save successfully.")
+          }
+        })
+        this.setState({savingLoopActive: false})
+      }
+  }
 
   handleChange = evt => {
     this.setState({desc: evt.target.value});
-    fetch('update_experiment_desc', {
-        method: "POST",
-        body: JSON.stringify({experiment : this.props.experiment, description: evt.target.value}),
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json'
-        }
-      }).then(res => {
-        if (res.status !== 200){
-          console.log("Didn't save successfully.")
-        }
-      })
+    this.setState({recentChange: true})
+    if (this.state.savingLoopActive){
+      return
+    }
+    else {
+      this.setState({savingLoopActive: true})
+      setTimeout(this.saveToDatabaseOrSkip, 250)
+    }
   };
 
 
