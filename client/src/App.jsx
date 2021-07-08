@@ -14,6 +14,7 @@ import StartNewExperiment from "./StartNewExperiment";
 import EditConfig from "./EditConfig";
 import Updates from "./Updates";
 import Plugins from "./Plugins";
+import Analysis from "./Analysis";
 import SideNavAndHeader from "./components/SideNavAndHeader";
 
 import "@fontsource/roboto/300.css"
@@ -93,7 +94,7 @@ function App() {
                     <TactileButtonNotification config={config}/>
                   </Route>
                   <Route path="/analysis">
-                    <Plugins config={config} title="Pioreactor ~ Analysis"/>
+                    <Analysis config={config} title="Pioreactor ~ Analysis"/>
                     <TactileButtonNotification config={config}/>
                   </Route>
                   <Route path="/config">

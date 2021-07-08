@@ -80,6 +80,10 @@ class Chart extends React.Component {
   componentDidMount() {
     this.getData()
 
+    if (!this.props.config['network.topology']){
+      return
+    }
+
     if (this.props.config.remote && this.props.config.remote.ws_url) {
       this.client = new Client(
         `ws://${this.props.config.remote.ws_url}/`,
@@ -342,7 +346,7 @@ ${this.renameAndFormatSeries(d.datum.childName)}: ${Math.round(d.datum.y * 1000)
             label={this.props.yAxisLabel}
             axisLabelComponent={
               <VictoryLabel
-                dy={-40}
+                dy={-41}
                 style={{
                   fontSize: 15,
                   padding: 10,

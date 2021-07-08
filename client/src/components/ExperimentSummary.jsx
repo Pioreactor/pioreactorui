@@ -65,9 +65,10 @@ class EditableDescription extends React.Component {
     }
   }
 
+
   handleChange = evt => {
     this.setState({desc: evt.target.value});
-    return fetch('update_experiment_desc', {
+    fetch('update_experiment_desc', {
         method: "POST",
         body: JSON.stringify({experiment : this.props.experiment, description: evt.target.value}),
         headers: {

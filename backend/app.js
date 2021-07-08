@@ -43,7 +43,7 @@ msgToJSON = (msg, level) => {
 }
 
 publishToLog = (msg, level="DEBUG") => {
-  client.publish(LOG_TOPIC, msgToJSON(msg.trim(), level))
+  client.publish(LOG_TOPIC, msgToJSON(msg, level))
 }
 
 publishToErrorLog = (msg) => {

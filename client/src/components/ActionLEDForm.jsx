@@ -94,7 +94,7 @@ export default function ActionLEDForm(props) {
         anchorOrigin={{vertical: "bottom", horizontal: "center"}}
         open={openSnackbar}
         onClose={handleSnackbarClose}
-        message={`Updating Channel ${props.channel} to ${intensity}%.`}
+        message={`Updating channel ${props.channel} to ${intensity}%.`}
         autoHideDuration={7000}
         key={"snackbar" + props.unit + props.channel}
       />
