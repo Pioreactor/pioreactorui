@@ -44,7 +44,6 @@ function ButtonChangeDosingDialog(props) {
   const config = props.config
   const [open, setOpen] = useState(false);
   const [algoSettings, setAlgoSettings] = useState({dosing_automation: "silent", skip_first_run: false})
-  const [isClicked, setIsClicked] = useState(false)
   const [client, setClient] = useState(null)
   const [automations, setAutomations] = useState({})
 
@@ -113,7 +112,6 @@ function ButtonChangeDosingDialog(props) {
 
   const onSubmit = (event) => {
     event.preventDefault()
-    setIsClicked(true)
     var message = new Message(JSON.stringify(algoSettings));
     message.destinationName = [
       "pioreactor",

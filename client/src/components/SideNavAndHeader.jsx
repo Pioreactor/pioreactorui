@@ -12,10 +12,10 @@ import MenuIcon from '@material-ui/icons/Menu';
 import IconButton from '@material-ui/core/IconButton';
 import SaveAltIcon from '@material-ui/icons/SaveAlt';
 import HelpOutlineIcon from '@material-ui/icons/HelpOutline';
+import FeedbackOutlinedIcon from '@material-ui/icons/FeedbackOutlined';
 import UpdateIcon from '@material-ui/icons/Update';
 import Toolbar from '@material-ui/core/Toolbar';
 import {AppBar, Typography, Link, Button} from '@material-ui/core';
-import Hidden from '@material-ui/core/Hidden';
 import OpenInNewIcon from '@material-ui/icons/OpenInNew';
 import PioreactorIcon from './PioreactorIcon';
 import LibraryAddOutlinedIcon from '@material-ui/icons/LibraryAddOutlined';
@@ -45,7 +45,6 @@ const useStyles = makeStyles((theme) => ({
     flexGrow: 1,
   },
   appBarRoot: {
-    flexGrow: 1,
     [theme.breakpoints.up('sm')]: {
       zIndex: theme.zIndex.drawer + 1
     }
@@ -166,6 +165,15 @@ export default function SideNavAndHeader() {
             </ListItemSecondaryAction>
           </ListItem>
         </div>
+
+        <ListItem href="/feedback" component="a" button key="feedback" selected={isSelected("/feedback")}>
+          <ListItemIcon className={classes.listItemIcon}>
+            <Badge variant="dot" color="secondary" invisible={!((version) && (latestVersion) && (version !== latestVersion))}>
+              <FeedbackOutlinedIcon color={isSelected("/feedback") ? "primary" : "inherit"}/>
+            </Badge>
+          </ListItemIcon>
+          <ListItemText primaryTypographyProps={{color: isSelected("/feedback") ? "primary" : "inherit"}} primary={"Share feedback"}/>
+        </ListItem>
 
       </List>
     </div>

@@ -37,7 +37,6 @@ function ButtonChangeTemperatureDialog(props) {
   const classes = useStyles();
   const [open, setOpen] = useState(false);
   const [algoSettings, setAlgoSettings] = useState({temperature_automation: "silent", skip_first_run: false})
-  const [isClicked, setIsClicked] = useState(false)
   const [client, setClient] = useState(null)
   const [automations, setAutomations] = useState({})
 
@@ -103,7 +102,6 @@ function ButtonChangeTemperatureDialog(props) {
 
   const onSubmit = (event) => {
     event.preventDefault()
-    setIsClicked(true)
     var message = new Message(JSON.stringify(algoSettings));
     message.destinationName = [
       "pioreactor",

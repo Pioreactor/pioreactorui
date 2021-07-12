@@ -15,6 +15,7 @@ import EditConfig from "./EditConfig";
 import Updates from "./Updates";
 import Plugins from "./Plugins";
 import Analysis from "./Analysis";
+import Feedback from "./Feedback";
 import SideNavAndHeader from "./components/SideNavAndHeader";
 
 import "@fontsource/roboto/300.css"
@@ -104,8 +105,12 @@ function App() {
                   <Route path="/pioreactors">
                     <Pioreactors config={config} title="Pioreactor ~ Pioreactors"/>
                   </Route>
-                  <Route path="/Updates">
+                  <Route path="/updates">
                     <Updates config={config} title="Pioreactor ~ Updates"/>
+                    <TactileButtonNotification config={config}/>
+                  </Route>
+                  <Route path="/feedback">
+                    <Feedback config={config} title="Pioreactor ~ Feedback"/>
                     <TactileButtonNotification config={config}/>
                   </Route>
                   <Route path="/">
