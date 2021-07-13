@@ -49,7 +49,7 @@ function FeedbackContainer(props){
   function publishFeedbackToMQTT(){
     setSending(true)
     function onConnect() {
-      var message = new Message(feedback);
+      var message = new Message(JSON.stringify({feedback: feedback, email: email}));
       message.destinationName = "pioreactor/feedback"
       message.qos = 1;
       message.retained = true;
@@ -58,7 +58,7 @@ function FeedbackContainer(props){
     }
 
     var client = new Client(
-        `ws://mqtt.pioreactor.com/`, "feedback" + Math.random()
+        "mqtt.pioreactor.com", 9001, "/", "feedback" + Math.random()
     )
     client.connect({onSuccess: onConnect});
 
@@ -114,7 +114,7 @@ function FeedbackContainer(props){
           <Grid item xs={12} md={12}>
             <TextField
               label="What went wrong? What went right? What are you unsure about?"
-              rowsMax={4}
+              maxRows={4}
               multiline
               required
               onChange={onFeedbackChange}
