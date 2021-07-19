@@ -1,8 +1,7 @@
 import React from "react";
 import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
-import { ThemeProvider } from "@material-ui/core/styles";
+import { ThemeProvider, createTheme } from '@material-ui/core/styles';
 import CssBaseline from "@material-ui/core/CssBaseline";
-import { createTheme } from '@material-ui/core/styles';
 import { StyledEngineProvider } from '@material-ui/core/styles';
 
 
@@ -46,7 +45,19 @@ const theme = createTheme({
 
 
 function App() {
+  return (
+    <React.StrictMode>
+    <StyledEngineProvider injectFirst>
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <MainSite />
+      </ThemeProvider>
+    </StyledEngineProvider>
+    </React.StrictMode>
+  );
+}
 
+function MainSite() {
   const [config, setConfig] = React.useState({})
 
   React.useEffect(() => {
@@ -67,64 +78,55 @@ function App() {
     }
     getConfig();
   }, [])
-
   return (
-    <React.StrictMode>
-    <StyledEngineProvider injectFirst>
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
-        <div style={{display: 'flex'}}>
-          <SideNavAndHeader />
-          <main style={{flexGrow: 1, paddingTop: theme.spacing(9), paddingLeft: theme.spacing(4), paddingRight: theme.spacing(4)}}>
-            <Router>
-              <div className="pageContainer">
-                <Switch>
-                  <Route path="/export-data">
-                    <ExportData config={config} title="Pioreactor ~ Export data"/>
-                    <TactileButtonNotification config={config}/>
-                  </Route>
-                  <Route path="/start-new-experiment">
-                    <StartNewExperiment config={config} title="Pioreactor ~ Start new experiment" />
-                    <TactileButtonNotification config={config}/>
-                  </Route>
-                  <Route path="/overview">
-                    <ExperimentOverview config={config} title="Pioreactor ~ Overview"/>
-                  </Route>
-                  <Route path="/plugins">
-                    <Plugins config={config} title="Pioreactor ~ Plugins"/>
-                    <TactileButtonNotification config={config}/>
-                  </Route>
-                  <Route path="/analysis">
-                    <Analysis config={config} title="Pioreactor ~ Analysis"/>
-                    <TactileButtonNotification config={config}/>
-                  </Route>
-                  <Route path="/config">
-                    <EditConfig config={config} title="Pioreactor ~ Configuration"/>
-                    <TactileButtonNotification config={config}/>
-                  </Route>
-                  <Route path="/pioreactors">
-                    <Pioreactors config={config} title="Pioreactor ~ Pioreactors"/>
-                  </Route>
-                  <Route path="/updates">
-                    <Updates config={config} title="Pioreactor ~ Updates"/>
-                    <TactileButtonNotification config={config}/>
-                  </Route>
-                  <Route path="/feedback">
-                    <Feedback config={config} title="Pioreactor ~ Feedback"/>
-                    <TactileButtonNotification config={config}/>
-                  </Route>
-                  <Route path="/">
-                    <ExperimentOverview config={config} title="Pioreactor ~ Pioreactor"/>
-                  </Route>
-                </Switch>
-              </div>
-            </Router>
-          </main>
-        </div>
-      </ThemeProvider>
-    </StyledEngineProvider>
-    </React.StrictMode>
-  );
-}
+    <div style={{display: 'flex'}}>
+      <SideNavAndHeader />
+      <main style={{flexGrow: 1, paddingTop: theme.spacing(9), paddingLeft: theme.spacing(4), paddingRight: theme.spacing(4)}}>
+        <Router>
+          <div className="pageContainer">
+            <Switch>
+              <Route path="/export-data">
+                <ExportData config={config} title="Pioreactor ~ Export data"/>
+                <TactileButtonNotification config={config}/>
+              </Route>
+              <Route path="/start-new-experiment">
+                <StartNewExperiment config={config} title="Pioreactor ~ Start new experiment" />
+                <TactileButtonNotification config={config}/>
+              </Route>
+              <Route path="/overview">
+                <ExperimentOverview config={config} title="Pioreactor ~ Overview"/>
+              </Route>
+              <Route path="/plugins">
+                <Plugins config={config} title="Pioreactor ~ Plugins"/>
+                <TactileButtonNotification config={config}/>
+              </Route>
+              <Route path="/analysis">
+                <Analysis config={config} title="Pioreactor ~ Analysis"/>
+                <TactileButtonNotification config={config}/>
+              </Route>
+              <Route path="/config">
+                <EditConfig config={config} title="Pioreactor ~ Configuration"/>
+                <TactileButtonNotification config={config}/>
+              </Route>
+              <Route path="/pioreactors">
+                <Pioreactors config={config} title="Pioreactor ~ Pioreactors"/>
+              </Route>
+              <Route path="/updates">
+                <Updates config={config} title="Pioreactor ~ Updates"/>
+                <TactileButtonNotification config={config}/>
+              </Route>
+              <Route path="/feedback">
+                <Feedback config={config} title="Pioreactor ~ Feedback"/>
+                <TactileButtonNotification config={config}/>
+              </Route>
+              <Route path="/">
+                <ExperimentOverview config={config} title="Pioreactor ~ Pioreactor"/>
+              </Route>
+            </Switch>
+          </div>
+        </Router>
+      </main>
+    </div>
+)}
 
 export default App;
