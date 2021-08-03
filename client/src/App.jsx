@@ -47,12 +47,12 @@ const theme = createTheme({
 function App() {
   return (
     <React.StrictMode>
-    <StyledEngineProvider injectFirst>
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
-        <MainSite />
-      </ThemeProvider>
-    </StyledEngineProvider>
+      <StyledEngineProvider injectFirst>
+        <ThemeProvider theme={theme}>
+          <CssBaseline />
+          <MainSite />
+        </ThemeProvider>
+      </StyledEngineProvider>
     </React.StrictMode>
   );
 }

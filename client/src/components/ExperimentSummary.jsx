@@ -228,9 +228,7 @@ function ExperimentSummary(props){
       <div>
         <div className={classes.headerMenu}>
           <Typography variant="h5" component="h1">
-            <Box fontWeight="fontWeightBold">
-              {experiment}
-            </Box>
+            <Box fontWeight="fontWeightBold">{experiment}</Box>
           </Typography>
           <div className={classes.headerButtons}>
             <ButtonConfirmNewExperimentDialog/>

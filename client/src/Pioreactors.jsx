@@ -605,6 +605,7 @@ function CalibrateDialog(props) {
    }
 
   const blankODButton = createUserButtonsBasedOnState(props.odBlankJobState, "od_blank")
+  const odTempCompButton = createUserButtonsBasedOnState(props.odTempCompState, "od_temperature_compensation")
 
 
   return (
@@ -624,10 +625,30 @@ function CalibrateDialog(props) {
           textColor="primary"
           >
           <Tab label="Blanks"/>
+          <Tab label="Temperature compensation"/>
           <Tab label="Dosing" disabled={true}/>
         </Tabs>
         </DialogTitle>
         <DialogContent>
+          <TabPanel value={tabValue} index={1}>
+            <Typography  gutterBottom>
+             Temperature-compensated optical densities readings
+            </Typography>
+            <Typography variant="body2" component="p" gutterBottom>
+              When the temperature varies, the LED output varies as well. This can effect the optical density reading.
+              The below action will vary the temperature and measure the optical density, and a compensation curve will be
+              created and can be used for future experiments.
+            </Typography>
+
+            <Typography variant="body2" component="p" gutterBottom>
+              This action will take up to two hours. You can leave this page, but avoid moving the Pioreactor hardware and wetware.
+            </Typography>
+
+            {odTempCompButton}
+
+            <Divider className={classes.divider} />
+
+          </TabPanel>
           <TabPanel value={tabValue} index={0}>
             <Typography  gutterBottom>
              Record optical densities of blank (optional)
@@ -1828,6 +1849,7 @@ function PioreactorCard(props){
                   odBlankReading={jobs['od_blank'] ? jobs['od_blank'].mean.value : null}
                   odBlankJobState={jobs['od_blank'] ? jobs['od_blank'].state : null}
                   stirringJobState={jobs['stirring'] ? jobs['stirring'].state : null}
+                  odTempCompState={jobs['od_temperature_compensation'] ? jobs['od_temperature_compensation'].state : null}
                   experiment={experiment}
                   unit={unit}
                   disabled={!isUnitActive}

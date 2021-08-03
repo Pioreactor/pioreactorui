@@ -9,6 +9,9 @@ import {
   VictoryLegend,
   createContainer,
   VictoryTooltip,
+  VictoryVoronoiContainer,
+  VictoryContainer,
+  VictoryZoomContainer
 } from "victory";
 import moment from "moment";
 import Card from "@material-ui/core/Card";
@@ -128,7 +131,7 @@ class Chart extends React.Component {
         let names = Object.keys(initialSeriesMap);
         this.setState({
           seriesMap: initialSeriesMap,
-          legendEvents: this.createLegendEvents(names),
+          legendEvents: this.createLegendEvents(),
           names: names,
           fetched: true
         });
@@ -139,34 +142,41 @@ class Chart extends React.Component {
       });
   }
 
-  createLegendEvents(names) {
-    return names.map((name, idx) => {
-      return {
-        childName: ["legend"],
-        target: "data",
-        eventKey: String(idx),
-        eventHandlers: {
-          onClick: () => {
-            return [
-              {
-                childName: ["line-" + name],
-                target: "data",
-                mutation: () => { //this is dumb! I shouldn't mutate this way!
-                  if (!this.state.hiddenSeries.delete(name)) {
-                    // Was not already hidden => add to set
-                    this.state.hiddenSeries.add(name);
-                  }
-                  this.setState({
-                    hiddenSeries: new Set(this.state.hiddenSeries),
-                  });
-                  return null;
-                },
+  deleteAndReturnSet(set, value){
+    set.delete(value)
+    return set
+  }
+
+  createLegendEvents() {
+    return [{
+      childName: "legend",
+      target: "data",
+      eventHandlers: {
+        onClick: (_, props) => {
+          return [
+            {
+              childName: props.datum.name,
+              target: "data",
+              eventKey: "all",
+              mutation: () => {
+                if (!this.state.hiddenSeries.has(props.datum.name)) {
+                  // Was not already hidden => add to set
+                  this.setState((prevState) => ({
+                    hiddenSeries: prevState.hiddenSeries.add(props.datum.name)
+                  }));
+                } else {
+                  // remove from set
+                  this.setState((prevState) => ({
+                    hiddenSeries: this.deleteAndReturnSet(prevState.hiddenSeries, props.datum.name)
+                  }));
+                }
+                return null;
               },
-            ];
-          },
+            },
+          ];
         },
-      };
-    });
+      },
+    }]
   }
 
   onMessageArrived(message) {
@@ -288,7 +298,6 @@ ${this.renameAndFormatSeries(d.datum.childName)}: ${Math.round(this.yTransformat
   }
 
   render() {
-    const VictoryVoronoiContainer = createContainer("voronoi");
     return (
       <Card style={{ maxHeight: "100%"}}>
         <VictoryChart
@@ -315,6 +324,7 @@ ${this.renameAndFormatSeries(d.datum.childName)}: ${Math.round(this.yTransformat
                   }}
                 />
               }
+
             />
           }
         >
@@ -368,7 +378,7 @@ ${this.renameAndFormatSeries(d.datum.childName)}: ${Math.round(this.yTransformat
             y={270}
             symbolSpacer={6}
             itemsPerRow={5}
-            name={"legend"}
+            name="legend"
             borderPadding={{ right: 8 }}
             orientation="horizontal"
             cursor={"pointer"}
