@@ -153,12 +153,14 @@ class Chart extends React.Component {
       target: "data",
       eventHandlers: {
         onClick: (_, props) => {
+          console.log(props.datum.name)
           return [
             {
               childName: props.datum.name,
               target: "data",
               eventKey: "all",
               mutation: () => {
+                console.log(this.state.hiddenSeries)
                 if (!this.state.hiddenSeries.has(props.datum.name)) {
                   // Was not already hidden => add to set
                   this.setState((prevState) => ({
@@ -274,9 +276,6 @@ ${this.renameAndFormatSeries(d.datum.childName)}: ${Math.round(this.yTransformat
   }
 
   selectVictoryLines(name) {
-    if (this.state.hiddenSeries.has(name)) {
-      return undefined;
-    }
     return (
       <VictoryLine
         interpolation={this.props.interpolation}
@@ -290,7 +289,7 @@ ${this.renameAndFormatSeries(d.datum.childName)}: ${Math.round(this.yTransformat
           },
           parent: { border: "1px solid #ccc" },
         }}
-        data={this.state.seriesMap[name].data}
+        data={(this.state.hiddenSeries.has(name)) ? [] : this.state.seriesMap[name].data}
         x="x"
         y={(datum) => this.yTransformation(datum.y)}
       />
@@ -311,21 +310,21 @@ ${this.renameAndFormatSeries(d.datum.childName)}: ${Math.round(this.yTransformat
           scale={{x: 'time'}}
           theme={VictoryTheme.material}
           containerComponent={
-            <VictoryVoronoiContainer
-              voronoiBlacklist={['parent']}
-              labels={this.createToolTip}
-              labelComponent={
-                <VictoryTooltip
-                  cornerRadius={0}
-                  flyoutStyle={{
-                    fill: "white",
-                    stroke: "#90a4ae",
-                    strokeWidth: 1.5,
-                  }}
-                />
-              }
+           <VictoryContainer
+             voronoiBlacklist={['parent']}
+             labels={this.createToolTip}
+             labelComponent={
+               <VictoryTooltip
+                 cornerRadius={0}
+                 flyoutStyle={{
+                   fill: "white",
+                   stroke: "#90a4ae",
+                   strokeWidth: 1.5,
+                 }}
+               />
+             }
 
-            />
+           />
           }
         >
           <VictoryLabel

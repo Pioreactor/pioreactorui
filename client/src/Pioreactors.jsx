@@ -641,7 +641,7 @@ function CalibrateDialog(props) {
             </Typography>
 
             <Typography variant="body2" component="p" gutterBottom>
-              This action will take up to two hours. You can leave this page, but avoid moving the Pioreactor hardware and wetware.
+              This action will take up to two hours. You can leave this page, but avoid modifying the Pioreactor hardware and wetware, and avoid large changes in the room's temperature.
             </Typography>
 
             {odTempCompButton}
