@@ -6,6 +6,7 @@ import { StyledEngineProvider } from '@material-ui/core/styles';
 
 
 import TactileButtonNotification from "./components/TactileButtonNotification";
+import ErrorSnackbar from "./components/ErrorSnackbar";
 import ExperimentOverview from "./ExperimentOverview";
 import ExportData from "./ExportData";
 import Pioreactors from "./Pioreactors";
@@ -123,6 +124,7 @@ function MainSite() {
                 <ExperimentOverview config={config} title="Pioreactor ~ Pioreactor"/>
               </Route>
             </Switch>
+            <ErrorSnackbar config={config} />
           </div>
         </Router>
       </main>

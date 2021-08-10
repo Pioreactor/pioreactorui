@@ -2,7 +2,7 @@ const express = require('express');
 const basicAuth = require('express-basic-auth')
 const path = require('path');
 const bodyParser = require('body-parser');
-require('dotenv').config()
+const dotenv = require('dotenv').config()
 const url = require('url');
 const { execFile } = require("child_process");
 const cp = require('child_process');
