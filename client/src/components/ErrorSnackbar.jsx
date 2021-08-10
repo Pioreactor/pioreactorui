@@ -78,6 +78,7 @@ function ErrorSnackbar(props) {
       anchorOrigin={{vertical: "bottom", horizontal: "right"}}
       key={"error-snackbar"}
       autoHideDuration={7000}
+      style={{maxWidth: "500px"}}
     >
     <Alert severity="error" variant="filled">
       <AlertTitle style={{fontSize: 15}}>{task} error in {unit + (renamedUnit ? " / " + renamedUnit : "")}</AlertTitle>
