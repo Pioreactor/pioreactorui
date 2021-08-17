@@ -84,11 +84,10 @@ function Overview(props) {
             <Grid item xs={12}>
               <Chart
                 config={props.config}
-                isODReading={true}
                 dataSource="od_readings_filtered"
                 title="Normalized optical density"
                 payloadKey="od_filtered"
-                topic="growth_rate_calculating/od_filtered/+"
+                topic="growth_rate_calculating/od_filtered"
                 yAxisLabel="Current OD / initial OD"
                 experiment={experimentMetadata.experiment}
                 deltaHours={experimentMetadata.delta_hours}

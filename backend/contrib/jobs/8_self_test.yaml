@@ -1,6 +1,6 @@
 ---
-name: system check
-job_name: system_check
+name: self test
+job_name: self_test
 display: false
 source: app
 is_testing: true

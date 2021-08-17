@@ -365,7 +365,7 @@ function AddNewPioreactor(props){
   }
 
   const handleNameChange = evt => {
-    setName(evt.target.value)
+    setName(evt.target.value.replace(/[^A-Za-z 0-9\-]/, "").toLowerCase().replace(" ", "-"))
   }
 
   const onSubmit = (event) =>{
@@ -441,6 +441,7 @@ function AddNewPioreactor(props){
           variant="outlined"
           className={classes.textFieldWide}
           onChange={handleNameChange}
+          value={name}
           InputProps={{
             startAdornment: (
               <InputAdornment position="start">
@@ -705,13 +706,13 @@ function SystemCheckDialog(props) {
   }
 
   function displayIcon(key, state){
-    if (props.systemCheckTests == null){
+    if (props.selfTestTests == null){
       return <IndeterminateCheckBoxIcon />
     }
-    else if (props.systemCheckTests[key].value === 1){
+    else if (props.selfTestTests[key].value === 1){
       return <CheckIcon style={{color: readyGreen}}/>
     }
-    else if (props.systemCheckTests[key].value === 0){
+    else if (props.selfTestTests[key].value === 0){
       return <ErrorIcon style={{color: lostRed}}/>
     }
     else if (state === "ready") {
@@ -749,7 +750,7 @@ function SystemCheckDialog(props) {
     }
    }
 
-  const systemCheckButton = createUserButtonsBasedOnState(props.systemCheckState, "system_check")
+  const selfTestButton = createUserButtonsBasedOnState(props.selfTestState, "self_test")
 
   return (
     <React.Fragment>
@@ -768,7 +769,7 @@ function SystemCheckDialog(props) {
             Perform a check of the heating & temperature sensor, LEDs & photodiodes, and stirring.
           </Typography>
 
-            {systemCheckButton}
+            {selfTestButton}
             <Divider className={classes.divider} />
 
             <List component="nav"
@@ -780,17 +781,17 @@ function SystemCheckDialog(props) {
             >
               <ListItem className={classes.testingListItem}>
                 <ListItemIcon className={classes.testingListItemIcon}>
-                  {displayIcon("pioreactor_hat_present", props.systemCheckState)}
+                  {displayIcon("pioreactor_hat_present", props.selfTestState)}
                 </ListItemIcon>
                 <ListItemText primary="Pioreactor HAT is detected" />
               </ListItem>
               <ListItem className={classes.testingListItem}>
                 <ListItemIcon className={classes.testingListItemIcon}>
-                  {displayIcon("atleast_one_correlation_between_pds_and_leds", props.systemCheckState)}
+                  {displayIcon("atleast_one_correlation_between_pds_and_leds", props.selfTestState)}
                 </ListItemIcon>
                 <ListItemText primary="Photodiode(s) is responsive to LED(s)" secondary={
-                    props.systemCheckTests ?
-                      JSON.parse(props.systemCheckTests["correlations_between_pds_and_leds"].value).map(led_pd => `${led_pd[0]} ⇝ ${led_pd[1]}`).join(",  ") :
+                    props.selfTestTests ?
+                      JSON.parse(props.selfTestTests["correlations_between_pds_and_leds"].value).map(led_pd => `${led_pd[0]} ⇝ ${led_pd[1]}`).join(",  ") :
                       ""
                     }/>
               </ListItem>
@@ -805,14 +806,14 @@ function SystemCheckDialog(props) {
             >
               <ListItem className={classes.testingListItem}>
                 <ListItemIcon className={classes.testingListItemIcon}>
-                  {displayIcon("detect_heating_pcb", props.systemCheckState)}
+                  {displayIcon("detect_heating_pcb", props.selfTestState)}
                 </ListItemIcon>
                 <ListItemText primary="Temperature sensor is detected" />
               </ListItem>
 
               <ListItem className={classes.testingListItem}>
                 <ListItemIcon className={classes.testingListItemIcon}>
-                  {displayIcon("positive_correlation_between_temp_and_heating", props.systemCheckState)}
+                  {displayIcon("positive_correlation_between_temp_and_heating", props.selfTestState)}
                 </ListItemIcon>
                 <ListItemText primary="Heating is responsive" />
               </ListItem>
@@ -828,7 +829,7 @@ function SystemCheckDialog(props) {
             >
               <ListItem className={classes.testingListItem}>
                 <ListItemIcon className={classes.testingListItemIcon}>
-                  {displayIcon("positive_correlation_between_rpm_and_stirring", props.systemCheckState)}
+                  {displayIcon("positive_correlation_between_rpm_and_stirring", props.selfTestState)}
                 </ListItemIcon>
                 <ListItemText primary="Stirring RPM is responsive" />
               </ListItem>
@@ -1747,7 +1748,7 @@ function PioreactorCard(props){
       for (const job of Object.keys(jobs)) {
         if (job === "monitor") {continue;}
 
-        // for some jobs (system_check), we use a different experiment name to not clutter datasets,
+        // for some jobs (self_test), we use a different experiment name to not clutter datasets,
         const experimentName = jobs[job].metadata.is_testing ? "_testing_" + experiment : experiment
 
         client.subscribe(["pioreactor", unit, experimentName, job, "$state"].join("/"));
@@ -1838,8 +1839,8 @@ function PioreactorCard(props){
                   disabled={!isUnitActive}
                   config={props.config}
                   unit={unit}
-                  systemCheckState={jobs['system_check'] ? jobs['system_check'].state : null}
-                  systemCheckTests={jobs['system_check'] ? jobs['system_check'] : null}
+                  selfTestState={jobs['self_test'] ? jobs['self_test'].state : null}
+                  selfTestTests={jobs['self_test'] ? jobs['self_test'] : null}
                 />
               </div>
               <div>
