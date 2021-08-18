@@ -153,14 +153,12 @@ class Chart extends React.Component {
       target: "data",
       eventHandlers: {
         onClick: (_, props) => {
-          console.log(props.datum.name)
           return [
             {
               childName: props.datum.name,
               target: "data",
               eventKey: "all",
               mutation: () => {
-                console.log(this.state.hiddenSeries)
                 if (!this.state.hiddenSeries.has(props.datum.name)) {
                   // Was not already hidden => add to set
                   this.setState((prevState) => ({
@@ -310,7 +308,7 @@ ${this.renameAndFormatSeries(d.datum.childName)}: ${Math.round(this.yTransformat
           scale={{x: 'time'}}
           theme={VictoryTheme.material}
           containerComponent={
-           <VictoryContainer
+           <VictoryVoronoiContainer
              voronoiBlacklist={['parent']}
              labels={this.createToolTip}
              labelComponent={
