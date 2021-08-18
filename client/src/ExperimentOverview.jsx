@@ -94,6 +94,7 @@ function Overview(props) {
                 interpolation="stepAfter"
                 lookback={parseFloat(props.config['ui.overview.settings']['filtered_od_lookback_hours'])}
                 yAxisTickFormat={(t) => `${t.toFixed(2)}`}
+                yAxisDomain={[0.98, 1.02]}
               />
             </Grid>
             }

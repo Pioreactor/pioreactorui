@@ -23,6 +23,7 @@ app.use(compression());
 
 var db = dblite(process.env.DB_LOCATION)
 
+
 // connect to MQTT for logging
 var client  = mqtt.connect('mqtt://localhost:1883')
 const LOG_TOPIC = `pioreactor/${os.hostname()}/$experiment/logs/ui`
@@ -53,6 +54,7 @@ publishToErrorLog = (msg) => {
 
 db.on('error', function (err) {
   // log any DB errors.
+  // TODO: I don't think this is working...
   publishToErrorLog(err.toString());
 });
 
