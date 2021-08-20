@@ -26,7 +26,7 @@ function ErrorSnackbar(props) {
 
     const onMessageArrived = (message) => {
       const payload = JSON.parse(message.payloadString)
-      if (payload.level === "ERROR"){
+      if ((payload.level === "ERROR") & (!message.topic.endswith("/ui"))){
         console.log(message)
         const unit = message.topic.split("/")[1]
         try {

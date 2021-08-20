@@ -1,9 +1,10 @@
 const { execFile } = require("child_process");
 
 
-process.on('message', function(newPioreactorName) {
-    console.log(`pio add-pioreactor ${newPioreactorName}`)
-    execFile("pio", ["add-pioreactor", newPioreactorName],
+process.on('message', function(data) {
+    var ipAddressArgs = data.ipAddress === "" ? [] : ["--ip", data.ipAddress]
+
+    execFile("pio", ["add-pioreactor", data.newPioreactorName].concat(ipAddressArgs),
         { shell: "/bin/bash" },
         (error, stdout, stderr) => {
         if (error) {

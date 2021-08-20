@@ -604,7 +604,7 @@ app.post("/update_experiment_desc", function (req, res, next) {
 })
 
 app.post("/add_new_pioreactor", function (req, res) {
-    const newName = req.body.newPioreactorName
+    // req.body contains fields newPioreactorName, ipAddress
     var child = cp.fork('./child_tasks/add_new_pioreactor');
     child.on('message', function(result) {
       if (result.result) {
@@ -616,7 +616,7 @@ app.post("/add_new_pioreactor", function (req, res) {
         res.status(500).json(result)
       }
     });
-    child.send(newName);
+    child.send(req.body);
 })
 
 

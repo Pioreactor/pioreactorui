@@ -39,6 +39,7 @@ import ListItemText from '@material-ui/core/ListItemText';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListSubheader from '@material-ui/core/ListSubheader';
+import DnsIcon from '@material-ui/icons/Dns';
 
 
 import ButtonChangeDosingDialog from "./components/ButtonChangeDosingDialog"
@@ -49,7 +50,6 @@ import ActionLEDForm from "./components/ActionLEDForm"
 import PioreactorIcon from "./components/PioreactorIcon"
 import TactileButtonNotification from "./components/TactileButtonNotification";
 import UnderlineSpan from "./components/UnderlineSpan";
-
 
 const readyGreen = "#4caf50"
 const disconnectedGrey = "grey"
@@ -348,6 +348,7 @@ function AddNewPioreactor(props){
   const [open, setOpen] = useState(false);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [name, setName] = React.useState("");
+  const [ip, setIP] = React.useState("");
   const [isRunning, setIsRunning] = React.useState(false)
   const [errorMsg, setErrorMsg] = React.useState("")
   const [isError, setIsError] = React.useState("")
@@ -368,6 +369,10 @@ function AddNewPioreactor(props){
     setName(evt.target.value.replace(/[^A-Za-z 0-9\-]/, "").toLowerCase().replace(" ", "-"))
   }
 
+  const handleIPChange = evt => {
+    setIP(evt.target.value.replace(/[^\.0-9]/, ""))
+  }
+
   const onSubmit = (event) =>{
     event.preventDefault()
     if (!name) {
@@ -379,7 +384,7 @@ function AddNewPioreactor(props){
     setIsRunning(true)
     fetch('add_new_pioreactor',{
         method: "POST",
-        body: JSON.stringify({newPioreactorName: name}),
+        body: JSON.stringify({newPioreactorName: name, ipAddress: ip}),
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json'
@@ -401,7 +406,7 @@ function AddNewPioreactor(props){
     <Button onClick={handleClickOpen} style={{textTransform: 'none', float: "right", marginRight: "0px"}} color="primary">
       <AddIcon fontSize="15" classes={{root: classes.textIcon}}/> Add new Pioreactor
     </Button>
-    <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
+    <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title" maxWidth="md">
       <DialogTitle>
         Add new Pioreactor
       </DialogTitle>
@@ -435,6 +440,7 @@ function AddNewPioreactor(props){
 
       <div >
         <TextField
+          required
           size="small"
           id="new-pioreactor-name"
           label="Provide a name"
@@ -446,6 +452,24 @@ function AddNewPioreactor(props){
             startAdornment: (
               <InputAdornment position="start">
                 <PioreactorIcon style={{fontSize: "1.1em"}}/>
+              </InputAdornment>
+            ),
+          }}
+        />
+        <br/>
+        <TextField
+          size="small"
+          id="new-pioreactor-ip"
+          label="IP address of RPi"
+          placeholder="Optional"
+          variant="outlined"
+          className={classes.textFieldWide}
+          onChange={handleIPChange}
+          value={ip}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <DnsIcon style={{fontSize: "1.1em"}}/>
               </InputAdornment>
             ),
           }}
