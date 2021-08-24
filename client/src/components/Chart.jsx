@@ -139,6 +139,8 @@ class Chart extends React.Component {
         console.log(e)
         this.setState({fetched: true})
       });
+      this.forceUpdate()
+
   }
 
   deleteAndReturnSet(set, value){
@@ -258,26 +260,29 @@ ${this.renameAndFormatSeries(d.datum.childName)}: ${Math.round(this.yTransformat
 
 
   selectLegendData(name){
+    var reformattedName = this.renameAndFormatSeries(name)
     if (!this.state.seriesMap) {
       return {}
     }
     const line = this.state.seriesMap[name];
     const item = {
-      name: this.renameAndFormatSeries(line.name),
+      name: reformattedName,
       symbol: { fill: line.color },
     };
-    if (this.state.hiddenSeries.has(name)) {
+    if (this.state.hiddenSeries.has(reformattedName)) {
       return { ...item, symbol: { fill: "white" } };
     }
     return item;
   }
 
   selectVictoryLines(name) {
+    var reformattedName = this.renameAndFormatSeries(name)
+
     return (
       <VictoryLine
         interpolation={this.props.interpolation}
-        key={"line-" + name + this.props.title}
-        name={name}
+        key={"line-" + reformattedName + this.props.title}
+        name={reformattedName}
         style={{
           labels: {fill: this.state.seriesMap[name].color},
           data: {
@@ -286,7 +291,7 @@ ${this.renameAndFormatSeries(d.datum.childName)}: ${Math.round(this.yTransformat
           },
           parent: { border: "1px solid #ccc" },
         }}
-        data={(this.state.hiddenSeries.has(name)) ? [] : this.state.seriesMap[name].data}
+        data={(this.state.hiddenSeries.has(reformattedName)) ? [] : this.state.seriesMap[name].data}
         x="x"
         y={(datum) => this.yTransformation(datum.y)}
       />

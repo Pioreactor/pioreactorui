@@ -27,7 +27,7 @@ import Tab from '@material-ui/core/Tab';
 import Button from "@material-ui/core/Button";
 import AddIcon from '@material-ui/icons/Add';
 import ClearIcon from '@material-ui/icons/Clear';
-import ErrorIcon from '@material-ui/icons/Error';
+import CloseIcon from '@material-ui/icons/Close';
 import CheckIcon from '@material-ui/icons/Check';
 import FlareIcon from '@material-ui/icons/Flare';
 import SettingsIcon from '@material-ui/icons/Settings';
@@ -737,7 +737,7 @@ function SystemCheckDialog(props) {
       return <CheckIcon style={{color: readyGreen}}/>
     }
     else if (props.selfTestTests[key].value === 0){
-      return <ErrorIcon style={{color: lostRed}}/>
+      return <CloseIcon style={{color: lostRed}}/>
     }
     else if (state === "ready") {
       return <CircularProgress size={20} />
