@@ -26,8 +26,8 @@ function ErrorSnackbar(props) {
 
     const onMessageArrived = (message) => {
       const payload = JSON.parse(message.payloadString)
-      if ((payload.level === "ERROR") & (!message.topic.endswith("/ui"))){
-        console.log(message)
+
+      if ((payload.level === "ERROR") && (!message.topic.endsWith("/ui"))){
         const unit = message.topic.split("/")[1]
         try {
           setRenamedUnit(props.config['ui.rename'][unit])
