@@ -1,5 +1,4 @@
 import React from "react";
-import { Client, Message } from "paho-mqtt";
 import Grid from '@material-ui/core/Grid';
 import { makeStyles } from '@material-ui/styles';
 import Card from '@material-ui/core/Card';
@@ -45,23 +44,22 @@ function FeedbackContainer(props){
   const [email, setEmail] = React.useState("");
   const [feedback, setFeedback] = React.useState("");
   const [sending, setSending] = React.useState(false);
+  const [hasBeenSent, setHasBeenSent] = React.useState(false);
 
-  function publishFeedbackToMQTT(){
+  function publishFeedbackToCloud(){
     setSending(true)
-    function onConnect() {
-      var message = new Message(JSON.stringify({feedback: feedback, email: email}));
-      message.destinationName = "pioreactor/feedback"
-      message.qos = 1;
-      message.retained = true;
-      client.publish(message);
-      setSending(false)
-    }
-
-    var client = new Client(
-        "mqtt.pioreactor.com", 9001, "/", "feedback" + Math.random()
-    )
-    client.connect({onSuccess: onConnect});
-
+    fetch("https://us-central1-pioreactor-backend.cloudfunctions.net/feedback", {
+      method:"POST",
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+          email: email,
+          message: feedback
+          })
+      })
+    setSending(false)
+    setHasBeenSent(true)
   }
 
   function onSubmit(e) {
@@ -71,10 +69,12 @@ function FeedbackContainer(props){
       setHelperText("Can't be blank.")
       return
     }
-    publishFeedbackToMQTT()
+    publishFeedbackToCloud()
   }
 
   const onEmailChange = (e) => {
+    setFormError(false)
+    setHelperText("")
     setEmail(e.target.value)
   }
   const onFeedbackChange = (e) => {
@@ -97,43 +97,44 @@ function FeedbackContainer(props){
         We appreciate all feedback sent to us!
         </p>
         <FormGroup>
-        <Grid container spacing={1}>
-          <Grid item xs={12} md={6}>
-            <TextField
-              error={formError}
-              id="email"
-              type="email"
-              label="Email"
-              required
-              onChange={onEmailChange}
-              className={`${classes.halfTextField} ${classes.textField}`}
-              value={email}
-              helperText={helperText}
+          <Grid container spacing={1}>
+            <Grid item xs={12} md={6}>
+              <TextField
+                error={formError}
+                id="email"
+                type="email"
+                label="Email"
+                required
+                onChange={onEmailChange}
+                className={`${classes.halfTextField} ${classes.textField}`}
+                value={email}
+                helperText={helperText}
+                />
+            </Grid>
+            <Grid item xs={12} md={12}>
+              <TextField
+                label="What went wrong? What went right? What are you unsure about?"
+                maxRows={4}
+                multiline
+                required
+                onChange={onFeedbackChange}
+                value={feedback}
+                className={classes.textField}
+                minRows={3}
+                fullWidth={true}
               />
-          </Grid>
-          <Grid item xs={12} md={12}>
-            <TextField
-              label="What went wrong? What went right? What are you unsure about?"
-              maxRows={4}
-              multiline
-              required
-              onChange={onFeedbackChange}
-              value={feedback}
-              className={classes.textField}
-              minRows={3}
-              fullWidth={true}
-            />
-          </Grid>
+            </Grid>
 
-          <Grid item xs={12} md={12}>
-            <LoadingButton
-              loading={sending}
-              variant="contained"
-              color="primary"
-              onClick={onSubmit}>
-              Send
-            </LoadingButton>
-          </Grid>
+            <Grid item xs={12} md={12}>
+              <LoadingButton
+                loading={sending}
+                variant="contained"
+                color="primary"
+                disabled={hasBeenSent}
+                onClick={onSubmit}>
+                {hasBeenSent ? "Submitted" : "Submit"}
+              </LoadingButton>
+            </Grid>
           </Grid>
         </FormGroup>
 
