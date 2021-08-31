@@ -406,29 +406,12 @@ function AddNewPioreactor(props){
     <Button onClick={handleClickOpen} style={{textTransform: 'none', float: "right", marginRight: "0px"}} color="primary">
       <AddIcon fontSize="15" classes={{root: classes.textIcon}}/> Add new Pioreactor
     </Button>
-    <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title" maxWidth="md">
+    <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
       <DialogTitle>
         Add new Pioreactor
       </DialogTitle>
       <DialogContent>
-      <p> To add a new Pioreactor, you'll need the following: </p>
-      <ul>
-        <li>A RaspberryPi, with power cord</li>
-        <li>A blank microSD card</li>
-        <li>A computer with the <a href="https://www.raspberrypi.org/software/">RaspberryPi Imager</a> installed and that can read & write to the microSD card</li>
-        <li>The Pioreactor hardware hat</li>
-      </ul>
-      <p> With that all ready, let's begin: </p>
-      <ol>
-        <li>Insert your microSD card into your computer.</li>
-        <li>Open the <a href="https://www.raspberrypi.org/software/">RaspberryPi Imager</a>, and hold "ctrl-shift-x" to bring up the settings menu</li>
-        <li>Check "Enable SSH", with password <code>raspberry</code>. <b>This is important</b>.</li>
-        <li>Check "Configure wifi", and add your credentials.</li>
-        <li> Click "Save".</li>
-        <li>Choose the "Raspberry Pi OS Lite" and your storage, and click "write". </li>
-        <li>When done, unmount the microSD, insert it into the RaspberryPi, and attach the Pioreactor hat to the RaspberryPi.</li>
-        <li>Turn on the RaspberryPi by inserting the power cord.</li>
-      </ol>
+      <p>Follow the instructions to <a href="https://pioreactor.com/pages/adding-a-new-pioreactor">set up your Raspberry Pi</a></p>
 
       <p>Below, provide a unique name for your new Pioreactor (letters and digits only), and
       your existing Pioreactors will automatically install the required software and connect it to the cluster.
