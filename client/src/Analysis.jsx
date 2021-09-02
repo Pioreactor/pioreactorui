@@ -113,7 +113,7 @@ function Analysis(props) {
                 interpolation="stepAfter"
                 yAxisDomain={[-0.02, 0.1]}
                 lookback={100000}
-                yAxisTickFormat={(t) => `${t.toFixed(2)}`}
+                fixedDecimals={2}
               />
             </Grid>
 
@@ -130,7 +130,7 @@ function Analysis(props) {
                 lookback={10000}
                 deltaHours={1}
                 yAxisDomain={[22.5, 37.5]}
-                yAxisTickFormat={(t) => `${t.toFixed(0)}`}
+                fixedDecimals={1}
               />
             </Grid>
 
@@ -147,7 +147,7 @@ function Analysis(props) {
                 yAxisLabel="Fraction"
                 experiment={experimentSelection}
                 deltaHours={1} // hack to make all points display
-                yAxisTickFormat={(t) => `${t.toFixed(3)}`}
+                fixedDecimals={3}
                 lookback={100000}
               />
             </Grid>
@@ -168,7 +168,7 @@ function Analysis(props) {
                 deltaHours={20}
                 interpolation="stepAfter"
                 lookback={100000}
-                yAxisTickFormat={(t) => `${t.toFixed(2)}`}
+                fixedDecimals={2}
               />
             </Grid>
 
@@ -185,7 +185,7 @@ function Analysis(props) {
                 deltaHours={20}
                 interpolation="stepAfter"
                 lookback={10000}
-                yAxisTickFormat={(t) => `${t.toFixed(3)}`}
+                fixedDecimals={3}
               />
             </Grid>
 

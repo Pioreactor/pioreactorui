@@ -56,7 +56,7 @@ function Overview(props) {
                 interpolation="stepAfter"
                 yAxisDomain={props.config['ui.overview.settings']['doubling_time'] === "1" ? null : [-0.02, 0.1]}
                 lookback={100000}
-                yAxisTickFormat={(t) => `${t.toFixed(2)}`}
+                fixedDecimals={2}
               />
             </Grid>
             }
@@ -74,7 +74,7 @@ function Overview(props) {
                 yAxisLabel="Fraction"
                 experiment={experimentMetadata.experiment}
                 deltaHours={1} // hack to make all points display
-                yAxisTickFormat={(t) => `${t.toFixed(3)}`}
+                fixedDecimals={3}
                 lookback={100000}
               />
             </Grid>
@@ -93,7 +93,7 @@ function Overview(props) {
                 deltaHours={experimentMetadata.delta_hours}
                 interpolation="stepAfter"
                 lookback={parseFloat(props.config['ui.overview.settings']['filtered_od_lookback_hours'])}
-                yAxisTickFormat={(t) => `${t.toFixed(2)}`}
+                fixedDecimals={2}
                 yAxisDomain={[0.98, 1.02]}
               />
             </Grid>
@@ -113,7 +113,7 @@ function Overview(props) {
                 deltaHours={experimentMetadata.delta_hours}
                 interpolation="stepAfter"
                 lookback={parseFloat(props.config['ui.overview.settings']['raw_od_lookback_hours'])}
-                yAxisTickFormat={(t) => `${t.toFixed(3)}`}
+                fixedDecimals={3}
               />
             </Grid>
            }
@@ -131,7 +131,7 @@ function Overview(props) {
                 lookback={10000}
                 deltaHours={1} // hack to display all data points
                 yAxisDomain={[22.5, 37.5]}
-                yAxisTickFormat={(t) => `${t.toFixed(0)}`}
+                fixedDecimals={1}
               />
             </Grid>
            }

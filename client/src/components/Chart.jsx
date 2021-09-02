@@ -255,7 +255,7 @@ class Chart extends React.Component {
 
   createToolTip = (d) => {
       return `${d.datum.x.format("MMM DD HH:mm")}
-${this.renameAndFormatSeries(d.datum.childName)}: ${Math.round(this.yTransformation(d.datum.y) * 1000) / 1000}`
+${this.renameAndFormatSeries(d.datum.childName)}: ${Math.round(this.yTransformation(d.datum.y) * 10 ** this.props.fixedDecimals) / 10 ** this.props.fixedDecimals}`
   }
 
 
@@ -354,7 +354,7 @@ ${this.renameAndFormatSeries(d.datum.childName)}: ${Math.round(this.yTransformat
             crossAxis={false}
             dependentAxis
             domain={this.props.yAxisDomain}
-            tickFormat={this.props.yAxisTickFormat}
+            tickFormat={(t) => `${t.toFixed(this.props.fixedDecimals)}`}
             label={this.props.yAxisLabel}
             axisLabelComponent={
               <VictoryLabel

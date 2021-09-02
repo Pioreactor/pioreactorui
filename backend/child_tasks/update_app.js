@@ -3,7 +3,7 @@ const { execFile } = require("child_process");
 
 process.on('message', function(v) {
     execFile("pio", ["update", "--app"], (error, stdout, stderr) => {
-        // why do I run pio update --app first?
+        // we run pio update --app first because it is the leader (and pios update only updates the active _workers_)
         if (error) {
             process.send({result: false, msg: error});
         } else {
