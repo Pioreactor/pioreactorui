@@ -666,16 +666,6 @@ function CalibrateDialog(props) {
               media's optical density per sensor. Read more about <a href="">using blanks</a>.
             </Typography>
 
-            <div style={{display: "flex", marginBottom: "10px"}}>
-              <span style={{marginRight: "5px"}}>Stirring:</span>
-              <UnitSettingDisplay
-                value={props.stirringJobState}
-                isUnitActive={true}
-                default="disconnected"
-                isStateSetting
-              />
-            </div>
-
             {blankODButton}
 
             <Typography variant="body2" component="p" style={{marginTop: "20px"}}>
@@ -1856,7 +1846,6 @@ function PioreactorCard(props){
                   client={client}
                   odBlankReading={jobs['od_blank'] ? jobs['od_blank'].mean.value : null}
                   odBlankJobState={jobs['od_blank'] ? jobs['od_blank'].state : null}
-                  stirringJobState={jobs['stirring'] ? jobs['stirring'].state : null}
                   odTempCompState={jobs['od_temperature_compensation'] ? jobs['od_temperature_compensation'].state : null}
                   experiment={experiment}
                   unit={unit}

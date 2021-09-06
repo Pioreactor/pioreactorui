@@ -106,7 +106,7 @@ function StartSensors(props){
           experiment="+"
           deltaHours={1}
           lookback={1}
-          yAxisTickFormat={(t) => `${t.toFixed(3)}`}
+          fixedDecimals={3}
         />
       </Grid>
       <Grid item xs={2}/>

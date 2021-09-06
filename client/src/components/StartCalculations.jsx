@@ -85,7 +85,7 @@ function StartCalculations(props){
         yAxisDomain={[-0.02, 0.1]}
         lookback={100000}
         deltaHour={1}
-        yAxisTickFormat={(t) => `${t.toFixed(2)}`}
+        fixedDecimals={2}
       />
       </Grid>
       <Grid item xs={2}/>
