@@ -792,6 +792,12 @@ function SystemCheckDialog(props) {
                       ""
                     }/>
               </ListItem>
+              <ListItem className={classes.testingListItem}>
+                <ListItemIcon className={classes.testingListItemIcon}>
+                  {displayIcon("ambient_light_interference", props.selfTestState)}
+                </ListItemIcon>
+                <ListItemText primary="No ambient IR light detected" />
+              </ListItem>
             </List>
 
             <List component="nav"

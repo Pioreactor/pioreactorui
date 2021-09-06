@@ -11,6 +11,8 @@ editable_settings:
     display: false
   - key: atleast_one_correlation_between_pds_and_leds
     display: false
+  - key: ambient_light_interference
+    display: false
   - key: correlations_between_pds_and_leds
     display: false
     default: '[]'
