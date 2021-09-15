@@ -5,18 +5,23 @@ display: false
 source: app
 is_testing: true
 editable_settings:
-  - key: detect_heating_pcb
+  - key: test_detect_heating_pcb
     display: false
-  - key: positive_correlation_between_temp_and_heating
+  - key: test_positive_correlation_between_temp_and_heating
     display: false
-  - key: atleast_one_correlation_between_pds_and_leds
+  - key: test_atleast_one_correlation_between_pds_and_leds
     display: false
-  - key: ambient_light_interference
+  - key: test_ambient_light_interference
     display: false
   - key: correlations_between_pds_and_leds
     display: false
     default: '[]'
-  - key: positive_correlation_between_rpm_and_stirring
+  - key: test_positive_correlation_between_rpm_and_stirring
     display: false
-  - key: pioreactor_hat_present
+  - key: test_pioreactor_hat_present
     display: false
+  - key: test_positive_correlation_between_rpm_and_stirring
+    display: false
+  - key: all_tests_passed
+    display: false
+    default: false

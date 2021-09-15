@@ -142,7 +142,7 @@ export default function SideNavAndHeader() {
 
         <Divider className={classes.divider} />
 
-        <ListItem href="/plugins" component="a" button key={"plugins"} selected={isSelected("/plugins-data")}>
+        <ListItem href="/plugins" component="a" button key={"plugins"} selected={isSelected("/plugins")}>
           <ListItemIcon className={classes.listItemIcon}><LibraryAddOutlinedIcon color={isSelected("/plugins") ? "primary" : "inherit"}/> </ListItemIcon>
           <ListItemText primaryTypographyProps={{color: isSelected("/plugins") ? "primary" : "inherit"}} primary={"Plugins"} />
         </ListItem>

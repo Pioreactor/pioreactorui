@@ -115,7 +115,7 @@ class LogTable extends React.Component {
     }
 
     this.state.listOfLogs.unshift(
-      {timestamp: moment.utc().format('YYYY-MM-DD[T]HH:mm:ss.SSSSS[Z]'), pioreactor_unit: unit, message: payload.message, task: payload.task, is_error: (payload.level === "ERROR"), is_warning: (payload.level === "WARNING")}
+      {timestamp: moment.utc().format('YYYY-MM-DD[T]HH:mm:ss.SSSSS[Z]'), pioreactor_unit: unit, message: String(payload.message), task: payload.task, is_error: (payload.level === "ERROR"), is_warning: (payload.level === "WARNING")}
     )
     this.setState({
       listOfLogs: this.state.listOfLogs

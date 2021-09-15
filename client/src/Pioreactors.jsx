@@ -37,10 +37,11 @@ import IndeterminateCheckBoxIcon from '@material-ui/icons/IndeterminateCheckBox'
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
 import List from '@material-ui/core/List';
+import IconButton from '@material-ui/core/IconButton';
 import ListItem from '@material-ui/core/ListItem';
 import ListSubheader from '@material-ui/core/ListSubheader';
 import DnsIcon from '@material-ui/icons/Dns';
-
+import IndeterminateCheckBoxOutlinedIcon from '@material-ui/icons/IndeterminateCheckBoxOutlined';
 
 import ButtonChangeDosingDialog from "./components/ButtonChangeDosingDialog"
 import ButtonChangeLEDDialog from "./components/ButtonChangeLEDDialog"
@@ -408,7 +409,19 @@ function AddNewPioreactor(props){
     </Button>
     <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
       <DialogTitle>
-        Add new Pioreactor
+        <Typography>Add new Pioreactor</Typography>
+        <IconButton
+          aria-label="close"
+          onClick={handleClose}
+          sx={{
+            position: 'absolute',
+            right: 8,
+            top: 8,
+            color: (theme) => theme.palette.grey[500],
+          }}
+        >
+          <CloseIcon />
+        </IconButton>
       </DialogTitle>
       <DialogContent>
       <p>Follow the instructions to <a href="https://pioreactor.com/pages/adding-a-new-pioreactor">set up your Raspberry Pi</a></p>
@@ -636,6 +649,18 @@ function CalibrateDialog(props) {
           <Tab label="Temperature compensation"/>
           <Tab label="Dosing" disabled={true}/>
         </Tabs>
+        <IconButton
+          aria-label="close"
+          onClick={handleClose}
+          sx={{
+            position: 'absolute',
+            right: 8,
+            top: 8,
+            color: (theme) => theme.palette.grey[500],
+          }}
+        >
+          <CloseIcon />
+        </IconButton>
         </DialogTitle>
         <DialogContent>
           <TabPanel value={tabValue} index={1}>
@@ -690,7 +715,7 @@ function SystemCheckDialog(props) {
     setOpen(true);
   };
 
-  const OnClose = () => {
+  const handleClose = () => {
     setOpen(false);
   };
 
@@ -745,21 +770,48 @@ function SystemCheckDialog(props) {
       default:
         return(<div></div>)
     }
-   }
+  }
 
+  function colorOfIcon(){
+    return props.disabled ? "disabled" : "primary"
+  }
+
+  function Icon(){
+    if (props.selfTestTests == null){
+      return <IndeterminateCheckBoxOutlinedIcon color={colorOfIcon()} fontSize="15" classes={{root: classes.textIcon}}/>
+    }
+    else {
+      return props.selfTestTests["all_tests_passed"].value ? <CheckBoxOutlinedIcon color={colorOfIcon()} fontSize="15" classes={{root: classes.textIcon}}/> : <IndeterminateCheckBoxOutlinedIcon color={colorOfIcon()} fontSize="15" classes={{root: classes.textIcon}}/>
+    }
+  }
+
+  console.log(colorOfIcon())
+  console.log(Icon())
   const selfTestButton = createUserButtonsBasedOnState(props.selfTestState, "self_test")
 
   return (
     <React.Fragment>
       <Button style={{textTransform: 'none', float: "right" }} color="primary" disabled={props.disabled} onClick={handleClickOpen}>
-        <CheckBoxOutlinedIcon color={props.disabled ? "disabled" : "primary"} fontSize="15" classes={{root: classes.textIcon}}/> Self test
+        {Icon()} Self test
       </Button>
-      <Dialog open={open} onClose={OnClose}>
+      <Dialog open={open} onClose={handleClose}>
         <DialogTitle>
           <Typography className={classes.suptitle} gutterBottom>
             <PioreactorIcon style={{verticalAlign: "middle", fontSize: "1.2em"}}/> {(props.config['ui.rename'] &&  props.config['ui.rename'][props.unit]) ? `${props.config['ui.rename'][props.unit]} / ${props.unit}` : `${props.unit}`}
           </Typography>
            Self test
+          <IconButton
+            aria-label="close"
+            onClick={handleClose}
+            sx={{
+              position: 'absolute',
+              right: 8,
+              top: 8,
+              color: (theme) => theme.palette.grey[500],
+            }}
+          >
+            <CloseIcon />
+          </IconButton>
         </DialogTitle>
         <DialogContent>
           <Typography variant="body2" component="p" gutterBottom>
@@ -778,13 +830,13 @@ function SystemCheckDialog(props) {
             >
               <ListItem className={classes.testingListItem}>
                 <ListItemIcon className={classes.testingListItemIcon}>
-                  {displayIcon("pioreactor_hat_present", props.selfTestState)}
+                  {displayIcon("test_pioreactor_hat_present", props.selfTestState)}
                 </ListItemIcon>
                 <ListItemText primary="Pioreactor HAT is detected" />
               </ListItem>
               <ListItem className={classes.testingListItem}>
                 <ListItemIcon className={classes.testingListItemIcon}>
-                  {displayIcon("atleast_one_correlation_between_pds_and_leds", props.selfTestState)}
+                  {displayIcon("test_atleast_one_correlation_between_pds_and_leds", props.selfTestState)}
                 </ListItemIcon>
                 <ListItemText primary="Photodiode(s) is responsive to LED(s)" secondary={
                     props.selfTestTests ?
@@ -794,7 +846,7 @@ function SystemCheckDialog(props) {
               </ListItem>
               <ListItem className={classes.testingListItem}>
                 <ListItemIcon className={classes.testingListItemIcon}>
-                  {displayIcon("ambient_light_interference", props.selfTestState)}
+                  {displayIcon("test_ambient_light_interference", props.selfTestState)}
                 </ListItemIcon>
                 <ListItemText primary="No ambient IR light detected" />
               </ListItem>
@@ -809,14 +861,14 @@ function SystemCheckDialog(props) {
             >
               <ListItem className={classes.testingListItem}>
                 <ListItemIcon className={classes.testingListItemIcon}>
-                  {displayIcon("detect_heating_pcb", props.selfTestState)}
+                  {displayIcon("test_detect_heating_pcb", props.selfTestState)}
                 </ListItemIcon>
                 <ListItemText primary="Temperature sensor is detected" />
               </ListItem>
 
               <ListItem className={classes.testingListItem}>
                 <ListItemIcon className={classes.testingListItemIcon}>
-                  {displayIcon("positive_correlation_between_temp_and_heating", props.selfTestState)}
+                  {displayIcon("test_positive_correlation_between_temp_and_heating", props.selfTestState)}
                 </ListItemIcon>
                 <ListItemText primary="Heating is responsive" />
               </ListItem>
@@ -832,7 +884,7 @@ function SystemCheckDialog(props) {
             >
               <ListItem className={classes.testingListItem}>
                 <ListItemIcon className={classes.testingListItemIcon}>
-                  {displayIcon("positive_correlation_between_rpm_and_stirring", props.selfTestState)}
+                  {displayIcon("test_positive_correlation_between_rpm_and_stirring", props.selfTestState)}
                 </ListItemIcon>
                 <ListItemText primary="Stirring RPM is responsive" />
               </ListItem>
@@ -1016,6 +1068,18 @@ function SettingsActionsDialog(props) {
         <Typography className={classes.suptitle}>
           <PioreactorIcon style={{verticalAlign: "middle", fontSize: "1.2em"}}/> {(props.config['ui.rename'] &&  props.config['ui.rename'][props.unit]) ? `${props.config['ui.rename'][props.unit]} / ${props.unit}` : `${props.unit}`}
         </Typography>
+        <IconButton
+          aria-label="close"
+          onClick={handleClose}
+          sx={{
+            position: 'absolute',
+            right: 8,
+            top: 8,
+            color: (theme) => theme.palette.grey[500],
+          }}
+        >
+          <CloseIcon />
+        </IconButton>
       <Tabs
         value={tabValue}
         onChange={handleTabChange}
@@ -1455,6 +1519,18 @@ function SettingsActionsDialogAll({config, experiment}) {
         <Typography className={classes.suptitle}>
           <b>All active Pioreactors</b>
         </Typography>
+        <IconButton
+          aria-label="close"
+          onClick={handleClose}
+          sx={{
+            position: 'absolute',
+            right: 8,
+            top: 8,
+            color: (theme) => theme.palette.grey[600],
+          }}
+        >
+          <CloseIcon />
+        </IconButton>
       <Tabs
         value={tabValue}
         onChange={handleTabChange}

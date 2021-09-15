@@ -11,6 +11,9 @@ import DialogTitle from '@material-ui/core/DialogTitle';
 import FormLabel from '@material-ui/core/FormLabel';
 import FormControl from '@material-ui/core/FormControl';
 import Select from '@material-ui/core/Select';
+import IconButton from '@material-ui/core/IconButton';
+import CloseIcon from '@material-ui/icons/Close';
+
 import PioreactorIcon from "./PioreactorIcon"
 import AutomationForm from "./AutomationForm"
 
@@ -139,6 +142,18 @@ function ButtonChangeTemperatureDialog(props) {
         <Typography className={classes.unitTitleDialog}>
           Temperature automation
         </Typography>
+        <IconButton
+          aria-label="close"
+          onClick={handleClose}
+          sx={{
+            position: 'absolute',
+            right: 8,
+            top: 8,
+            color: (theme) => theme.palette.grey[500],
+          }}
+        >
+          <CloseIcon />
+        </IconButton>
       </DialogTitle>
       <DialogContent>
         <Typography variant="body2" component="p" gutterBottom>
