@@ -94,8 +94,8 @@ class MediaCard extends React.Component {
 
 
   onConnect() {
-      this.client.subscribe(["pioreactor", "+", this.props.experiment, "throughput_calculating", "alt_media_throughput"].join("/"))
-      this.client.subscribe(["pioreactor", "+", this.props.experiment, "throughput_calculating", "media_throughput"].join("/"))
+      this.client.subscribe(["pioreactor", "+", this.props.experiment, "throughput_calculator", "alt_media_throughput"].join("/"))
+      this.client.subscribe(["pioreactor", "+", this.props.experiment, "throughput_calculator", "media_throughput"].join("/"))
   }
 
   addOrUpdate(hash, object, value) {

@@ -328,7 +328,7 @@ app.get('/time_series/alt_media_fraction/:experiment', function (req, res) {
 
 app.get("/recent_media_rates/:experiment", function (req, res) {
   const experiment = req.params.experiment
-  const hours = 6
+  const hours = 3
 
   function fetch(){
     db.query(`SELECT pioreactor_unit, SUM(CASE WHEN event="add_media" THEN volume_change_ml ELSE 0 END) / :hours AS mediaRate, SUM(CASE WHEN event="add_alt_media" THEN volume_change_ml ELSE 0 END) / :hours AS altMediaRate FROM dosing_events where datetime(timestamp) >= datetime('now', '-:hours Hour') and event in ('add_alt_media', 'add_media') and experiment=:experiment and source_of_event LIKE 'dosing_automation%' GROUP BY pioreactor_unit;`,
