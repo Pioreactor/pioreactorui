@@ -40,7 +40,7 @@ var staticUserAuth = basicAuth({
 
 ///////////// UTILS ////////////////////
 msgToJSON = (msg, level) => {
-  return JSON.stringify({message: msg, task: "UI", level: level, timestamp: new Date().toISOString() })
+  return JSON.stringify({message: msg.trim(), task: "UI", level: level, timestamp: new Date().toISOString() })
 }
 
 publishToLog = (msg, level="DEBUG") => {
