@@ -9,7 +9,7 @@ editable_settings:
     display: false
   - key: test_positive_correlation_between_temp_and_heating
     display: false
-  - key: test_atleast_one_correlation_between_pds_and_leds
+  - key: test_all_positive_correlations_between_pds_and_leds
     display: false
   - key: test_ambient_light_interference
     display: false

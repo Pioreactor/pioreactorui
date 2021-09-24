@@ -836,9 +836,9 @@ function SystemCheckDialog(props) {
               </ListItem>
               <ListItem className={classes.testingListItem}>
                 <ListItemIcon className={classes.testingListItemIcon}>
-                  {displayIcon("test_atleast_one_correlation_between_pds_and_leds", props.selfTestState)}
+                  {displayIcon("test_all_positive_correlations_between_pds_and_leds", props.selfTestState)}
                 </ListItemIcon>
-                <ListItemText primary="Photodiode(s) is responsive to LED(s)" secondary={
+                <ListItemText primary="Photodiodes as defined in config.ini is responsive to IR LED" secondary={
                     props.selfTestTests ?
                       JSON.parse(props.selfTestTests["correlations_between_pds_and_leds"].value).map(led_pd => `${led_pd[0]} ⇝ ${led_pd[1]}`).join(",  ") :
                       ""
