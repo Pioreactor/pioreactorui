@@ -4,7 +4,7 @@ job_name: led_control
 subtext: led_automation
 source: app
 display: true
-description:  Start an LED automation. Initially starts as <code>silent</code> automation. Learn more about <a href="https://pioreactor.com/pages/LED-automations">LED automations</a>.
+description:  Start an LED automation to control the non-IR LEDs (for example, in a photo-bioreactor). Initially starts as <code>silent</code> automation. Learn more about <a href="https://pioreactor.com/pages/LED-automations">LED automations</a>.
 editable_settings:
   - key: led_automation
     type: text
