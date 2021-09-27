@@ -7,11 +7,8 @@ import {
   VictoryTheme,
   VictoryLine,
   VictoryLegend,
-  createContainer,
   VictoryTooltip,
   VictoryVoronoiContainer,
-  VictoryContainer,
-  VictoryZoomContainer
 } from "victory";
 import moment from "moment";
 import Card from "@material-ui/core/Card";

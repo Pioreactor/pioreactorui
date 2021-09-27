@@ -12,7 +12,7 @@ editable_settings:
     type: numeric
     default: null
     display: true
-    description: Change the volume per dilution. Typical values are between 0.0mL and 1.0mL.
+    description: Change the volume per dilution. Typical values are between 0.0mL and 2.0mL.
   - key: target_od
     unit: AU
     label: Target OD

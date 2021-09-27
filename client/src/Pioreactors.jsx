@@ -409,7 +409,7 @@ function AddNewPioreactor(props){
     </Button>
     <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
       <DialogTitle>
-        <Typography>Add new Pioreactor</Typography>
+        Add new Pioreactor
         <IconButton
           aria-label="close"
           onClick={handleClose}
@@ -572,8 +572,8 @@ function CalibrateDialog(props) {
   };
 
   const handleClose = () => {
-    setTabValue(0)
-    setOpen(false);
+    setOpen(false)
+    setTimeout(()=> setTabValue(0), 200) // we put a timeout here so the switching tabs doesn't occur during the close transition.
   };
 
 
@@ -627,6 +627,7 @@ function CalibrateDialog(props) {
 
   const blankODButton = createUserButtonsBasedOnState(props.odBlankJobState, "od_blank")
   const odTempCompButton = createUserButtonsBasedOnState(props.odTempCompState, "od_temperature_compensation")
+  const stirringCalibrationButton = createUserButtonsBasedOnState(props.stirringCalibrationState, "stirring_calibration")
 
 
   return (
@@ -639,33 +640,51 @@ function CalibrateDialog(props) {
           <Typography className={classes.suptitle}>
             <PioreactorIcon style={{verticalAlign: "middle", fontSize: "1.2em"}}/> {(props.config['ui.rename'] &&  props.config['ui.rename'][props.unit]) ? `${props.config['ui.rename'][props.unit]} / ${props.unit}` : `${props.unit}`}
           </Typography>
-        <Tabs
-          value={tabValue}
-          onChange={handleTabChange}
-          indicatorColor="primary"
-          textColor="primary"
+          <Tabs
+            value={tabValue}
+            onChange={handleTabChange}
+            indicatorColor="primary"
+            textColor="primary"
+            >
+            <Tab label="Blanks"/>
+            <Tab label="Temperature compensation"/>
+            <Tab label="Stirring"/>
+            <Tab label="Dosing" disabled={true}/>
+          </Tabs>
+          <IconButton
+            aria-label="close"
+            onClick={handleClose}
+            sx={{
+              position: 'absolute',
+              right: 8,
+              top: 8,
+              color: (theme) => theme.palette.grey[500],
+            }}
           >
-          <Tab label="Blanks"/>
-          <Tab label="Temperature compensation"/>
-          <Tab label="Dosing" disabled={true}/>
-        </Tabs>
-        <IconButton
-          aria-label="close"
-          onClick={handleClose}
-          sx={{
-            position: 'absolute',
-            right: 8,
-            top: 8,
-            color: (theme) => theme.palette.grey[500],
-          }}
-        >
-          <CloseIcon />
-        </IconButton>
+            <CloseIcon />
+          </IconButton>
         </DialogTitle>
         <DialogContent>
+          <TabPanel value={tabValue} index={0}>
+            <Typography  gutterBottom>
+             Record optical densities of blank (optional)
+            </Typography>
+            <Typography variant="body2" component="p" gutterBottom>
+              For more accurate growth rate and biomass inferences, you can subtract out the
+              media's optical density per sensor. Read more about <a href="">using blanks</a>.
+            </Typography>
+
+            {blankODButton}
+
+            <Typography variant="body2" component="p" style={{marginTop: "20px"}}>
+              Recorded optical densities of blank vial: <code>{props.odBlankReading ? Object.entries(JSON.parse(props.odBlankReading)).map( ([k, v]) => `${k}:${v.toFixed(3)}` ).join(", ") : "—"}</code> <Button color="primary" size="small" disabled={!props.odBlankReading} onClick={clearBlank()}>Clear</Button>
+            </Typography>
+            <Divider className={classes.divider} />
+
+          </TabPanel>
           <TabPanel value={tabValue} index={1}>
             <Typography  gutterBottom>
-             Temperature-compensated optical densities readings
+             Temperature-compensated OD readings (optional)
             </Typography>
             <Typography variant="body2" component="p" gutterBottom>
               When the temperature varies, the LED output varies as well. This can effect the optical density reading.
@@ -682,20 +701,21 @@ function CalibrateDialog(props) {
             <Divider className={classes.divider} />
 
           </TabPanel>
-          <TabPanel value={tabValue} index={0}>
+          <TabPanel value={tabValue} index={2}>
             <Typography  gutterBottom>
-             Record optical densities of blank (optional)
+             Stirring calibration (optional)
             </Typography>
             <Typography variant="body2" component="p" gutterBottom>
-              For more accurate growth rate and biomass inferences, you can subtract out the
-              media's optical density per sensor. Read more about <a href="">using blanks</a>.
+              You can improve the responsiveness of stirring RPM changes by running the below calibration. This calibration is
+              optional, and stirring RPM changes can still occur without running this calibration.
             </Typography>
 
-            {blankODButton}
-
-            <Typography variant="body2" component="p" style={{marginTop: "20px"}}>
-              Recorded optical densities of blank vial: <code>{props.odBlankReading ? Object.entries(JSON.parse(props.odBlankReading)).map( ([k, v]) => `${k}:${v.toFixed(3)}` ).join(", ") : "—"}</code> <Button color="primary" size="small" disabled={!props.odBlankReading} onClick={clearBlank()}>Clear</Button>
+            <Typography variant="body2" component="p" gutterBottom>
+            Add a vial, with a stirbar and ~15ml water, to the Pioreactor, then hit Start below. This calibration will take less than three minutes.
             </Typography>
+
+            {stirringCalibrationButton}
+
             <Divider className={classes.divider} />
 
           </TabPanel>
@@ -968,8 +988,8 @@ function SettingsActionsDialog(props) {
   };
 
   const handleClose = () => {
-    setTabValue(0)
     setOpen(false);
+    setTimeout(()=> setTabValue(0), 200) // we put a timeout here so the switching tabs doesn't occur during the close transition.
   };
 
   const handleSnackbarClose = () => {
@@ -1459,8 +1479,9 @@ function SettingsActionsDialogAll({config, experiment}) {
   };
 
   const handleClose = () => {
-    setTabValue(0)
     setOpen(false);
+    setTimeout(()=> setTabValue(0), 200) // we put a timeout here so the switching tabs doesn't occur during the close transition.
+
   };
 
   const handleSnackbarClose = () => {
@@ -1929,6 +1950,7 @@ function PioreactorCard(props){
                   odBlankReading={jobs['od_blank'] ? jobs['od_blank'].mean.value : null}
                   odBlankJobState={jobs['od_blank'] ? jobs['od_blank'].state : null}
                   odTempCompState={jobs['od_temperature_compensation'] ? jobs['od_temperature_compensation'].state : null}
+                  stirringCalibrationState={jobs['stirring_calibration'] ? jobs['stirring_calibration'].state : null}
                   experiment={experiment}
                   unit={unit}
                   disabled={!isUnitActive}

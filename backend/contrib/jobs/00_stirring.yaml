@@ -7,8 +7,8 @@ description: Start, stop or pause the stirring on the Pioreactor. Stirring is ne
 editable_settings:
   - key: target_rpm
     unit: RPM
-    label: Stirring speed
-    description: Modify the target stirring RPM. This will effect the optical density reading. Too low and the stirring may completely stop.
+    label: Target stir RPM
+    description: Modify the target RPM of stirring. This will effect the optical density reading. Too low and the stirring may completely stop. Too high and the resulting vortex may interfere with the optics.
     type: numeric
     default: null
     display: true
