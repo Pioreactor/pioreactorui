@@ -78,8 +78,9 @@ function ErrorSnackbar(props) {
       open={open}
       anchorOrigin={{vertical: "bottom", horizontal: "right"}}
       key={"error-snackbar"}
-      autoHideDuration={8000}
+      autoHideDuration={9000}
       style={{maxWidth: "500px"}}
+      onClose={handleClose}
     >
     <Alert variant="standard" severity={level.toLowerCase()} onClose={handleClose}>
       <AlertTitle style={{fontSize: 15}}>{task} returned a {level.toLowerCase()} in {unit + (renamedUnit ? " / " + renamedUnit : "")}</AlertTitle>
