@@ -14,14 +14,14 @@ import moment from "moment";
 import Card from "@material-ui/core/Card";
 
 const colors = [
-  {primary: "#9C6ADE", 0: "#9C6ADE", 1: "#E3D0FF", 2: "#50248F", 3: "#ecdffb"},
-  {primary: "#F49342", 0: "#F49342", 1: "#FFC58B", 2: "#C05717", 3: "#4A1504"},
-  {primary: "#47C1BF", 0: "#47C1BF", 1: "#B7ECEC", 2: "#00848E", 3: "#003135"},
-  {primary: "#50B83C", 0: "#50B83C", 1: "#BBE5B3", 2: "#108043", 3: "#E3F1DF"},
-  {primary: "#DE3618", 0: "#DE3618", 1: "#FEAD9A", 2: "#BF0711", 3: "#FBEAE5"},
-  {primary: "#EEC200", 0: "#EEC200", 1: "#FFEA8A", 2: "#8A6116", 3: "#573B00"},
-  {primary: "#006FBB", 0: "#006FBB", 1: "#B4E1FA", 2: "#084E8A", 3: "#001429"},
-  {primary: "#43467F", 0: "#43467F", 1: "#B3B5CB", 2: "#1C2260", 3: "#00044C"},
+  {primary: "#9C6ADE", 1: "#9C6ADE", 2: "#E3D0FF", 3: "#50248F", 4: "#ecdffb"},
+  {primary: "#F49342", 1: "#F49342", 2: "#FFC58B", 3: "#C05717", 4: "#4A1504"},
+  {primary: "#47C1BF", 1: "#47C1BF", 2: "#B7ECEC", 3: "#00848E", 4: "#003135"},
+  {primary: "#50B83C", 1: "#50B83C", 2: "#BBE5B3", 3: "#108043", 4: "#E3F1DF"},
+  {primary: "#DE3618", 1: "#DE3618", 2: "#FEAD9A", 3: "#BF0711", 4: "#FBEAE5"},
+  {primary: "#EEC200", 1: "#EEC200", 2: "#FFEA8A", 3: "#8A6116", 4: "#573B00"},
+  {primary: "#006FBB", 1: "#006FBB", 2: "#B4E1FA", 3: "#084E8A", 4: "#001429"},
+  {primary: "#43467F", 1: "#43467F", 2: "#B3B5CB", 3: "#1C2260", 4: "#00044C"},
 ];
 
 const colorMaps = {}
