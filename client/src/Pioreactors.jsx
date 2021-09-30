@@ -805,8 +805,6 @@ function SystemCheckDialog(props) {
     }
   }
 
-  console.log(colorOfIcon())
-  console.log(Icon())
   const selfTestButton = createUserButtonsBasedOnState(props.selfTestState, "self_test")
 
   return (

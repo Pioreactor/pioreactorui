@@ -31,7 +31,7 @@ function getColorFromName(name){
     return colorMaps[name]
   }
 
-  let sensorRe = /(.*)-[0123]/;
+  let sensorRe = /(.*)-[1234]/;
   if (sensorRe.test(name)){
     let primaryName = name.match(sensorRe)[1]
     return getColorFromName(primaryName)
