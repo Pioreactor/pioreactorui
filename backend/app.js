@@ -48,7 +48,7 @@ publishToLog = (msg, level="DEBUG") => {
 }
 
 publishToErrorLog = (msg) => {
-  publishToLog(msg, "ERROR")
+  publishToLog(JSON.stringify(msg), "ERROR")
 }
 
 
@@ -665,18 +665,21 @@ app.post("/save_new_config", function(req, res) {
   const filename = req.body.filename
   if (filename.match(regex)[1]){
     var units = filename.match(regex)[1]
+    var flags = ["--specific"]
   }
   else{
     var units = "$broadcast"
+    var flags = ["--shared"]
   }
 
   var configPath = path.join(process.env.CONFIG_INI_FOLDER, req.body.filename);
   fs.writeFile(configPath, req.body.code, function (err) {
+    // it's important we write to disk first, so `pios` picks up any new configs
     if (err) {
       res.sendStatus(500)
     }
     else {
-      execFile("pios", ["sync-configs", "--units", units], (error, stdout, stderr) => {
+      execFile("pios", ["sync-configs", "--units", units].concat(flags), (error, stdout, stderr) => {
           if (error) {
             publishToErrorLog(error)
             console.log(error)
