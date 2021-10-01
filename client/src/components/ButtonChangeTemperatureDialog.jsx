@@ -140,7 +140,7 @@ function ButtonChangeTemperatureDialog(props) {
           <PioreactorIcon style={{verticalAlign: "middle", fontSize: "1.2em"}}/> {props.title || ((props.config['ui.rename'] && props.config['ui.rename'][props.unit]) ? `${props.config['ui.rename'][props.unit]} (${props.unit})` : `${props.unit}`)}
         </Typography>
         <Typography className={classes.unitTitleDialog}>
-          Temperature automation
+          Change temperature automation
         </Typography>
         <IconButton
           aria-label="close"

@@ -151,7 +151,7 @@ function ButtonChangeDosingDialog(props) {
           <PioreactorIcon style={{verticalAlign: "middle", fontSize: "1.2em"}}/> {props.title || ((config['ui.rename'] && config['ui.rename'][props.unit]) ? `${config['ui.rename'][props.unit]} (${props.unit})` : `${props.unit}`)}
         </Typography>
         <Typography className={classes.unitTitleDialog}>
-          Dosing automation
+          Change dosing automation
         </Typography>
         <IconButton
           aria-label="close"

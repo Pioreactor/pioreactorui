@@ -6,6 +6,8 @@ import {
   VictoryAxis,
   VictoryTheme,
   VictoryLine,
+  VictoryScatter,
+  VictoryGroup,
   VictoryLegend,
   VictoryTooltip,
   VictoryVoronoiContainer,
@@ -39,10 +41,10 @@ function getColorFromName(name){
   else{
     var newPallete = colors.shift()
     colorMaps[name] = newPallete.primary
-    colorMaps[name + "-0"] = newPallete[0]
-    colorMaps[name + "-1"] = newPallete[1]
-    colorMaps[name + "-2"] = newPallete[2]
-    colorMaps[name + "-3"] = newPallete[3]
+    colorMaps[name + "-1"] = newPallete[0]
+    colorMaps[name + "-2"] = newPallete[1]
+    colorMaps[name + "-3"] = newPallete[2]
+    colorMaps[name + "-4"] = newPallete[3]
     return getColorFromName(name)
   }
 }
@@ -226,7 +228,7 @@ class Chart extends React.Component {
   }
 
   breakString(string){
-    if (string.length > 11){
+    if (string.length > 12){
       return string.slice(0, 5) + "..." + string.slice(string.length-2, string.length)
     }
     return string
@@ -237,11 +239,11 @@ class Chart extends React.Component {
       return name
     }
 
-    if (name.match(/(.*)-([0123])/g)){
-      const results = name.match(/(.*)-([0123])/);
+    if (name.match(/(.*)-([1234])/g)){
+      const results = name.match(/(.*)-([1234])/);
       const index = results[1];
       const sensor = results[2];
-      return this.breakString(this.props.config['ui.rename'][index] || index) + "-" + sensor
+      return this.breakString(this.props.config['ui.rename'][index] || index) + "-ch" + sensor
     }
     else {
       return this.breakString(this.props.config['ui.rename'][name] || name)
@@ -275,23 +277,43 @@ ${this.renameAndFormatSeries(d.datum.childName)}: ${Math.round(this.yTransformat
   selectVictoryLines(name) {
     var reformattedName = this.renameAndFormatSeries(name)
 
+    var marker = null;
+    if (this.state.seriesMap[name].data.length == 1){
+      marker = <VictoryScatter
+          size={5}
+          key={"line-" + reformattedName + this.props.title}
+          name={reformattedName}
+          style={{
+            data: {
+              fill: this.state.seriesMap[name].color
+            },
+          }}
+        />
+    }
+    else {
+        marker = <VictoryLine
+          interpolation={this.props.interpolation}
+          key={"line-" + reformattedName + this.props.title}
+          name={reformattedName}
+          style={{
+            labels: {fill: this.state.seriesMap[name].color},
+            data: {
+              stroke: this.state.seriesMap[name].color,
+              strokeWidth: 2,
+            },
+            parent: { border: "1px solid #ccc" },
+          }}
+        />
+    }
+
     return (
-      <VictoryLine
-        interpolation={this.props.interpolation}
-        key={"line-" + reformattedName + this.props.title}
-        name={reformattedName}
-        style={{
-          labels: {fill: this.state.seriesMap[name].color},
-          data: {
-            stroke: this.state.seriesMap[name].color,
-            strokeWidth: 2,
-          },
-          parent: { border: "1px solid #ccc" },
-        }}
-        data={(this.state.hiddenSeries.has(reformattedName)) ? [] : this.state.seriesMap[name].data}
-        x="x"
-        y={(datum) => this.yTransformation(datum.y)}
-      />
+      <VictoryGroup
+          data={(this.state.hiddenSeries.has(reformattedName)) ? [] : this.state.seriesMap[name].data}
+          x="x"
+          y={(datum) => this.yTransformation(datum.y)}
+        >
+        {marker}
+      </VictoryGroup>
     );
   }
 
@@ -299,17 +321,18 @@ ${this.renameAndFormatSeries(d.datum.childName)}: ${Math.round(this.yTransformat
     return (
       <Card style={{ maxHeight: "100%"}}>
         <VictoryChart
+          style={{ parent: { maxWidth: "100%", maxHeight: "100%"}}}
           title={this.props.title}
           domainPadding={10}
           padding={{ left: 70, right: 50, bottom: 80, top: 50 }}
           events={this.state.legendEvents}
-          responsive={true}
-          width={600}
           height={315}
+          width={600}
           scale={{x: 'time'}}
           theme={VictoryTheme.material}
           containerComponent={
            <VictoryVoronoiContainer
+             responsive={true}
              voronoiBlacklist={['parent']}
              labels={this.createToolTip}
              labelComponent={

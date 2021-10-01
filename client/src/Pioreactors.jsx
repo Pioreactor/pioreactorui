@@ -1108,6 +1108,7 @@ function SettingsActionsDialog(props) {
         allowScrollButtonsMobile
         >
         <Tab label="Activities"/>
+        <Tab label="Automations"/>
         <Tab label="Settings"/>
         <Tab label="Dosing"/>
         <Tab label="LEDs"/>
@@ -1143,36 +1144,7 @@ function SettingsActionsDialog(props) {
         </TabPanel>
 
         <TabPanel value={tabValue} index={1}>
-          {Object.values(props.jobs)
-            .filter(job => job.metadata.display)
-            .map(job =>
-            Object.entries(job)
-              .filter(([key, setting]) => (key !== "state") && (key !== "metadata"))
-              .filter(([_, setting]) => setting.display)
-              .map(([key, setting]) =>
-            <React.Fragment>
-              <Typography  gutterBottom>
-                {setting.label}
-              </Typography>
-              <Typography variant="body2" component="p">
-                {setting.description}
-              </Typography>
-              <TextField
-                size="small"
-                id={`${job.metadata.key.replace("_control", "_automation")}/${key}`}
-                defaultValue={setting.value}
-                InputProps={{
-                  endAdornment: <InputAdornment position="end">{setting.unit}</InputAdornment>,
-                }}
-                variant="outlined"
-                onKeyPress={setPioreactorJobAttrOnEnter(setting.unit)}
-                className={classes.textFieldCompact}
-              />
-              <Divider className={classes.divider} />
-            </React.Fragment>
-
-          ))}
-
+          {/* Automations panel */}
 
           <Typography  gutterBottom>
             Dosing automation
@@ -1253,7 +1225,40 @@ function SettingsActionsDialog(props) {
 
         </TabPanel>
 
+
         <TabPanel value={tabValue} index={2}>
+          {Object.values(props.jobs)
+            .filter(job => job.metadata.display)
+            .map(job =>
+            Object.entries(job)
+              .filter(([key, setting]) => (key !== "state") && (key !== "metadata"))
+              .filter(([_, setting]) => setting.display)
+              .map(([key, setting]) =>
+            <React.Fragment>
+              <Typography  gutterBottom>
+                {setting.label}
+              </Typography>
+              <Typography variant="body2" component="p">
+                {setting.description}
+              </Typography>
+              <TextField
+                size="small"
+                id={`${job.metadata.key.replace("_control", "_automation")}/${key}`}
+                defaultValue={setting.value}
+                InputProps={{
+                  endAdornment: <InputAdornment position="end">{setting.unit}</InputAdornment>,
+                }}
+                variant="outlined"
+                onKeyPress={setPioreactorJobAttrOnEnter(setting.unit)}
+                className={classes.textFieldCompact}
+              />
+              <Divider className={classes.divider} />
+            </React.Fragment>
+
+          ))}
+        </TabPanel>
+
+        <TabPanel value={tabValue} index={3}>
           <Typography  gutterBottom>
             Add media
           </Typography>
@@ -1281,7 +1286,7 @@ function SettingsActionsDialog(props) {
           <Divider className={classes.divider} />
         </TabPanel>
 
-        <TabPanel value={tabValue} index={3}>
+        <TabPanel value={tabValue} index={4}>
           <Typography className={clsx(classes.suptitle)} color="textSecondary">
             {(LEDMap['A']) ? "Channel A" : ""}
           </Typography>
@@ -1560,6 +1565,7 @@ function SettingsActionsDialogAll({config, experiment}) {
         allowScrollButtonsMobile
       >
         <Tab label="Activities"/>
+        <Tab label="Automations"/>
         <Tab label="Settings"/>
         <Tab label="Dosing"/>
         <Tab label="LEDs"/>
@@ -1585,37 +1591,7 @@ function SettingsActionsDialogAll({config, experiment}) {
             </div>
           )}
         </TabPanel>
-
-        <TabPanel value={tabValue} index={1}>
-          {Object.values(jobs)
-            .filter(job => job.metadata.display)
-            .map(job =>
-            Object.entries(job)
-              .filter(([key, setting]) => (key !== "state") && (key !== "metadata"))
-              .filter(([_, setting]) => setting.display)
-              .map(([key, setting]) =>
-            <React.Fragment key={key}>
-              <Typography  gutterBottom>
-                {setting.label}
-              </Typography>
-              <Typography variant="body2" component="p">
-                {setting.description}
-              </Typography>
-              <TextField
-                size="small"
-                id={`${job.metadata.key.replace("_control", "_automation")}/${key}`}
-                defaultValue={setting.value}
-                InputProps={{
-                  endAdornment: <InputAdornment position="end">{setting.unit}</InputAdornment>,
-                }}
-                variant="outlined"
-                onKeyPress={setPioreactorJobAttrOnEnter(setting.unit)}
-                className={classes.textFieldCompact}
-              />
-              <Divider classes={{root: classes.divider}} />
-            </React.Fragment>
-
-          ))}
+       <TabPanel value={tabValue} index={1}>
 
           <Typography  gutterBottom>
             Dosing automation
@@ -1662,9 +1638,42 @@ function SettingsActionsDialogAll({config, experiment}) {
             title="All active Pioreactors"
           />
           <Divider className={classes.divider} />
+        </TabPanel>
+
+
+        <TabPanel value={tabValue} index={2}>
+          {Object.values(jobs)
+            .filter(job => job.metadata.display)
+            .map(job =>
+            Object.entries(job)
+              .filter(([key, setting]) => (key !== "state") && (key !== "metadata"))
+              .filter(([_, setting]) => setting.display)
+              .map(([key, setting]) =>
+            <React.Fragment key={key}>
+              <Typography  gutterBottom>
+                {setting.label}
+              </Typography>
+              <Typography variant="body2" component="p">
+                {setting.description}
+              </Typography>
+              <TextField
+                size="small"
+                id={`${job.metadata.key.replace("_control", "_automation")}/${key}`}
+                defaultValue={setting.value}
+                InputProps={{
+                  endAdornment: <InputAdornment position="end">{setting.unit}</InputAdornment>,
+                }}
+                variant="outlined"
+                onKeyPress={setPioreactorJobAttrOnEnter(setting.unit)}
+                className={classes.textFieldCompact}
+              />
+              <Divider classes={{root: classes.divider}} />
+            </React.Fragment>
+
+          ))}
 
         </TabPanel>
-        <TabPanel value={tabValue} index={2}>
+        <TabPanel value={tabValue} index={3}>
           <Typography  gutterBottom>
             Add media
           </Typography>
@@ -1692,7 +1701,7 @@ function SettingsActionsDialogAll({config, experiment}) {
           <Divider className={classes.divider} />
         </TabPanel>
 
-        <TabPanel value={tabValue} index={3}>
+        <TabPanel value={tabValue} index={4}>
           <Typography style={{textTransform: "capitalize"}}>
             Channel A
           </Typography>
