@@ -639,6 +639,7 @@ app.get("/get_configs", function(req, res) {
 })
 
 
+
 app.post("/delete_config", function(req, res) {
   // TODO: make this http DELETE
   const configPath = path.join(process.env.CONFIG_INI_FOLDER, req.body.filename);
@@ -674,7 +675,7 @@ app.post("/save_new_config", function(req, res) {
 
   var configPath = path.join(process.env.CONFIG_INI_FOLDER, req.body.filename);
   fs.writeFile(configPath, req.body.code, function (err) {
-    // it's important we write to disk first, so `pios` picks up any new configs
+    // it's important we write to disk first, so `pio` picks up any new configs
     if (err) {
       res.sendStatus(500)
     }

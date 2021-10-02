@@ -1,9 +1,0 @@
----
-name: Constant duty cycle
-key: constant_duty_cycle
-description: Keep a constant flow of current through the heating plate.
-fields:
-  - key: duty_cycle
-    default: 10
-    unit: "%"
-    label: Duty cycle
