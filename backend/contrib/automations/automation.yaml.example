@@ -15,3 +15,7 @@ fields:
     default: 0.75
     unit: mL
     label: Max volume
+  - key: intensity
+    default: 50
+    unit: "%"  # note: percent signs needs to be quoted.
+    label: Intensity of PWM

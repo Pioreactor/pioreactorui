@@ -13,6 +13,7 @@ import FormControl from '@material-ui/core/FormControl';
 import Select from '@material-ui/core/Select';
 import IconButton from '@material-ui/core/IconButton';
 import CloseIcon from '@material-ui/icons/Close';
+import Snackbar from "@material-ui/core/Snackbar";
 
 import PioreactorIcon from "./PioreactorIcon"
 import AutomationForm from "./AutomationForm"
@@ -44,6 +45,7 @@ function ButtonChangeLEDDialog(props) {
   const [algoSettings, setAlgoSettings] = useState({led_automation: "silent", skip_first_run: false})
   const [client, setClient] = useState(null)
   const [automations, setAutomations] = useState({})
+  const [openSnackbar, setOpenSnackbar] = useState(false);
 
 
   useEffect(() => {
@@ -119,80 +121,94 @@ function ButtonChangeLEDDialog(props) {
     message.qos = 2;
     try{
       client.publish(message);
+      setOpenSnackbar(true);
+
     }
     catch (e){
       console.log(e)
     }
     setOpen(false);
   }
+
+
+  const handleSnackbarClose = () => {
+    setOpenSnackbar(false);
+  };
+
   return (
     <div>
-    <Button
-      style={{marginTop: "10px"}}
-      size="small"
-      color="primary"
-      disabled={!props.currentLEDAutomation}
-      onClick={handleClickOpen}
-    >
-      Change LED automation
-    </Button>
-    <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title" PaperProps={{style: {height: "100%"}}}>
-      <DialogTitle>
-        <Typography className={classes.suptitle}>
-          <PioreactorIcon style={{verticalAlign: "middle", fontSize: "1.2em"}}/> {props.title || ((props.config['ui.rename'] && props.config['ui.rename'][props.unit]) ? `${props.config['ui.rename'][props.unit]} (${props.unit})` : `${props.unit}`)}
-        </Typography>
-        <Typography className={classes.unitTitleDialog}>
-          Change LED automation
-        </Typography>
-        <IconButton
-          aria-label="close"
-          onClick={handleClose}
-          sx={{
-            position: 'absolute',
-            right: 8,
-            top: 8,
-            color: (theme) => theme.palette.grey[500],
-          }}
-        >
-          <CloseIcon />
-        </IconButton>
-      </DialogTitle>
-      <DialogContent>
-        <Typography variant="body2" component="p" gutterBottom>
-          LED automations control how and when to provide light to the Pioreactor. The settings below can be changed later. Learn more about <a target="_blank" rel="noopener noreferrer" href="https://pioreactor.com/pages/LED-automations">LED automations</a>.
-        </Typography>
+      <Button
+        style={{marginTop: "10px"}}
+        size="small"
+        color="primary"
+        disabled={!props.currentLEDAutomation}
+        onClick={handleClickOpen}
+      >
+        Change LED automation
+      </Button>
+      <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title" PaperProps={{style: {height: "100%"}}}>
+        <DialogTitle>
+          <Typography className={classes.suptitle}>
+            <PioreactorIcon style={{verticalAlign: "middle", fontSize: "1.2em"}}/> {props.title || ((props.config['ui.rename'] && props.config['ui.rename'][props.unit]) ? `${props.config['ui.rename'][props.unit]} (${props.unit})` : `${props.unit}`)}
+          </Typography>
+          <Typography className={classes.unitTitleDialog}>
+            Change LED automation
+          </Typography>
+          <IconButton
+            aria-label="close"
+            onClick={handleClose}
+            sx={{
+              position: 'absolute',
+              right: 8,
+              top: 8,
+              color: (theme) => theme.palette.grey[500],
+            }}
+          >
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" component="p" gutterBottom>
+            LED automations control how and when to provide light to the Pioreactor. The settings below can be changed later. Learn more about <a target="_blank" rel="noopener noreferrer" href="https://pioreactor.com/pages/LED-automations">LED automations</a>.
+          </Typography>
 
-        <form>
-          <FormControl component="fieldset" className={classes.formControl}>
-          <FormLabel component="legend">Automation</FormLabel>
-            <Select
-              native
-              variant="standard"
-              value={algoSettings["led_automation"]}
-              onChange={handleAlgoSelectionChange}
-              style={{maxWidth: "200px"}}
-            >
-              {Object.keys(automations).map((key) => <option id={key} value={key} key={"change-io" + key}>{automations[key].name}</option>)}
+          <form>
+            <FormControl component="fieldset" className={classes.formControl}>
+            <FormLabel component="legend">Automation</FormLabel>
+              <Select
+                native
+                variant="standard"
+                value={algoSettings["led_automation"]}
+                onChange={handleAlgoSelectionChange}
+                style={{maxWidth: "200px"}}
+              >
+                {Object.keys(automations).map((key) => <option id={key} value={key} key={"change-io" + key}>{automations[key].name}</option>)}
 
-            </Select>
+              </Select>
 
-            {Object.keys(automations).length > 0 && <AutomationForm fields={automations[algoSettings["led_automation"]].fields} description={automations[algoSettings["led_automation"]].description} updateParent={updateFromChild}/>}
+              {Object.keys(automations).length > 0 && <AutomationForm fields={automations[algoSettings["led_automation"]].fields} description={automations[algoSettings["led_automation"]].description} updateParent={updateFromChild}/>}
 
-            <Button
-              type="submit"
-              variant="contained"
-              color="primary"
-              onClick={onSubmit}
-              style={{width: "120px", marginTop: "20px"}}
-            >
-              Submit
-            </Button>
-          </FormControl>
-        </form>
-
-
-      </DialogContent>
-    </Dialog>
+              <Button
+                type="submit"
+                variant="contained"
+                color="primary"
+                onClick={onSubmit}
+                style={{width: "120px", marginTop: "20px"}}
+              >
+                Submit
+              </Button>
+            </FormControl>
+          </form>
+        </DialogContent>
+      </Dialog>
+      <Snackbar
+        anchorOrigin={{vertical: "bottom", horizontal: "center"}}
+        open={openSnackbar}
+        onClose={handleSnackbarClose}
+        message={`Changing LED automation to ${algoSettings['led_automation']}.`}
+        autoHideDuration={7000}
+        key={"snackbar-change-led"}
+      />
     </div>
 )}
 

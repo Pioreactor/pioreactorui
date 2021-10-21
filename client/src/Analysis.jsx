@@ -84,7 +84,12 @@ function ExperimentSelection(props) {
 
 
 function Analysis(props) {
+
   const [experimentSelection, setExperimentSelection] = React.useState("")
+
+  React.useEffect(() => {
+    document.title = props.title;
+  }, [props.title]);
 
   function handleExperimentSelectionChange(value) {
     setExperimentSelection(value)

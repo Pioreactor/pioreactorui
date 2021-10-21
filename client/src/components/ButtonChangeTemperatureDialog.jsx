@@ -13,6 +13,7 @@ import FormControl from '@material-ui/core/FormControl';
 import Select from '@material-ui/core/Select';
 import IconButton from '@material-ui/core/IconButton';
 import CloseIcon from '@material-ui/icons/Close';
+import Snackbar from "@material-ui/core/Snackbar";
 
 import PioreactorIcon from "./PioreactorIcon"
 import AutomationForm from "./AutomationForm"
@@ -42,6 +43,7 @@ function ButtonChangeTemperatureDialog(props) {
   const [algoSettings, setAlgoSettings] = useState({temperature_automation: "silent", skip_first_run: false})
   const [client, setClient] = useState(null)
   const [automations, setAutomations] = useState({})
+  const [openSnackbar, setOpenSnackbar] = useState(false);
 
 
   useEffect(() => {
@@ -88,6 +90,7 @@ function ButtonChangeTemperatureDialog(props) {
 
   const handleClickOpen = () => {
     setOpen(true);
+
   };
 
   const handleClose = () => {
@@ -117,12 +120,18 @@ function ButtonChangeTemperatureDialog(props) {
     message.qos = 2;
     try{
       client.publish(message);
+      setOpenSnackbar(true);
     }
     catch (e){
       console.log(e)
     }
     setOpen(false);
   }
+
+  const handleSnackbarClose = () => {
+    setOpenSnackbar(false);
+  };
+
   return (
     <div>
     <Button
@@ -185,10 +194,16 @@ function ButtonChangeTemperatureDialog(props) {
             </Button>
           </FormControl>
         </form>
-
-
       </DialogContent>
     </Dialog>
+    <Snackbar
+      anchorOrigin={{vertical: "bottom", horizontal: "center"}}
+      open={openSnackbar}
+      onClose={handleSnackbarClose}
+      message={`Changing temperature automation to ${algoSettings['temperature_automation']}.`}
+      autoHideDuration={7000}
+      key={"snackbar-change-temperature"}
+    />
     </div>
 )}
 

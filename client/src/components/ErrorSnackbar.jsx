@@ -10,7 +10,7 @@ function ErrorSnackbar(props) {
   var [renamedUnit, setRenamedUnit] = React.useState("")
   var [unit, setUnit] = React.useState("")
   var [msg, setMsg] = React.useState("")
-  var [level, setLevel] = React.useState("")
+  var [level, setLevel] = React.useState("error")
   var [task, setTask] = React.useState("")
 
   const handleClose = (event, reason) => {

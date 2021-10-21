@@ -154,6 +154,8 @@ app.post('/stop/:job/:unit', function (req, res) {
 });
 
 app.post("/run/:job/:unit", function(req, res) {
+    // TODO: we could start jobs over MQTT instead - this would save some time.
+
     unit = req.params.unit
     job = req.params.job
 

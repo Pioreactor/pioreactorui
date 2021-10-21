@@ -15,6 +15,7 @@ import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Select from '@material-ui/core/Select';
 import IconButton from '@material-ui/core/IconButton';
 import CloseIcon from '@material-ui/icons/Close';
+import Snackbar from "@material-ui/core/Snackbar";
 
 import PioreactorIcon from "./PioreactorIcon"
 import AutomationForm from "./AutomationForm"
@@ -49,6 +50,7 @@ function ButtonChangeDosingDialog(props) {
   const [algoSettings, setAlgoSettings] = useState({dosing_automation: "silent", skip_first_run: false})
   const [client, setClient] = useState(null)
   const [automations, setAutomations] = useState({})
+  const [openSnackbar, setOpenSnackbar] = useState(false);
 
 
   useEffect(() => {
@@ -127,6 +129,8 @@ function ButtonChangeDosingDialog(props) {
     message.qos = 2;
     try{
       client.publish(message);
+      setOpenSnackbar(true);
+
     }
     catch (e){
       console.log(e)
@@ -134,81 +138,92 @@ function ButtonChangeDosingDialog(props) {
     setOpen(false);
   }
 
+  const handleSnackbarClose = () => {
+    setOpenSnackbar(false);
+  };
+
+
   return (
     <div>
-    <Button
-      style={{marginTop: "10px"}}
-      size="small"
-      color="primary"
-      disabled={!props.currentDosingAutomation}
-      onClick={handleClickOpen}
-    >
-      Change dosing automation
-    </Button>
-    <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title" PaperProps={{style: {height: "100%"}}}>
-      <DialogTitle>
-        <Typography className={classes.suptitle}>
-          <PioreactorIcon style={{verticalAlign: "middle", fontSize: "1.2em"}}/> {props.title || ((config['ui.rename'] && config['ui.rename'][props.unit]) ? `${config['ui.rename'][props.unit]} (${props.unit})` : `${props.unit}`)}
-        </Typography>
-        <Typography className={classes.unitTitleDialog}>
-          Change dosing automation
-        </Typography>
-        <IconButton
-          aria-label="close"
-          onClick={handleClose}
-          sx={{
-            position: 'absolute',
-            right: 8,
-            top: 8,
-            color: (theme) => theme.palette.grey[500],
-          }}
-        >
-          <CloseIcon />
-        </IconButton>
-      </DialogTitle>
-      <DialogContent>
-        <Typography variant="body2" component="p" gutterBottom>
-          Dosing automations control when and how much media to add to the Pioreactor. The settings below can be changed later. Learn more about <a target="_blank" rel="noopener noreferrer" href="https://pioreactor.com/pages/Dosing-automations">dosing automations</a>.
-        </Typography>
+      <Button
+        style={{marginTop: "10px"}}
+        size="small"
+        color="primary"
+        disabled={!props.currentDosingAutomation}
+        onClick={handleClickOpen}
+      >
+        Change dosing automation
+      </Button>
+      <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title" PaperProps={{style: {height: "100%"}}}>
+        <DialogTitle>
+          <Typography className={classes.suptitle}>
+            <PioreactorIcon style={{verticalAlign: "middle", fontSize: "1.2em"}}/> {props.title || ((config['ui.rename'] && config['ui.rename'][props.unit]) ? `${config['ui.rename'][props.unit]} (${props.unit})` : `${props.unit}`)}
+          </Typography>
+          <Typography className={classes.unitTitleDialog}>
+            Change dosing automation
+          </Typography>
+          <IconButton
+            aria-label="close"
+            onClick={handleClose}
+            sx={{
+              position: 'absolute',
+              right: 8,
+              top: 8,
+              color: (theme) => theme.palette.grey[500],
+            }}
+          >
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" component="p" gutterBottom>
+            Dosing automations control when and how much media to add to the Pioreactor. The settings below can be changed later. Learn more about <a target="_blank" rel="noopener noreferrer" href="https://pioreactor.com/pages/Dosing-automations">dosing automations</a>.
+          </Typography>
 
-        <form>
-          <FormControl component="fieldset" className={classes.formControl}>
-            <FormLabel component="legend">Automation</FormLabel>
-            <Select
-              native
-              variant="standard"
-              value={algoSettings["dosing_automation"]}
-              onChange={handleAlgoSelectionChange}
-              style={{maxWidth: "200px"}}
-            >
-              {Object.keys(automations).map((key) => <option id={key} value={key} key={"change-io" + key}>{automations[key].name}</option>)}
-            </Select>
+          <form>
+            <FormControl component="fieldset" className={classes.formControl}>
+              <FormLabel component="legend">Automation</FormLabel>
+              <Select
+                native
+                variant="standard"
+                value={algoSettings["dosing_automation"]}
+                onChange={handleAlgoSelectionChange}
+                style={{maxWidth: "200px"}}
+              >
+                {Object.keys(automations).map((key) => <option id={key} value={key} key={"change-io" + key}>{automations[key].name}</option>)}
+              </Select>
 
-            {Object.keys(automations).length > 0 && <AutomationForm fields={automations[algoSettings["dosing_automation"]].fields} description={automations[algoSettings["dosing_automation"]].description} updateParent={updateFromChild}/>}
+              {Object.keys(automations).length > 0 && <AutomationForm fields={automations[algoSettings["dosing_automation"]].fields} description={automations[algoSettings["dosing_automation"]].description} updateParent={updateFromChild}/>}
 
-            <FormControlLabel
-              control={<Checkbox checked={algoSettings.skip_first_run}
-                                  color="primary"
-                                  onChange={handleSkipFirstRunChange}
-                                  size="small"/>
-                      }
-              label="Skip first run"
-            />
-            <Button
-              type="submit"
-              variant="contained"
-              color={"primary" }
-              onClick={onSubmit}
-              style={{width: "120px", marginTop: "20px"}}
-            >
-              Submit
-            </Button>
-          </FormControl>
-        </form>
-
-
-      </DialogContent>
-    </Dialog>
+              <FormControlLabel
+                control={<Checkbox checked={algoSettings.skip_first_run}
+                                    color="primary"
+                                    onChange={handleSkipFirstRunChange}
+                                    size="small"/>
+                        }
+                label="Skip first run"
+              />
+              <Button
+                type="submit"
+                variant="contained"
+                color={"primary" }
+                onClick={onSubmit}
+                style={{width: "120px", marginTop: "20px"}}
+              >
+                Submit
+              </Button>
+            </FormControl>
+          </form>
+        </DialogContent>
+      </Dialog>
+      <Snackbar
+        anchorOrigin={{vertical: "bottom", horizontal: "center"}}
+        open={openSnackbar}
+        onClose={handleSnackbarClose}
+        message={`Changing dosing automation to ${algoSettings['dosing_automation']}.`}
+        autoHideDuration={7000}
+        key={"snackbar-change-dosing"}
+      />
     </div>
 )}
 

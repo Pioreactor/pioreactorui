@@ -5,6 +5,7 @@ import React, {useState, useEffect} from "react";
 
 import Grid from '@material-ui/core/Grid';
 import PropTypes from 'prop-types';
+import { useMediaQuery } from "@material-ui/core";
 
 import { makeStyles } from '@material-ui/styles';
 import Card from '@material-ui/core/Card';
@@ -677,7 +678,7 @@ function CalibrateDialog(props) {
             {blankODButton}
 
             <Typography variant="body2" component="p" style={{marginTop: "20px"}}>
-              Recorded optical densities of blank vial: <code>{props.odBlankReading ? Object.entries(JSON.parse(props.odBlankReading)).map( ([k, v]) => `${k}:${v.toFixed(3)}` ).join(", ") : "—"}</code> <Button color="primary" size="small" disabled={!props.odBlankReading} onClick={clearBlank()}>Clear</Button>
+              Recorded optical densities of blank vial: <code>{props.odBlankReading ? Object.entries(JSON.parse(props.odBlankReading)).map( ([k, v]) => `${k}:${v.toFixed(4)}` ).join(", ") : "—"}</code> <Button color="primary" size="small" disabled={!props.odBlankReading} onClick={clearBlank()}>Clear</Button>
             </Typography>
             <Divider className={classes.divider} />
 
@@ -1076,12 +1077,14 @@ function SettingsActionsDialog(props) {
     "NA":            {display: "Not available", color: disconnectedGrey},
   }
 
+  const isLargeScreen = useMediaQuery(theme => theme.breakpoints.down("lg"));
+
   return (
     <div>
     <Button style={{textTransform: 'none', float: "right" }} disabled={props.disabled} onClick={handleClickOpen} color="primary">
       <SettingsIcon color={props.disabled ? "disabled" : "primary"} fontSize="15" classes={{root: classes.textIcon}}/> Manage
     </Button>
-    <Dialog maxWidth={"sm"} fullWidth={true} open={open} onClose={handleClose}>
+    <Dialog maxWidth={isLargeScreen ? "sm" : "md"} fullWidth={true} open={open} onClose={handleClose}>
       <DialogTitle>
         <Typography className={classes.suptitle}>
           <PioreactorIcon style={{verticalAlign: "middle", fontSize: "1.2em"}}/> {(props.config['ui.rename'] &&  props.config['ui.rename'][props.unit]) ? `${props.config['ui.rename'][props.unit]} / ${props.unit}` : `${props.unit}`}
@@ -1531,6 +1534,7 @@ function SettingsActionsDialogAll({config, experiment}) {
 
 
   const buttons = Object.fromEntries(Object.entries(jobs).map( ([job_key, job], i) => [job_key, createUserButtonsBasedOnState(job)]))
+  const isLargeScreen = useMediaQuery(theme => theme.breakpoints.down("lg"));
 
 
   return (
@@ -1538,7 +1542,7 @@ function SettingsActionsDialogAll({config, experiment}) {
     <Button style={{textTransform: 'none', float: "right" }} onClick={handleClickOpen} color="primary">
       <SettingsIcon fontSize="15" classes={{root: classes.textIcon}}/> Manage all Pioreactors
     </Button>
-    <Dialog  maxWidth={"sm"} fullWidth={true}  open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
+    <Dialog  maxWidth={isLargeScreen ? "sm" : "md"} fullWidth={true}  open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
       <DialogTitle style={{backgroundImage: "linear-gradient(to bottom left, rgba(83, 49, 202, 0.4), rgba(0,0,0,0))"}}>
         <Typography className={classes.suptitle}>
           <b>All active Pioreactors</b>
@@ -1659,6 +1663,7 @@ function SettingsActionsDialogAll({config, experiment}) {
               <TextField
                 size="small"
                 id={`${job.metadata.key.replace("_control", "_automation")}/${key}`}
+                key={key}
                 defaultValue={setting.value}
                 InputProps={{
                   endAdornment: <InputAdornment position="end">{setting.unit}</InputAdornment>,

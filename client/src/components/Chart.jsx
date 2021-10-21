@@ -278,7 +278,7 @@ ${this.renameAndFormatSeries(d.datum.childName)}: ${Math.round(this.yTransformat
     var reformattedName = this.renameAndFormatSeries(name)
 
     var marker = null;
-    if (this.state.seriesMap[name].data.length == 1){
+    if (this.state.seriesMap[name].data.length === 1){
       marker = <VictoryScatter
           size={4}
           key={"line-" + reformattedName + this.props.title}
@@ -321,7 +321,7 @@ ${this.renameAndFormatSeries(d.datum.childName)}: ${Math.round(this.yTransformat
     return (
       <Card style={{ maxHeight: "100%"}}>
         <VictoryChart
-          style={{ parent: { maxWidth: "100%", maxHeight: "100%"}}}
+          style={{ parent: { maxWidth: "700px"}}}
           title={this.props.title}
           domainPadding={10}
           padding={{ left: 70, right: 50, bottom: 80, top: 50 }}
