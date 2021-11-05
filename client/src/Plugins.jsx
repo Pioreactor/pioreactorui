@@ -222,9 +222,10 @@ function ListInstalledPlugins({installedPlugins}){
                 color="inherit"
                 aria-label="delete"
                 endIcon={<DeleteIcon />}
+                disabled={plugin.source === "plugins_folder"}
                 className={classes.secondaryActionButton}
               >
-                Uninstall
+                {plugin.source === "plugins_folder" ? "Delete from plugins folder" : "Uninstall" }
               </Button>
               <Button
                 href={plugin.homepage}

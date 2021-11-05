@@ -222,6 +222,14 @@ function UnitSettingDisplay(props) {
     "NA":            {display: "Not available", color: disconnectedGrey},
   }
   const value = props.value === null ?  ""  : props.value
+
+  function toFixed(x){
+    if (x >= 10){
+      return x.toFixed(0)
+    }
+    return (x).toFixed(1).replace(/[.,]0$/, "")
+  }
+
   if (props.isStateSetting) {
     if (!props.isUnitActive) {
       return <div className={clsx({[classes.disabledText]: !props.isUnitActive})}> {stateDisplay[value].display} </div>;
@@ -252,18 +260,18 @@ function UnitSettingDisplay(props) {
           <div style={{fontSize: "13px"}}>
             <div>
               <span className={classes.ledBlock}>
-                <UnderlineSpan title={renamedA ? renamedA : null}>A</UnderlineSpan>: {ledIntensities["A"]}%
+                <UnderlineSpan title={renamedA ? renamedA : null}>A</UnderlineSpan>: {toFixed(ledIntensities["A"])}%
               </span>
               <span className={classes.ledBlock}>
-                <UnderlineSpan title={renamedB ? renamedB : null}>B</UnderlineSpan>: {ledIntensities["B"]}%
+                <UnderlineSpan title={renamedB ? renamedB : null}>B</UnderlineSpan>: {toFixed(ledIntensities["B"])}%
               </span>
             </div>
             <div>
               <span className={classes.ledBlock}>
-                <UnderlineSpan title={renamedC ? renamedC : null}>C</UnderlineSpan>: {ledIntensities["C"]}%
+                <UnderlineSpan title={renamedC ? renamedC : null}>C</UnderlineSpan>: {toFixed(ledIntensities["C"])}%
               </span>
               <span className={classes.ledBlock}>
-                <UnderlineSpan title={renamedD ? renamedD : null}>D</UnderlineSpan>: {ledIntensities["D"]}%
+                <UnderlineSpan title={renamedD ? renamedD : null}>D</UnderlineSpan>: {toFixed(ledIntensities["D"])}%
               </span>
             </div>
           </div>
