@@ -168,9 +168,7 @@ export default function SideNavAndHeader() {
 
         <ListItem href="/feedback" component="a" button key="feedback" selected={isSelected("/feedback")}>
           <ListItemIcon className={classes.listItemIcon}>
-            <Badge variant="dot" color="secondary" invisible={!((version) && (latestVersion) && (version !== latestVersion))}>
-              <FeedbackOutlinedIcon color={isSelected("/feedback") ? "primary" : "inherit"}/>
-            </Badge>
+            <FeedbackOutlinedIcon color={isSelected("/feedback") ? "primary" : "inherit"}/>
           </ListItemIcon>
           <ListItemText primaryTypographyProps={{color: isSelected("/feedback") ? "primary" : "inherit"}} primary={"Share feedback"}/>
         </ListItem>

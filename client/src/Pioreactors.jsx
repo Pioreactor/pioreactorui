@@ -223,11 +223,18 @@ function UnitSettingDisplay(props) {
   }
   const value = props.value === null ?  ""  : props.value
 
-  function toFixed(x){
+  function prettyPrint(x){
     if (x >= 10){
       return x.toFixed(0)
     }
-    return (x).toFixed(1).replace(/[.,]0$/, "")
+    else if (x==0){
+      return "0"
+    }
+    else if (x < 1){
+      return `<1`
+    } else {
+      return (x).toFixed(1).replace(/[.,]0$/, "")
+    }
   }
 
   if (props.isStateSetting) {
@@ -260,18 +267,18 @@ function UnitSettingDisplay(props) {
           <div style={{fontSize: "13px"}}>
             <div>
               <span className={classes.ledBlock}>
-                <UnderlineSpan title={renamedA ? renamedA : null}>A</UnderlineSpan>: {toFixed(ledIntensities["A"])}%
+                <UnderlineSpan title={renamedA ? renamedA : null}>A</UnderlineSpan>: {prettyPrint(ledIntensities["A"])}%
               </span>
               <span className={classes.ledBlock}>
-                <UnderlineSpan title={renamedB ? renamedB : null}>B</UnderlineSpan>: {toFixed(ledIntensities["B"])}%
+                <UnderlineSpan title={renamedB ? renamedB : null}>B</UnderlineSpan>: {prettyPrint(ledIntensities["B"])}%
               </span>
             </div>
             <div>
               <span className={classes.ledBlock}>
-                <UnderlineSpan title={renamedC ? renamedC : null}>C</UnderlineSpan>: {toFixed(ledIntensities["C"])}%
+                <UnderlineSpan title={renamedC ? renamedC : null}>C</UnderlineSpan>: {prettyPrint(ledIntensities["C"])}%
               </span>
               <span className={classes.ledBlock}>
-                <UnderlineSpan title={renamedD ? renamedD : null}>D</UnderlineSpan>: {toFixed(ledIntensities["D"])}%
+                <UnderlineSpan title={renamedD ? renamedD : null}>D</UnderlineSpan>: {prettyPrint(ledIntensities["D"])}%
               </span>
             </div>
           </div>

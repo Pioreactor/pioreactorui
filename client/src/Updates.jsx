@@ -1,4 +1,5 @@
 import React from "react";
+import MarkdownView from 'react-showdown';
 
 import Grid from '@material-ui/core/Grid';
 import { makeStyles } from '@material-ui/styles';
@@ -18,7 +19,6 @@ import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
-import GitHubIcon from '@material-ui/icons/GitHub';
 
 const useStyles = makeStyles((theme) => ({
   title: {
@@ -105,8 +105,7 @@ function PageHeader(props) {
   const classes = useStyles();
   const [version, setVersion] = React.useState("")
   const [latestVersion, setLatestVersion] = React.useState("")
-  const [appCommitID, setAppCommitID] = React.useState("")
-  const [uiCommitID, setUICommitID] = React.useState("")
+
 
 
   React.useEffect(() => {
@@ -117,26 +116,6 @@ function PageHeader(props) {
         })
         .then((data) => {
           setVersion(data)
-        });
-      }
-
-    async function getCurrentAppCommitID() {
-         await fetch("/get_app_commit_id")
-        .then((response) => {
-          return response.text();
-        })
-        .then((data) => {
-          setAppCommitID(data)
-        });
-      }
-
-    async function getCurrentUICommitID() {
-         await fetch("/get_ui_commit_id")
-        .then((response) => {
-          return response.text();
-        })
-        .then((data) => {
-          setUICommitID(data)
         });
       }
 
@@ -151,8 +130,6 @@ function PageHeader(props) {
       }
 
       getCurrentAppVersion()
-      getCurrentAppCommitID()
-      getCurrentUICommitID()
       getLatestAppVersion()
   }, [])
 
@@ -184,20 +161,6 @@ function PageHeader(props) {
         </Box>
 
         <Box fontWeight="fontWeightBold" style={{margin: "10px 2px 10px 2px", display:"inline-block"}}>
-          <GitHubIcon style={{ fontSize: 14, verticalAlign: "middle" }}/> App git commit:
-        </Box>
-        <Box fontWeight="fontWeightRegular" style={{marginRight: "20px", display:"inline-block"}}>
-          <a href={`https://github.com/Pioreactor/pioreactor/commit/${appCommitID}`}><code>{appCommitID}</code></a>
-        </Box>
-
-        <Box fontWeight="fontWeightBold" style={{margin: "10px 2px 10px 2px", display:"inline-block"}}>
-          <GitHubIcon style={{ fontSize: 14, verticalAlign: "middle" }}/> UI git commit:
-        </Box>
-        <Box fontWeight="fontWeightRegular" style={{marginRight: "20px", display:"inline-block"}}>
-          <a href={`https://github.com/Pioreactor/pioreactorui/commit/${uiCommitID}`}><code>{uiCommitID}</code></a>
-        </Box>
-
-        <Box fontWeight="fontWeightBold" style={{margin: "10px 2px 10px 2px", display:"inline-block"}}>
             <UpdateIcon style={{ fontSize: 14, verticalAlign: "middle" }}/>
           Latest version available:
         </Box>
@@ -219,7 +182,7 @@ function ChangelogContainer(){
 
   React.useEffect(() => {
     async function getData() {
-         await fetch("/get_changelog")
+         await fetch("https://raw.githubusercontent.com/Pioreactor/pioreactor/master/CHANGELOG.md")
         .then((response) => {
           return response.text();
         })
@@ -238,7 +201,9 @@ function ChangelogContainer(){
         <Typography variant="h6" component="h6">
             Change log
         </Typography>
-          <div dangerouslySetInnerHTML={{ __html: changelog }} />
+          <MarkdownView
+            markdown={changelog}
+          />
         </CardContent>
       </Card>
     </React.Fragment>

@@ -10,7 +10,6 @@ const dblite = require('dblite')
 const fs = require('fs')
 const expressStaticGzip = require("express-static-gzip");
 const compression = require('compression');
-const showdown  = require('showdown');
 const yaml = require('js-yaml');
 const mqtt = require('mqtt')
 const os = require("os");
@@ -459,61 +458,16 @@ app.post("/update_app", function (req, res) {
 })
 
 app.get('/get_app_version', function(req, res) {
-
-  var versionPath = path.join(process.env.PIOREACTOR_SOURCE_CODE, "pioreactor", "version.py");
-  res.send(fs.readFileSync(versionPath, "utf8").match(/\d{2}\.\d{1,2}\.\d{1,2}/)[0])
-
-  // // this is too slow:
-  // execFile("pio", ["version"], (error, stdout, stderr) => {
-  //     if (error) {
-  //         console.log(error)
-  //     }
-  //     if (stderr) {
-  //         console.log(stderr)
-  //     }
-  //     res.send(stdout)
-  // })
-})
-
-app.get('/get_app_commit_id', function(req, res) {
-
-  var folder = process.env.PIOREACTOR_SOURCE_CODE
-  // git -C ~/pioreactor log -n1 --format="%h"
-  execFile("git", ["-C", folder, "log", "-n1", '--format=%h'], (error, stdout, stderr) => {
+  // this is too slow:
+  execFile("pio", ["version"], (error, stdout, stderr) => {
       if (error) {
-        publishToErrorLog(error)
-        console.log(error)
+          console.log(error)
       }
       if (stderr) {
-        publishToLog(stderr)
-        console.log(stderr)
+          console.log(stderr)
       }
       res.send(stdout)
   })
-})
-
-app.get('/get_ui_commit_id', function(req, res) {
-
-  var folder = process.env.PIOREACTORUI_SOURCE_CODE
-  // git -C ~/pioreactor log -n1 --format="%h"
-  execFile("git", ["-C", folder, "log", "-n1", '--format=%h'], (error, stdout, stderr) => {
-      if (error) {
-        publishToErrorLog(error)
-        console.log(error)
-      }
-      if (stderr) {
-        publishToLog(stderr)
-        console.log(stderr)
-      }
-      res.send(stdout)
-  })
-})
-
-
-app.get('/get_changelog', function(req, res) {
-  converter = new showdown.Converter()
-  var changelogPath = path.join(process.env.PIOREACTOR_SOURCE_CODE, "CHANGELOG.md");
-  res.send(converter.makeHtml(fs.readFileSync(changelogPath, "utf8")))
 })
 
 app.post('/export_datasets', function(req, res) {
