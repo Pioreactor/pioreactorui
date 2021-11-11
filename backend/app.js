@@ -466,7 +466,7 @@ app.get('/get_app_version', function(req, res) {
       if (stderr) {
           console.log(stderr)
       }
-      res.send(stdout)
+      res.send(stdout.trim())
   })
 })
 

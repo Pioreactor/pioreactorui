@@ -394,7 +394,7 @@ function AddNewPioreactor(props){
     event.preventDefault()
     if (!name) {
       setIsError(true)
-      setErrorMsg("Provide a name for the new Pioreactor")
+      setErrorMsg("Provide the hostname for the new Pioreactor worker")
       return
     }
     setIsError(false)
@@ -416,7 +416,7 @@ function AddNewPioreactor(props){
     })
   }
 
-  const runningFeedback = isRunning ? <CircularProgress color="inherit" size={24}/> : "Install and connect"
+  const runningFeedback = isRunning ? <CircularProgress color="inherit" size={24}/> : "Add Pioreactor"
 
   return (
     <React.Fragment>
@@ -440,22 +440,19 @@ function AddNewPioreactor(props){
         </IconButton>
       </DialogTitle>
       <DialogContent>
-      <p>Follow the instructions to <a href="https://pioreactor.com/pages/adding-a-new-pioreactor">set up your Raspberry Pi</a></p>
+      <p>Follow the instructions to <a href="https://pioreactor.com/pages/adding-a-new-pioreactor">set up your Pioreactor's Raspberry Pi</a>.</p>
 
-      <p>Below, provide a unique name for your new Pioreactor (letters and digits only), and
-      your existing Pioreactors will automatically install the required software and connect it to the cluster.
-      </p>
-
-      <p>It may take up to 5 minutes to install the software. When finished, the new Pioreactor
-      will show up on this page. You don't need to stay on this page while it's installing.</p>
+      <p>Below, provide the hostname you used when installing the Pioreactor image onto the Raspberry Pi.
+      Your existing Pioreactors will automatically connect it to the cluster.
+      When finished, the new Pioreactor will show up on this page.</p>
 
 
-      <div >
+      <div>
         <TextField
           required
           size="small"
           id="new-pioreactor-name"
-          label="Provide a name"
+          label="Provide hostname"
           variant="outlined"
           className={classes.textFieldWide}
           onChange={handleNameChange}
@@ -509,7 +506,7 @@ function AddNewPioreactor(props){
       anchorOrigin={{vertical: "bottom", horizontal: "center"}}
       open={snackbarOpen}
       onClose={handleSnackbarClose}
-      message={"Installing new Pioreactor"}
+      message={`Adding new Pioreactor ${name}`}
       autoHideDuration={7000}
       key={"snackbar-add-new"}
     />
