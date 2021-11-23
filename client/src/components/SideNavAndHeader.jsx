@@ -157,7 +157,7 @@ export default function SideNavAndHeader() {
         </ListItem>
 
         <div className={classes.hiddenIconContainer}>
-          <ListItem target="_blank" rel="noopener noreferrer" href="https://pioreactor.com/pages/documentation" component="a" button key="help">
+          <ListItem target="_blank" rel="noopener noreferrer" href="https://docs.pioreactor.com" component="a" button key="help">
             <ListItemIcon className={classes.listItemIcon}><HelpOutlineIcon/> </ListItemIcon>
             <ListItemText primary={"Help"}/>
             <ListItemSecondaryAction>
@@ -198,7 +198,7 @@ export default function SideNavAndHeader() {
               <Typography variant="h6" className={classes.title}>
                 <Link color="inherit" underline="none" href="/" className={classes.title}> <img alt="pioreactor logo" src="white_colour.png" style={{width: "120px", height: "29px"}}/> </Link>
               </Typography>
-              <Link color="inherit" underline="none" href="https://pioreactor.com/pages/documentation" target="_blank" rel="noopener noreferrer">
+              <Link color="inherit" underline="none" href="https://docs.pioreactor.com" target="_blank" rel="noopener noreferrer">
                 <Button color="inherit" style={{textTransform: "none"}}>Help <HelpOutlineIcon style={{ fontSize: 18, verticalAlign: "middle", marginLeft: 5 }}/></Button>
               </Link>
             </Toolbar>

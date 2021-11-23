@@ -40,7 +40,7 @@ const useStyles = makeStyles((theme) => ({
 function ButtonChangeTemperatureDialog(props) {
   const classes = useStyles();
   const [open, setOpen] = useState(false);
-  const [algoSettings, setAlgoSettings] = useState({temperature_automation: "silent", skip_first_run: false})
+  const [algoSettings, setAlgoSettings] = useState({automation_key: "silent", skip_first_run: false})
   const [client, setClient] = useState(null)
   const [automations, setAutomations] = useState({})
   const [openSnackbar, setOpenSnackbar] = useState(false);
@@ -98,7 +98,7 @@ function ButtonChangeTemperatureDialog(props) {
   };
 
   const handleAlgoSelectionChange = (e) => {
-    setAlgoSettings({temperature_automation: e.target.value})
+    setAlgoSettings({automation_key: e.target.value})
   }
 
   const updateFromChild = (setting) => {
@@ -166,7 +166,7 @@ function ButtonChangeTemperatureDialog(props) {
       </DialogTitle>
       <DialogContent>
         <Typography variant="body2" component="p" gutterBottom>
-          Temperature automations control the temperature of the Pioreactor's vial. The settings below can be changed later. Learn more about <a target="_blank" rel="noopener noreferrer" href="https://pioreactor.com/pages/temperature-automations">temperature automations</a>.
+          Temperature automations control the temperature of the Pioreactor's vial. The settings below can be changed later. Learn more about <a target="_blank" rel="noopener noreferrer" href="https://docs.pioreactor.com/user_guide/Automations/Temperature%20Automations">temperature automations</a>.
         </Typography>
 
         <form>
@@ -175,14 +175,14 @@ function ButtonChangeTemperatureDialog(props) {
             <Select
               native
               variant="standard"
-              value={algoSettings["temperature_automation"]}
+              value={algoSettings.automation_key}
               onChange={handleAlgoSelectionChange}
               style={{maxWidth: "200px"}}
             >
               {Object.keys(automations).map((key) => <option id={key} value={key} key={"change-io" + key}>{automations[key].name}</option>)}
 
             </Select>
-            {Object.keys(automations).length > 0 && <AutomationForm fields={automations[algoSettings["temperature_automation"]].fields} description={automations[algoSettings["temperature_automation"]].description} updateParent={updateFromChild}/>}
+            {Object.keys(automations).length > 0 && <AutomationForm fields={automations[algoSettings.automation_key].fields} description={automations[algoSettings["automation_key"]].description} updateParent={updateFromChild}/>}
             <Button
               type="submit"
               variant="contained"
@@ -200,7 +200,7 @@ function ButtonChangeTemperatureDialog(props) {
       anchorOrigin={{vertical: "bottom", horizontal: "center"}}
       open={openSnackbar}
       onClose={handleSnackbarClose}
-      message={`Changing temperature automation to ${algoSettings['temperature_automation']}.`}
+      message={`Changing temperature automation to ${algoSettings.automation_key}.`}
       autoHideDuration={7000}
       key={"snackbar-change-temperature"}
     />

@@ -47,7 +47,7 @@ function ButtonChangeDosingDialog(props) {
   const classes = useStyles();
   const config = props.config
   const [open, setOpen] = useState(false);
-  const [algoSettings, setAlgoSettings] = useState({dosing_automation: "silent", skip_first_run: false})
+  const [algoSettings, setAlgoSettings] = useState({automation_key: "silent", skip_first_run: false})
   const [client, setClient] = useState(null)
   const [automations, setAutomations] = useState({})
   const [openSnackbar, setOpenSnackbar] = useState(false);
@@ -104,7 +104,7 @@ function ButtonChangeDosingDialog(props) {
   };
 
   const handleAlgoSelectionChange = (e) => {
-    setAlgoSettings({dosing_automation: e.target.value, skip_first_run: algoSettings.skip_first_run})
+    setAlgoSettings({automation_key: e.target.value, skip_first_run: algoSettings.skip_first_run})
   }
 
   const handleSkipFirstRunChange = (e) => {
@@ -130,7 +130,6 @@ function ButtonChangeDosingDialog(props) {
     try{
       client.publish(message);
       setOpenSnackbar(true);
-
     }
     catch (e){
       console.log(e)
@@ -177,7 +176,7 @@ function ButtonChangeDosingDialog(props) {
         </DialogTitle>
         <DialogContent>
           <Typography variant="body2" component="p" gutterBottom>
-            Dosing automations control when and how much media to add to the Pioreactor. The settings below can be changed later. Learn more about <a target="_blank" rel="noopener noreferrer" href="https://pioreactor.com/pages/Dosing-automations">dosing automations</a>.
+            Dosing automations control when and how much media to add to the Pioreactor. The settings below can be changed later. Learn more about <a target="_blank" rel="noopener noreferrer" href="https://docs.pioreactor.com/user_guide/Automations/Dosing%20Automations">dosing automations</a>.
           </Typography>
 
           <form>
@@ -186,14 +185,14 @@ function ButtonChangeDosingDialog(props) {
               <Select
                 native
                 variant="standard"
-                value={algoSettings["dosing_automation"]}
+                value={algoSettings.automation_key}
                 onChange={handleAlgoSelectionChange}
                 style={{maxWidth: "200px"}}
               >
                 {Object.keys(automations).map((key) => <option id={key} value={key} key={"change-io" + key}>{automations[key].name}</option>)}
               </Select>
 
-              {Object.keys(automations).length > 0 && <AutomationForm fields={automations[algoSettings["dosing_automation"]].fields} description={automations[algoSettings["dosing_automation"]].description} updateParent={updateFromChild}/>}
+              {Object.keys(automations).length > 0 && <AutomationForm fields={automations[algoSettings.automation_key].fields} description={automations[algoSettings.automation_key].description} updateParent={updateFromChild}/>}
 
               <FormControlLabel
                 control={<Checkbox checked={algoSettings.skip_first_run}
@@ -220,7 +219,7 @@ function ButtonChangeDosingDialog(props) {
         anchorOrigin={{vertical: "bottom", horizontal: "center"}}
         open={openSnackbar}
         onClose={handleSnackbarClose}
-        message={`Changing dosing automation to ${algoSettings['dosing_automation']}.`}
+        message={`Changing dosing automation to ${algoSettings.automation_key}.`}
         autoHideDuration={7000}
         key={"snackbar-change-dosing"}
       />

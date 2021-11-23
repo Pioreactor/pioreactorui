@@ -383,7 +383,7 @@ function AddNewPioreactor(props){
   }
 
   const handleNameChange = evt => {
-    setName(evt.target.value.replace(/[^A-Za-z 0-9\-]/, "").toLowerCase().replace(" ", "-"))
+    setName(evt.target.value)
   }
 
   const handleIPChange = evt => {
@@ -440,7 +440,7 @@ function AddNewPioreactor(props){
         </IconButton>
       </DialogTitle>
       <DialogContent>
-      <p>Follow the instructions to <a href="https://pioreactor.com/pages/adding-a-new-pioreactor">set up your Pioreactor's Raspberry Pi</a>.</p>
+      <p>Follow the instructions to <a href="https://docs.pioreactor.com/user_guide/Raspberry%20Pi%20set%20up%20and%20software%20installation#adding-workers-to-your-cluster">set up your Pioreactor's Raspberry Pi</a>.</p>
 
       <p>Below, provide the hostname you used when installing the Pioreactor image onto the Raspberry Pi.
       Your existing Pioreactors will automatically connect it to the cluster.
@@ -639,7 +639,6 @@ function CalibrateDialog(props) {
    }
 
   const blankODButton = createUserButtonsBasedOnState(props.odBlankJobState, "od_blank")
-  const odTempCompButton = createUserButtonsBasedOnState(props.odTempCompState, "od_temperature_compensation")
   const stirringCalibrationButton = createUserButtonsBasedOnState(props.stirringCalibrationState, "stirring_calibration")
 
 
@@ -660,7 +659,6 @@ function CalibrateDialog(props) {
             textColor="primary"
             >
             <Tab label="Blanks"/>
-            <Tab label="Temperature compensation"/>
             <Tab label="Stirring"/>
             <Tab label="Dosing" disabled={true}/>
           </Tabs>
@@ -696,25 +694,6 @@ function CalibrateDialog(props) {
 
           </TabPanel>
           <TabPanel value={tabValue} index={1}>
-            <Typography  gutterBottom>
-             Temperature-compensated OD readings (optional)
-            </Typography>
-            <Typography variant="body2" component="p" gutterBottom>
-              When the temperature varies, the LED output varies as well. This can effect the optical density reading.
-              The below action will vary the temperature and measure the optical density, and a compensation curve will be
-              created and can be used for future experiments.
-            </Typography>
-
-            <Typography variant="body2" component="p" gutterBottom>
-              This action will take up to two hours. You can leave this page, but avoid modifying the Pioreactor hardware and wetware, and avoid large changes in the room's temperature.
-            </Typography>
-
-            {odTempCompButton}
-
-            <Divider className={classes.divider} />
-
-          </TabPanel>
-          <TabPanel value={tabValue} index={2}>
             <Typography  gutterBottom>
              Stirring calibration (optional)
             </Typography>
@@ -1167,8 +1146,8 @@ function SettingsActionsDialog(props) {
           <Typography variant="body2" component="p" gutterBottom>
             {props.jobs.dosing_control && props.jobs.dosing_control.state !== "disconnected" &&
               <React.Fragment>
-              Currently running dosing automation <code>{props.jobs.dosing_control.dosing_automation.value}</code>.
-              Learn more about <a target="_blank" rel="noopener noreferrer" href="https://pioreactor.com/pages/dosing-automations">dosing automations</a>.
+              Currently running dosing automation <code>{props.jobs.dosing_control.dosing_automation_key.value}</code>.
+              Learn more about <a target="_blank" rel="noopener noreferrer" href="https://docs.pioreactor.com/user_guide/Automations/Dosing%20Automations">dosing automations</a>.
               </React.Fragment>
             }
             {props.jobs.dosing_control && props.jobs.dosing_control.state === "disconnected" &&
@@ -1183,7 +1162,7 @@ function SettingsActionsDialog(props) {
             unit={props.unit}
             config={props.config}
             experiment={props.experiment}
-            currentDosingAutomation={props.jobs.dosing_control && props.jobs.dosing_control.dosing_automation.value}
+            currentDosingAutomation={props.jobs.dosing_control && props.jobs.dosing_control.dosing_automation_key.value}
           />
           <Divider className={classes.divider} />
           <Typography  gutterBottom>
@@ -1192,8 +1171,8 @@ function SettingsActionsDialog(props) {
           <Typography variant="body2" component="p" gutterBottom>
             {props.jobs.led_control && props.jobs.led_control.state !== "disconnected" &&
               <React.Fragment>
-              Currently running LED automation <code>{props.jobs.led_control.led_automation.value}</code>.
-              Learn more about <a target="_blank" rel="noopener noreferrer" href="https://pioreactor.com/pages/led-automations">LED automations</a>.
+              Currently running LED automation <code>{props.jobs.led_control.led_automation_key.value}</code>.
+              Learn more about <a target="_blank" rel="noopener noreferrer" href="https://docs.pioreactor.com/user_guide/Automations/LED%20Automations">LED automations</a>.
               </React.Fragment>
             }
             {props.jobs.led_control && props.jobs.led_control.state  === "disconnected" &&
@@ -1208,7 +1187,7 @@ function SettingsActionsDialog(props) {
             unit={props.unit}
             config={props.config}
             experiment={props.experiment}
-            currentLEDAutomation={props.jobs.led_control && props.jobs.led_control.led_automation.value}
+            currentLEDAutomation={props.jobs.led_control && props.jobs.led_control.led_automation_key.value}
           />
           <Divider className={classes.divider} />
 
@@ -1218,8 +1197,8 @@ function SettingsActionsDialog(props) {
           <Typography variant="body2" component="p" gutterBottom>
             {props.jobs.temperature_control && props.jobs.temperature_control.state !== "disconnected" &&
               <React.Fragment>
-              Currently running temperature automation <code>{props.jobs.temperature_control.temperature_automation.value}</code>.
-              Learn more about <a target="_blank" rel="noopener noreferrer" href="https://pioreactor.com/pages/temperature-automations">temperature automations</a>.
+              Currently running temperature automation <code>{props.jobs.temperature_control.temperature_automation_key.value}</code>.
+              Learn more about <a target="_blank" rel="noopener noreferrer" href="https://docs.pioreactor.com/user_guide/Automations/Temperature%20Automations">temperature automations</a>.
               </React.Fragment>
             }
             {props.jobs.temperature_control && props.jobs.temperature_control.state === "disconnected" &&
@@ -1234,7 +1213,7 @@ function SettingsActionsDialog(props) {
             unit={props.unit}
             config={props.config}
             experiment={props.experiment}
-            currentTemperatureAutomation={props.jobs.temperature_control && props.jobs.temperature_control.temperature_automation.value}
+            currentTemperatureAutomation={props.jobs.temperature_control && props.jobs.temperature_control.temperature_automation_key.value}
           />
           <Divider className={classes.divider} />
 
@@ -1613,7 +1592,7 @@ function SettingsActionsDialogAll({config, experiment}) {
             Dosing automation
           </Typography>
           <Typography variant="body2" component="p" gutterBottom>
-              Learn more about <a target="_blank" rel="noopener noreferrer" href="https://pioreactor.com/pages/Dosing-automations">dosing automations</a>.
+              Learn more about <a target="_blank" rel="noopener noreferrer" href="https://docs.pioreactor.com/user_guide/Automations/Dosing%20Automations">dosing automations</a>.
           </Typography>
 
           <ButtonChangeDosingDialog
@@ -1628,7 +1607,7 @@ function SettingsActionsDialogAll({config, experiment}) {
             LED automation
           </Typography>
           <Typography variant="body2" component="p" gutterBottom>
-              Learn more about <a target="_blank" rel="noopener noreferrer" href="https://pioreactor.com/pages/LED-automations">LED automations</a>.
+              Learn more about <a target="_blank" rel="noopener noreferrer" href="https://docs.pioreactor.com/user_guide/Automations/LED%20Automations">LED automations</a>.
           </Typography>
 
           <ButtonChangeLEDDialog
@@ -1643,7 +1622,7 @@ function SettingsActionsDialogAll({config, experiment}) {
             Temperature automation
           </Typography>
           <Typography variant="body2" component="p" gutterBottom>
-              Learn more about <a target="_blank" rel="noopener noreferrer" href="https://pioreactor.com/pages/temperature-automations">temperature automations</a>.
+              Learn more about <a target="_blank" rel="noopener noreferrer" href="https://docs.pioreactor.com/user_guide/Automations/Temperature%20Automations">temperature automations</a>.
           </Typography>
 
           <ButtonChangeTemperatureDialog
@@ -1878,7 +1857,14 @@ function PioreactorCard(props){
         client.subscribe(["pioreactor", unit, experimentName, job, "$state"].join("/"));
         for (const setting of Object.keys(jobs[job])){
           if ((setting !== "state") && (setting !== "metadata")){
-            client.subscribe(["pioreactor", unit, experimentName, setting.endsWith("_automation") ? job : job.replace("_control", "_automation"), setting].join("/"));
+            var topic = [
+              "pioreactor",
+              unit,
+              experimentName,
+              setting.endsWith("_automation_key") ? job : job.replace("_control", "_automation"), // this is for, ex, dosing_automation_key
+              setting
+            ].join("/")
+            client.subscribe(topic);
           }
         }
       }
@@ -1973,7 +1959,6 @@ function PioreactorCard(props){
                   client={client}
                   odBlankReading={jobs['od_blank'] ? jobs['od_blank'].mean.value : null}
                   odBlankJobState={jobs['od_blank'] ? jobs['od_blank'].state : null}
-                  odTempCompState={jobs['od_temperature_compensation'] ? jobs['od_temperature_compensation'].state : null}
                   stirringCalibrationState={jobs['stirring_calibration'] ? jobs['stirring_calibration'].state : null}
                   experiment={experiment}
                   unit={unit}
