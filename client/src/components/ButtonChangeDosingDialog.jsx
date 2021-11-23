@@ -123,7 +123,7 @@ function ButtonChangeDosingDialog(props) {
       props.unit,
       props.experiment,
       "dosing_control",
-      "dosing_automation",
+      "automation",
       "set",
     ].join("/");
     message.qos = 2;

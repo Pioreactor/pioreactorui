@@ -114,7 +114,7 @@ function ButtonChangeTemperatureDialog(props) {
       props.unit,
       props.experiment,
       "temperature_control",
-      "temperature_automation",
+      "automation",
       "set",
     ].join("/");
     message.qos = 2;

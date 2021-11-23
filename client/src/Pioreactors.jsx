@@ -1146,7 +1146,7 @@ function SettingsActionsDialog(props) {
           <Typography variant="body2" component="p" gutterBottom>
             {props.jobs.dosing_control && props.jobs.dosing_control.state !== "disconnected" &&
               <React.Fragment>
-              Currently running dosing automation <code>{props.jobs.dosing_control.dosing_automation_name.value}</code>.
+              Currently running dosing automation <code>{props.jobs.dosing_control.automation_name.value}</code>.
               Learn more about <a target="_blank" rel="noopener noreferrer" href="https://docs.pioreactor.com/user_guide/Automations/Dosing%20Automations">dosing automations</a>.
               </React.Fragment>
             }
@@ -1162,7 +1162,7 @@ function SettingsActionsDialog(props) {
             unit={props.unit}
             config={props.config}
             experiment={props.experiment}
-            currentDosingAutomation={props.jobs.dosing_control && props.jobs.dosing_control.dosing_automation_name.value}
+            currentDosingAutomation={props.jobs.dosing_control && props.jobs.dosing_control.automation_name.value}
           />
           {console.log(props.jobs.dosing_control)}
           <Divider className={classes.divider} />
@@ -1172,7 +1172,7 @@ function SettingsActionsDialog(props) {
           <Typography variant="body2" component="p" gutterBottom>
             {props.jobs.led_control && props.jobs.led_control.state !== "disconnected" &&
               <React.Fragment>
-              Currently running LED automation <code>{props.jobs.led_control.led_automation_name.value}</code>.
+              Currently running LED automation <code>{props.jobs.led_control.automation_name.value}</code>.
               Learn more about <a target="_blank" rel="noopener noreferrer" href="https://docs.pioreactor.com/user_guide/Automations/LED%20Automations">LED automations</a>.
               </React.Fragment>
             }
@@ -1188,7 +1188,7 @@ function SettingsActionsDialog(props) {
             unit={props.unit}
             config={props.config}
             experiment={props.experiment}
-            currentLEDAutomation={props.jobs.led_control && props.jobs.led_control.led_automation_name.value}
+            currentLEDAutomation={props.jobs.led_control && props.jobs.led_control.automation_name.value}
           />
           <Divider className={classes.divider} />
 
@@ -1198,7 +1198,7 @@ function SettingsActionsDialog(props) {
           <Typography variant="body2" component="p" gutterBottom>
             {props.jobs.temperature_control && props.jobs.temperature_control.state !== "disconnected" &&
               <React.Fragment>
-              Currently running temperature automation <code>{props.jobs.temperature_control.temperature_automation_name.value}</code>.
+              Currently running temperature automation <code>{props.jobs.temperature_control.automation_name.value}</code>.
               Learn more about <a target="_blank" rel="noopener noreferrer" href="https://docs.pioreactor.com/user_guide/Automations/Temperature%20Automations">temperature automations</a>.
               </React.Fragment>
             }
@@ -1214,7 +1214,7 @@ function SettingsActionsDialog(props) {
             unit={props.unit}
             config={props.config}
             experiment={props.experiment}
-            currentTemperatureAutomation={props.jobs.temperature_control && props.jobs.temperature_control.temperature_automation_name.value}
+            currentTemperatureAutomation={props.jobs.temperature_control && props.jobs.temperature_control.automation_name.value}
           />
           <Divider className={classes.divider} />
 
@@ -1862,7 +1862,7 @@ function PioreactorCard(props){
               "pioreactor",
               unit,
               experimentName,
-              setting.endsWith("_automation_name") ? job : job.replace("_control", "_automation"), // this is for, ex, dosing_automation_name
+              (setting === "automation_name") ? job : job.replace("_control", "_automation"), // this is for, ex, automation_name
               setting
             ].join("/")
             client.subscribe(topic);

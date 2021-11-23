@@ -115,7 +115,7 @@ function ButtonChangeLEDDialog(props) {
       props.unit,
       props.experiment,
       "led_control",
-      "led_automation",
+      "automation",
       "set",
     ].join("/");
     message.qos = 2;

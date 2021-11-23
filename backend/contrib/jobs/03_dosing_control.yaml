@@ -4,7 +4,7 @@ job_name: dosing_control
 display: true
 source: app
 description: Start a dosing automation. Initially starts as <code>silent</code> automation. Learn more about <a href="https://pioreactor.com/pages/Dosing-automations">dosing automations</a>.
-subtext: dosing_automation_name
+subtext: automation_name
 editable_settings:
   - key: volume
     unit: mL
@@ -34,7 +34,7 @@ editable_settings:
     default: null
     display: true
     description: Change how long to wait between dilutions. Typically between 5 and 90 minutes. Changing this will immediately trigger a dosing event.
-  - key: dosing_automation_name
+  - key: automation_name
     type: text
     display: false
     default: ""
