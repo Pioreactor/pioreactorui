@@ -1,6 +1,6 @@
 ---
-name: PID Turbidostat
-key: pid_turbidostat
+display_name: PID Turbidostat
+automation_name: pid_turbidostat
 description: Vary the amount of media to add, every `duration` minutes, to target a set optical density of the culture.
 fields:
   - key: duration

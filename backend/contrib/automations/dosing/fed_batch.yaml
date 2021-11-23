@@ -1,6 +1,6 @@
 ---
-name: Fed Batch
-key: fed_batch
+display_name: Fed Batch
+automation_name: fed_batch
 description: Dose a constant volume of media on a fixed scheduale.
 fields:
   - key: duration

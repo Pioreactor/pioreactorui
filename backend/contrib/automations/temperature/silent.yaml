@@ -1,5 +1,5 @@
 ---
-name: Silent
-key: silent
+display_name: Silent
+automation_name: silent
 description: Apply no heating, only record the temperature.
 fields: []

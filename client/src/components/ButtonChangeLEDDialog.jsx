@@ -42,7 +42,7 @@ const useStyles = makeStyles((theme) => ({
 function ButtonChangeLEDDialog(props) {
   const classes = useStyles();
   const [open, setOpen] = useState(false);
-  const [algoSettings, setAlgoSettings] = useState({automation_key: "silent", skip_first_run: false})
+  const [algoSettings, setAlgoSettings] = useState({automation_name: "silent", skip_first_run: false})
   const [client, setClient] = useState(null)
   const [automations, setAutomations] = useState({})
   const [openSnackbar, setOpenSnackbar] = useState(false);
@@ -59,7 +59,7 @@ function ButtonChangeLEDDialog(props) {
             }
           })
         .then((listOfAuto) => {
-          setAutomations(Object.assign({}, ...listOfAuto.map(auto => ({ [auto.key]: auto}))))
+          setAutomations(Object.assign({}, ...listOfAuto.map(auto => ({ [auto.automation_name]: auto}))))
         })
         .catch((error) => {})
     }
@@ -99,7 +99,7 @@ function ButtonChangeLEDDialog(props) {
   };
 
   const handleAlgoSelectionChange = (e) => {
-    setAlgoSettings({automation_key: e.target.value})
+    setAlgoSettings({automation_name: e.target.value})
   }
 
   const updateFromChild = (setting) => {
@@ -178,15 +178,15 @@ function ButtonChangeLEDDialog(props) {
               <Select
                 native
                 variant="standard"
-                value={algoSettings.automation_key}
+                value={algoSettings.automation_name}
                 onChange={handleAlgoSelectionChange}
                 style={{maxWidth: "200px"}}
               >
-                {Object.keys(automations).map((key) => <option id={key} value={key} key={"change-io" + key}>{automations[key].name}</option>)}
+                {Object.keys(automations).map((key) => <option id={key} value={key} key={"change-io" + key}>{automations[key].display_name}</option>)}
 
               </Select>
 
-              {Object.keys(automations).length > 0 && <AutomationForm fields={automations[algoSettings.automation_key].fields} description={automations[algoSettings["automation_key"]].description} updateParent={updateFromChild}/>}
+              {Object.keys(automations).length > 0 && <AutomationForm fields={automations[algoSettings.automation_name].fields} description={automations[algoSettings["automation_name"]].description} updateParent={updateFromChild}/>}
 
               <Button
                 type="submit"
@@ -205,7 +205,7 @@ function ButtonChangeLEDDialog(props) {
         anchorOrigin={{vertical: "bottom", horizontal: "center"}}
         open={openSnackbar}
         onClose={handleSnackbarClose}
-        message={`Changing LED automation to ${algoSettings.automation_key}.`}
+        message={`Changing LED automation to ${algoSettings.automation_name}.`}
         autoHideDuration={7000}
         key={"snackbar-change-led"}
       />

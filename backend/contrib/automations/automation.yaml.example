@@ -1,6 +1,6 @@
 ---
-name: My Automations Name  # human readable name
-key: my_automations_name   # the corresponding name of the automation from the Python code.
+display_name: My Automations Name  # human readable name
+automation_name: my_automations_name   # the corresponding name of the automation from the Python code.
 description: Provide a meaningful description of what the automation does, when to use it, how it works...
 fields:
   - key: duration  # key is the same as the keyword in the Python code.
