@@ -37,9 +37,8 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 
-function ButtonChangeTemperatureDialog(props) {
+function ChangeTemperatureDialog(props) {
   const classes = useStyles();
-  const [open, setOpen] = useState(false);
   const [algoSettings, setAlgoSettings] = useState({automation_name: "silent", skip_first_run: false})
   const [client, setClient] = useState(null)
   const [automations, setAutomations] = useState({})
@@ -88,13 +87,9 @@ function ButtonChangeTemperatureDialog(props) {
     setClient(client)
   },[props.config])
 
-  const handleClickOpen = () => {
-    setOpen(true);
-
-  };
 
   const handleClose = () => {
-    setOpen(false);
+    props.onFinished();
   };
 
   const handleAlgoSelectionChange = (e) => {
@@ -105,8 +100,21 @@ function ButtonChangeTemperatureDialog(props) {
     setAlgoSettings(prevState => ({...prevState, ...setting}))
   }
 
+  const startJob = (event) => {
+    event.preventDefault()
+    fetch("/run/temperature_control/" + props.unit, {
+      method: "POST",
+      body: JSON.stringify(algoSettings),
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      }
+    })
+    setOpenSnackbar(true);
+    handleClose()
+  }
 
-  const onSubmit = (event) => {
+  const changeAutomation = (event) => {
     event.preventDefault()
     var message = new Message(JSON.stringify(algoSettings));
     message.destinationName = [
@@ -125,7 +133,7 @@ function ButtonChangeTemperatureDialog(props) {
     catch (e){
       console.log(e)
     }
-    setOpen(false);
+    handleClose();
   }
 
   const handleSnackbarClose = () => {
@@ -133,23 +141,14 @@ function ButtonChangeTemperatureDialog(props) {
   };
 
   return (
-    <div>
-    <Button
-      style={{marginTop: "10px"}}
-      size="small"
-      color="primary"
-      disabled={!props.currentTemperatureAutomation}
-      onClick={handleClickOpen}
-    >
-      Change temperature automation
-    </Button>
-    <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title" PaperProps={{style: {height: "100%"}}}>
+    <React.Fragment>
+    <Dialog open={props.open} onClose={handleClose} aria-labelledby="form-dialog-title" PaperProps={{style: {height: "100%"}}}>
       <DialogTitle>
         <Typography className={classes.suptitle}>
           <PioreactorIcon style={{verticalAlign: "middle", fontSize: "1.2em"}}/> {props.title || ((props.config['ui.rename'] && props.config['ui.rename'][props.unit]) ? `${props.config['ui.rename'][props.unit]} (${props.unit})` : `${props.unit}`)}
         </Typography>
         <Typography className={classes.unitTitleDialog}>
-          Change temperature automation
+          Select temperature automation
         </Typography>
         <IconButton
           aria-label="close"
@@ -179,7 +178,7 @@ function ButtonChangeTemperatureDialog(props) {
               onChange={handleAlgoSelectionChange}
               style={{maxWidth: "200px"}}
             >
-              {Object.keys(automations).map((key) => <option id={key} value={key} key={"change-io" + key}>{automations[key].name}</option>)}
+              {Object.keys(automations).map((key) => <option id={key} value={key} key={"change-io" + key}>{automations[key].display_name}</option>)}
 
             </Select>
             {Object.keys(automations).length > 0 && <AutomationForm fields={automations[algoSettings.automation_name].fields} description={automations[algoSettings["automation_name"]].description} updateParent={updateFromChild}/>}
@@ -187,7 +186,7 @@ function ButtonChangeTemperatureDialog(props) {
               type="submit"
               variant="contained"
               color="primary"
-              onClick={onSubmit}
+              onClick={props.isJobRunning ? changeAutomation :  startJob}
               style={{width: "120px", marginTop: "20px"}}
             >
               Submit
@@ -200,12 +199,12 @@ function ButtonChangeTemperatureDialog(props) {
       anchorOrigin={{vertical: "bottom", horizontal: "center"}}
       open={openSnackbar}
       onClose={handleSnackbarClose}
-      message={`Changing temperature automation to ${algoSettings.automation_name}.`}
+      message={`Starting temperature automation ${algoSettings.automation_name}.`}
       autoHideDuration={7000}
       key={"snackbar-change-temperature"}
     />
-    </div>
+    </React.Fragment>
 )}
 
 
-export default ButtonChangeTemperatureDialog;
+export default ChangeTemperatureDialog;

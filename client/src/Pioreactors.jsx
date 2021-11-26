@@ -44,9 +44,9 @@ import ListSubheader from '@material-ui/core/ListSubheader';
 import DnsIcon from '@material-ui/icons/Dns';
 import IndeterminateCheckBoxOutlinedIcon from '@material-ui/icons/IndeterminateCheckBoxOutlined';
 
-import ButtonChangeDosingDialog from "./components/ButtonChangeDosingDialog"
-import ButtonChangeLEDDialog from "./components/ButtonChangeLEDDialog"
-import ButtonChangeTemperatureDialog from "./components/ButtonChangeTemperatureDialog"
+import ChangeDosingDialog from "./components/ChangeDosingDialog"
+import ChangeLEDDialog from "./components/ChangeLEDDialog"
+import ChangeTemperatureDialog from "./components/ChangeTemperatureDialog"
 import ActionDosingForm from "./components/ActionDosingForm"
 import ActionLEDForm from "./components/ActionLEDForm"
 import PioreactorIcon from "./components/PioreactorIcon"
@@ -227,7 +227,7 @@ function UnitSettingDisplay(props) {
     if (x >= 10){
       return x.toFixed(0)
     }
-    else if (x==0){
+    else if (x===0){
       return "0"
     }
     else if (x < 1){
@@ -387,7 +387,7 @@ function AddNewPioreactor(props){
   }
 
   const handleIPChange = evt => {
-    setIP(evt.target.value.replace(/[^\.0-9]/, ""))
+    setIP(evt.target.value.replace(/[^.0-9]/, ""))
   }
 
   const onSubmit = (event) =>{
@@ -917,6 +917,9 @@ function SettingsActionsDialog(props) {
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [tabValue, setTabValue] = React.useState(0);
+  const [openChangeDosingDialog, setOpenChangeDosingDialog] = React.useState(false);
+  const [openChangeLEDDialog, setOpenChangeLEDDialog] = React.useState(false);
+  const [openChangeTemperatureDialog, setOpenChangeTemperatureDialog] = React.useState(false);
 
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue);
@@ -1069,6 +1072,9 @@ function SettingsActionsDialog(props) {
   }
 
   const isLargeScreen = useMediaQuery(theme => theme.breakpoints.down("lg"));
+  var dosingControlJob = props.jobs.dosing_control
+  var ledControlJob = props.jobs.led_control
+  var temperatureControlJob = props.jobs.temperature_control
 
   return (
     <div>
@@ -1102,7 +1108,6 @@ function SettingsActionsDialog(props) {
         allowScrollButtonsMobile
         >
         <Tab label="Activities"/>
-        <Tab label="Automations"/>
         <Tab label="Settings"/>
         <Tab label="Dosing"/>
         <Tab label="LEDs"/>
@@ -1110,9 +1115,10 @@ function SettingsActionsDialog(props) {
       </DialogTitle>
       <DialogContent>
         <TabPanel value={tabValue} index={0}>
-          {/* Activities panel */}
+          {/* Unit Specific Activites */}
           {Object.entries(props.jobs)
             .filter(([job_key, job]) => job.metadata.display)
+            .filter(([job_key, job]) => !['dosing_control', 'led_control', 'temperature_control'].includes(job_key))
             .map(([job_key, job]) =>
             <div key={job_key}>
               <div style={{justifyContent: "space-between", display: "flex"}}>
@@ -1135,93 +1141,203 @@ function SettingsActionsDialog(props) {
               <Divider className={classes.divider} />
             </div>
           )}
+
+
+          {/* Unit Specific Automations */}
+          {dosingControlJob &&
+          <React.Fragment>
+            <div style={{justifyContent: "space-between", display: "flex"}}>
+              <Typography display="block">
+                Dosing automation
+              </Typography>
+              <Typography display="block" gutterBottom>
+                <span style={{color:stateDisplay[dosingControlJob.state].color}}>{stateDisplay[dosingControlJob.state].display}</span>
+              </Typography>
+            </div>
+            <Typography variant="caption" display="block" gutterBottom color="textSecondary">
+            </Typography>
+            <div key={dosingControlJob.metadata.key}>
+              {dosingControlJob.state !== "disconnected"
+              ?<React.Fragment>
+                <Typography variant="body2" component="p" gutterBottom>
+                Currently running dosing automation <code>{dosingControlJob.automation_name.value}</code>.
+                Learn more about <a target="_blank" rel="noopener noreferrer" href="https://docs.pioreactor.com/user_guide/Automations/Dosing%20Automations">dosing automations</a>.
+                </Typography>
+                {buttons[dosingControlJob.metadata.key]}
+               </React.Fragment>
+              :<React.Fragment>
+                <Typography variant="body2" component="p" gutterBottom>
+                  <div dangerouslySetInnerHTML={{__html: dosingControlJob.metadata.description}}/>
+                </Typography>
+
+                <Button
+                  style={{width: "70px", marginTop: "5px"}}
+                  size="small"
+                  color="primary"
+                  variant="contained"
+                  onClick={() => setOpenChangeDosingDialog(true)}
+                >
+                  Start
+                </Button>
+
+               </React.Fragment>
+              }
+            </div>
+
+            <Button
+              onClick={() => setOpenChangeDosingDialog(true)}
+              style={{marginTop: "10px"}}
+              size="small"
+              color="primary"
+              disabled={dosingControlJob.state === "disconnected"}
+            >
+              Change dosing automation
+            </Button>
+
+            <ChangeDosingDialog
+              open={openChangeDosingDialog}
+              onFinished={() => setOpenChangeDosingDialog(false)}
+              unit={props.unit}
+              config={props.config}
+              experiment={props.experiment}
+              isJobRunning={dosingControlJob.state !== "disconnected"}
+            />
+          </React.Fragment>
+          }
+
+          <Divider className={classes.divider} />
+
+
+          {ledControlJob &&
+          <React.Fragment>
+            <div style={{justifyContent: "space-between", display: "flex"}}>
+              <Typography display="block">
+                LED automation
+              </Typography>
+              <Typography display="block" gutterBottom>
+                <span style={{color:stateDisplay[ledControlJob.state].color}}>{stateDisplay[ledControlJob.state].display}</span>
+              </Typography>
+            </div>
+            <Typography variant="caption" display="block" gutterBottom color="textSecondary">
+            </Typography>
+            <div key={ledControlJob.metadata.key}>
+              {ledControlJob.state !== "disconnected"
+              ?<React.Fragment>
+                <Typography variant="body2" component="p" gutterBottom>
+                Currently running LED automation <code>{ledControlJob.automation_name.value}</code>.
+                Learn more about <a target="_blank" rel="noopener noreferrer" href="https://docs.pioreactor.com/user_guide/Automations/LED%20Automations">LED automations</a>.
+                </Typography>
+                {buttons[ledControlJob.metadata.key]}
+               </React.Fragment>
+              :<React.Fragment>
+                <Typography variant="body2" component="p" gutterBottom>
+                  <div dangerouslySetInnerHTML={{__html: ledControlJob.metadata.description}}/>
+                </Typography>
+
+                <Button
+                  style={{width: "70px", marginTop: "5px"}}
+                  size="small"
+                  color="primary"
+                  variant="contained"
+                  onClick={() => setOpenChangeLEDDialog(true)}
+                >
+                  Start
+                </Button>
+
+               </React.Fragment>
+              }
+            </div>
+
+            <Button
+              onClick={() => setOpenChangeLEDDialog(true)}
+              style={{marginTop: "10px"}}
+              size="small"
+              color="primary"
+              disabled={ledControlJob.state === "disconnected"}
+            >
+              Change LED automation
+            </Button>
+
+            <ChangeLEDDialog
+              open={openChangeLEDDialog}
+              onFinished={() => setOpenChangeLEDDialog(false)}
+              unit={props.unit}
+              config={props.config}
+              experiment={props.experiment}
+              isJobRunning={ledControlJob.state !== "disconnected"}
+            />
+          </React.Fragment>
+          }
+
+          <Divider className={classes.divider} />
+
+          {temperatureControlJob &&
+          <React.Fragment>
+            <div style={{justifyContent: "space-between", display: "flex"}}>
+              <Typography display="block">
+                Temperature automation
+              </Typography>
+              <Typography display="block" gutterBottom>
+                <span style={{color:stateDisplay[temperatureControlJob.state].color}}>{stateDisplay[temperatureControlJob.state].display}</span>
+              </Typography>
+            </div>
+            <Typography variant="caption" display="block" gutterBottom color="textSecondary">
+            </Typography>
+            <div key={temperatureControlJob.metadata.key}>
+              {temperatureControlJob.state !== "disconnected"
+              ?<React.Fragment>
+                <Typography variant="body2" component="p" gutterBottom>
+                Currently running LED automation <code>{temperatureControlJob.automation_name.value}</code>.
+                Learn more about <a target="_blank" rel="noopener noreferrer" href="https://docs.pioreactor.com/user_guide/Automations/LED%20Automations">LED automations</a>.
+                </Typography>
+                {buttons[temperatureControlJob.metadata.key]}
+               </React.Fragment>
+              :<React.Fragment>
+                <Typography variant="body2" component="p" gutterBottom>
+                  <div dangerouslySetInnerHTML={{__html: temperatureControlJob.metadata.description}}/>
+                </Typography>
+
+                <Button
+                  style={{width: "70px", marginTop: "5px"}}
+                  size="small"
+                  color="primary"
+                  variant="contained"
+                  onClick={() => setOpenChangeTemperatureDialog(true)}
+                >
+                  Start
+                </Button>
+
+               </React.Fragment>
+              }
+            </div>
+
+            <Button
+              onClick={() => setOpenChangeTemperatureDialog(true)}
+              style={{marginTop: "10px"}}
+              size="small"
+              color="primary"
+              disabled={temperatureControlJob.state === "disconnected"}
+            >
+              Change temperature automation
+            </Button>
+
+            <ChangeTemperatureDialog
+              open={openChangeTemperatureDialog}
+              onFinished={() => setOpenChangeTemperatureDialog(false)}
+              unit={props.unit}
+              config={props.config}
+              experiment={props.experiment}
+              isJobRunning={temperatureControlJob.state !== "disconnected"}
+            />
+          </React.Fragment>
+          }
+
+          <Divider className={classes.divider} />
+
         </TabPanel>
+
 
         <TabPanel value={tabValue} index={1}>
-          {/* Automations panel */}
-
-          <Typography  gutterBottom>
-            Dosing automation
-          </Typography>
-          <Typography variant="body2" component="p" gutterBottom>
-            {props.jobs.dosing_control && props.jobs.dosing_control.state !== "disconnected" &&
-              <React.Fragment>
-              Currently running dosing automation <code>{props.jobs.dosing_control.automation_name.value}</code>.
-              Learn more about <a target="_blank" rel="noopener noreferrer" href="https://docs.pioreactor.com/user_guide/Automations/Dosing%20Automations">dosing automations</a>.
-              </React.Fragment>
-            }
-            {props.jobs.dosing_control && props.jobs.dosing_control.state === "disconnected" &&
-
-              <React.Fragment>
-              You can change the dosing automation after starting the Dosing control activity.
-              </React.Fragment>
-            }
-          </Typography>
-
-          <ButtonChangeDosingDialog
-            unit={props.unit}
-            config={props.config}
-            experiment={props.experiment}
-            currentDosingAutomation={props.jobs.dosing_control && props.jobs.dosing_control.automation_name.value}
-          />
-          {console.log(props.jobs.dosing_control)}
-          <Divider className={classes.divider} />
-          <Typography  gutterBottom>
-            LED automation
-          </Typography>
-          <Typography variant="body2" component="p" gutterBottom>
-            {props.jobs.led_control && props.jobs.led_control.state !== "disconnected" &&
-              <React.Fragment>
-              Currently running LED automation <code>{props.jobs.led_control.automation_name.value}</code>.
-              Learn more about <a target="_blank" rel="noopener noreferrer" href="https://docs.pioreactor.com/user_guide/Automations/LED%20Automations">LED automations</a>.
-              </React.Fragment>
-            }
-            {props.jobs.led_control && props.jobs.led_control.state  === "disconnected" &&
-
-              <React.Fragment>
-              You can change the LED automation after starting the LED control activity.
-              </React.Fragment>
-            }
-          </Typography>
-
-          <ButtonChangeLEDDialog
-            unit={props.unit}
-            config={props.config}
-            experiment={props.experiment}
-            currentLEDAutomation={props.jobs.led_control && props.jobs.led_control.automation_name.value}
-          />
-          <Divider className={classes.divider} />
-
-          <Typography  gutterBottom>
-            Temperature automation
-          </Typography>
-          <Typography variant="body2" component="p" gutterBottom>
-            {props.jobs.temperature_control && props.jobs.temperature_control.state !== "disconnected" &&
-              <React.Fragment>
-              Currently running temperature automation <code>{props.jobs.temperature_control.automation_name.value}</code>.
-              Learn more about <a target="_blank" rel="noopener noreferrer" href="https://docs.pioreactor.com/user_guide/Automations/Temperature%20Automations">temperature automations</a>.
-              </React.Fragment>
-            }
-            {props.jobs.temperature_control && props.jobs.temperature_control.state === "disconnected" &&
-
-              <React.Fragment>
-              You can change the temperature automation after starting the Temperature control activity.
-              </React.Fragment>
-            }
-          </Typography>
-
-          <ButtonChangeTemperatureDialog
-            unit={props.unit}
-            config={props.config}
-            experiment={props.experiment}
-            currentTemperatureAutomation={props.jobs.temperature_control && props.jobs.temperature_control.automation_name.value}
-          />
-          <Divider className={classes.divider} />
-
-        </TabPanel>
-
-
-        <TabPanel value={tabValue} index={2}>
           {Object.values(props.jobs)
             .filter(job => job.metadata.display)
             .map(job =>
@@ -1253,7 +1369,7 @@ function SettingsActionsDialog(props) {
           ))}
         </TabPanel>
 
-        <TabPanel value={tabValue} index={3}>
+        <TabPanel value={tabValue} index={2}>
           <Typography  gutterBottom>
             Add media
           </Typography>
@@ -1281,7 +1397,7 @@ function SettingsActionsDialog(props) {
           <Divider className={classes.divider} />
         </TabPanel>
 
-        <TabPanel value={tabValue} index={4}>
+        <TabPanel value={tabValue} index={3}>
           <Typography className={clsx(classes.suptitle)} color="textSecondary">
             {(LEDMap['A']) ? "Channel A" : ""}
           </Typography>
@@ -1346,6 +1462,9 @@ function SettingsActionsDialogAll({config, experiment}) {
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [tabValue, setTabValue] = React.useState(0);
   const [jobs, setJobs] = React.useState({});
+  const [openChangeTemperatureDialog, setOpenChangeTemperatureDialog] = React.useState(false);
+  const [openChangeDosingDialog, setOpenChangeDosingDialog] = React.useState(false);
+  const [openChangeLEDDialog, setOpenChangeLEDDialog] = React.useState(false);
 
 
   useEffect(() => {
@@ -1527,7 +1646,9 @@ function SettingsActionsDialogAll({config, experiment}) {
 
   const buttons = Object.fromEntries(Object.entries(jobs).map( ([job_key, job], i) => [job_key, createUserButtonsBasedOnState(job)]))
   const isLargeScreen = useMediaQuery(theme => theme.breakpoints.down("lg"));
-
+  var dosingControlJob = jobs.dosing_control
+  var ledControlJob = jobs.led_control
+  var temperatureControlJob = jobs.temperature_control
 
   return (
     <React.Fragment>
@@ -1561,7 +1682,6 @@ function SettingsActionsDialogAll({config, experiment}) {
         allowScrollButtonsMobile
       >
         <Tab label="Activities"/>
-        <Tab label="Automations"/>
         <Tab label="Settings"/>
         <Tab label="Dosing"/>
         <Tab label="LEDs"/>
@@ -1572,6 +1692,7 @@ function SettingsActionsDialogAll({config, experiment}) {
         <TabPanel value={tabValue} index={0}>
           {Object.entries(jobs)
             .filter(([job_key, job]) => job.metadata.display)
+            .filter(([job_key, job]) => !['dosing_control', 'led_control', 'temperature_control'].includes(job_key))
             .map(([job_key, job]) =>
             <div key={job_key}>
               <Typography gutterBottom>
@@ -1586,63 +1707,130 @@ function SettingsActionsDialogAll({config, experiment}) {
               <Divider classes={{root: classes.divider}} />
             </div>
           )}
-        </TabPanel>
-       <TabPanel value={tabValue} index={1}>
 
-          <Typography  gutterBottom>
-            Dosing automation
-          </Typography>
-          <Typography variant="body2" component="p" gutterBottom>
-              Learn more about <a target="_blank" rel="noopener noreferrer" href="https://docs.pioreactor.com/user_guide/Automations/Dosing%20Automations">dosing automations</a>.
-          </Typography>
+          {dosingControlJob &&
+          <React.Fragment>
+            <div style={{justifyContent: "space-between", display: "flex"}}>
+              <Typography display="block">
+                Dosing automation
+              </Typography>
+            </div>
+            <div>
+              <Typography variant="body2" component="p" gutterBottom>
+                <div dangerouslySetInnerHTML={{__html: dosingControlJob.metadata.description}}/>
+              </Typography>
 
-          <ButtonChangeDosingDialog
-            unit={unit}
-            config={config}
-            experiment={experiment}
-            currentDosingAutomation={true}
-            title="All active Pioreactors"
-          />
-          <Divider classes={{root: classes.divider}} />
-          <Typography  gutterBottom>
-            LED automation
-          </Typography>
-          <Typography variant="body2" component="p" gutterBottom>
-              Learn more about <a target="_blank" rel="noopener noreferrer" href="https://docs.pioreactor.com/user_guide/Automations/LED%20Automations">LED automations</a>.
-          </Typography>
+              {buttons['dosing_control']}
+            </div>
 
-          <ButtonChangeLEDDialog
-            unit={unit}
-            config={config}
-            experiment={experiment}
-            currentLEDAutomation={true}
-            title="All active Pioreactors"
-          />
+            <Button
+              onClick={() => setOpenChangeDosingDialog(true)}
+              style={{marginTop: "10px"}}
+              size="small"
+              color="primary"
+            >
+              Change dosing automation
+            </Button>
+
+            <ChangeDosingDialog
+              open={openChangeDosingDialog}
+              onFinished={() => setOpenChangeDosingDialog(false)}
+              unit={unit}
+              config={config}
+              experiment={experiment}
+              isJobRunning={true}
+            />
+          </React.Fragment>
+          }
+
           <Divider className={classes.divider} />
-          <Typography  gutterBottom>
-            Temperature automation
-          </Typography>
-          <Typography variant="body2" component="p" gutterBottom>
-              Learn more about <a target="_blank" rel="noopener noreferrer" href="https://docs.pioreactor.com/user_guide/Automations/Temperature%20Automations">temperature automations</a>.
-          </Typography>
 
-          <ButtonChangeTemperatureDialog
-            unit={unit}
-            config={config}
-            experiment={experiment}
-            currentTemperatureAutomation={true}
-            title="All active Pioreactors"
-          />
+
+          {ledControlJob &&
+          <React.Fragment>
+            <div style={{justifyContent: "space-between", display: "flex"}}>
+              <Typography display="block">
+                LED automation
+              </Typography>
+            </div>
+            <div>
+              <Typography variant="body2" component="p" gutterBottom>
+                <div dangerouslySetInnerHTML={{__html: ledControlJob.metadata.description}}/>
+              </Typography>
+
+              {buttons['led_control']}
+            </div>
+
+            <Button
+              onClick={() => setOpenChangeLEDDialog(true)}
+              style={{marginTop: "10px"}}
+              size="small"
+              color="primary"
+            >
+              Change LED automation
+            </Button>
+
+            <ChangeLEDDialog
+              open={openChangeLEDDialog}
+              onFinished={() => setOpenChangeLEDDialog(false)}
+              unit={unit}
+              config={config}
+              experiment={experiment}
+              isJobRunning={true}
+            />
+          </React.Fragment>
+          }
+
           <Divider className={classes.divider} />
+
+
+          {temperatureControlJob &&
+          <React.Fragment>
+            <div style={{justifyContent: "space-between", display: "flex"}}>
+              <Typography display="block">
+                Temperature automation
+              </Typography>
+            </div>
+            <div>
+              <Typography variant="body2" component="p" gutterBottom>
+                <div dangerouslySetInnerHTML={{__html: temperatureControlJob.metadata.description}}/>
+              </Typography>
+
+              {buttons['temperature_control']}
+            </div>
+
+            <Button
+              onClick={() => setOpenChangeTemperatureDialog(true)}
+              style={{marginTop: "10px"}}
+              size="small"
+              color="primary"
+            >
+              Change temperature automation
+            </Button>
+
+            <ChangeTemperatureDialog
+              open={openChangeTemperatureDialog}
+              onFinished={() => setOpenChangeTemperatureDialog(false)}
+              unit={unit}
+              config={config}
+              experiment={experiment}
+              isJobRunning={true}
+            />
+          </React.Fragment>
+          }
+
+          <Divider className={classes.divider} />
+
+
+
         </TabPanel>
 
-
-        <TabPanel value={tabValue} index={2}>
+        <TabPanel value={tabValue} index={1}>
           {Object.values(jobs)
             .filter(job => job.metadata.display)
             .map(job =>
             Object.entries(job)
-              .filter(([key, setting]) => (key !== "state") && (key !== "metadata"))
+              .filter(([key, _]) => (key !== "state") && (key !== "metadata"))
               .filter(([_, setting]) => setting.display)
               .map(([key, setting]) =>
             <React.Fragment key={key}>
@@ -1670,7 +1858,7 @@ function SettingsActionsDialogAll({config, experiment}) {
           ))}
 
         </TabPanel>
-        <TabPanel value={tabValue} index={3}>
+        <TabPanel value={tabValue} index={2}>
           <Typography  gutterBottom>
             Add media
           </Typography>
@@ -1698,7 +1886,7 @@ function SettingsActionsDialogAll({config, experiment}) {
           <Divider className={classes.divider} />
         </TabPanel>
 
-        <TabPanel value={tabValue} index={4}>
+        <TabPanel value={tabValue} index={3}>
           <Typography style={{textTransform: "capitalize"}}>
             Channel A
           </Typography>

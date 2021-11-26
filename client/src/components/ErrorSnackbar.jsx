@@ -78,7 +78,7 @@ function ErrorSnackbar(props) {
       open={open}
       anchorOrigin={{vertical: "bottom", horizontal: "right"}}
       key={"error-snackbar"}
-      autoHideDuration={9000}
+      autoHideDuration={10000}
       style={{maxWidth: "500px"}}
       onClose={handleClose}
     >

@@ -39,9 +39,8 @@ const useStyles = makeStyles((theme) => ({
 
 
 
-function ButtonChangeLEDDialog(props) {
+function ChangeLEDDialog(props) {
   const classes = useStyles();
-  const [open, setOpen] = useState(false);
   const [algoSettings, setAlgoSettings] = useState({automation_name: "silent", skip_first_run: false})
   const [client, setClient] = useState(null)
   const [automations, setAutomations] = useState({})
@@ -90,12 +89,9 @@ function ButtonChangeLEDDialog(props) {
 
   },[props.config])
 
-  const handleClickOpen = () => {
-    setOpen(true);
-  };
 
   const handleClose = () => {
-    setOpen(false);
+    props.onFinished();
   };
 
   const handleAlgoSelectionChange = (e) => {
@@ -106,8 +102,21 @@ function ButtonChangeLEDDialog(props) {
     setAlgoSettings(prevState => ({...prevState, ...setting}))
   }
 
+  const startJob = (event) => {
+    event.preventDefault()
+    fetch("/run/led_control/" + props.unit, {
+      method: "POST",
+      body: JSON.stringify(algoSettings),
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      }
+    })
+    setOpenSnackbar(true);
+    handleClose()
+  }
 
-  const onSubmit = (event) => {
+  const changeAutomation = (event) => {
     event.preventDefault()
     var message = new Message(JSON.stringify(algoSettings));
     message.destinationName = [
@@ -127,7 +136,7 @@ function ButtonChangeLEDDialog(props) {
     catch (e){
       console.log(e)
     }
-    setOpen(false);
+    handleClose();
   }
 
 
@@ -136,23 +145,14 @@ function ButtonChangeLEDDialog(props) {
   };
 
   return (
-    <div>
-      <Button
-        style={{marginTop: "10px"}}
-        size="small"
-        color="primary"
-        disabled={!props.currentLEDAutomation}
-        onClick={handleClickOpen}
-      >
-        Change LED automation
-      </Button>
-      <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title" PaperProps={{style: {height: "100%"}}}>
+    <React.Fragment>
+      <Dialog open={props.open} onClose={handleClose} aria-labelledby="form-dialog-title" PaperProps={{style: {height: "100%"}}}>
         <DialogTitle>
           <Typography className={classes.suptitle}>
             <PioreactorIcon style={{verticalAlign: "middle", fontSize: "1.2em"}}/> {props.title || ((props.config['ui.rename'] && props.config['ui.rename'][props.unit]) ? `${props.config['ui.rename'][props.unit]} (${props.unit})` : `${props.unit}`)}
           </Typography>
           <Typography className={classes.unitTitleDialog}>
-            Change LED automation
+            Select LED automation
           </Typography>
           <IconButton
             aria-label="close"
@@ -192,10 +192,10 @@ function ButtonChangeLEDDialog(props) {
                 type="submit"
                 variant="contained"
                 color="primary"
-                onClick={onSubmit}
+                onClick={props.isJobRunning ? changeAutomation :  startJob}
                 style={{width: "120px", marginTop: "20px"}}
               >
-                Submit
+                Start
               </Button>
             </FormControl>
           </form>
@@ -205,12 +205,12 @@ function ButtonChangeLEDDialog(props) {
         anchorOrigin={{vertical: "bottom", horizontal: "center"}}
         open={openSnackbar}
         onClose={handleSnackbarClose}
-        message={`Changing LED automation to ${algoSettings.automation_name}.`}
+        message={`Starting LED automation ${algoSettings.automation_name}.`}
         autoHideDuration={7000}
         key={"snackbar-change-led"}
       />
-    </div>
+    </React.Fragment>
 )}
 
 
-export default ButtonChangeLEDDialog;
+export default ChangeLEDDialog;

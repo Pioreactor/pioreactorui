@@ -43,15 +43,12 @@ const useStyles = makeStyles((theme) => ({
 
 
 
-function ButtonChangeDosingDialog(props) {
+function ChangeDosingDialog(props) {
   const classes = useStyles();
-  const config = props.config
-  const [open, setOpen] = useState(false);
   const [algoSettings, setAlgoSettings] = useState({automation_name: "silent", skip_first_run: false})
   const [client, setClient] = useState(null)
   const [automations, setAutomations] = useState({})
   const [openSnackbar, setOpenSnackbar] = useState(false);
-
 
   useEffect(() => {
     async function fetchDosingAutomations() {
@@ -73,34 +70,31 @@ function ButtonChangeDosingDialog(props) {
 
   useEffect(() => {
     // MQTT - client ids should be unique
-    if (!config['network.topology']){
+    if (!props.config['network.topology']){
       return
     }
 
     var client
-    if (config.remote && config.remote.ws_url) {
+    if (props.config.remote && props.config.remote.ws_url) {
       client = new Client(
-        `ws://${config.remote.ws_url}/`,
-        "webui_ButtonChangeDosingDialog" + Math.random()
+        `ws://${props.config.remote.ws_url}/`,
+        "webui_ChangeDosingDialog" + Math.random()
       )}
     else {
       client = new Client(
-        `${config['network.topology']['leader_address']}`, 9001,
-        "webui_ButtonChangeDosingDialog" + Math.random()
+        `${props.config['network.topology']['leader_address']}`, 9001,
+        "webui_ChangeDosingDialog" + Math.random()
       );
     }
 
     client.connect();
     setClient(client)
 
-  },[config])
+  },[props.config])
 
-  const handleClickOpen = () => {
-    setOpen(true);
-  };
 
   const handleClose = () => {
-    setOpen(false);
+    props.onFinished();
   };
 
   const handleAlgoSelectionChange = (e) => {
@@ -115,7 +109,21 @@ function ButtonChangeDosingDialog(props) {
     setAlgoSettings(prevState => ({...prevState, ...setting}))
   }
 
-  const onSubmit = (event) => {
+  const startJob = (event) => {
+    event.preventDefault()
+    fetch("/run/dosing_control/" + props.unit, {
+      method: "POST",
+      body: JSON.stringify(algoSettings),
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      }
+    })
+    setOpenSnackbar(true);
+    handleClose()
+  }
+
+  const changeAutomation = (event) => {
     event.preventDefault()
     var message = new Message(JSON.stringify(algoSettings));
     message.destinationName = [
@@ -134,7 +142,7 @@ function ButtonChangeDosingDialog(props) {
     catch (e){
       console.log(e)
     }
-    setOpen(false);
+    handleClose();
   }
 
   const handleSnackbarClose = () => {
@@ -143,23 +151,14 @@ function ButtonChangeDosingDialog(props) {
 
 
   return (
-    <div>
-      <Button
-        style={{marginTop: "10px"}}
-        size="small"
-        color="primary"
-        disabled={!props.currentDosingAutomation}
-        onClick={handleClickOpen}
-      >
-        Change dosing automation
-      </Button>
-      <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title" PaperProps={{style: {height: "100%"}}}>
+    <React.Fragment>
+      <Dialog open={props.open} onClose={handleClose} aria-labelledby="form-dialog-title" PaperProps={{style: {height: "100%"}}}>
         <DialogTitle>
           <Typography className={classes.suptitle}>
-            <PioreactorIcon style={{verticalAlign: "middle", fontSize: "1.2em"}}/> {props.title || ((config['ui.rename'] && config['ui.rename'][props.unit]) ? `${config['ui.rename'][props.unit]} (${props.unit})` : `${props.unit}`)}
+            <PioreactorIcon style={{verticalAlign: "middle", fontSize: "1.2em"}}/> {props.title || ((props.config['ui.rename'] && props.config['ui.rename'][props.unit]) ? `${props.config['ui.rename'][props.unit]} (${props.unit})` : `${props.unit}`)}
           </Typography>
           <Typography className={classes.unitTitleDialog}>
-            Change dosing automation
+            Select dosing automation
           </Typography>
           <IconButton
             aria-label="close"
@@ -205,10 +204,10 @@ function ButtonChangeDosingDialog(props) {
                 type="submit"
                 variant="contained"
                 color={"primary" }
-                onClick={onSubmit}
+                onClick={props.isJobRunning ? changeAutomation :  startJob}
                 style={{width: "120px", marginTop: "20px"}}
               >
-                Submit
+                Start
               </Button>
             </FormControl>
           </form>
@@ -218,12 +217,12 @@ function ButtonChangeDosingDialog(props) {
         anchorOrigin={{vertical: "bottom", horizontal: "center"}}
         open={openSnackbar}
         onClose={handleSnackbarClose}
-        message={`Changing dosing automation to ${algoSettings.automation_name}.`}
+        message={`Starting dosing automation ${algoSettings.automation_name}.`}
         autoHideDuration={7000}
         key={"snackbar-change-dosing"}
       />
-    </div>
+    </React.Fragment>
 )}
 
 
-export default ButtonChangeDosingDialog;
+export default ChangeDosingDialog;
