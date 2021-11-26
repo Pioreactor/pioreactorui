@@ -1,5 +1,5 @@
 ---
-name: Dosing control
+name: Dosing automation
 job_name: dosing_control
 display: true
 source: app

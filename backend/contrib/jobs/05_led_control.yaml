@@ -1,5 +1,5 @@
 ---
-name: LED control
+name: LED automation
 job_name: led_control
 subtext: automation_name
 source: app
