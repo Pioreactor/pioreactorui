@@ -44,9 +44,7 @@ import ListSubheader from '@material-ui/core/ListSubheader';
 import DnsIcon from '@material-ui/icons/Dns';
 import IndeterminateCheckBoxOutlinedIcon from '@material-ui/icons/IndeterminateCheckBoxOutlined';
 
-import ChangeDosingDialog from "./components/ChangeDosingDialog"
-import ChangeLEDDialog from "./components/ChangeLEDDialog"
-import ChangeTemperatureDialog from "./components/ChangeTemperatureDialog"
+import ChangeAutomationsDialog from "./components/ChangeAutomationsDialog"
 import ActionDosingForm from "./components/ActionDosingForm"
 import ActionLEDForm from "./components/ActionLEDForm"
 import PioreactorIcon from "./components/PioreactorIcon"
@@ -1194,7 +1192,8 @@ function SettingsActionsDialog(props) {
               Change dosing automation
             </Button>
 
-            <ChangeDosingDialog
+            <ChangeAutomationsDialog
+              automationType="dosing"
               open={openChangeDosingDialog}
               onFinished={() => setOpenChangeDosingDialog(false)}
               unit={props.unit}
@@ -1258,7 +1257,8 @@ function SettingsActionsDialog(props) {
               Change LED automation
             </Button>
 
-            <ChangeLEDDialog
+            <ChangeAutomationsDialog
+              automationType="led"
               open={openChangeLEDDialog}
               onFinished={() => setOpenChangeLEDDialog(false)}
               unit={props.unit}
@@ -1321,13 +1321,14 @@ function SettingsActionsDialog(props) {
               Change temperature automation
             </Button>
 
-            <ChangeTemperatureDialog
+            <ChangeAutomationsDialog
               open={openChangeTemperatureDialog}
               onFinished={() => setOpenChangeTemperatureDialog(false)}
               unit={props.unit}
               config={props.config}
               experiment={props.experiment}
               isJobRunning={temperatureControlJob.state !== "disconnected"}
+              automationType="temperature"
             />
           </React.Fragment>
           }
@@ -1732,7 +1733,8 @@ function SettingsActionsDialogAll({config, experiment}) {
               Change dosing automation
             </Button>
 
-            <ChangeDosingDialog
+            <ChangeAutomationsDialog
+              automationType="dosing"
               open={openChangeDosingDialog}
               onFinished={() => setOpenChangeDosingDialog(false)}
               unit={unit}
@@ -1770,7 +1772,8 @@ function SettingsActionsDialogAll({config, experiment}) {
               Change LED automation
             </Button>
 
-            <ChangeLEDDialog
+            <ChangeAutomationsDialog
+              automationType="led"
               open={openChangeLEDDialog}
               onFinished={() => setOpenChangeLEDDialog(false)}
               unit={unit}
@@ -1808,13 +1811,14 @@ function SettingsActionsDialogAll({config, experiment}) {
               Change temperature automation
             </Button>
 
-            <ChangeTemperatureDialog
+            <ChangeAutomationsDialog
               open={openChangeTemperatureDialog}
               onFinished={() => setOpenChangeTemperatureDialog(false)}
               unit={unit}
               config={config}
               experiment={experiment}
               isJobRunning={true}
+              automationType="temperature"
             />
           </React.Fragment>
           }
