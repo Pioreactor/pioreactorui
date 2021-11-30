@@ -7,7 +7,6 @@ import ExperimentSummary from "./components/ExperimentSummary";
 import Chart from "./components/Chart";
 import MediaCard from "./components/MediaCard";
 import PioreactorIcon from './components/PioreactorIcon';
-import TactileButtonNotification from "./components/TactileButtonNotification";
 
 
 function Overview(props) {
@@ -156,7 +155,6 @@ function Overview(props) {
 
         </Grid>
       </Grid>
-      {props.config['ui.rename'] ? <TactileButtonNotification config={props.config}/> : null}
     </React.Fragment>
   );
 }

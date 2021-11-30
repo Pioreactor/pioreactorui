@@ -48,7 +48,6 @@ import ChangeAutomationsDialog from "./components/ChangeAutomationsDialog"
 import ActionDosingForm from "./components/ActionDosingForm"
 import ActionLEDForm from "./components/ActionLEDForm"
 import PioreactorIcon from "./components/PioreactorIcon"
-import TactileButtonNotification from "./components/TactileButtonNotification";
 import UnderlineSpan from "./components/UnderlineSpan";
 
 const readyGreen = "#4caf50"
@@ -547,7 +546,7 @@ function PatientButton(props) {
 
   function wrappingOnClick() {
     function f() {
-      setButtonText(<CircularProgress color="inherit" size={22}/>)
+      setButtonText(<CircularProgress color="inherit" size={21}/>)
       props.onClick()
     }
     return f
@@ -556,7 +555,7 @@ function PatientButton(props) {
   return (
     <Button
       disableElevation
-      style={{width: "70px", marginTop: "5px"}}
+      style={{width: "70px", marginTop: "5px", height: "31px"}}
       color={props.color}
       variant={props.variant}
       disabled={props.disabled}
@@ -2299,7 +2298,6 @@ function Pioreactors({title, config}) {
             <ActiveUnits experiment={experimentMetadata.experiment} config={config} units={config['network.inventory'] ? entries(config['network.inventory']).filter((v) => v[1] === "1").map((v) => v[0]) : [] }/>
             <InactiveUnits experiment={experimentMetadata.experiment} config={config} units={config['network.inventory'] ? entries(config['network.inventory']).filter((v) => v[1] === "0").map((v) => v[0]) : [] }/>
           </Grid>
-          {config['ui.rename'] ? <TactileButtonNotification config={config}/> : null}
         </Grid>
     )
 }

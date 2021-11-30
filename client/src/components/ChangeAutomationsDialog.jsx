@@ -62,7 +62,7 @@ function ChangeAutomationsDialog(props) {
         .catch((error) => {})
     }
     fetchAutomations();
-  }, [])
+  }, [automationType])
 
 
   useEffect(() => {

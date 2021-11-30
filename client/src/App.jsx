@@ -1,6 +1,6 @@
 import React from "react";
 import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
-import { ThemeProvider, createTheme, adaptV4Theme } from '@mui/material/styles';
+import { ThemeProvider, createTheme} from '@mui/material/styles';
 import CssBaseline from "@mui/material/CssBaseline";
 import { StyledEngineProvider } from '@mui/material/styles';
 
@@ -26,7 +26,7 @@ import './styles.css';
 import {parseINIString} from "./utilities"
 
 
-const theme = createTheme(adaptV4Theme({
+const theme = createTheme({
   palette: {
     background: {
       default: "#f6f6f7",
@@ -41,7 +41,7 @@ const theme = createTheme(adaptV4Theme({
       main: '#f44336',
     },
   },
-}));
+});
 
 
 
@@ -88,43 +88,37 @@ function MainSite() {
             <Switch>
               <Route path="/export-data">
                 <ExportData config={config} title="Pioreactor ~ Export data"/>
-                <TactileButtonNotification config={config}/>
               </Route>
               <Route path="/start-new-experiment">
                 <StartNewExperiment config={config} title="Pioreactor ~ Start new experiment" />
-                <TactileButtonNotification config={config}/>
               </Route>
               <Route path="/overview">
                 <ExperimentOverview config={config} title="Pioreactor ~ Overview"/>
               </Route>
               <Route path="/plugins">
                 <Plugins config={config} title="Pioreactor ~ Plugins"/>
-                <TactileButtonNotification config={config}/>
               </Route>
               <Route path="/analysis">
                 <Analysis config={config} title="Pioreactor ~ Analysis"/>
-                <TactileButtonNotification config={config}/>
               </Route>
               <Route path="/config">
                 <EditConfig config={config} title="Pioreactor ~ Configuration"/>
-                <TactileButtonNotification config={config}/>
               </Route>
               <Route path="/pioreactors">
                 <Pioreactors config={config} title="Pioreactor ~ Pioreactors"/>
               </Route>
               <Route path="/updates">
                 <Updates config={config} title="Pioreactor ~ Updates"/>
-                <TactileButtonNotification config={config}/>
               </Route>
               <Route path="/feedback">
                 <Feedback config={config} title="Pioreactor ~ Feedback"/>
-                <TactileButtonNotification config={config}/>
               </Route>
               <Route path="/">
                 <ExperimentOverview config={config} title="Pioreactor ~ Pioreactor"/>
               </Route>
             </Switch>
             <ErrorSnackbar config={config} />
+            <TactileButtonNotification config={config}/>
           </div>
         </Router>
       </main>
