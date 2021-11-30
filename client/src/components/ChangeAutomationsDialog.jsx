@@ -200,7 +200,7 @@ function ChangeAutomationsDialog(props) {
       anchorOrigin={{vertical: "bottom", horizontal: "center"}}
       open={openSnackbar}
       onClose={handleSnackbarClose}
-      message={`Starting ${automationType} automation ${algoSettings.automation_name}.`}
+      message={`Starting ${automationType} automation ${automations[algoSettings.automation_name]?.display_name}.`}
       autoHideDuration={7000}
       key={"snackbar-change-" + automationType}
     />
