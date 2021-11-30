@@ -1,20 +1,20 @@
 import React from "react";
 import moment from "moment";
 
-import Grid from '@material-ui/core/Grid';
+import Grid from '@mui/material/Grid';
 
-import { makeStyles } from '@material-ui/styles';
-import FormLabel from '@material-ui/core/FormLabel';
-import FormControl from '@material-ui/core/FormControl';
-import FormGroup from '@material-ui/core/FormGroup';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
-import Checkbox from '@material-ui/core/Checkbox';
-import Card from '@material-ui/core/Card';
-import CardContent from '@material-ui/core/Card';
-import {Typography} from '@material-ui/core';
-import Select from '@material-ui/core/Select';
-import Box from '@material-ui/core/Box';
-import LoadingButton from "@material-ui/lab/LoadingButton";
+import { makeStyles } from '@mui/styles';
+import FormLabel from '@mui/material/FormLabel';
+import FormControl from '@mui/material/FormControl';
+import FormGroup from '@mui/material/FormGroup';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import Checkbox from '@mui/material/Checkbox';
+import Card from '@mui/material/Card';
+import CardContent from '@mui/material/Card';
+import {Typography} from '@mui/material';
+import Select from '@mui/material/Select';
+import Box from '@mui/material/Box';
+import LoadingButton from "@mui/lab/LoadingButton";
 
 
 const useStyles = makeStyles((theme) => ({

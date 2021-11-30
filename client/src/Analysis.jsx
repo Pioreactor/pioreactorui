@@ -1,13 +1,13 @@
 import React from "react";
 import moment from "moment";
 
-import Grid from "@material-ui/core/Grid";
-import Button from "@material-ui/core/Button";
+import Grid from "@mui/material/Grid";
+import Button from "@mui/material/Button";
 import Chart from "./components/Chart";
 import PioreactorIcon from './components/PioreactorIcon';
-import FormControl from '@material-ui/core/FormControl';
-import { makeStyles } from '@material-ui/styles';
-import Select from '@material-ui/core/Select';
+import FormControl from '@mui/material/FormControl';
+import { makeStyles } from '@mui/styles';
+import Select from '@mui/material/Select';
 
 
 const useStyles = makeStyles((theme) => ({
@@ -96,108 +96,108 @@ function Analysis(props) {
   };
 
   return (
-      <React.Fragment>
-        <Grid container spacing={2} justify="space-between">
+    <React.Fragment>
+      <Grid container spacing={2} justifyContent="space-between">
+        <Grid item xs={12}>
+          <ExperimentSelection
+          experimentSelection={experimentSelection}
+          handleChange={handleExperimentSelectionChange}
+          />
+        </Grid>
+        <Grid item xs={12} md={6} container spacing={2} justifyContent="flex-start" style={{height: "100%"}}>
           <Grid item xs={12}>
-            <ExperimentSelection
-            experimentSelection={experimentSelection}
-            handleChange={handleExperimentSelectionChange}
+            <Chart
+
+              dataSource="growth_rates"
+              title="Implied growth rate"
+              topic="growth_rate_calculating/growth_rate"
+              payloadKey="growth_rate"
+              yAxisLabel="Growth rate, h⁻¹"
+              experiment={experimentSelection}
+              deltaHours={20}
+              interpolation="stepAfter"
+              yAxisDomain={[-0.02, 0.1]}
+              lookback={100000}
+              fixedDecimals={2}
             />
           </Grid>
-          <Grid item xs={12} md={6} container spacing={2} justify="flex-start" style={{height: "100%"}}>
-            <Grid item xs={12}>
-              <Chart
 
-                dataSource="growth_rates"
-                title="Implied growth rate"
-                topic="growth_rate_calculating/growth_rate"
-                payloadKey="growth_rate"
-                yAxisLabel="Growth rate, h⁻¹"
-                experiment={experimentSelection}
-                deltaHours={20}
-                interpolation="stepAfter"
-                yAxisDomain={[-0.02, 0.1]}
-                lookback={100000}
-                fixedDecimals={2}
-              />
-            </Grid>
+          <Grid item xs={12}>
+            <Chart
 
-            <Grid item xs={12}>
-              <Chart
-
-                dataSource="temperature_readings"
-                title="Temperature of vials"
-                topic="temperature_control/temperature"
-                yAxisLabel="temperature, ℃"
-                payloadKey="temperature"
-                experiment={experimentSelection}
-                interpolation="stepAfter"
-                lookback={10000}
-                deltaHours={1}
-                yAxisDomain={[22.5, 37.5]}
-                fixedDecimals={1}
-              />
-            </Grid>
-
-
-            <Grid item xs={12}>
-              <Chart
-
-                yAxisDomain={[0.00, 0.05]}
-                dataSource="alt_media_fraction"
-                interpolation="stepAfter"
-                payloadKey="alt_media_fraction"
-                title="Fraction of volume that is alternative media"
-                topic="alt_media_calculating/alt_media_fraction"
-                yAxisLabel="Fraction"
-                experiment={experimentSelection}
-                deltaHours={1} // hack to make all points display
-                fixedDecimals={3}
-                lookback={100000}
-              />
-            </Grid>
-
+              dataSource="temperature_readings"
+              title="Temperature of vials"
+              topic="temperature_control/temperature"
+              yAxisLabel="temperature, ℃"
+              payloadKey="temperature"
+              experiment={experimentSelection}
+              interpolation="stepAfter"
+              lookback={10000}
+              deltaHours={1}
+              yAxisDomain={[22.5, 37.5]}
+              fixedDecimals={1}
+            />
           </Grid>
-          <Grid item xs={12} md={6} container spacing={2} justify="flex-start" style={{height: "100%"}}>
 
-            <Grid item xs={12}>
-              <Chart
 
-                isODReading={true}
-                dataSource="od_readings_filtered"
-                title="Normalized optical density"
-                payloadKey="od_filtered"
-                topic="growth_rate_calculating/od_filtered"
-                yAxisLabel="Current OD / initial OD"
-                experiment={experimentSelection}
-                deltaHours={20}
-                interpolation="stepAfter"
-                lookback={100000}
-                fixedDecimals={2}
-              />
-            </Grid>
+          <Grid item xs={12}>
+            <Chart
 
-            <Grid item xs={12}>
-              <Chart
-
-                isODReading={true}
-                dataSource="od_readings_raw"
-                title="Optical density"
-                payloadKey="voltage"
-                topic="od_reading/od_raw/+"
-                yAxisLabel="Voltage"
-                experiment={experimentSelection}
-                deltaHours={20}
-                interpolation="stepAfter"
-                lookback={10000}
-                fixedDecimals={3}
-              />
-            </Grid>
-
+              yAxisDomain={[0.00, 0.05]}
+              dataSource="alt_media_fraction"
+              interpolation="stepAfter"
+              payloadKey="alt_media_fraction"
+              title="Fraction of volume that is alternative media"
+              topic="alt_media_calculating/alt_media_fraction"
+              yAxisLabel="Fraction"
+              experiment={experimentSelection}
+              deltaHours={1} // hack to make all points display
+              fixedDecimals={3}
+              lookback={100000}
+            />
           </Grid>
 
         </Grid>
-      </React.Fragment>
+        <Grid item xs={12} md={6} container spacing={2} justifyContent="flex-start" style={{height: "100%"}}>
+
+          <Grid item xs={12}>
+            <Chart
+
+              isODReading={true}
+              dataSource="od_readings_filtered"
+              title="Normalized optical density"
+              payloadKey="od_filtered"
+              topic="growth_rate_calculating/od_filtered"
+              yAxisLabel="Current OD / initial OD"
+              experiment={experimentSelection}
+              deltaHours={20}
+              interpolation="stepAfter"
+              lookback={100000}
+              fixedDecimals={2}
+            />
+          </Grid>
+
+          <Grid item xs={12}>
+            <Chart
+
+              isODReading={true}
+              dataSource="od_readings_raw"
+              title="Optical density"
+              payloadKey="voltage"
+              topic="od_reading/od_raw/+"
+              yAxisLabel="Voltage"
+              experiment={experimentSelection}
+              deltaHours={20}
+              interpolation="stepAfter"
+              lookback={10000}
+              fixedDecimals={3}
+            />
+          </Grid>
+
+        </Grid>
+
+      </Grid>
+    </React.Fragment>
   );
 }
 

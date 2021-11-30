@@ -1,9 +1,9 @@
 import React from "react";
 import { Client } from "paho-mqtt";
-import Alert from '@material-ui/core/Alert';
-import AlertTitle from '@material-ui/core/AlertTitle';
+import Alert from '@mui/material/Alert';
+import AlertTitle from '@mui/material/AlertTitle';
 
-import Snackbar from '@material-ui/core/Snackbar';
+import Snackbar from '@mui/material/Snackbar';
 
 function ErrorSnackbar(props) {
   var [open, setOpen] = React.useState(false)

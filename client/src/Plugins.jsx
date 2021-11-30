@@ -1,23 +1,23 @@
 import { Hashicon } from "@emeraldpay/hashicon-react";
 import React from "react";
 
-import Grid from '@material-ui/core/Grid';
-import { makeStyles } from '@material-ui/styles';
-import Card from '@material-ui/core/Card';
-import CardContent from '@material-ui/core/Card';
-import Button from '@material-ui/core/Button';
-import Box from '@material-ui/core/Box';
-import {Typography} from '@material-ui/core';
-import OpenInNewIcon from '@material-ui/icons/OpenInNew';
-import Snackbar from '@material-ui/core/Snackbar';
-import List from '@material-ui/core/List';
-import ListItem from '@material-ui/core/ListItem';
-import ListItemAvatar from '@material-ui/core/ListItemAvatar';
-import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
-import ListItemText from '@material-ui/core/ListItemText';
-import DeleteIcon from '@material-ui/icons/Delete';
-import Avatar from '@material-ui/core/Avatar';
-import GetAppIcon from '@material-ui/icons/GetApp';
+import Grid from '@mui/material/Grid';
+import { makeStyles } from '@mui/styles';
+import Card from '@mui/material/Card';
+import CardContent from '@mui/material/Card';
+import Button from '@mui/material/Button';
+import Box from '@mui/material/Box';
+import {Typography} from '@mui/material';
+import OpenInNewIcon from '@mui/icons-material/OpenInNew';
+import Snackbar from '@mui/material/Snackbar';
+import List from '@mui/material/List';
+import ListItem from '@mui/material/ListItem';
+import ListItemAvatar from '@mui/material/ListItemAvatar';
+import ListItemSecondaryAction from '@mui/material/ListItemSecondaryAction';
+import ListItemText from '@mui/material/ListItemText';
+import DeleteIcon from '@mui/icons-material/Delete';
+import Avatar from '@mui/material/Avatar';
+import GetAppIcon from '@mui/icons-material/GetApp';
 
 const useStyles = makeStyles((theme) => ({
   root: {

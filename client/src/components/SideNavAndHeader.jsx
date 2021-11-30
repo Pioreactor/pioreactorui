@@ -1,27 +1,27 @@
 import React from 'react';
-import { makeStyles } from '@material-ui/styles';
-import Drawer from '@material-ui/core/Drawer';
-import List from '@material-ui/core/List';
-import ListItem from '@material-ui/core/ListItem';
-import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
-import ListItemIcon from '@material-ui/core/ListItemIcon';
-import ListItemText from '@material-ui/core/ListItemText';
-import Badge from '@material-ui/core/Badge';
-import Divider from '@material-ui/core/Divider';
-import MenuIcon from '@material-ui/icons/Menu';
-import IconButton from '@material-ui/core/IconButton';
-import SaveAltIcon from '@material-ui/icons/SaveAlt';
-import HelpOutlineIcon from '@material-ui/icons/HelpOutline';
-import FeedbackOutlinedIcon from '@material-ui/icons/FeedbackOutlined';
-import UpdateIcon from '@material-ui/icons/Update';
-import Toolbar from '@material-ui/core/Toolbar';
-import {AppBar, Typography, Link, Button} from '@material-ui/core';
-import OpenInNewIcon from '@material-ui/icons/OpenInNew';
+import { makeStyles } from '@mui/styles';
+import Drawer from '@mui/material/Drawer';
+import List from '@mui/material/List';
+import ListItemButton from '@mui/material/ListItem';
+import ListItemSecondaryAction from '@mui/material/ListItemSecondaryAction';
+import ListItemIcon from '@mui/material/ListItemIcon';
+import ListItemText from '@mui/material/ListItemText';
+import Badge from '@mui/material/Badge';
+import Divider from '@mui/material/Divider';
+import MenuIcon from '@mui/icons-material/Menu';
+import IconButton from '@mui/material/IconButton';
+import SaveAltIcon from '@mui/icons-material/SaveAlt';
+import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
+import FeedbackOutlinedIcon from '@mui/icons-material/FeedbackOutlined';
+import UpdateIcon from '@mui/icons-material/Update';
+import Toolbar from '@mui/material/Toolbar';
+import {AppBar, Typography, Link, Button} from '@mui/material';
+import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import PioreactorIcon from './PioreactorIcon';
-import LibraryAddOutlinedIcon from '@material-ui/icons/LibraryAddOutlined';
-import DashboardOutlinedIcon from '@material-ui/icons/DashboardOutlined';
-import SettingsOutlinedIcon from '@material-ui/icons/SettingsOutlined';
-import InsertChartOutlinedIcon from '@material-ui/icons/InsertChartOutlined';
+import LibraryAddOutlinedIcon from '@mui/icons-material/LibraryAddOutlined';
+import DashboardOutlinedIcon from '@mui/icons-material/DashboardOutlined';
+import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
+import InsertChartOutlinedIcon from '@mui/icons-material/InsertChartOutlined';
 
 const drawerWidth = 212;
 
@@ -48,15 +48,6 @@ const useStyles = makeStyles((theme) => ({
     [theme.breakpoints.up('sm')]: {
       zIndex: theme.zIndex.drawer + 1
     }
-  },
-  hiddenIconContainer: {
-      "&:hover $hiddenIcon": {
-          color: 'rgba(0, 0, 0, 0.54)',
-      }
-  },
-  hiddenIcon: {
-      color: 'rgba(0, 0, 0, 0)',
-      fontSize: "18px",
   },
   listItemIcon: {
     minWidth: "40px"
@@ -114,123 +105,118 @@ export default function SideNavAndHeader() {
     <div className={classes.drawerContainer}>
       <List>
 
-        <ListItem href="/overview" component="a" button key={"overview"} selected={isSelected("/") || isSelected("/overview")}>
+        <ListItemButton href="/overview" component="a"  key={"overview"} selected={isSelected("/") || isSelected("/overview")}>
           <ListItemIcon className={classes.listItemIcon}><DashboardOutlinedIcon color={(isSelected("/") || isSelected("/overview")) ? "primary" : "inherit"}/> </ListItemIcon>
-          <ListItemText primaryTypographyProps={{color: isSelected("/") || isSelected("/overview") ? "primary" : "inherit"}} primary={"Overview"} />
-        </ListItem>
+          <ListItemText primaryTypographyProps={{color: isSelected("/") || isSelected("/overview") ? "primary" : "rgba(0, 0, 0, 0.87)"}} primary={"Overview"} />
+        </ListItemButton>
 
-        <ListItem button href="/pioreactors"  component="a" key={"pioreactors"} selected={isSelected("/pioreactors")}>
+        <ListItemButton href="/pioreactors"  component="a" key={"pioreactors"} selected={isSelected("/pioreactors")}>
           <ListItemIcon className={classes.listItemIcon}> <PioreactorIcon color={isSelected("/pioreactors") ? "primary" : "inherit"}/> </ListItemIcon>
-          <ListItemText primaryTypographyProps={{color: isSelected("/pioreactors") ? "primary" : "inherit"}} primary={"Pioreactors"} />
-        </ListItem>
+          <ListItemText primaryTypographyProps={{color: isSelected("/pioreactors") ? "primary" : "rgba(0, 0, 0, 0.87)"}} primary={"Pioreactors"} />
+        </ListItemButton>
 
 
-        <ListItem href="/export-data" component="a" button key={"export_data"} selected={isSelected("/export-data")}>
+        <ListItemButton href="/export-data" component="a"  key={"export_data"} selected={isSelected("/export-data")}>
           <ListItemIcon className={classes.listItemIcon}><SaveAltIcon color={isSelected("/export-data") ? "primary" : "inherit"}/> </ListItemIcon>
-          <ListItemText primaryTypographyProps={{color: isSelected("/export-data") ? "primary" : "inherit"}} primary={"Export data"} />
-        </ListItem>
+          <ListItemText primaryTypographyProps={{color: isSelected("/export-data") ? "primary" : "rgba(0, 0, 0, 0.87)"}} primary={"Export data"} />
+        </ListItemButton>
 
-        <ListItem button href="/config"  component="a" key={"config"} selected={isSelected("/config")}>
+        <ListItemButton  href="/config"  component="a" key={"config"} selected={isSelected("/config")}>
           <ListItemIcon className={classes.listItemIcon}> <SettingsOutlinedIcon color={isSelected("/config") ? "primary" : "inherit"}/> </ListItemIcon>
-          <ListItemText primaryTypographyProps={{color: isSelected("/config") ? "primary" : "inherit"}} primary={"Configuration"} />
-        </ListItem>
+          <ListItemText primaryTypographyProps={{color: isSelected("/config") ? "primary" : "rgba(0, 0, 0, 0.87)"}} primary={"Configuration"} />
+        </ListItemButton>
 
-        <ListItem button href="/analysis"  component="a" key={"analysis"} selected={isSelected("/analysis")}>
+        <ListItemButton  href="/analysis"  component="a" key={"analysis"} selected={isSelected("/analysis")}>
           <ListItemIcon className={classes.listItemIcon}> <InsertChartOutlinedIcon color={isSelected("/analysis") ? "primary" : "inherit"}/> </ListItemIcon>
-          <ListItemText primaryTypographyProps={{color: isSelected("/analysis") ? "primary" : "inherit"}} primary={"Analysis"} />
-        </ListItem>
+          <ListItemText primaryTypographyProps={{color: isSelected("/analysis") ? "primary" : "rgba(0, 0, 0, 0.87)"}} primary={"Analysis"} />
+        </ListItemButton>
 
         <Divider className={classes.divider} />
 
-        <ListItem href="/plugins" component="a" button key={"plugins"} selected={isSelected("/plugins")}>
+        <ListItemButton href="/plugins" component="a"  key={"plugins"} selected={isSelected("/plugins")}>
           <ListItemIcon className={classes.listItemIcon}><LibraryAddOutlinedIcon color={isSelected("/plugins") ? "primary" : "inherit"}/> </ListItemIcon>
-          <ListItemText primaryTypographyProps={{color: isSelected("/plugins") ? "primary" : "inherit"}} primary={"Plugins"} />
-        </ListItem>
+          <ListItemText primaryTypographyProps={{color: isSelected("/plugins") ? "primary" : "rgba(0, 0, 0, 0.87)"}} primary={"Plugins"} />
+        </ListItemButton>
 
-        <ListItem href="/updates" component="a" button key="updates" selected={isSelected("/updates")}>
+        <ListItemButton href="/updates" component="a"  key="updates" selected={isSelected("/updates")}>
           <ListItemIcon className={classes.listItemIcon}>
             <Badge variant="dot" color="secondary" invisible={!((version) && (latestVersion) && (version !== latestVersion))}>
               <UpdateIcon color={isSelected("/updates") ? "primary" : "inherit"}/>
             </Badge>
           </ListItemIcon>
-          <ListItemText primaryTypographyProps={{color: isSelected("/updates") ? "primary" : "inherit"}} primary={"Updates"}/>
-        </ListItem>
+          <ListItemText primaryTypographyProps={{color: isSelected("/updates") ? "primary" : "rgba(0, 0, 0, 0.87)"}} primary={"Updates"}/>
+        </ListItemButton>
 
-        <div className={classes.hiddenIconContainer}>
-          <ListItem target="_blank" rel="noopener noreferrer" href="https://docs.pioreactor.com" component="a" button key="help">
-            <ListItemIcon className={classes.listItemIcon}><HelpOutlineIcon/> </ListItemIcon>
-            <ListItemText primary={"Help"}/>
-            <ListItemSecondaryAction>
-                <OpenInNewIcon className={classes.hiddenIcon}/>
-            </ListItemSecondaryAction>
-          </ListItem>
-        </div>
+        <ListItemButton target="_blank" rel="noopener noreferrer" href="https://docs.pioreactor.com" component="a"  key="help">
+          <ListItemIcon className={classes.listItemIcon}><HelpOutlineIcon/> </ListItemIcon>
+          <ListItemText primary={"Help"} primaryTypographyProps={{color: "rgba(0, 0, 0, 0.87)"}}/>
+        </ListItemButton>
 
-        <ListItem href="/feedback" component="a" button key="feedback" selected={isSelected("/feedback")}>
+        <ListItemButton href="/feedback" component="a"  key="feedback" selected={isSelected("/feedback")}>
           <ListItemIcon className={classes.listItemIcon}>
             <FeedbackOutlinedIcon color={isSelected("/feedback") ? "primary" : "inherit"}/>
           </ListItemIcon>
-          <ListItemText primaryTypographyProps={{color: isSelected("/feedback") ? "primary" : "inherit"}} primary={"Share feedback"}/>
-        </ListItem>
+          <ListItemText primaryTypographyProps={{color: isSelected("/feedback") ? "primary" : "rgba(0, 0, 0, 0.87)"}} primary={"Share feedback"}/>
+        </ListItemButton>
 
       </List>
     </div>
   );
 
   return (
-      <React.Fragment>
-        <div className={classes.appBarRoot}>
-          <AppBar position="fixed" >
-            <Toolbar variant="dense">
+    <React.Fragment>
+      <div className={classes.appBarRoot}>
+        <AppBar position="fixed" >
+          <Toolbar variant="dense">
 
-              <IconButton
-                color="inherit"
-                aria-label="open drawer"
-                edge="start"
-                onClick={handleDrawerToggle}
-                classes={{root: classes.menuButton}}
-                sx={{ display: { xs: 'block', sm: 'none' } }}
-              >
-                <MenuIcon />
-              </IconButton>
+            <IconButton
+              color="inherit"
+              aria-label="open drawer"
+              edge="start"
+              onClick={handleDrawerToggle}
+              classes={{root: classes.menuButton}}
+              sx={{ display: { xs: 'block', sm: 'none' } }}
+              size="large">
+              <MenuIcon />
+            </IconButton>
 
 
-              <Typography variant="h6" className={classes.title}>
-                <Link color="inherit" underline="none" href="/" className={classes.title}> <img alt="pioreactor logo" src="white_colour.png" style={{width: "120px", height: "29px"}}/> </Link>
-              </Typography>
-              <Link color="inherit" underline="none" href="https://docs.pioreactor.com" target="_blank" rel="noopener noreferrer">
-                <Button color="inherit" style={{textTransform: "none"}}>Help <HelpOutlineIcon style={{ fontSize: 18, verticalAlign: "middle", marginLeft: 5 }}/></Button>
-              </Link>
-            </Toolbar>
-          </AppBar>
-        </div>
-        <Drawer
-          variant="temporary"
-          anchor="left"
-          open={mobileOpen}
-          onClose={handleDrawerToggle}
-          classes={{
-            paper: classes.drawerPaper,
-          }}
-          ModalProps={{
-            keepMounted: true, // Better open performance on mobile.
-          }}
-          sx={{ display: { xs: 'block', sm: 'none' } }}
-        >
-          {list()}
-        </Drawer>
-        <Drawer
-          classes={{
-            paper: classes.drawerPaper,
-          }}
-          variant="permanent"
-          open
-          className={classes.drawer}
-          sx={{ display: { xs: 'none', sm: 'block' } }}
-        >
-          <Toolbar />
-          {list()}
-        </Drawer>
-      </React.Fragment>
+            <Typography variant="h6" className={classes.title}>
+              <Link color="inherit" underline="none" href="/" className={classes.title}> <img alt="pioreactor logo" src="white_colour.png" style={{width: "120px", height: "29px"}}/> </Link>
+            </Typography>
+            <Link color="inherit" underline="none" href="https://docs.pioreactor.com" target="_blank" rel="noopener noreferrer">
+              <Button color="inherit" style={{textTransform: "none"}}>Help <HelpOutlineIcon style={{ fontSize: 18, verticalAlign: "middle", marginLeft: 5 }}/></Button>
+            </Link>
+          </Toolbar>
+        </AppBar>
+      </div>
+      <Drawer
+        variant="temporary"
+        anchor="left"
+        open={mobileOpen}
+        onClose={handleDrawerToggle}
+        classes={{
+          paper: classes.drawerPaper,
+        }}
+        ModalProps={{
+          keepMounted: true, // Better open performance on mobile.
+        }}
+        sx={{ display: { xs: 'block', sm: 'none' } }}
+      >
+        {list()}
+      </Drawer>
+      <Drawer
+        classes={{
+          paper: classes.drawerPaper,
+        }}
+        variant="permanent"
+        open
+        className={classes.drawer}
+        sx={{ display: { xs: 'none', sm: 'block' } }}
+      >
+        <Toolbar />
+        {list()}
+      </Drawer>
+    </React.Fragment>
   );
 }
