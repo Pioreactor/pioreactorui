@@ -1,8 +1,8 @@
 
 import React from "react";
-import Grid from '@material-ui/core/Grid';
-import Button from "@material-ui/core/Button";
-import Snackbar from "@material-ui/core/Snackbar";
+import Grid from '@mui/material/Grid';
+import Button from "@mui/material/Button";
+import Snackbar from "@mui/material/Snackbar";
 import Chart from "./Chart";
 
 
@@ -66,7 +66,7 @@ function StartCalculations(props){
     <Grid
       container
       direction="column"
-      justify="flex-start"
+      justifyContent="flex-start"
       alignItems="center"
       spacing={2}
     >
@@ -90,7 +90,7 @@ function StartCalculations(props){
       </Grid>
       <Grid item xs={2}/>
     </Grid>
-)}
+  );}
 
 
 export default StartCalculations;

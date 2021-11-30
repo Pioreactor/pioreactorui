@@ -3,29 +3,29 @@ import { Client, Message } from "paho-mqtt";
 
 import React, {useState, useEffect} from "react";
 
-import Grid from '@material-ui/core/Grid';
+import Grid from '@mui/material/Grid';
 import PropTypes from 'prop-types';
-import { useMediaQuery } from "@material-ui/core";
+import { useMediaQuery } from "@mui/material";
 
-import { makeStyles } from '@material-ui/styles';
-import Card from '@material-ui/core/Card';
-import CardContent from '@material-ui/core/Card';
-import {Typography} from '@material-ui/core';
-import Dialog from '@material-ui/core/Dialog';
-import DialogTitle from '@material-ui/core/DialogTitle';
-import DialogContent from '@material-ui/core/DialogContent';
-import DialogActions from '@material-ui/core/DialogActions';
-import DialogContentText from '@material-ui/core/DialogContentText';
-import Box from '@material-ui/core/Box';
-import Divider from '@material-ui/core/Divider';
-import CircularProgress from '@material-ui/core/CircularProgress';
-import Snackbar from '@material-ui/core/Snackbar';
-import TextField from '@material-ui/core/TextField';
-import Tooltip from '@material-ui/core/Tooltip';
-import InputAdornment from '@material-ui/core/InputAdornment';
-import Tabs from '@material-ui/core/Tabs';
-import Tab from '@material-ui/core/Tab';
-import Button from "@material-ui/core/Button";
+import { makeStyles } from '@mui/styles';
+import Card from '@mui/material/Card';
+import CardContent from '@mui/material/Card';
+import {Typography} from '@mui/material';
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContentText from '@mui/material/DialogContentText';
+import Box from '@mui/material/Box';
+import Divider from '@mui/material/Divider';
+import CircularProgress from '@mui/material/CircularProgress';
+import Snackbar from '@mui/material/Snackbar';
+import TextField from '@mui/material/TextField';
+import Tooltip from '@mui/material/Tooltip';
+import InputAdornment from '@mui/material/InputAdornment';
+import Tabs from '@mui/material/Tabs';
+import Tab from '@mui/material/Tab';
+import Button from "@mui/material/Button";
 import AddIcon from '@mui/icons-material/Add';
 import ClearIcon from '@mui/icons-material/Clear';
 import CloseIcon from '@mui/icons-material/Close';
@@ -35,12 +35,12 @@ import SettingsIcon from '@mui/icons-material/Settings';
 import TuneIcon from '@mui/icons-material/Tune';
 import CheckBoxOutlinedIcon from '@mui/icons-material/CheckBoxOutlined';
 import IndeterminateCheckBoxIcon from '@mui/icons-material/IndeterminateCheckBox';
-import ListItemIcon from '@material-ui/core/ListItemIcon';
-import ListItemText from '@material-ui/core/ListItemText';
-import List from '@material-ui/core/List';
-import IconButton from '@material-ui/core/IconButton';
-import ListItem from '@material-ui/core/ListItem';
-import ListSubheader from '@material-ui/core/ListSubheader';
+import ListItemIcon from '@mui/material/ListItemIcon';
+import ListItemText from '@mui/material/ListItemText';
+import List from '@mui/material/List';
+import IconButton from '@mui/material/IconButton';
+import ListItem from '@mui/material/ListItem';
+import ListSubheader from '@mui/material/ListSubheader';
 import DnsIcon from '@mui/icons-material/Dns';
 import IndeterminateCheckBoxOutlinedIcon from '@mui/icons-material/IndeterminateCheckBoxOutlined';
 
@@ -145,7 +145,7 @@ const useStyles = makeStyles((theme) => ({
     display: "flex",
     justifyContent: "space-between",
     marginBottom: "5px",
-    [theme.breakpoints.down('md')]:{
+    [theme.breakpoints.down('lg')]:{
       flexFlow: "nowrap",
       flexDirection: "column",
     }
@@ -153,7 +153,7 @@ const useStyles = makeStyles((theme) => ({
   cardHeaderSettings:{
     display: "flex",
     justifyContent: "space-between",
-    [theme.breakpoints.down('sm')]:{
+    [theme.breakpoints.down('md')]:{
       flexFlow: "nowrap",
       flexDirection: "column",
     }
@@ -163,7 +163,7 @@ const useStyles = makeStyles((theme) => ({
     justifyContent: "flex-end",
     flexDirection: "row",
     flexWrap: "wrap",
-    [theme.breakpoints.down('sm')]: {
+    [theme.breakpoints.down('md')]: {
       justifyContent: "space-between",
     }
   },
@@ -231,7 +231,7 @@ function UnitSettingDisplay(props) {
     else if (x < 1){
       return `<1`
     } else {
-      return (x).toFixed(1).replace(/[.,]0$/, "")
+      return (x).toFixed(1).replace(/[.,]0$/, "");
     }
   }
 
@@ -433,7 +433,7 @@ function AddNewPioreactor(props){
             top: 8,
             color: (theme) => theme.palette.grey[500],
           }}
-        >
+          size="large">
           <CloseIcon />
         </IconButton>
       </DialogTitle>
@@ -509,7 +509,7 @@ function AddNewPioreactor(props){
       key={"snackbar-add-new"}
     />
     </React.Fragment>
-)}
+  );}
 
 
 
@@ -669,7 +669,7 @@ function CalibrateDialog(props) {
               top: 8,
               color: (theme) => theme.palette.grey[500],
             }}
-          >
+            size="large">
             <CloseIcon />
           </IconButton>
         </DialogTitle>
@@ -711,7 +711,8 @@ function CalibrateDialog(props) {
           </TabPanel>
         </DialogContent>
       </Dialog>
-  </React.Fragment>)
+  </React.Fragment>
+  );
 }
 
 
@@ -817,7 +818,7 @@ function SystemCheckDialog(props) {
               top: 8,
               color: (theme) => theme.palette.grey[500],
             }}
-          >
+            size="large">
             <CloseIcon />
           </IconButton>
         </DialogTitle>
@@ -901,7 +902,8 @@ function SystemCheckDialog(props) {
           <Divider className={classes.divider} />
         </DialogContent>
       </Dialog>
-  </React.Fragment>)
+  </React.Fragment>
+  );
 }
 
 
@@ -1069,7 +1071,7 @@ function SettingsActionsDialog(props) {
     "NA":            {display: "Not available", color: disconnectedGrey},
   }
 
-  const isLargeScreen = useMediaQuery(theme => theme.breakpoints.down("lg"));
+  const isLargeScreen = useMediaQuery(theme => theme.breakpoints.down('xl'));
   var dosingControlJob = props.jobs.dosing_control
   var ledControlJob = props.jobs.led_control
   var temperatureControlJob = props.jobs.temperature_control
@@ -1093,7 +1095,7 @@ function SettingsActionsDialog(props) {
             top: 8,
             color: (theme) => theme.palette.grey[500],
           }}
-        >
+          size="large">
           <CloseIcon />
         </IconButton>
       <Tabs
@@ -1646,7 +1648,7 @@ function SettingsActionsDialogAll({config, experiment}) {
 
 
   const buttons = Object.fromEntries(Object.entries(jobs).map( ([job_key, job], i) => [job_key, createUserButtonsBasedOnState(job)]))
-  const isLargeScreen = useMediaQuery(theme => theme.breakpoints.down("lg"));
+  const isLargeScreen = useMediaQuery(theme => theme.breakpoints.down('xl'));
   var dosingControlJob = jobs.dosing_control
   var ledControlJob = jobs.led_control
   var temperatureControlJob = jobs.temperature_control
@@ -1670,7 +1672,7 @@ function SettingsActionsDialogAll({config, experiment}) {
             top: 8,
             color: (theme) => theme.palette.grey[600],
           }}
-        >
+          size="large">
           <CloseIcon />
         </IconButton>
       <Tabs

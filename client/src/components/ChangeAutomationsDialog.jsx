@@ -2,18 +2,18 @@ import React, { useState, useEffect } from "react";
 
 import { Client, Message } from "paho-mqtt";
 
-import { makeStyles } from "@material-ui/styles";
-import Button from "@material-ui/core/Button";
-import Typography from "@material-ui/core/Typography";
-import Dialog from '@material-ui/core/Dialog';
-import DialogContent from '@material-ui/core/DialogContent';
-import DialogTitle from '@material-ui/core/DialogTitle';
-import FormLabel from '@material-ui/core/FormLabel';
-import FormControl from '@material-ui/core/FormControl';
-import Select from '@material-ui/core/Select';
-import IconButton from '@material-ui/core/IconButton';
+import { makeStyles } from "@mui/styles";
+import Button from "@mui/material/Button";
+import Typography from "@mui/material/Typography";
+import Dialog from '@mui/material/Dialog';
+import DialogContent from '@mui/material/DialogContent';
+import DialogTitle from '@mui/material/DialogTitle';
+import FormLabel from '@mui/material/FormLabel';
+import FormControl from '@mui/material/FormControl';
+import Select from '@mui/material/Select';
+import IconButton from '@mui/material/IconButton';
 import CloseIcon from '@mui/icons-material/Close';
-import Snackbar from "@material-ui/core/Snackbar";
+import Snackbar from "@mui/material/Snackbar";
 
 import PioreactorIcon from "./PioreactorIcon"
 import AutomationForm from "./AutomationForm"
@@ -160,7 +160,7 @@ function ChangeAutomationsDialog(props) {
             top: 8,
             color: (theme) => theme.palette.grey[500],
           }}
-        >
+          size="large">
           <CloseIcon />
         </IconButton>
       </DialogTitle>
@@ -205,7 +205,7 @@ function ChangeAutomationsDialog(props) {
       key={"snackbar-change-" + automationType}
     />
     </React.Fragment>
-)}
+  );}
 
 
 export default ChangeAutomationsDialog;

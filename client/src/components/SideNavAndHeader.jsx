@@ -1,21 +1,21 @@
 import React from 'react';
-import { makeStyles } from '@material-ui/styles';
-import Drawer from '@material-ui/core/Drawer';
-import List from '@material-ui/core/List';
-import ListItem from '@material-ui/core/ListItem';
-import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
-import ListItemIcon from '@material-ui/core/ListItemIcon';
-import ListItemText from '@material-ui/core/ListItemText';
-import Badge from '@material-ui/core/Badge';
-import Divider from '@material-ui/core/Divider';
+import { makeStyles } from '@mui/styles';
+import Drawer from '@mui/material/Drawer';
+import List from '@mui/material/List';
+import ListItem from '@mui/material/ListItem';
+import ListItemSecondaryAction from '@mui/material/ListItemSecondaryAction';
+import ListItemIcon from '@mui/material/ListItemIcon';
+import ListItemText from '@mui/material/ListItemText';
+import Badge from '@mui/material/Badge';
+import Divider from '@mui/material/Divider';
 import MenuIcon from '@mui/icons-material/Menu';
-import IconButton from '@material-ui/core/IconButton';
+import IconButton from '@mui/material/IconButton';
 import SaveAltIcon from '@mui/icons-material/SaveAlt';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import FeedbackOutlinedIcon from '@mui/icons-material/FeedbackOutlined';
 import UpdateIcon from '@mui/icons-material/Update';
-import Toolbar from '@material-ui/core/Toolbar';
-import {AppBar, Typography, Link, Button} from '@material-ui/core';
+import Toolbar from '@mui/material/Toolbar';
+import {AppBar, Typography, Link, Button} from '@mui/material';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import PioreactorIcon from './PioreactorIcon';
 import LibraryAddOutlinedIcon from '@mui/icons-material/LibraryAddOutlined';
@@ -178,59 +178,59 @@ export default function SideNavAndHeader() {
   );
 
   return (
-      <React.Fragment>
-        <div className={classes.appBarRoot}>
-          <AppBar position="fixed" >
-            <Toolbar variant="dense">
+    <React.Fragment>
+      <div className={classes.appBarRoot}>
+        <AppBar position="fixed" >
+          <Toolbar variant="dense">
 
-              <IconButton
-                color="inherit"
-                aria-label="open drawer"
-                edge="start"
-                onClick={handleDrawerToggle}
-                classes={{root: classes.menuButton}}
-                sx={{ display: { xs: 'block', sm: 'none' } }}
-              >
-                <MenuIcon />
-              </IconButton>
+            <IconButton
+              color="inherit"
+              aria-label="open drawer"
+              edge="start"
+              onClick={handleDrawerToggle}
+              classes={{root: classes.menuButton}}
+              sx={{ display: { xs: 'block', sm: 'none' } }}
+              size="large">
+              <MenuIcon />
+            </IconButton>
 
 
-              <Typography variant="h6" className={classes.title}>
-                <Link color="inherit" underline="none" href="/" className={classes.title}> <img alt="pioreactor logo" src="white_colour.png" style={{width: "120px", height: "29px"}}/> </Link>
-              </Typography>
-              <Link color="inherit" underline="none" href="https://docs.pioreactor.com" target="_blank" rel="noopener noreferrer">
-                <Button color="inherit" style={{textTransform: "none"}}>Help <HelpOutlineIcon style={{ fontSize: 18, verticalAlign: "middle", marginLeft: 5 }}/></Button>
-              </Link>
-            </Toolbar>
-          </AppBar>
-        </div>
-        <Drawer
-          variant="temporary"
-          anchor="left"
-          open={mobileOpen}
-          onClose={handleDrawerToggle}
-          classes={{
-            paper: classes.drawerPaper,
-          }}
-          ModalProps={{
-            keepMounted: true, // Better open performance on mobile.
-          }}
-          sx={{ display: { xs: 'block', sm: 'none' } }}
-        >
-          {list()}
-        </Drawer>
-        <Drawer
-          classes={{
-            paper: classes.drawerPaper,
-          }}
-          variant="permanent"
-          open
-          className={classes.drawer}
-          sx={{ display: { xs: 'none', sm: 'block' } }}
-        >
-          <Toolbar />
-          {list()}
-        </Drawer>
-      </React.Fragment>
+            <Typography variant="h6" className={classes.title}>
+              <Link color="inherit" underline="none" href="/" className={classes.title}> <img alt="pioreactor logo" src="white_colour.png" style={{width: "120px", height: "29px"}}/> </Link>
+            </Typography>
+            <Link color="inherit" underline="none" href="https://docs.pioreactor.com" target="_blank" rel="noopener noreferrer">
+              <Button color="inherit" style={{textTransform: "none"}}>Help <HelpOutlineIcon style={{ fontSize: 18, verticalAlign: "middle", marginLeft: 5 }}/></Button>
+            </Link>
+          </Toolbar>
+        </AppBar>
+      </div>
+      <Drawer
+        variant="temporary"
+        anchor="left"
+        open={mobileOpen}
+        onClose={handleDrawerToggle}
+        classes={{
+          paper: classes.drawerPaper,
+        }}
+        ModalProps={{
+          keepMounted: true, // Better open performance on mobile.
+        }}
+        sx={{ display: { xs: 'block', sm: 'none' } }}
+      >
+        {list()}
+      </Drawer>
+      <Drawer
+        classes={{
+          paper: classes.drawerPaper,
+        }}
+        variant="permanent"
+        open
+        className={classes.drawer}
+        sx={{ display: { xs: 'none', sm: 'block' } }}
+      >
+        <Toolbar />
+        {list()}
+      </Drawer>
+    </React.Fragment>
   );
 }

@@ -1,23 +1,23 @@
 import React from 'react'
 import moment from "moment";
-import Card from '@material-ui/core/Card';
-import {makeStyles} from '@material-ui/styles';
-import CardContent from '@material-ui/core/Card';
-import {Typography} from '@material-ui/core';
-import Box from '@material-ui/core/Box';
-import InputBase from '@material-ui/core/InputBase';
-import Divider from '@material-ui/core/Divider';
-import Button from '@material-ui/core/Button';
+import Card from '@mui/material/Card';
+import {makeStyles} from '@mui/styles';
+import CardContent from '@mui/material/Card';
+import {Typography} from '@mui/material';
+import Box from '@mui/material/Box';
+import InputBase from '@mui/material/InputBase';
+import Divider from '@mui/material/Divider';
+import Button from '@mui/material/Button';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import TimelapseIcon from '@mui/icons-material/Timelapse';
 import GetAppIcon from '@mui/icons-material/GetApp';
 import ClearIcon from '@mui/icons-material/Clear';
 import AddIcon from '@mui/icons-material/Add';
-import DialogTitle from '@material-ui/core/DialogTitle';
-import Dialog from '@material-ui/core/Dialog';
-import DialogContent from '@material-ui/core/DialogContent';
-import DialogActions from '@material-ui/core/DialogActions';
-import DialogContentText from '@material-ui/core/DialogContentText';
+import DialogTitle from '@mui/material/DialogTitle';
+import Dialog from '@mui/material/Dialog';
+import DialogContent from '@mui/material/DialogContent';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContentText from '@mui/material/DialogContentText';
 
 
 
@@ -40,7 +40,7 @@ const useStyles = makeStyles((theme) => ({
     display: "flex",
     justifyContent: "space-between",
     marginBottom: "5px",
-    [theme.breakpoints.down('md')]:{
+    [theme.breakpoints.down('lg')]:{
       flexFlow: "nowrap",
       flexDirection: "column",
     }

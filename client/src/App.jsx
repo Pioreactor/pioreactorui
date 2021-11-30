@@ -1,8 +1,8 @@
 import React from "react";
 import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
-import { ThemeProvider, createTheme } from '@material-ui/core/styles';
-import CssBaseline from "@material-ui/core/CssBaseline";
-import { StyledEngineProvider } from '@material-ui/core/styles';
+import { ThemeProvider, createTheme, adaptV4Theme } from '@mui/material/styles';
+import CssBaseline from "@mui/material/CssBaseline";
+import { StyledEngineProvider } from '@mui/material/styles';
 
 
 import TactileButtonNotification from "./components/TactileButtonNotification";
@@ -26,7 +26,7 @@ import './styles.css';
 import {parseINIString} from "./utilities"
 
 
-const theme = createTheme({
+const theme = createTheme(adaptV4Theme({
   palette: {
     background: {
       default: "#f6f6f7",
@@ -41,7 +41,7 @@ const theme = createTheme({
       main: '#f44336',
     },
   },
-});
+}));
 
 
 

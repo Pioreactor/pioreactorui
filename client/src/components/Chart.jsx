@@ -13,7 +13,7 @@ import {
   VictoryVoronoiContainer,
 } from "victory";
 import moment from "moment";
-import Card from "@material-ui/core/Card";
+import Card from "@mui/material/Card";
 
 const colors = [
   {primary: "#9C6ADE", "1": "#9C6ADE", "2": "#E3D0FF", "3": "#50248F", "4": "#ecdffb"},

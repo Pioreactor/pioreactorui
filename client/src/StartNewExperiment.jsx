@@ -2,17 +2,17 @@ import React from "react";
 import moment from "moment";
 import { Client, Message } from "paho-mqtt";
 
-import Grid from '@material-ui/core/Grid';
-import { makeStyles } from '@material-ui/styles';
-import FormGroup from '@material-ui/core/FormGroup';
-import Card from '@material-ui/core/Card';
-import CardContent from '@material-ui/core/Card';
-import {Typography} from '@material-ui/core';
-import Button from "@material-ui/core/Button";
-import Stepper from '@material-ui/core/Stepper';
-import Step from '@material-ui/core/Step';
-import StepLabel from '@material-ui/core/StepLabel';
-import TextField from '@material-ui/core/TextField';
+import Grid from '@mui/material/Grid';
+import { makeStyles } from '@mui/styles';
+import FormGroup from '@mui/material/FormGroup';
+import Card from '@mui/material/Card';
+import CardContent from '@mui/material/Card';
+import {Typography} from '@mui/material';
+import Button from "@mui/material/Button";
+import Stepper from '@mui/material/Stepper';
+import Step from '@mui/material/Step';
+import StepLabel from '@mui/material/StepLabel';
+import TextField from '@mui/material/TextField';
 
 import CleaningScript from "./components/CleaningScript"
 import StartSensors from "./components/StartSensors"
@@ -183,7 +183,7 @@ function ExperimentSummaryForm(props) {
           <Grid item xs={12} md={12}>
             <TextField
               label="Description"
-              rowsMax={4}
+              maxRows={4}
               placeholder={"Add a description: what microbe are you using? What is the media composition? This description can always be changed later."}
               multiline
               value={description}
@@ -203,7 +203,7 @@ function ExperimentSummaryForm(props) {
         </Grid>
         </FormGroup>
     </div>
-  )
+  );
 }
 
 
