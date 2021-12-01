@@ -47,8 +47,8 @@ function ChangeAutomationsDialog(props) {
 
 
   useEffect(() => {
-    async function fetchAutomations() {
-      await fetch("/contrib/automations/" + automationType)
+    function fetchAutomations() {
+      fetch("/contrib/automations/" + automationType)
         .then((response) => {
             if (response.ok) {
               return response.json();

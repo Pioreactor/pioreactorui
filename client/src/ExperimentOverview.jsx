@@ -15,8 +15,8 @@ function Overview(props) {
 
   React.useEffect(() => {
     document.title = props.title;
-    async function getLatestExperiment() {
-         await fetch("/get_latest_experiment")
+    function getLatestExperiment() {
+        fetch("/get_latest_experiment")
         .then((response) => {
           return response.json();
         })

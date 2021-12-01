@@ -63,8 +63,8 @@ function MainSite() {
 
   React.useEffect(() => {
 
-    async function getConfig() {
-      await fetch("/get_config/config.ini")
+    function getConfig() {
+      fetch("/get_config/config.ini")
         .then((response) => {
             if (response.ok) {
               return response.text();

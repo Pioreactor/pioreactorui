@@ -46,8 +46,8 @@ class EditableCodeDiv extends React.Component {
     this.deleteConfig = this.deleteConfig.bind(this);
   }
 
-  async getConfig(filename) {
-    await fetch("/get_config/" + filename)
+  getConfig(filename) {
+    fetch("/get_config/" + filename)
       .then(response => {
         return response.text();
       })
@@ -56,8 +56,8 @@ class EditableCodeDiv extends React.Component {
       })
   }
 
-  async getListOfConfigFiles(filename) {
-    await fetch("/get_configs")
+  getListOfConfigFiles(filename) {
+    fetch("/get_configs")
       .then(response => {
         return response.json();
       })

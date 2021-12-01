@@ -3,7 +3,6 @@ import { makeStyles } from '@mui/styles';
 import Drawer from '@mui/material/Drawer';
 import List from '@mui/material/List';
 import ListItemButton from '@mui/material/ListItem';
-import ListItemSecondaryAction from '@mui/material/ListItemSecondaryAction';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import Badge from '@mui/material/Badge';
@@ -16,12 +15,12 @@ import FeedbackOutlinedIcon from '@mui/icons-material/FeedbackOutlined';
 import UpdateIcon from '@mui/icons-material/Update';
 import Toolbar from '@mui/material/Toolbar';
 import {AppBar, Typography, Link, Button} from '@mui/material';
-import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import PioreactorIcon from './PioreactorIcon';
 import LibraryAddOutlinedIcon from '@mui/icons-material/LibraryAddOutlined';
 import DashboardOutlinedIcon from '@mui/icons-material/DashboardOutlined';
 import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
 import InsertChartOutlinedIcon from '@mui/icons-material/InsertChartOutlined';
+import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 
 const drawerWidth = 212;
 
@@ -101,6 +100,10 @@ export default function SideNavAndHeader() {
     return (window.location.pathname === path)
   }
 
+  const helpNode = <React.Fragment>
+                     Help <OpenInNewIcon style={{fontSize:"15px", verticalAlign: "middle"}}/>
+                    </React.Fragment>
+
   const list = () => (
     <div className={classes.drawerContainer}>
       <List>
@@ -149,7 +152,7 @@ export default function SideNavAndHeader() {
 
         <ListItemButton target="_blank" rel="noopener noreferrer" href="https://docs.pioreactor.com" component="a"  key="help">
           <ListItemIcon className={classes.listItemIcon}><HelpOutlineIcon/> </ListItemIcon>
-          <ListItemText primary={"Help"} primaryTypographyProps={{color: "rgba(0, 0, 0, 0.87)"}}/>
+          <ListItemText primary={helpNode} primaryTypographyProps={{color: "rgba(0, 0, 0, 0.87)"}}/>
         </ListItemButton>
 
         <ListItemButton href="/feedback" component="a"  key="feedback" selected={isSelected("/feedback")}>

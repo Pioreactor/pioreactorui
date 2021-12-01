@@ -396,7 +396,7 @@ function AddNewPioreactor(props){
     }
     setIsError(false)
     setIsRunning(true)
-    fetch('add_new_pioreactor',{
+    fetch('add_new_pioreactor', {
         method: "POST",
         body: JSON.stringify({newPioreactorName: name, ipAddress: ip}),
         headers: {
@@ -2275,8 +2275,8 @@ function Pioreactors({title, config}) {
 
     React.useEffect(() => {
       document.title = title;
-      async function getLatestExperiment() {
-           await fetch("/get_latest_experiment")
+      function getLatestExperiment() {
+          fetch("/get_latest_experiment")
           .then((response) => {
             return response.json();
           })
