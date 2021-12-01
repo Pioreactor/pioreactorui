@@ -193,10 +193,18 @@ const CheckboxesGroup = (props) => {
 
           <FormControlLabel
             control={<Checkbox checked={props.isChecked.kalman_filter_outputs} onChange={props.handleChange} name="kalman_filter_outputs" />}
-            label="Kalman Filter outputs"
+            label="Kalman filter outputs"
           />
           <Typography variant="caption" className={classes.caption} gutterBottom>
             An internal Kalman filter produces the normalized optical densities, growth rates, an acceleration term, and variances (and covariances) between the estimates.
+          </Typography>
+
+          <FormControlLabel
+            control={<Checkbox checked={props.isChecked.stirring_rates} onChange={props.handleChange} name="stirring_rates" />}
+            label="Stirring rates"
+          />
+          <Typography variant="caption" className={classes.caption} gutterBottom>
+            The measured RPM of the onboard stirring.
           </Typography>
 
           <FormControlLabel
@@ -234,6 +242,7 @@ function ExportDataContainer() {
       led_automation_settings: false,
       temperature_automation_settings: false,
       kalman_filter_outputs: false,
+      stirring_rates: false,
       temperature_readings: false
     }
   });
