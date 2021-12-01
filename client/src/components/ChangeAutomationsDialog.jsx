@@ -40,6 +40,7 @@ const useStyles = makeStyles((theme) => ({
 function ChangeAutomationsDialog(props) {
   const classes = useStyles();
   const automationType = props.automationType
+  const automationTypeForDisplay = automationType == "led" ? "LED" : automationType
   const [algoSettings, setAlgoSettings] = useState({automation_name: "silent", skip_first_run: false})
   const [client, setClient] = useState(null)
   const [automations, setAutomations] = useState({})
@@ -149,7 +150,7 @@ function ChangeAutomationsDialog(props) {
           <PioreactorIcon style={{verticalAlign: "middle", fontSize: "1.2em"}}/> {props.title || ((props.config['ui.rename'] && props.config['ui.rename'][props.unit]) ? `${props.config['ui.rename'][props.unit]} (${props.unit})` : `${props.unit}`)}
         </Typography>
         <Typography className={classes.unitTitleDialog}>
-          Select {automationType} automation
+          Select {automationTypeForDisplay} automation
         </Typography>
         <IconButton
           aria-label="close"
@@ -166,7 +167,7 @@ function ChangeAutomationsDialog(props) {
       </DialogTitle>
       <DialogContent>
         <Typography variant="body2" component="p" gutterBottom>
-          <span style={{textTransform: "capitalize"}}>{automationType}</span> automations control the {automationType} of the Pioreactor's vial. The settings below can be changed later. Learn more about <a target="_blank" rel="noopener noreferrer" href="https://docs.pioreactor.com/user_guide/Automations/Temperature%20Automations">temperature automations</a>.
+          <span style={{textTransform: "capitalize"}}>{automationTypeForDisplay}</span> automations control the {automationTypeForDisplay} of the Pioreactor's vial. The settings below can be changed later. Learn more about <a target="_blank" rel="noopener noreferrer" href={"https://docs.pioreactor.com/user_guide/Automations/" + automationTypeForDisplay + "%20Automations"}>{automationTypeForDisplay} automations</a>.
         </Typography>
 
         <form>
@@ -200,7 +201,7 @@ function ChangeAutomationsDialog(props) {
       anchorOrigin={{vertical: "bottom", horizontal: "center"}}
       open={openSnackbar}
       onClose={handleSnackbarClose}
-      message={`Starting ${automationType} automation ${automations[algoSettings.automation_name]?.display_name}.`}
+      message={`Starting ${automationTypeForDisplay} automation ${automations[algoSettings.automation_name]?.display_name}.`}
       autoHideDuration={7000}
       key={"snackbar-change-" + automationType}
     />

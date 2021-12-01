@@ -4,7 +4,7 @@ job_name: temperature_control
 subtext: automation_name
 display: true
 source: app
-description: Start a temperature automation to control the culture's temperature. Initially starts as <code>silent</code> automation. Learn more about <a href="https://pioreactor.com/pages/temperature-automations">temperature automations</a>.
+description: Start a temperature automation to control the culture's temperature. Learn more about <a href="https://pioreactor.com/pages/temperature-automations">temperature automations</a>.
 editable_settings:
   - key: target_temperature
     unit: ℃
