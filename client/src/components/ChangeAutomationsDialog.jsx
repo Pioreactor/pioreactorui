@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from "react";
 
 import { Client, Message } from "paho-mqtt";
-
 import { makeStyles } from "@mui/styles";
+
 import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
 import Dialog from '@mui/material/Dialog';
 import DialogContent from '@mui/material/DialogContent';
+import DialogActions from '@mui/material/DialogActions';
 import DialogTitle from '@mui/material/DialogTitle';
 import FormLabel from '@mui/material/FormLabel';
 import FormControl from '@mui/material/FormControl';
@@ -40,7 +41,7 @@ const useStyles = makeStyles((theme) => ({
 function ChangeAutomationsDialog(props) {
   const classes = useStyles();
   const automationType = props.automationType
-  const automationTypeForDisplay = automationType == "led" ? "LED" : automationType
+  const automationTypeForDisplay = automationType === "led" ? "LED" : automationType
   const [algoSettings, setAlgoSettings] = useState({automation_name: "silent", skip_first_run: false})
   const [client, setClient] = useState(null)
   const [automations, setAutomations] = useState({})
@@ -184,18 +185,25 @@ function ChangeAutomationsDialog(props) {
 
             </Select>
             {Object.keys(automations).length > 0 && <AutomationForm fields={automations[algoSettings.automation_name].fields} description={automations[algoSettings["automation_name"]].description} updateParent={updateFromChild}/>}
-            <Button
-              type="submit"
-              variant="contained"
-              color="primary"
-              onClick={props.isJobRunning ? changeAutomation :  startJob}
-              style={{width: "120px", marginTop: "20px"}}
-            >
-              Submit
-            </Button>
           </FormControl>
         </form>
       </DialogContent>
+      <DialogActions>
+        <Button
+          type="submit"
+          variant="contained"
+          color="primary"
+          onClick={props.isJobRunning ? changeAutomation :  startJob}
+        >
+          Start
+        </Button>
+        <Button
+          color="secondary"
+          onClick={handleClose}
+        >
+          Cancel
+        </Button>
+      </DialogActions>
     </Dialog>
     <Snackbar
       anchorOrigin={{vertical: "bottom", horizontal: "center"}}

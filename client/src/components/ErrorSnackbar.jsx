@@ -78,13 +78,13 @@ function ErrorSnackbar(props) {
       open={open}
       anchorOrigin={{vertical: "bottom", horizontal: "right"}}
       key={"error-snackbar"}
-      autoHideDuration={10000}
+      autoHideDuration={11000}
       style={{maxWidth: "500px"}}
       onClose={handleClose}
     >
     <Alert variant="standard" severity={level.toLowerCase()} onClose={handleClose}>
-      <AlertTitle style={{fontSize: 15}}>{task} returned a {level.toLowerCase()} in {unit + (renamedUnit ? " / " + renamedUnit : "")}</AlertTitle>
-      {msg}
+      <AlertTitle style={{fontSize: 15}}>{task} encountered the following {level.toLowerCase()} in {unit + (renamedUnit ? " / " + renamedUnit : "")}</AlertTitle>
+      <span style={{whiteSpace: 'pre-wrap'}}>{msg}</span>
     </Alert>
     </Snackbar>
 )}
