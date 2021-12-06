@@ -195,7 +195,7 @@ function ExperimentSummaryForm(props) {
 
           <Grid item xs={12} md={4}/>
           <Grid item xs={12} md={8}>
-            <div style={{display: "flex", justifyContent: "space-between"}}>
+            <div style={{display: "flex", justifyContent: "flex-end"}}>
               <Button size="small" color="primary" onClick={populateFields}>Populate with previous experiment</Button>
               <Button variant="contained" color="primary" onClick={onSubmit}> Create </Button>
             </div>

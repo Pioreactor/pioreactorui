@@ -716,7 +716,7 @@ function CalibrateDialog(props) {
 
 
 
-function SystemCheckDialog(props) {
+function SelfTestDialog(props) {
   const classes = useStyles();
   const [open, setOpen] = useState(false);
 
@@ -1143,6 +1143,70 @@ function SettingsActionsDialog(props) {
 
 
           {/* Unit Specific Automations */}
+          {temperatureControlJob &&
+          <React.Fragment>
+            <div style={{justifyContent: "space-between", display: "flex"}}>
+              <Typography display="block">
+                Temperature automation
+              </Typography>
+              <Typography display="block" gutterBottom>
+                <span style={{color:stateDisplay[temperatureControlJob.state].color}}>{stateDisplay[temperatureControlJob.state].display}</span>
+              </Typography>
+            </div>
+            <Typography variant="caption" display="block" gutterBottom color="textSecondary">
+            </Typography>
+            <div key={temperatureControlJob.metadata.key}>
+              {temperatureControlJob.state !== "disconnected"
+              ?<React.Fragment>
+                <Typography variant="body2" component="p" gutterBottom>
+                Currently running LED automation <code>{temperatureControlJob.automation_name.value}</code>.
+                Learn more about <a target="_blank" rel="noopener noreferrer" href="https://docs.pioreactor.com/user_guide/Automations/LED%20Automations">LED automations</a>.
+                </Typography>
+                {buttons[temperatureControlJob.metadata.key]}
+               </React.Fragment>
+              :<React.Fragment>
+                <Typography variant="body2" component="p" gutterBottom>
+                  <div dangerouslySetInnerHTML={{__html: temperatureControlJob.metadata.description}}/>
+                </Typography>
+
+                <Button
+                  style={{width: "70px", marginTop: "5px"}}
+                  size="small"
+                  color="primary"
+                  variant="contained"
+                  onClick={() => setOpenChangeTemperatureDialog(true)}
+                >
+                  Start
+                </Button>
+
+               </React.Fragment>
+              }
+            </div>
+
+            <Button
+              onClick={() => setOpenChangeTemperatureDialog(true)}
+              style={{marginTop: "10px"}}
+              size="small"
+              color="primary"
+              disabled={temperatureControlJob.state === "disconnected"}
+            >
+              Change temperature automation
+            </Button>
+
+            <ChangeAutomationsDialog
+              open={openChangeTemperatureDialog}
+              onFinished={() => setOpenChangeTemperatureDialog(false)}
+              unit={props.unit}
+              config={props.config}
+              experiment={props.experiment}
+              isJobRunning={temperatureControlJob.state !== "disconnected"}
+              automationType="temperature"
+            />
+          </React.Fragment>
+          }
+
+          <Divider className={classes.divider} />
+
           {dosingControlJob &&
           <React.Fragment>
             <div style={{justifyContent: "space-between", display: "flex"}}>
@@ -1272,69 +1336,6 @@ function SettingsActionsDialog(props) {
 
           <Divider className={classes.divider} />
 
-          {temperatureControlJob &&
-          <React.Fragment>
-            <div style={{justifyContent: "space-between", display: "flex"}}>
-              <Typography display="block">
-                Temperature automation
-              </Typography>
-              <Typography display="block" gutterBottom>
-                <span style={{color:stateDisplay[temperatureControlJob.state].color}}>{stateDisplay[temperatureControlJob.state].display}</span>
-              </Typography>
-            </div>
-            <Typography variant="caption" display="block" gutterBottom color="textSecondary">
-            </Typography>
-            <div key={temperatureControlJob.metadata.key}>
-              {temperatureControlJob.state !== "disconnected"
-              ?<React.Fragment>
-                <Typography variant="body2" component="p" gutterBottom>
-                Currently running LED automation <code>{temperatureControlJob.automation_name.value}</code>.
-                Learn more about <a target="_blank" rel="noopener noreferrer" href="https://docs.pioreactor.com/user_guide/Automations/LED%20Automations">LED automations</a>.
-                </Typography>
-                {buttons[temperatureControlJob.metadata.key]}
-               </React.Fragment>
-              :<React.Fragment>
-                <Typography variant="body2" component="p" gutterBottom>
-                  <div dangerouslySetInnerHTML={{__html: temperatureControlJob.metadata.description}}/>
-                </Typography>
-
-                <Button
-                  style={{width: "70px", marginTop: "5px"}}
-                  size="small"
-                  color="primary"
-                  variant="contained"
-                  onClick={() => setOpenChangeTemperatureDialog(true)}
-                >
-                  Start
-                </Button>
-
-               </React.Fragment>
-              }
-            </div>
-
-            <Button
-              onClick={() => setOpenChangeTemperatureDialog(true)}
-              style={{marginTop: "10px"}}
-              size="small"
-              color="primary"
-              disabled={temperatureControlJob.state === "disconnected"}
-            >
-              Change temperature automation
-            </Button>
-
-            <ChangeAutomationsDialog
-              open={openChangeTemperatureDialog}
-              onFinished={() => setOpenChangeTemperatureDialog(false)}
-              unit={props.unit}
-              config={props.config}
-              experiment={props.experiment}
-              isJobRunning={temperatureControlJob.state !== "disconnected"}
-              automationType="temperature"
-            />
-          </React.Fragment>
-          }
-
-          <Divider className={classes.divider} />
 
         </TabPanel>
 
@@ -1710,6 +1711,47 @@ function SettingsActionsDialogAll({config, experiment}) {
             </div>
           )}
 
+
+          {temperatureControlJob &&
+          <React.Fragment>
+            <div style={{justifyContent: "space-between", display: "flex"}}>
+              <Typography display="block">
+                Temperature automation
+              </Typography>
+            </div>
+            <div>
+              <Typography variant="body2" component="p" gutterBottom>
+                <div dangerouslySetInnerHTML={{__html: temperatureControlJob.metadata.description}}/>
+              </Typography>
+
+              {buttons['temperature_control']}
+            </div>
+
+            <Button
+              onClick={() => setOpenChangeTemperatureDialog(true)}
+              style={{marginTop: "10px"}}
+              size="small"
+              color="primary"
+            >
+              Change temperature automation
+            </Button>
+
+            <ChangeAutomationsDialog
+              open={openChangeTemperatureDialog}
+              onFinished={() => setOpenChangeTemperatureDialog(false)}
+              unit={unit}
+              config={config}
+              experiment={experiment}
+              isJobRunning={true}
+              automationType="temperature"
+            />
+          </React.Fragment>
+          }
+
+          <Divider className={classes.divider} />
+
+
+
           {dosingControlJob &&
           <React.Fragment>
             <div style={{justifyContent: "space-between", display: "flex"}}>
@@ -1786,47 +1828,6 @@ function SettingsActionsDialogAll({config, experiment}) {
           }
 
           <Divider className={classes.divider} />
-
-
-          {temperatureControlJob &&
-          <React.Fragment>
-            <div style={{justifyContent: "space-between", display: "flex"}}>
-              <Typography display="block">
-                Temperature automation
-              </Typography>
-            </div>
-            <div>
-              <Typography variant="body2" component="p" gutterBottom>
-                <div dangerouslySetInnerHTML={{__html: temperatureControlJob.metadata.description}}/>
-              </Typography>
-
-              {buttons['temperature_control']}
-            </div>
-
-            <Button
-              onClick={() => setOpenChangeTemperatureDialog(true)}
-              style={{marginTop: "10px"}}
-              size="small"
-              color="primary"
-            >
-              Change temperature automation
-            </Button>
-
-            <ChangeAutomationsDialog
-              open={openChangeTemperatureDialog}
-              onFinished={() => setOpenChangeTemperatureDialog(false)}
-              unit={unit}
-              config={config}
-              experiment={experiment}
-              isJobRunning={true}
-              automationType="temperature"
-            />
-          </React.Fragment>
-          }
-
-          <Divider className={classes.divider} />
-
-
 
         </TabPanel>
 
@@ -2135,10 +2136,7 @@ function PioreactorCard(props){
             </div>
             <div className={classes.cardHeaderButtons}>
               <div>
-                <FlashLEDButton client={client} disabled={!isUnitActive} config={props.config} unit={unit}/>
-              </div>
-              <div>
-                <SystemCheckDialog
+                <SelfTestDialog
                   client={client}
                   disabled={!isUnitActive}
                   config={props.config}
@@ -2146,6 +2144,9 @@ function PioreactorCard(props){
                   selfTestState={jobs['self_test'] ? jobs['self_test'].state : null}
                   selfTestTests={jobs['self_test'] ? jobs['self_test'] : null}
                 />
+              </div>
+              <div>
+                <FlashLEDButton client={client} disabled={!isUnitActive} config={props.config} unit={unit}/>
               </div>
               <div>
                 <CalibrateDialog

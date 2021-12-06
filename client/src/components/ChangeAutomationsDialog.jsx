@@ -148,7 +148,7 @@ function ChangeAutomationsDialog(props) {
     <Dialog open={props.open} onClose={handleClose} aria-labelledby="form-dialog-title" PaperProps={{style: {height: "100%"}}}>
       <DialogTitle>
         <Typography className={classes.suptitle}>
-          <PioreactorIcon style={{verticalAlign: "middle", fontSize: "1.2em"}}/> {props.title || ((props.config['ui.rename'] && props.config['ui.rename'][props.unit]) ? `${props.config['ui.rename'][props.unit]} (${props.unit})` : `${props.unit}`)}
+          <PioreactorIcon style={{verticalAlign: "middle", fontSize: "1.2em"}}/> {props.title || ((props.config['ui.rename'] && props.config['ui.rename'][props.unit]) ? `${props.config['ui.rename'][props.unit]} / ${props.unit}` : `${props.unit}`)}
         </Typography>
         <Typography className={classes.unitTitleDialog}>
           Select {automationTypeForDisplay} automation

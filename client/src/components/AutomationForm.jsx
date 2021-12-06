@@ -38,6 +38,7 @@ function AutomationForm(props){
           }}
           variant="outlined"
           onChange={onSettingsChange}
+          onKeyPress={(e) => {e.key === 'Enter' && e.preventDefault();}}
           className={classes.textFieldCompact}
         />
   )
