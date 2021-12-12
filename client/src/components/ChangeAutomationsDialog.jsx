@@ -184,7 +184,7 @@ function ChangeAutomationsDialog(props) {
               {Object.keys(automations).map((key) => <option id={key} value={key} key={"change-io" + key}>{automations[key].display_name}</option>)}
 
             </Select>
-            {Object.keys(automations).length > 0 && <AutomationForm fields={automations[algoSettings.automation_name].fields} description={automations[algoSettings["automation_name"]].description} updateParent={updateFromChild}/>}
+            {Object.keys(automations).length > 0 && <AutomationForm fields={automations[algoSettings.automation_name].fields} description={automations[algoSettings["automation_name"]].description} updateParent={updateFromChild} name={algoSettings.automation_name}/>}
           </FormControl>
         </form>
       </DialogContent>

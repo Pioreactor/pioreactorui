@@ -18,7 +18,6 @@ const useStyles = makeStyles((theme) => ({
 function AutomationForm(props){
   const classes = useStyles();
   const defaults = Object.assign({}, ...props.fields.map(field => ({[field.key]: field.default})))
-
   useEffect(() => {
     props.updateParent(defaults)
   }, [props.fields])
@@ -30,7 +29,7 @@ function AutomationForm(props){
         <TextField
           size="small"
           id={field.key}
-          key={field.key}
+          key={field.key + props.name}
           label={field.label}
           defaultValue={field.default}
           InputProps={{
