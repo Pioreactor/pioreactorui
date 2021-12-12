@@ -594,6 +594,23 @@ app.get("/get_configs", function(req, res) {
   });
 })
 
+app.get("/get_historical_config/:filename", function(req, res) {
+  function fetch() {
+    db.query(
+      'SELECT timestamp, data FROM config_files WHERE filename=:filename ORDER BY timestamp',
+      {filename: req.params.filename},
+      {timestamp: String, data: String},
+      function (err, rows) {
+        if (err) {
+          publishToErrorLog(err)
+          console.log(err)
+          return setTimeout(fetch, 500)
+        }
+        res.send(rows)
+    })
+  }
+  fetch()
+})
 
 
 app.post("/delete_config", function(req, res) {

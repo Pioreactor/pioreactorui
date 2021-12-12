@@ -40,7 +40,8 @@ class EditableCodeDiv extends React.Component {
       hasChangedSinceSave: true,
       availableConfigs: [
         {name: "shared config.ini", filename: "config.ini"},
-      ]
+      ],
+      availableHistoricalConfigs: []
     };
     this.saveCurrentCode = this.saveCurrentCode.bind(this);
     this.deleteConfig = this.deleteConfig.bind(this);
@@ -65,6 +66,16 @@ class EditableCodeDiv extends React.Component {
         this.setState(prevState => ({
           availableConfigs: [...prevState.availableConfigs, ...json.filter(e => (e !== 'config.ini')).map(e => ({name: e, filename: e}))]
         }));
+      })
+  }
+
+  getHistoricalConfigFiles(filename) {
+    fetch(`/get_historical_config/${filename}`)
+      .then(response => {
+        return response.json();
+      })
+      .then(json => {
+         this.setState({availableHistoricalConfigs: json})
       })
   }
 
@@ -113,11 +124,13 @@ class EditableCodeDiv extends React.Component {
   componentDidMount() {
     this.getConfig(this.state.filename)
     this.getListOfConfigFiles()
+    this.getHistoricalConfigFiles(this.state.filename)
   }
 
   onSelectionChange = (e) => {
     this.setState({filename: e.target.value})
     this.getConfig(e.target.value)
+    this.getHistoricalConfigFiles(e.target.value)
   }
 
   getCodeFlaskRef = (codeFlask) => {
