@@ -16,14 +16,13 @@ import moment from "moment";
 import Card from "@mui/material/Card";
 
 const colors = [
-  {primary: "#9C6ADE", "1": "#9C6ADE", "2": "#E3D0FF", "3": "#50248F", "4": "#ecdffb"},
-  {primary: "#F49342", "1": "#F49342", "2": "#FFC58B", "3": "#C05717", "4": "#4A1504"},
-  {primary: "#47C1BF", "1": "#47C1BF", "2": "#B7ECEC", "3": "#00848E", "4": "#003135"},
-  {primary: "#50B83C", "1": "#50B83C", "2": "#BBE5B3", "3": "#108043", "4": "#E3F1DF"},
-  {primary: "#DE3618", "1": "#DE3618", "2": "#FEAD9A", "3": "#BF0711", "4": "#FBEAE5"},
-  {primary: "#EEC200", "1": "#EEC200", "2": "#FFEA8A", "3": "#8A6116", "4": "#573B00"},
-  {primary: "#006FBB", "1": "#006FBB", "2": "#B4E1FA", "3": "#084E8A", "4": "#001429"},
-  {primary: "#43467F", "1": "#43467F", "2": "#B3B5CB", "3": "#1C2260", "4": "#00044C"},
+  {primary: "#33798c", "1": "#33798c", "2": "#4c9aae"},
+  {primary: "#4c92e5", "1": "#4c92e5", "2": "#4282cc"},
+  {primary: "#7329f8", "1": "#7329f8", "2": "#987afc"},
+  {primary: "#b076e2", "1": "#b076e2", "2": "#9f41db"},
+  {primary: "#b0499e", "1": "#b0499e", "2": "#d962c3"},
+  {primary: "#b66e3f", "1": "#b66e3f", "2": "#7a4620"},
+  {primary: "#aba146", "1": "#aba146", "2": "#74742b"},
 ];
 
 const colorMaps = {}

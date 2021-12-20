@@ -1156,7 +1156,7 @@ function SettingsActionsDialog(props) {
             <Typography variant="caption" display="block" gutterBottom color="textSecondary">
             </Typography>
             <div key={temperatureControlJob.metadata.key}>
-              {temperatureControlJob.state !== "disconnected"
+              {(temperatureControlJob.state === "ready") || (temperatureControlJob.state === "sleeping")
               ?<React.Fragment>
                 <Typography variant="body2" component="p" gutterBottom>
                 Currently running LED automation <code>{temperatureControlJob.automation_name.value}</code>.
@@ -1220,7 +1220,7 @@ function SettingsActionsDialog(props) {
             <Typography variant="caption" display="block" gutterBottom color="textSecondary">
             </Typography>
             <div key={dosingControlJob.metadata.key}>
-              {dosingControlJob.state !== "disconnected"
+              {(dosingControlJob.state === "ready") || (dosingControlJob.state === "sleeping")
               ?<React.Fragment>
                 <Typography variant="body2" component="p" gutterBottom>
                 Currently running dosing automation <code>{dosingControlJob.automation_name.value}</code>.
@@ -1285,7 +1285,7 @@ function SettingsActionsDialog(props) {
             <Typography variant="caption" display="block" gutterBottom color="textSecondary">
             </Typography>
             <div key={ledControlJob.metadata.key}>
-              {ledControlJob.state !== "disconnected"
+              {(ledControlJob.state === "ready") || (ledControlJob.state === "sleeping")
               ?<React.Fragment>
                 <Typography variant="body2" component="p" gutterBottom>
                 Currently running LED automation <code>{ledControlJob.automation_name.value}</code>.
