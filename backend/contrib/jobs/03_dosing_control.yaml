@@ -34,3 +34,7 @@ editable_settings:
     default: null
     display: true
     description: Change the target hourly growth rate - only applicable in morbidostat mode. Typical values are between 0.05h⁻¹ and 0.4h⁻¹.
+  - key: automation_name
+    type: text
+    display: false
+    default: ""
