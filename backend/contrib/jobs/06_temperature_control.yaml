@@ -4,13 +4,13 @@ job_name: temperature_control
 subtext: automation_name
 display: true
 source: app
-description: Start a temperature automation to control the culture's temperature. Learn more about <a href="https://pioreactor.com/pages/temperature-automations">temperature automations</a>.
+description: Start a temperature automation to control the culture's temperature. Learn more about <a href="https://docs.pioreactor.com/user_guide/Automations/Temperature%20Automations">temperature automations</a>.
 editable_settings:
   - key: target_temperature
     unit: ℃
     label: Target temperature
     type: numeric
-    description: Change the target temperature. Lower bound is the ambient temperature, and upperbound is 50℃.
+    description: Change the target temperature. Lower bound is the ambient temperature, and upperbound is 50℃. Only used in when Stable automation is active.
     default: null
     display: true
   - key: automation_name

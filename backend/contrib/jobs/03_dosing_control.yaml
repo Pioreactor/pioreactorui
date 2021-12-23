@@ -3,9 +3,16 @@ name: Dosing automation
 job_name: dosing_control
 display: true
 source: app
-description: Start a dosing automation (chemostat, fed-batch, etc.). Learn more about <a href="https://pioreactor.com/pages/Dosing-automations">dosing automations</a>.
+description: Start a dosing automation (chemostat, fed-batch, etc.). Learn more about <a href="https://docs.pioreactor.com/user_guide/Automations/Dosing%20Automations">dosing automations</a>.
 subtext: automation_name
 editable_settings:
+  - key: duration
+    unit: min
+    label: Time between dosing
+    type: numeric
+    default: null
+    display: true
+    description: Change how long to wait between dilutions. Typically between 5 and 90 minutes. Changing this will immediately trigger a dosing event.
   - key: volume
     unit: mL
     label: Volume / dosing
@@ -27,14 +34,3 @@ editable_settings:
     default: null
     display: true
     description: Change the target hourly growth rate - only applicable in morbidostat mode. Typical values are between 0.05h⁻¹ and 0.4h⁻¹.
-  - key: duration
-    unit: min
-    label: Time between dosing
-    type: numeric
-    default: null
-    display: true
-    description: Change how long to wait between dilutions. Typically between 5 and 90 minutes. Changing this will immediately trigger a dosing event.
-  - key: automation_name
-    type: text
-    display: false
-    default: ""
