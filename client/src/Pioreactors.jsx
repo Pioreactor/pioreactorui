@@ -1201,6 +1201,7 @@ function SettingsActionsDialog(props) {
               experiment={props.experiment}
               isJobRunning={temperatureControlJob.state !== "disconnected"}
               automationType="temperature"
+              no_skip_first_run={true}
             />
           </React.Fragment>
           }
@@ -1265,6 +1266,7 @@ function SettingsActionsDialog(props) {
               config={props.config}
               experiment={props.experiment}
               isJobRunning={dosingControlJob.state !== "disconnected"}
+              no_skip_first_run={false}
             />
           </React.Fragment>
           }
@@ -1330,6 +1332,7 @@ function SettingsActionsDialog(props) {
               config={props.config}
               experiment={props.experiment}
               isJobRunning={ledControlJob.state !== "disconnected"}
+              no_skip_first_run={false}
             />
           </React.Fragment>
           }
@@ -1744,6 +1747,7 @@ function SettingsActionsDialogAll({config, experiment}) {
               experiment={experiment}
               isJobRunning={true}
               automationType="temperature"
+              no_skip_first_run={true}
             />
           </React.Fragment>
           }
@@ -1784,6 +1788,7 @@ function SettingsActionsDialogAll({config, experiment}) {
               config={config}
               experiment={experiment}
               isJobRunning={true}
+              no_skip_first_run={false}
             />
           </React.Fragment>
           }
@@ -1823,6 +1828,7 @@ function SettingsActionsDialogAll({config, experiment}) {
               config={config}
               experiment={experiment}
               isJobRunning={true}
+              no_skip_first_run={false}
             />
           </React.Fragment>
           }

@@ -15,6 +15,8 @@ import Select from '@mui/material/Select';
 import IconButton from '@mui/material/IconButton';
 import CloseIcon from '@mui/icons-material/Close';
 import Snackbar from "@mui/material/Snackbar";
+import Checkbox from "@mui/material/Checkbox";
+import FormControlLabel from "@mui/material/FormControlLabel";
 
 import PioreactorIcon from "./PioreactorIcon"
 import AutomationForm from "./AutomationForm"
@@ -42,7 +44,7 @@ function ChangeAutomationsDialog(props) {
   const classes = useStyles();
   const automationType = props.automationType
   const automationTypeForDisplay = automationType === "led" ? "LED" : automationType
-  const [algoSettings, setAlgoSettings] = useState({automation_name: "silent", skip_first_run: false})
+  const [algoSettings, setAlgoSettings] = useState({automation_name: "silent", skip_first_run: 0})
   const [client, setClient] = useState(null)
   const [automations, setAutomations] = useState({})
   const [openSnackbar, setOpenSnackbar] = useState(false);
@@ -95,8 +97,15 @@ function ChangeAutomationsDialog(props) {
     props.onFinished();
   };
 
+  const handleSkipFirstRunChange = (e) => {
+    setAlgoSettings({...algoSettings, skip_first_run: e.target.checked ? 1 : 0})
+  }
+
   const handleAlgoSelectionChange = (e) => {
-    setAlgoSettings({automation_name: e.target.value})
+    setAlgoSettings({
+        automation_name: e.target.value,
+        ...( !props.no_skip_first_run && {skip_first_run: algoSettings.skip_first_run})
+    })
   }
 
   const updateFromChild = (setting) => {
@@ -185,6 +194,18 @@ function ChangeAutomationsDialog(props) {
 
             </Select>
             {Object.keys(automations).length > 0 && <AutomationForm fields={automations[algoSettings.automation_name].fields} description={automations[algoSettings["automation_name"]].description} updateParent={updateFromChild} name={algoSettings.automation_name}/>}
+
+            {!props.no_skip_first_run ?
+            <FormControlLabel
+              control={<Checkbox checked={algoSettings.skip_first_run}
+                                  color="primary"
+                                  onChange={handleSkipFirstRunChange}
+                                  size="small"/>
+                      }
+              label="Skip first run"
+            />
+            : <React.Fragment/> }
+
           </FormControl>
         </form>
       </DialogContent>
