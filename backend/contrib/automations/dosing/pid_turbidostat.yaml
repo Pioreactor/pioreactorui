@@ -6,7 +6,7 @@ fields:
   - key: duration
     default: 30
     unit: min
-    label: Duration between events
+    label: Time between dosing
   - key: target_od
     default: 1.5
     unit: AU

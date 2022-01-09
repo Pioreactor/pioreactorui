@@ -43,7 +43,7 @@ const useStyles = makeStyles((theme) => ({
 function ChangeAutomationsDialog(props) {
   const classes = useStyles();
   const automationType = props.automationType
-  const automationTypeForDisplay = automationType === "led" ? "LED" : automationType
+  const automationTypeForDisplay = (automationType === "led") ? "LED" : automationType
   const [algoSettings, setAlgoSettings] = useState({automation_name: "silent", skip_first_run: 0})
   const [client, setClient] = useState(null)
   const [automations, setAutomations] = useState({})

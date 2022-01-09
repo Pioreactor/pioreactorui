@@ -6,7 +6,7 @@ fields:
   - key: duration
     default: 20
     unit: min
-    label: Duration between events
+    label: Time between dosing
   - key: volume
     default: 0.5
     unit: mL

@@ -1,5 +1,6 @@
 const express = require('express');
-const basicAuth = require('express-basic-auth')
+var https = require('https')
+
 const path = require('path');
 const bodyParser = require('body-parser');
 const dotenv = require('dotenv').config()
@@ -26,15 +27,6 @@ var db = dblite(process.env.DB_LOCATION)
 // connect to MQTT for logging
 var client  = mqtt.connect('mqtt://localhost:1883')
 const LOG_TOPIC = `pioreactor/${os.hostname()}/$experiment/logs/ui`
-
-
-// this is not secure, and I know it. It's fine for now, as the app isn't exposed to the internet.
-var staticUserAuth = basicAuth({
-    users: {
-        [process.env.BASIC_AUTH_USER]: process.env.BASIC_AUTH_PASS
-    },
-    challenge: true
-})
 
 
 ///////////// UTILS ////////////////////

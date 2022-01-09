@@ -362,7 +362,6 @@ function AddNewPioreactor(props){
   const [open, setOpen] = useState(false);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [name, setName] = React.useState("");
-  const [ip, setIP] = React.useState("");
   const [isRunning, setIsRunning] = React.useState(false)
   const [errorMsg, setErrorMsg] = React.useState("")
   const [isError, setIsError] = React.useState("")
@@ -383,9 +382,6 @@ function AddNewPioreactor(props){
     setName(evt.target.value)
   }
 
-  const handleIPChange = evt => {
-    setIP(evt.target.value.replace(/[^.0-9]/, ""))
-  }
 
   const onSubmit = (event) =>{
     event.preventDefault()
@@ -398,7 +394,7 @@ function AddNewPioreactor(props){
     setIsRunning(true)
     fetch('add_new_pioreactor', {
         method: "POST",
-        body: JSON.stringify({newPioreactorName: name, ipAddress: ip}),
+        body: JSON.stringify({newPioreactorName: name}),
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json'
@@ -458,24 +454,6 @@ function AddNewPioreactor(props){
             startAdornment: (
               <InputAdornment position="start">
                 <PioreactorIcon style={{fontSize: "1.1em"}}/>
-              </InputAdornment>
-            ),
-          }}
-        />
-        <br/>
-        <TextField
-          size="small"
-          id="new-pioreactor-ip"
-          label="IP address of RPi"
-          placeholder="Optional"
-          variant="outlined"
-          className={classes.textFieldWide}
-          onChange={handleIPChange}
-          value={ip}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <DnsIcon style={{fontSize: "1.1em"}}/>
               </InputAdornment>
             ),
           }}
