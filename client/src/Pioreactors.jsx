@@ -41,7 +41,6 @@ import List from '@mui/material/List';
 import IconButton from '@mui/material/IconButton';
 import ListItem from '@mui/material/ListItem';
 import ListSubheader from '@mui/material/ListSubheader';
-import DnsIcon from '@mui/icons-material/Dns';
 import IndeterminateCheckBoxOutlinedIcon from '@mui/icons-material/IndeterminateCheckBoxOutlined';
 
 import ChangeAutomationsDialog from "./components/ChangeAutomationsDialog"

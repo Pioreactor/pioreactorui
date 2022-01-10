@@ -3,10 +3,48 @@ import Grid from '@mui/material/Grid';
 import Button from "@mui/material/Button";
 import Snackbar from "@mui/material/Snackbar";
 import Chart from "./Chart";
+import ChangeAutomationsDialog from "./ChangeAutomationsDialog"
 
 
+function StartHeating(props){
 
-function StartStirringButton(props){
+  const [isClicked, setIsClicked] = React.useState(false)
+  const [openChangeTemperatureDialog, setOpenChangeTemperatureDialog] = React.useState(false);
+
+  const onClick = () => {
+    setOpenChangeTemperatureDialog(true);
+    setIsClicked(true);
+  };
+
+  return(
+    <div>
+      <p> For consistent temperatures of the culture, we recommend using the onboard heating. Click below and set the temperature of the cultures (you can change this temperature later).</p>
+
+      <Button
+        variant="contained"
+        disabled={isClicked ? true : false }
+        onClick={onClick}
+      >
+        Start heating
+      </Button>
+
+      <ChangeAutomationsDialog
+        open={openChangeTemperatureDialog}
+        onFinished={() => setOpenChangeTemperatureDialog(false)}
+        unit={"$broadcast"}
+        config={props.config}
+        experiment={"+"}
+        isJobRunning={false}
+        automationType="temperature"
+        no_skip_first_run={true}
+      />
+
+  </div>
+  )
+}
+
+
+function StartStirring(props){
 
   const [isClicked, setIsClicked] = React.useState(false)
   const [openSnackbar, setOpenSnackbar] = React.useState(false);
@@ -79,8 +117,6 @@ function StartODReading(props){
 
 
 function StartSensors(props){
-
-
   return (
     <Grid
       container
@@ -90,7 +126,8 @@ function StartSensors(props){
       spacing={2}
     >
       <Grid item xs={2}/>
-      <Grid item xs={10}><StartStirringButton/></Grid>
+      <Grid item xs={10}><StartHeating config={props.config}/></Grid>
+      <Grid item xs={10}><StartStirring/></Grid>
       <Grid item xs={10}><StartODReading/></Grid>
       <Grid item xs={12}>
         <Chart

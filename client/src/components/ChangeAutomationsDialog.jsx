@@ -40,11 +40,21 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 
+const defaultAutomations = {
+  temperature: "stable",
+  dosing: "silent",
+  led: "silent"
+}
+
+
 function ChangeAutomationsDialog(props) {
   const classes = useStyles();
   const automationType = props.automationType
   const automationTypeForDisplay = (automationType === "led") ? "LED" : automationType
-  const [algoSettings, setAlgoSettings] = useState({automation_name: "silent", skip_first_run: 0})
+  const [algoSettings, setAlgoSettings] = useState({
+    automation_name: defaultAutomations[props.automationType],
+    skip_first_run: 0
+  })
   const [client, setClient] = useState(null)
   const [automations, setAutomations] = useState({})
   const [openSnackbar, setOpenSnackbar] = useState(false);
