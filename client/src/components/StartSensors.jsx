@@ -101,7 +101,7 @@ function StartODReading(props){
 
   return(
     <div>
-      <p> Next, we will turn on the optical density reading. We also call this <em>OD readings</em>. This will provide us with a measure of cell density. After a minute or so, you should see the data in the chart below. </p>
+      <p> Next, we will turn on the optical density reading. We also call this <em>OD readings</em>. This will provide us with a measure of cell density. In a moment, you should see the data in the chart below. </p>
       <Button variant="contained"  color="primary" disabled={isClicked ? true : false } onClick={onClick}> Start OD readings </Button>
       <Snackbar
       anchorOrigin={{vertical: "bottom", horizontal: "center"}}

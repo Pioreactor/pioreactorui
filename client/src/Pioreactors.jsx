@@ -848,7 +848,7 @@ function SelfTestDialog(props) {
                 <ListItemIcon className={classes.testingListItemIcon}>
                   {displayIcon("test_detect_heating_pcb", props.selfTestState)}
                 </ListItemIcon>
-                <ListItemText primary="Temperature sensor is detected" />
+                <ListItemText primary="Heating PCB is detected" />
               </ListItem>
 
               <ListItem className={classes.testingListItem}>
@@ -2092,9 +2092,45 @@ function PioreactorCard(props){
     setClient(client)
   },[config, experiment, fetchComplete, isUnitActive])
 
-  const indicatorDotColor = (jobs.monitor.state === "disconnected") ? disconnectedGrey : ((jobs.monitor.state === "lost") ? lostRed : readyGreen)
-  const indicatorDotShadow = (jobs.monitor.state === "disconnected") ? 0 : 6
-  const indicatorLabel = (jobs.monitor.state === "disconnected") ? (isUnitActive ? "Offline, need to power up" : "Offline, change inventory status in config.ini") : ((jobs.monitor.state === "lost") ? "Lost, something went wrong..." : "Online")
+  const getInicatorLabel = (state, isActive) => {
+    if ((state === "disconnected") && isActive) {
+      return "Offline, need to power up"
+    }
+    else if ((state === "disconnected") && !isActive){
+      return "Offline, change inventory status in config.ini"
+    }
+    else if (state === "lost"){
+      return "Lost, something went wrong. Try power-cycling the unit."
+    }
+    else {
+      return "Online and ready"
+    }
+  }
+
+  const getIndicatorDotColor = (state) => {
+    if (state === "disconnected") {
+      return disconnectedGrey
+    }
+    else if (state === "lost"){
+      return lostRed
+    }
+    else {
+      return readyGreen
+    }
+  }
+
+  const getIndicatorDotShadow = (state) => {
+    if (state === "disconnected") {
+      return 0
+    }
+    else {
+      return 6
+    }
+  }
+
+  const indicatorDotColor = getIndicatorDotColor(jobs.monitor.state)
+  const indicatorDotShadow = getIndicatorDotShadow(jobs.monitor.state)
+  const indicatorLabel = getInicatorLabel(jobs.monitor.state, isUnitActive)
 
 
   return (

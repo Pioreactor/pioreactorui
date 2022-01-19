@@ -16,13 +16,13 @@ import moment from "moment";
 import Card from "@mui/material/Card";
 
 const colors = [
-  {primary: "#33798c", "1": "#33798c", "2": "#4c9aae"},
-  {primary: "#4c92e5", "1": "#4c92e5", "2": "#4282cc"},
-  {primary: "#7329f8", "1": "#7329f8", "2": "#987afc"},
-  {primary: "#b076e2", "1": "#b076e2", "2": "#9f41db"},
-  {primary: "#b0499e", "1": "#b0499e", "2": "#d962c3"},
-  {primary: "#b66e3f", "1": "#b66e3f", "2": "#7a4620"},
-  {primary: "#aba146", "1": "#aba146", "2": "#74742b"},
+  {primary: "#0077BB", "1": "#0077BB", "2": "#0077BB"},
+  {primary: "#009988", "1": "#009988", "2": "#009988"},
+  {primary: "#CC3311", "1": "#CC3311", "2": "#CC3311"},
+  {primary: "#33BBEE", "1": "#33BBEE", "2": "#33BBEE"},
+  {primary: "#EE7733", "1": "#EE7733", "2": "#EE7733"},
+  {primary: "#EE3377", "1": "#EE3377", "2": "#EE3377"},
+  {primary: "#BBBBBB", "1": "#BBBBBB", "2": "#BBBBBB"},
 ];
 
 const colorMaps = {}

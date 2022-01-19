@@ -30,7 +30,11 @@ export default function ActionLEDForm(props) {
     e.preventDefault();
     if (intensity !== EMPTYSTATE && re.test(intensity)) {
       // TODO: this could also fire an mqtt event to set it in LEDAlgorithm, in case that is running
+      setErrorForm(false)
+      setOpenSnackbar(true);
+
       const params = { intensity: intensity, channel: props.channel, source_of_event: "UI"}
+
       fetch(`/run/led_intensity/${props.unit}`, {
         method: "POST",
         body: JSON.stringify(params),
@@ -40,8 +44,6 @@ export default function ActionLEDForm(props) {
         }
       }
       );
-      setErrorForm(false)
-      setOpenSnackbar(true);
     } else {
       setErrorForm(true)
     }
