@@ -1337,6 +1337,7 @@ function SettingsActionsDialog(props) {
               </Typography>
               <TextField
                 size="small"
+                autoComplete={"off"}
                 id={`${job.metadata.key.replace("_control", "_automation")}/${key}`}
                 defaultValue={setting.value}
                 InputProps={{
@@ -1831,6 +1832,7 @@ function SettingsActionsDialogAll({config, experiment}) {
               </Typography>
               <TextField
                 size="small"
+                autoComplete={"off"}
                 id={`${job.metadata.key.replace("_control", "_automation")}/${key}`}
                 key={key}
                 defaultValue={setting.value}

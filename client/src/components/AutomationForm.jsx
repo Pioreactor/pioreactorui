@@ -28,6 +28,7 @@ function AutomationForm(props){
   var listOfTextField = props.fields.map(field =>
         <TextField
           size="small"
+          autoComplete={"off"}
           id={field.key}
           key={field.key + props.name}
           label={field.label}

@@ -31,6 +31,7 @@ export default function ActionPumpForm(props) {
   const [isDurationDisabled, setIsDurationDisabled] = useState(false);
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [snackbarMsg, setSnackbarMsg] = useState("");
+  const [textfieldError, setTextfieldError] = useState(false);
 
   const [formErrorDuration, setFormErrorDuration] = useState(false)
   const [formErrorML, setFormErrorML] = useState(false)
@@ -51,6 +52,10 @@ export default function ActionPumpForm(props) {
       setSnackbarMsg(actionToAct[props.action] + (duration !== EMPTYSTATE ? (" for " +  duration + " seconds.") : (" until " + mL + "mL is reached.")))
       setOpenSnackbar(true);
     }
+    else {
+      setTextfieldError(true)
+    }
+
   }
 
   function stopPump(e) {
@@ -76,6 +81,7 @@ export default function ActionPumpForm(props) {
 
   function handleMLChange(e) {
     const re = /^[0-9.\b]+$/;
+    setTextfieldError(false)
 
     setIsDurationDisabled(true);
     if (e.target.value === EMPTYSTATE) {
@@ -94,6 +100,7 @@ export default function ActionPumpForm(props) {
 
   function handleDurationChange(e) {
     const re = /^[0-9.\b]+$/;
+    setTextfieldError(false)
 
     setIsMLDisabled(true);
     if (e.target.value === EMPTYSTATE) {
@@ -113,7 +120,8 @@ export default function ActionPumpForm(props) {
     <form id={props.action} className={classes.actionForm}>
       <TextField
         name="mL"
-        error={formErrorML}
+        autoComplete={"off"}
+        error={formErrorML || textfieldError}
         value={mL}
         size="small"
         id={props.action + "_mL"}
@@ -125,8 +133,9 @@ export default function ActionPumpForm(props) {
       />
       <TextField
         name="duration"
+        autoComplete={"off"}
         value={duration}
-        error={formErrorDuration}
+        error={formErrorDuration || textfieldError}
         size="small"
         id={props.action + "_duration"}
         label="seconds"
