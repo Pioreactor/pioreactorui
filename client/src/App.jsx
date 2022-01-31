@@ -83,7 +83,7 @@ function MainSite() {
   }, [])
   return (
     <div style={{display: 'flex'}}>
-      <ErrorBoundary>
+      <ErrorBoundary config={config}>
         <SideNavAndHeader />
         <main style={{flexGrow: 1, paddingTop: theme.spacing(9), paddingLeft: theme.spacing(4), paddingRight: theme.spacing(4)}}>
           <Router>

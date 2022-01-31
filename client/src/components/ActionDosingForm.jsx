@@ -58,7 +58,7 @@ export default function ActionPumpForm(props) {
   }
 
   function runPumpContinuously(e) {
-    fetch(`/run/add_media/${props.unit}`, {
+    fetch(`/run/${props.action}/${props.unit}`, {
       method: "POST",
       body: JSON.stringify({continuously: "", source_of_event: "UI"}),
       headers: {
@@ -66,7 +66,7 @@ export default function ActionPumpForm(props) {
         'Content-Type': 'application/json'
       }
     })
-    setSnackbarMsg("Running media pump continuously")
+    setSnackbarMsg("Running pump continuously")
     setOpenSnackbar(true)
   }
 
@@ -150,14 +150,13 @@ export default function ActionPumpForm(props) {
           {props.action.replace(/_/g, " ")}
         </Button>
         <div>
-          {props.action === "add_media" && <Button
+          <Button
             size="small"
             color="primary"
             onClick={runPumpContinuously}
           >
             Run continuously
           </Button>
-        }
           <Button
             size="small"
             color="secondary"

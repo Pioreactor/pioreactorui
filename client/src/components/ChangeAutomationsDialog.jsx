@@ -214,7 +214,7 @@ function ChangeAutomationsDialog(props) {
 
             {!props.no_skip_first_run ?
             <FormControlLabel
-              control={<Checkbox checked={algoSettings.skip_first_run}
+              control={<Checkbox checked={Boolean(algoSettings.skip_first_run)}
                                   color="primary"
                                   onChange={handleSkipFirstRunChange}
                                   size="small"/>

@@ -1328,7 +1328,7 @@ function SettingsActionsDialog(props) {
               .filter(([key, setting]) => (key !== "state") && (key !== "metadata"))
               .filter(([_, setting]) => setting.display)
               .map(([key, setting]) =>
-            <React.Fragment>
+            <React.Fragment key={key}>
               <Typography  gutterBottom>
                 {setting.label}
               </Typography>
@@ -1856,6 +1856,14 @@ function SettingsActionsDialogAll({config, experiment}) {
           </Typography>
           <ActionDosingForm action="add_media" unit={unit} />
           <Divider className={classes.divider} />
+          <Typography  gutterBottom>
+            Remove waste
+          </Typography>
+          <Typography variant="body2" component="p">
+            Run the waste pumps for a set duration (seconds), or a set volume (mL).
+          </Typography>
+          <ActionDosingForm action="remove_waste" unit={unit} />
+          <Divider className={classes.divider} />
           <Typography gutterBottom>
             Add alternative media
           </Typography>
@@ -1864,14 +1872,6 @@ function SettingsActionsDialogAll({config, experiment}) {
             volume (mL).
           </Typography>
           <ActionDosingForm action="add_alt_media" unit={unit} />
-          <Divider className={classes.divider} />
-          <Typography  gutterBottom>
-            Remove waste
-          </Typography>
-          <Typography variant="body2" component="p">
-            Run the waste pumps for a set duration (seconds), or a set volume (mL).
-          </Typography>
-          <ActionDosingForm action="remove_waste" unit={unit} />
           <Divider className={classes.divider} />
         </TabPanel>
 

@@ -134,20 +134,29 @@ app.post('/stop/:job/:unit', function (req, res) {
   job = req.params.job
   unit = req.params.unit
 
-  execFile("pios", ["kill", job, "-y", "--units", req.params.unit], (error, stdout, stderr) => {
-    if (error) {
-        publishToErrorLog(error)
-        console.log(error)
-    }
-    if (stderr) {
-        publishToLog(stderr)
-        console.log(stderr)
-    }
-    publishToLog(stdout)
-    console.log(stdout);
-  })
-  res.sendStatus(200)
-});
+  // two options: kill over mqtt, or kill over ssh. It depends on the job.
+  jobsToKillOverMQTT = ["add_media", "add_alt_media", "remove_waste"]
+
+  if (jobsToKillOverMQTT.includes(job)){
+    client.publish(`pioreactor/${unit}/$experiment/${job}/$state/set`, "disconnected")
+    res.sendStatus(200)
+  }
+  else {
+    execFile("pios", ["kill", job, "-y", "--units", req.params.unit], (error, stdout, stderr) => {
+      if (error) {
+          publishToErrorLog(error)
+          console.log(error)
+      }
+      if (stderr) {
+          publishToLog(stderr)
+          console.log(stderr)
+      }
+      publishToLog(stdout)
+      console.log(stdout);
+    })
+    res.sendStatus(200)
+  }
+ })
 
 app.post("/run/:job/:unit", function(req, res) {
     // TODO: we could start jobs over MQTT instead - this would save some time.
