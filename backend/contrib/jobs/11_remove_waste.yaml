@@ -1,0 +1,6 @@
+---
+name: remove waste
+job_name: remove_waste
+display: false
+source: app
+editable_settings: []

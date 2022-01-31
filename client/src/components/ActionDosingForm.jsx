@@ -109,7 +109,6 @@ export default function ActionPumpForm(props) {
       setFormErrorDuration(true)
     }
   }
-
   return (
     <form id={props.action} className={classes.actionForm}>
       <TextField
@@ -140,7 +139,7 @@ export default function ActionPumpForm(props) {
       <br />
       <div style={{display: "flex", justifyContent: "space-between"}}>
         <Button
-          disabled={formErrorML || formErrorDuration}
+          disabled={formErrorML || formErrorDuration || (props.job.state == "ready")}
           type="submit"
           variant="contained"
           size="small"
@@ -153,6 +152,7 @@ export default function ActionPumpForm(props) {
           <Button
             size="small"
             color="primary"
+            disabled={(props.job.state == "ready")}
             onClick={runPumpContinuously}
           >
             Run continuously

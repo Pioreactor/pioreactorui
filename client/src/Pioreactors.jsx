@@ -1359,7 +1359,7 @@ function SettingsActionsDialog(props) {
           <Typography variant="body2" component="p">
             Run the media pump for a set duration (seconds), or a set volume (mL).
           </Typography>
-          <ActionDosingForm action="add_media" unit={props.unit} />
+          <ActionDosingForm action="add_media" unit={props.unit} job={props.jobs.add_media} />
           <Divider classes={{root: classes.divider}} />
           <Typography  gutterBottom>
             Remove waste
@@ -1367,7 +1367,7 @@ function SettingsActionsDialog(props) {
           <Typography variant="body2" component="p">
             Run the waste pump for a set duration (seconds), or a set volume (mL).
           </Typography>
-          <ActionDosingForm action="remove_waste" unit={props.unit} />
+          <ActionDosingForm action="remove_waste" unit={props.unit} job={props.jobs.remove_waste} />
           <Divider className={classes.divider} />
           <Typography gutterBottom>
             Add alternative media
@@ -1376,7 +1376,7 @@ function SettingsActionsDialog(props) {
             Run the alternative media pump for a set duration (seconds), or a set
             volume (mL).
           </Typography>
-          <ActionDosingForm action="add_alt_media" unit={props.unit} />
+          <ActionDosingForm action="add_alt_media" unit={props.unit} job={props.jobs.add_alt_media} />
           <Divider className={classes.divider} />
         </TabPanel>
 
