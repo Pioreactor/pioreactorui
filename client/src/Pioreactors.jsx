@@ -363,6 +363,7 @@ function AddNewPioreactor(props){
   const [name, setName] = React.useState("");
   const [isRunning, setIsRunning] = React.useState(false)
   const [errorMsg, setErrorMsg] = React.useState("")
+  const [expectedPathMsg, setExpectedPathMsg] = React.useState("")
   const [isError, setIsError] = React.useState("")
 
   const handleClickOpen = () => {
@@ -391,6 +392,7 @@ function AddNewPioreactor(props){
     }
     setIsError(false)
     setIsRunning(true)
+    setExpectedPathMsg("Installation is occurring in the background. You may navigate away from this page, including adding more Pioreactors.")
     fetch('add_new_pioreactor', {
         method: "POST",
         body: JSON.stringify({newPioreactorName: name}),
@@ -400,10 +402,12 @@ function AddNewPioreactor(props){
         },
     })
     .then(response => {
+        setIsRunning(false)
         if(!response.ok){
           setIsError(true)
-          setIsRunning(false)
-          response.json().then(data => setErrorMsg(`Unable to complete installation. ${data.msg}`))
+          response.json().then(data => setErrorMsg(`🔴 Unable to complete installation. ${data.msg}`))
+        } else {
+          setExpectedPathMsg(`🟢 Success! Refresh the page to see ${name}.`)
         }
     })
   }
@@ -461,7 +465,7 @@ function AddNewPioreactor(props){
 
       <div style={{minHeight: "50px"}}>
         {isError? <p><Box color="error.main">{errorMsg}</Box></p> : <p></p>}
-        {isRunning? <p>Installation is occuring in the background. You may navigate away from this page, including adding more Pioreactors. </p> : <p> </p>}
+        {isRunning? <p>{expectedPathMsg}</p> : <p> </p>}
       </div>
 
       <Button

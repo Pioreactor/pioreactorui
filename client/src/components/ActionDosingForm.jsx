@@ -3,6 +3,8 @@ import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
 import Snackbar from "@mui/material/Snackbar";
 import { makeStyles } from "@mui/styles";
+import LoadingButton from '@mui/lab/LoadingButton';
+
 
 const useStyles = makeStyles({
   actionTextField: {
@@ -32,6 +34,7 @@ export default function ActionPumpForm(props) {
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [snackbarMsg, setSnackbarMsg] = useState("");
   const [textfieldError, setTextfieldError] = useState(false);
+  const [clicked, setClicked] = useState(false)
 
   const [formErrorDuration, setFormErrorDuration] = useState(false)
   const [formErrorML, setFormErrorML] = useState(false)
@@ -40,6 +43,7 @@ export default function ActionPumpForm(props) {
   function onSubmit(e) {
     e.preventDefault();
     if (mL !== EMPTYSTATE || duration !== EMPTYSTATE) {
+      setClicked(true)
       const params = mL !== "" ? { ml: mL, source_of_event: "UI"} : { duration: duration, source_of_event: "UI"};
       fetch(`/run/${props.action}/${props.unit}`, {
         method: "POST",
@@ -51,6 +55,7 @@ export default function ActionPumpForm(props) {
       });
       setSnackbarMsg(actionToAct[props.action] + (duration !== EMPTYSTATE ? (" for " +  duration + " seconds.") : (" until " + mL + "mL is reached.")))
       setOpenSnackbar(true);
+      setTimeout(() => setClicked(false), 2500)
     }
     else {
       setTextfieldError(true)
@@ -147,8 +152,9 @@ export default function ActionPumpForm(props) {
       <br />
       <br />
       <div style={{display: "flex", justifyContent: "space-between"}}>
-        <Button
-          disabled={formErrorML || formErrorDuration || (props.job.state == "ready")}
+        <LoadingButton
+          loading={clicked && (props?.job?.state == "disconnected")}
+          disabled={formErrorML || formErrorDuration || (props?.job?.state == "ready")}
           type="submit"
           variant="contained"
           size="small"
@@ -156,12 +162,12 @@ export default function ActionPumpForm(props) {
           onClick={onSubmit}
         >
           {props.action.replace(/_/g, " ")}
-        </Button>
+        </LoadingButton>
         <div>
           <Button
             size="small"
             color="primary"
-            disabled={(props.job.state == "ready")}
+            disabled={(props?.job?.state == "ready")}
             onClick={runPumpContinuously}
           >
             Run continuously
