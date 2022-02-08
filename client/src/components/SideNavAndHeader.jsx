@@ -114,7 +114,7 @@ export default function SideNavAndHeader() {
         </ListItemButton>
 
         <ListItemButton href="/pioreactors"  component="a" key={"pioreactors"} selected={isSelected("/pioreactors")}>
-          <ListItemIcon className={classes.listItemIcon}> <PioreactorIcon color={isSelected("/pioreactors") ? "primary" : "inherit"}/> </ListItemIcon>
+          <ListItemIcon className={classes.listItemIcon}> <PioreactorIcon color={isSelected("/pioreactors") ? "primary" : "inherit"} viewBox="-3 0 24 24"/> </ListItemIcon>
           <ListItemText primaryTypographyProps={{color: isSelected("/pioreactors") ? "primary" : "rgba(0, 0, 0, 0.87)"}} primary={"Pioreactors"} />
         </ListItemButton>
 

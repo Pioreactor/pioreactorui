@@ -53,7 +53,7 @@ function ChangeAutomationsDialog(props) {
   const automationTypeForDisplay = (automationType === "led") ? "LED" : automationType
   const [algoSettings, setAlgoSettings] = useState({
     automation_name: defaultAutomations[props.automationType],
-    skip_first_run: 0
+    skip_first_run: 0 //TODO: this should be not included if !props.no_skip_first_run
   })
   const [client, setClient] = useState(null)
   const [automations, setAutomations] = useState({})

@@ -1053,8 +1053,13 @@ function SettingsActionsDialog(props) {
 
   const isLargeScreen = useMediaQuery(theme => theme.breakpoints.down('xl'));
   var dosingControlJob = props.jobs.dosing_control
+  var dosingControlJobRunning = ["ready", "sleeping", "init"].includes(dosingControlJob?.state)
+
   var ledControlJob = props.jobs.led_control
+  var ledControlJobRunning = ["ready", "sleeping", "init"].includes(ledControlJob?.state)
+
   var temperatureControlJob = props.jobs.temperature_control
+  var temperatureControlJobRunning = ["ready", "sleeping", "init"].includes(temperatureControlJob?.state)
 
   return (
     <div>
@@ -1169,7 +1174,7 @@ function SettingsActionsDialog(props) {
               style={{marginTop: "10px"}}
               size="small"
               color="primary"
-              disabled={temperatureControlJob.state === "disconnected"}
+              disabled={!temperatureControlJobRunning}
             >
               Change temperature automation
             </Button>
@@ -1180,7 +1185,7 @@ function SettingsActionsDialog(props) {
               unit={props.unit}
               config={props.config}
               experiment={props.experiment}
-              isJobRunning={temperatureControlJob.state !== "disconnected"}
+              isJobRunning={temperatureControlJobRunning}
               automationType="temperature"
               no_skip_first_run={true}
             />
@@ -1234,7 +1239,7 @@ function SettingsActionsDialog(props) {
               style={{marginTop: "10px"}}
               size="small"
               color="primary"
-              disabled={dosingControlJob.state === "disconnected"}
+              disabled={!dosingControlJobRunning}
             >
               Change dosing automation
             </Button>
@@ -1246,7 +1251,7 @@ function SettingsActionsDialog(props) {
               unit={props.unit}
               config={props.config}
               experiment={props.experiment}
-              isJobRunning={dosingControlJob.state !== "disconnected"}
+              isJobRunning={dosingControlJobRunning}
               no_skip_first_run={false}
             />
           </React.Fragment>
@@ -1300,7 +1305,7 @@ function SettingsActionsDialog(props) {
               style={{marginTop: "10px"}}
               size="small"
               color="primary"
-              disabled={ledControlJob.state === "disconnected"}
+              disabled={!ledControlJobRunning}
             >
               Change LED automation
             </Button>
@@ -1312,7 +1317,7 @@ function SettingsActionsDialog(props) {
               unit={props.unit}
               config={props.config}
               experiment={props.experiment}
-              isJobRunning={ledControlJob.state !== "disconnected"}
+              isJobRunning={ledControlJobRunning}
               no_skip_first_run={false}
             />
           </React.Fragment>
