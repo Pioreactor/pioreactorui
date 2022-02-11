@@ -169,8 +169,8 @@ app.post("/run/:job/:unit", function(req, res) {
 
     execFile("pios", ["run", job, "-y", "--units", unit].concat(options), (error, stdout, stderr) => {
         if (error) {
-            console.log(error)
             publishToErrorLog(error)
+            console.log(error)
             res.sendStatus(500)
             return
         }
@@ -457,6 +457,7 @@ app.post("/update_app", function (req, res) {
       }
       else{
         publishToErrorLog(result.msg)
+        console.log(result.msg)
         res.sendStatus(500)
       }
     });
@@ -486,6 +487,7 @@ app.post('/export_datasets', function(req, res) {
       }
       else{
         publishToErrorLog(result.msg)
+        console.log(result.msg)
         res.sendStatus(500)
       }
     });
@@ -558,6 +560,7 @@ app.post("/update_experiment_desc", function (req, res, next) {
     db.query(update, [req.body.description, req.body.experiment], function(err, _){
         if (err){
           publishToErrorLog(err)
+          console.log(err)
           res.sendStatus(500)
         } else {
           res.sendStatus(200)
@@ -575,6 +578,7 @@ app.post("/add_new_pioreactor", function (req, res) {
       }
       else{
         publishToErrorLog(result.msg)
+        console.log(result.msg)
         res.status(500).json(result)
       }
     });
