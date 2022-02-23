@@ -35,10 +35,12 @@ msgToJSON = (msg, level) => {
 }
 
 publishToLog = (msg, level="DEBUG") => {
+  console.log(msg)
   client.publish(LOG_TOPIC, msgToJSON(msg, level))
 }
 
 publishToErrorLog = (msg) => {
+  console.error(msg)
   publishToLog(JSON.stringify(msg), "ERROR")
 }
 
@@ -118,11 +120,11 @@ app.post('/stop_all', function (req, res) {
   execFile("pios", ["kill"].concat(["--all-jobs"]).concat(["-y"]), (error, stdout, stderr) => {
     if (error) {
         publishToErrorLog(error)
-        console.log(error)
+
     }
     if (stderr) {
         publishToLog(stderr)
-        console.log(stderr)
+
     }
   })
   res.sendStatus(200)
@@ -145,14 +147,14 @@ app.post('/stop/:job/:unit', function (req, res) {
     execFile("pios", ["kill", job, "-y", "--units", req.params.unit], (error, stdout, stderr) => {
       if (error) {
           publishToErrorLog(error)
-          console.log(error)
+
       }
       if (stderr) {
           publishToLog(stderr)
-          console.log(stderr)
+
       }
       publishToLog(stdout)
-      console.log(stdout);
+
     })
     res.sendStatus(200)
   }
@@ -170,18 +172,18 @@ app.post("/run/:job/:unit", function(req, res) {
     execFile("pios", ["run", job, "-y", "--units", unit].concat(options), (error, stdout, stderr) => {
         if (error) {
             publishToErrorLog(error)
-            console.log(error)
+
             res.sendStatus(500)
             return
         }
         if (stderr) {
-            console.log(stderr)
+
             publishToLog(stderr)
             res.sendStatus(200)
             return
         }
         publishToLog(stdout)
-        console.log(stdout)
+
         res.sendStatus(200)
     });
 })
@@ -219,7 +221,7 @@ app.get('/recent_logs/:experiment', function (req, res) {
     function (err, rows) {
       if (err){
         publishToErrorLog(err)
-        console.log(err)
+
         res.sendStatus(500)
       } else {
         res.send(rows)
@@ -240,7 +242,7 @@ app.get('/time_series/growth_rates/:experiment', function (req, res) {
     function (err, rows) {
       if (err){
         publishToErrorLog(err)
-        console.log(err)
+
         res.sendStatus(500)
       } else {
         res.send(rows[0]['results'])
@@ -261,7 +263,7 @@ app.get('/time_series/temperature_readings/:experiment', function (req, res) {
     function (err, rows) {
       if (err){
         publishToErrorLog(err)
-        console.log(err)
+
         res.sendStatus(500)
       } else {
         res.send(rows[0]['results'])
@@ -283,7 +285,7 @@ app.get('/time_series/od_readings_filtered/:experiment', function (req, res) {
     function (err, rows) {
       if (err){
         publishToErrorLog(err)
-        console.log(err)
+
         res.sendStatus(500)
       } else {
         res.send(rows[0]['results'])
@@ -305,7 +307,7 @@ app.get('/time_series/od_readings_raw/:experiment', function (req, res) {
     function (err, rows) {
       if (err){
         publishToErrorLog(err)
-        console.log(err)
+
         res.sendStatus(500)
       } else {
         res.send(rows[0]['results'])
@@ -324,7 +326,7 @@ app.get('/time_series/alt_media_fraction/:experiment', function (req, res) {
     function (err, rows) {
       if (err){
         publishToErrorLog(err)
-        console.log(err)
+
         res.sendStatus(500)
       } else {
         res.send(rows[0]['results'])
@@ -344,7 +346,7 @@ app.get("/recent_media_rates/:experiment", function (req, res) {
       function(err, rows) {
         if (err){
           publishToErrorLog(err)
-          console.log(err)
+
           return setTimeout(fetch, 250)
         }
         var jsonResult = {}
@@ -370,11 +372,11 @@ app.get('/get_installed_plugins', function(req, res) {
   execFile("pio", ["list-plugins", "--json"], (error, stdout, stderr) => {
       if (error) {
         publishToErrorLog(error)
-        console.log(error)
+
       }
       if (stderr) {
         publishToLog(stderr)
-        console.log(stderr)
+
       }
       res.send(stdout)
   })
@@ -385,11 +387,11 @@ app.post('/install_plugin', function(req, res) {
   execFile("pios", ["install-plugin", req.body.plugin_name], (error, stdout, stderr) => {
       if (error) {
         publishToErrorLog(error)
-        console.log(error)
+
       }
       if (stderr) {
         publishToLog(stderr)
-        console.log(stderr)
+
       }
       res.sendStatus(200)
   })
@@ -401,11 +403,11 @@ app.post('/uninstall_plugin', function(req, res) {
   execFile("pios", ["uninstall-plugin", req.body.plugin_name], (error, stdout, stderr) => {
       if (error) {
         publishToErrorLog(error)
-        console.log(error)
+
       }
       if (stderr) {
         publishToLog(stderr)
-        console.log(stderr)
+
       }
       res.sendStatus(200)
   })
@@ -428,7 +430,7 @@ app.get("/contrib/automations/:type", function(req, res) {
     res.json(jsonDesc)
   } catch (e) {
     publishToErrorLog(e)
-    console.log(e);
+
     res.sendStatus(500)
   }
 })
@@ -442,7 +444,7 @@ app.get("/contrib/jobs", function(req, res) {
     res.json(jsonDesc)
   } catch (e) {
     publishToErrorLog(e)
-    console.log(e);
+
     res.sendStatus(500)
   }
 })
@@ -457,7 +459,7 @@ app.post("/update_app", function (req, res) {
       }
       else{
         publishToErrorLog(result.msg)
-        console.log(result.msg)
+
         res.sendStatus(500)
       }
     });
@@ -468,10 +470,10 @@ app.get('/get_app_version', function(req, res) {
   // this is too slow:
   execFile("pio", ["version"], (error, stdout, stderr) => {
       if (error) {
-          console.log(error)
+
       }
       if (stderr) {
-          console.log(stderr)
+
       }
       res.send(stdout.trim())
   })
@@ -487,7 +489,7 @@ app.post('/export_datasets', function(req, res) {
       }
       else{
         publishToErrorLog(result.msg)
-        console.log(result.msg)
+
         res.sendStatus(500)
       }
     });
@@ -502,7 +504,7 @@ app.get('/get_experiments', function (req, res) {
     function (err, rows) {
       if (err){
         publishToErrorLog(err)
-        console.log(err)
+
         res.sendStatus(500)
       } else {
         res.send(rows)
@@ -518,7 +520,7 @@ app.get('/get_latest_experiment', function (req, res) {
       function (err, rows) {
         if (err) {
           publishToErrorLog(err)
-          console.log(err)
+
           return setTimeout(fetch, 500)
         }
         res.send(rows[0])
@@ -542,7 +544,7 @@ app.post("/create_experiment", function (req, res) {
           db.query(insert, [req.body.timestamp, req.body.experiment, req.body.description], function(err, rows){
             if (err){
               publishToErrorLog(err)
-              console.log(err)
+
               next(err)
               res.sendStatus(500)
             } else {
@@ -559,8 +561,8 @@ app.post("/update_experiment_desc", function (req, res, next) {
     db.ignoreErrors = true; // this is a hack to avoid dblite from freezing when we get a db is locked.
     db.query(update, [req.body.description, req.body.experiment], function(err, _){
         if (err){
-          publishToErrorLog(err)
-          console.log(err)
+          // publishToErrorLog(err) probably a database is locked error, ignore.
+
           res.sendStatus(500)
         } else {
           res.sendStatus(200)
@@ -578,7 +580,7 @@ app.post("/add_new_pioreactor", function (req, res) {
       }
       else{
         publishToErrorLog(result.msg)
-        console.log(result.msg)
+
         res.status(500).json(result)
       }
     });
@@ -613,14 +615,14 @@ app.post("/delete_config", function(req, res) {
   execFile("rm", [configPath], (error, stdout, stderr) => {
       if (error) {
           publishToErrorLog(error)
-          console.log(error)
+
           res.sendStatus(500)
       }
       if (stderr) {
           publishToLog(stderr)
-          console.log(stderr)
+
       }
-      console.log(stdout);
+
       res.sendStatus(200)
   })
 });
@@ -649,16 +651,16 @@ app.post("/save_new_config", function(req, res) {
       execFile("pios", ["sync-configs", "--units", units].concat(flags), (error, stdout, stderr) => {
           if (error) {
             publishToErrorLog(error)
-            console.log(error)
+
             res.sendStatus(500);
           }
           else if (stderr) {
             publishToLog(stderr)
-            console.log(stderr)
+
             res.sendStatus(200);
           }
           else{
-            console.log(stdout);
+
             res.sendStatus(200)
           }
       });
@@ -674,5 +676,5 @@ app.post("/save_new_config", function(req, res) {
 const PORT = process.env.PORT || 3000
 app.listen(PORT, () => {
   publishToLog(`Listening on port ${PORT}`)
-  console.log(`Listening on port ${PORT}`)
+
 });

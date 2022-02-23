@@ -126,25 +126,27 @@ function StartSensors(props){
       spacing={2}
     >
       <Grid item xs={2}/>
-      <Grid item xs={10}><StartHeating config={props.config}/></Grid>
-      <Grid item xs={10}><StartStirring/></Grid>
-      <Grid item xs={10}><StartODReading/></Grid>
-      <Grid item xs={12}>
-        <Chart
-          config={props.config}
-          isODReading={true}
-          fontScale={1.0}
-          dataSource="od_readings_raw"
-          interpolation="stepAfter"
-          title="Optical density"
-          topic="od_reading/od_raw/+"
-          yAxisLabel="Voltage"
-          payloadKey="voltage"
-          experiment="+"
-          deltaHours={1}
-          lookback={1}
-          fixedDecimals={3}
-        />
+      <Grid container>
+        <Grid item xs={10}><StartHeating config={props.config}/></Grid>
+        <Grid item xs={10}><StartStirring/></Grid>
+        <Grid item xs={10}><StartODReading/></Grid>
+        <Grid item xs={12}>
+          <Chart
+            config={props.config}
+            isODReading={true}
+            fontScale={1.0}
+            dataSource="od_readings_raw"
+            interpolation="stepAfter"
+            title="Optical density"
+            topic="od_reading/od_raw/+"
+            yAxisLabel="Voltage"
+            payloadKey="voltage"
+            experiment="+"
+            deltaHours={1}
+            lookback={1}
+            fixedDecimals={3}
+          />
+        </Grid>
       </Grid>
       <Grid item xs={2}/>
     </Grid>

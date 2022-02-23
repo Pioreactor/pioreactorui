@@ -51,8 +51,8 @@ function ChangeAutomationsDialog(props) {
   const classes = useStyles();
   const automationType = props.automationType
   const automationTypeForDisplay = (automationType === "led") ? "LED" : automationType
+  const [automationName, setAutomationName] = useState(defaultAutomations[automationType])
   const [algoSettings, setAlgoSettings] = useState({
-    automation_name: defaultAutomations[props.automationType],
     skip_first_run: 0 //TODO: this should be not included if !props.no_skip_first_run
   })
   const [client, setClient] = useState(null)
@@ -112,8 +112,8 @@ function ChangeAutomationsDialog(props) {
   }
 
   const handleAlgoSelectionChange = (e) => {
+    setAutomationName(e.target.value)
     setAlgoSettings({
-        automation_name: e.target.value,
         ...( !props.no_skip_first_run && {skip_first_run: algoSettings.skip_first_run})
     })
   }
@@ -126,7 +126,7 @@ function ChangeAutomationsDialog(props) {
     event.preventDefault()
     fetch(`/run/${automationType}_control/${props.unit}`, {
       method: "POST",
-      body: JSON.stringify(algoSettings),
+      body: JSON.stringify({"automation_name": automationName, ...algoSettings}),
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json'
@@ -138,7 +138,7 @@ function ChangeAutomationsDialog(props) {
 
   const changeAutomation = (event) => {
     event.preventDefault()
-    var message = new Message(JSON.stringify(algoSettings));
+    var message = new Message(JSON.stringify({"automation_name": automationName, "automation_type": automationType, "args": algoSettings}),);
     message.destinationName = [
       "pioreactor",
       props.unit,
@@ -203,14 +203,14 @@ function ChangeAutomationsDialog(props) {
             <Select
               native
               variant="standard"
-              value={algoSettings.automation_name}
+              value={automationName}
               onChange={handleAlgoSelectionChange}
               style={{maxWidth: "200px"}}
             >
               {Object.keys(automations).map((key) => <option id={key} value={key} key={"change-io" + key}>{automations[key].display_name}</option>)}
 
             </Select>
-            {Object.keys(automations).length > 0 && <AutomationForm fields={automations[algoSettings.automation_name].fields} description={automations[algoSettings["automation_name"]].description} updateParent={updateFromChild} name={algoSettings.automation_name}/>}
+            {Object.keys(automations).length > 0 && <AutomationForm fields={automations[automationName].fields} description={automations[automationName].description} updateParent={updateFromChild} name={automationName}/>}
 
             {!props.no_skip_first_run ?
             <FormControlLabel
@@ -247,7 +247,7 @@ function ChangeAutomationsDialog(props) {
       anchorOrigin={{vertical: "bottom", horizontal: "center"}}
       open={openSnackbar}
       onClose={handleSnackbarClose}
-      message={`Starting ${automationTypeForDisplay} automation ${automations[algoSettings.automation_name]?.display_name}.`}
+      message={`Starting ${automationTypeForDisplay} automation ${automations[automationName]?.display_name}.`}
       autoHideDuration={7000}
       key={"snackbar-change-" + automationType}
     />
