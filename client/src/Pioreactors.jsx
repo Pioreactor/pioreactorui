@@ -833,11 +833,19 @@ function SelfTestDialog(props) {
                       ""
                     }/>
               </ListItem>
+
               <ListItem className={classes.testingListItem}>
                 <ListItemIcon className={classes.testingListItemIcon}>
                   {displayIcon("test_ambient_light_interference", props.selfTestState)}
                 </ListItemIcon>
                 <ListItemText primary="No ambient IR light detected" />
+              </ListItem>
+
+              <ListItem className={classes.testingListItem}>
+                <ListItemIcon className={classes.testingListItemIcon}>
+                  {displayIcon("test_REF_is_lower_than_0_dot_256_volts", props.selfTestState)}
+                </ListItemIcon>
+                <ListItemText primary="Reference photodiode is correct magnitude" />
               </ListItem>
             </List>
 

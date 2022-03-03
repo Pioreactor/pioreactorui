@@ -40,7 +40,7 @@ publishToLog = (msg, level="DEBUG") => {
 }
 
 publishToErrorLog = (msg) => {
-  console.error(msg)
+  console.log(msg)
   publishToLog(JSON.stringify(msg), "ERROR")
 }
 
@@ -629,50 +629,44 @@ app.post("/delete_config", function(req, res) {
 
 
 app.post("/save_new_config", function(req, res) {
-  try {
-    // if the config file is unit specific, we only need to run sync-config on that unit.
-    const regex = /config_?(.*)?\.ini/
-    const filename = req.body.filename
-    if (filename.match(regex)[1]){
-      var units = filename.match(regex)[1]
-      var flags = ["--specific"]
-    }
-    else{
-      var units = "$broadcast"
-      var flags = ["--shared"]
-    }
-
-    var configPath = path.join(process.env.CONFIG_INI_FOLDER, req.body.filename);
-    fs.writeFile(configPath, req.body.code, function (err) {
-      // it's important we write to disk first, so `pio` picks up any new configs
-      if (err) {
-        console.log(err)
-        res.sendStatus(500)
-      }
-      else {
-        execFile("pios", ["sync-configs", "--units", units].concat(flags), (error, stdout, stderr) => {
-            if (error) {
-              console.log(error)
-              publishToErrorLog(error)
-
-              res.sendStatus(500);
-            }
-            else if (stderr) {
-              publishToLog(stderr)
-
-              res.sendStatus(200);
-            }
-            else{
-
-              res.sendStatus(200)
-            }
-        });
-      }
-    })
-  } catch (error) {
-    console.error(error)
-    console.log(error)
+  // if the config file is unit specific, we only need to run sync-config on that unit.
+  const regex = /config_?(.*)?\.ini/
+  const filename = req.body.filename
+  if (filename.match(regex)[1]){
+    var units = filename.match(regex)[1]
+    var flags = ["--specific"]
   }
+  else{
+    var units = "$broadcast"
+    var flags = ["--shared"]
+  }
+
+  var configPath = path.join(process.env.CONFIG_INI_FOLDER, req.body.filename);
+  fs.writeFile(configPath, req.body.code, function (error) {
+    // it's important we write to disk first, so `pio` picks up any new configs
+    if (error) {
+      publishToErrorLog(error)
+      res.sendStatus(500)
+    }
+    else {
+      execFile("pios", ["sync-configs", "--units", units].concat(flags), (error, stdout, stderr) => {
+          if (error) {
+            publishToErrorLog(error)
+
+            res.sendStatus(500);
+          }
+          else if (stderr) {
+            publishToLog(stderr)
+
+            res.sendStatus(200);
+          }
+          else{
+
+            res.sendStatus(200)
+          }
+      });
+    }
+  })
 })
 
 

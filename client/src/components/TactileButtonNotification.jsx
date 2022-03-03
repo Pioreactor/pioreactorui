@@ -16,7 +16,7 @@ function TactileButtonNotification(props) {
     }
 
     const onMessageArrived = (msg) => {
-      if (msg.payloadString === "1"){
+      if (msg.payloadString === "True"){
         var unit = msg.topic.split("/")[1]
         setUnit(unit)
         try {
