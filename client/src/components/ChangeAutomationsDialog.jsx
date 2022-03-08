@@ -138,7 +138,7 @@ function ChangeAutomationsDialog(props) {
 
   const changeAutomation = (event) => {
     event.preventDefault()
-    var message = new Message(JSON.stringify({"automation_name": automationName, "automation_type": automationType, "args": algoSettings}),);
+    var message = new Message(JSON.stringify({"automation_name": automationName, "type": automationType, "args": algoSettings}),);
     message.destinationName = [
       "pioreactor",
       props.unit,
