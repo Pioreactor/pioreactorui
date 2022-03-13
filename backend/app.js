@@ -166,6 +166,10 @@ app.post("/run/:job/:unit", function(req, res) {
     unit = req.params.unit
     job = req.params.job
 
+    client.publish(`pioreactor/${unit}/$experiment/run/${job}`, JSON.stringify(req.body))
+    res.sendStatus(200)
+
+    /*
     // TODO: is this a security risk?
     options = Object.entries(req.body).map(k_v => [`--${k_v[0].replace(/_/g, "-")} ${k_v[1]}`])
 
@@ -186,6 +190,7 @@ app.post("/run/:job/:unit", function(req, res) {
 
         res.sendStatus(200)
     });
+    */
 })
 
 
