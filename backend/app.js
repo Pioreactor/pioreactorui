@@ -161,7 +161,7 @@ app.post('/stop/:job/:unit', function (req, res) {
  })
 
 app.post("/run/:job/:unit", function(req, res) {
-    // TODO: we could start jobs over MQTT instead - this would save some time.
+    // we start jobs over MQTT instead - this would saves some time on not having to invoke python / pios
 
     unit = req.params.unit
     job = req.params.job

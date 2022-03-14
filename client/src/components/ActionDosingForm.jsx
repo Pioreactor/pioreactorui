@@ -70,7 +70,7 @@ export default function ActionPumpForm(props) {
   function runPumpContinuously(e) {
     fetch(`/run/${props.action}/${props.unit}`, {
       method: "POST",
-      body: JSON.stringify({continuously: "", source_of_event: "UI"}),
+      body: JSON.stringify({continuously: true, source_of_event: "UI"}),
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json'
