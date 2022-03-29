@@ -13,6 +13,7 @@ import Stepper from '@mui/material/Stepper';
 import Step from '@mui/material/Step';
 import StepLabel from '@mui/material/StepLabel';
 import TextField from '@mui/material/TextField';
+import Autocomplete, { createFilterOptions } from '@mui/material/Autocomplete';
 
 //import CleaningScript from "./components/CleaningScript"
 import StartSensors from "./components/StartSensors"
@@ -38,15 +39,93 @@ const useStyles = makeStyles((theme) => ({
   },
   textField:{
     marginTop: theme.spacing(1),
-    marginBottom: theme.spacing(1)
+    marginBottom: theme.spacing(1),
+    width: "100%"
+
   },
   formControl: {
     margin: theme.spacing(3),
   },
-  halfTextField: {
-    width: "95%"
-  },
 }));
+
+
+const filter = createFilterOptions();
+
+function FreeSoloCreateOption(props) {
+  const classes = useStyles();
+  const [value, setValue] = React.useState({key: props.value});
+  const options = props.options
+  const updateParentCallback = props.updateParentCallback
+
+  React.useEffect( () => {
+    setValue({key: props.value});
+  }, [props.value]);
+
+  return (
+    <Autocomplete
+      value={value}
+      className={classes.textField}
+      onChange={(event, newValue) => {
+        if (typeof newValue === 'string') {
+          setValue({
+            key: newValue,
+          });
+          updateParentCallback(newValue)
+
+        } else if (newValue && newValue.inputValue) {
+          // Create a new value from the user input
+          setValue({
+            key: newValue.inputValue,
+          });
+          updateParentCallback(newValue.inputValue)
+
+        } else {
+          setValue(newValue);
+          updateParentCallback(newValue?.key)
+        }
+      }}
+      filterOptions={(options, params) => {
+        const filtered = filter(options, params);
+
+        const { inputValue } = params;
+        // Suggest the creation of a new value
+        const isExisting = options.some((option) => inputValue === option.key);
+        if ((inputValue !== '') && !isExisting) {
+          filtered.push({
+            inputValue,
+            key: `Add "${inputValue}"`,
+          });
+        }
+        return filtered;
+      }}
+      selectOnFocus
+      clearOnBlur
+      handleHomeEndKeys
+      id="free-solo-with-text-addition"
+      options={options}
+      getOptionLabel={(option) => {
+        // Value selected with enter, right from the input
+        if (typeof option === 'string') {
+          return option;
+        }
+        // Add "xxx" option created dynamically
+        if (option.inputValue) {
+          return option.inputValue;
+        }
+        if (option.key){
+          return option.key;
+        }
+        return ""
+      }}
+      renderOption={(props, option) => <li {...props}>{option.key}</li>}
+      sx={{ width: 300 }}
+      freeSolo
+      renderInput={(params) => (
+        <TextField {...params} label={props.label} />
+      )}
+    />
+  );
+}
 
 
 
@@ -57,6 +136,31 @@ function ExperimentSummaryForm(props) {
   const [expName, setExpName] = React.useState("");
   const [timestamp, setTimestamp] = React.useState(moment.utc());
   const [description, setDescription] = React.useState("");
+  const [organismUsed, setOrganismUsed] = React.useState("");
+  const [mediaUsed, setMediaUsed] = React.useState("");
+  const [historicalMediaUsed, setHistoricalMediaUsed] = React.useState([]);
+  const [historicalOrganismUsed, setHistoricalOrganismUsed] = React.useState([]);
+
+  React.useEffect(() => {
+    function populateDropDowns() {
+      fetch("/get_historical_media_used")
+        .then((response) => {
+            if (response.ok) {
+              return response.json();
+            }
+          })
+        .then(json => setHistoricalMediaUsed(json))
+
+      fetch("/get_historical_organisms_used")
+        .then((response) => {
+            if (response.ok) {
+              return response.json();
+            }
+          })
+        .then(json => setHistoricalOrganismUsed(json))
+    }
+    populateDropDowns();
+  }, [])
 
 
   function publishExpNameToMQTT(){
@@ -93,10 +197,10 @@ function ExperimentSummaryForm(props) {
       .then((data) => {
         setExpName(data.experiment)
         setDescription(data.description)
+        setOrganismUsed(data.organism_used)
+        setMediaUsed(data.media_used)
       });
   }
-
-
 
 
   function killExistingJobs(){
@@ -120,7 +224,7 @@ function ExperimentSummaryForm(props) {
 
     fetch('create_experiment',{
         method: "POST",
-        body: JSON.stringify({experiment : expName.trim(), timestamp: timestamp.toISOString(), description: description}),
+        body: JSON.stringify({experiment : expName.trim(), timestamp: timestamp.toISOString(), description: description, mediaUsed: mediaUsed, organismUsed: organismUsed }),
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json'
@@ -150,8 +254,6 @@ function ExperimentSummaryForm(props) {
   const onTimestampChange = (e) => {
     setTimestamp(e.target.value)
   }
-
-
   return (
     <div className={classes.root}>
         <FormGroup>
@@ -162,7 +264,8 @@ function ExperimentSummaryForm(props) {
               id="expName"
               label="Experiment name"
               value={expName}
-              required className={`${classes.halfTextField} ${classes.textField}`}
+              required
+              className={classes.textField}
               onChange={onExpNameChange}
               helperText={helperText}
               />
@@ -173,7 +276,7 @@ function ExperimentSummaryForm(props) {
               label="Start time"
               type="datetime-local"
               defaultValue={timestamp.local().format("YYYY-MM-DDTHH:mm:ss")}
-              className={`${classes.halfTextField} ${classes.textField}`}
+              className={classes.textField}
               onChange={onTimestampChange}
               InputLabelProps={{
                 shrink: true,
@@ -182,9 +285,9 @@ function ExperimentSummaryForm(props) {
           </Grid>
           <Grid item xs={12} md={12}>
             <TextField
-              label="Description"
+              label="Description (optional)"
               maxRows={4}
-              placeholder={"Add a description: what microbe are you using? What is the media composition? This description can always be changed later."}
+              placeholder={"Add a description: what is your hypothesis? What is the experiment protocol? This description can always be changed later."}
               multiline
               value={description}
               className={classes.textField}
@@ -193,10 +296,27 @@ function ExperimentSummaryForm(props) {
             />
           </Grid>
 
+          <Grid item xs={12} md={6}>
+            <FreeSoloCreateOption
+              options={historicalOrganismUsed}
+              label="Organism / strain used (optional)"
+              updateParentCallback={setOrganismUsed}
+              value={organismUsed}
+            />
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <FreeSoloCreateOption
+              options={historicalMediaUsed}
+              label="Media used (optional)"
+              updateParentCallback={setMediaUsed}
+              value={mediaUsed}
+            />
+          </Grid>
+
           <Grid item xs={12} md={4}/>
           <Grid item xs={12} md={8}>
             <div style={{display: "flex", justifyContent: "flex-end"}}>
-              <Button size="small" color="primary" onClick={populateFields}>Populate with previous experiment</Button>
+              <Button style={{marginRight: "10px"}} size="small" color="primary" onClick={populateFields}>Populate with previous experiment</Button>
               <Button variant="contained" color="primary" onClick={onSubmit}> Create </Button>
             </div>
           </Grid>

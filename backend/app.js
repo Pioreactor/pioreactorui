@@ -520,8 +520,8 @@ app.get('/get_experiments', function (req, res) {
 app.get('/get_latest_experiment', function (req, res) {
   function fetch() {
     db.query(
-      'SELECT *, round( (strftime("%s","now") - strftime("%s", timestamp))/60/60, 0) as delta_hours FROM experiments ORDER BY timestamp DESC LIMIT 1;',
-      {experiment: String, timestamp: String, description: String, delta_hours: Number},
+      'SELECT experiment, timestamp, description, media_used, organism_used, round( (strftime("%s","now") - strftime("%s", timestamp))/60/60, 0) as delta_hours FROM experiments ORDER BY timestamp DESC LIMIT 1;',
+      {experiment: String, timestamp: String, description: String, media_used: String, organism_used: String, delta_hours: Number},
       function (err, rows) {
         if (err) {
           publishToErrorLog(err)
@@ -529,6 +529,41 @@ app.get('/get_latest_experiment', function (req, res) {
           return setTimeout(fetch, 500)
         }
         res.send(rows[0])
+    })
+  }
+  fetch()
+})
+
+
+app.get('/get_historical_organisms_used', function (req, res) {
+  function fetch() {
+    db.query(
+      'SELECT DISTINCT organism_used as key FROM experiments WHERE organism_used IS NOT NULL ORDER BY timestamp DESC;',
+      {key: String},
+      function (err, rows) {
+        if (err) {
+          publishToErrorLog(err)
+
+          res.send([])
+        }
+        res.send(rows)
+    })
+  }
+  fetch()
+})
+
+
+app.get('/get_historical_media_used', function (req, res) {
+  function fetch() {
+    db.query(
+      'SELECT DISTINCT media_used as key FROM experiments WHERE media_used IS NOT NULL ORDER BY timestamp DESC;',
+      {key: String},
+      function (err, rows) {
+        if (err) {
+          publishToErrorLog(err)
+          res.send([])
+        }
+        res.send(rows)
     })
   }
   fetch()
@@ -545,8 +580,9 @@ app.post("/create_experiment", function (req, res) {
         }
         else{
           db.ignoreErrors = true; // this is a hack to avoid dblite from freezing when we get a db is locked.
-          var insert = 'INSERT INTO experiments (timestamp, experiment, description) VALUES (?,?,?)'
-          db.query(insert, [req.body.timestamp, req.body.experiment, req.body.description], function(err, rows){
+          body = req.body
+          var insert = 'INSERT INTO experiments (timestamp, experiment, description, media_used, organism_used) VALUES (?,?,?,?,?)'
+          db.query(insert, [body.timestamp, body.experiment, body.description, body.mediaUsed, body.organismUsed], function(err, rows){
             if (err){
               publishToErrorLog(err)
 
