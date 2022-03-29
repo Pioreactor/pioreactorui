@@ -10,6 +10,10 @@ import Divider from '@mui/material/Divider';
 import Button from '@mui/material/Button';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import TimelapseIcon from '@mui/icons-material/Timelapse';
+import CoronavirusIcon from '@mui/icons-material/Coronavirus';
+import WaterIcon from '@mui/icons-material/Water';
+import LocalDrinkIcon from '@mui/icons-material/LocalDrink';
+import ScienceIcon from '@mui/icons-material/Science';
 import GetAppIcon from '@mui/icons-material/GetApp';
 import ClearIcon from '@mui/icons-material/Clear';
 import AddIcon from '@mui/icons-material/Add';
@@ -219,6 +223,8 @@ function ButtonConfirmStopProcessDialog() {
 function ExperimentSummary(props){
   const classes = useStyles();
   const experiment = props.experimentMetadata.experiment || ""
+  const organism = props.experimentMetadata.organism_used || ""
+  const media = props.experimentMetadata.media_used || ""
   const startedAt = props.experimentMetadata.timestamp || moment()
   const desc = props.experimentMetadata.description || ""
   const deltaHours = props.experimentMetadata.delta_hours || 0
@@ -241,18 +247,43 @@ function ExperimentSummary(props){
 
         <Divider/>
         <Typography variant="subtitle2">
+
           <Box fontWeight="fontWeightBold" style={{margin: "10px 2px 10px 2px", display:"inline-block"}}>
-            <CalendarTodayIcon style={{ fontSize: 12, verticalAlign: "middle" }}/> Experiment started:
+            <CalendarTodayIcon style={{ fontSize: 12, verticalAlign: "-1px" }}/> Experiment started:
           </Box>
           <Box fontWeight="fontWeightRegular" style={{marginRight: "20px", display:"inline-block"}}>
             <span title={moment(startedAt).format("YYYY-MM-DD HH:mm:ss")}>{moment(startedAt).format("dddd, MMMM D, YYYY")}</span>
           </Box>
-          <Box fontWeight="fontWeightBold" style={{display:"inline-block", margin: "10px 2px 10px 0px"}}>
-            <TimelapseIcon style={{ fontSize: 12, verticalAlign: "middle"  }}/>Time elapsed:
+
+          <Box fontWeight="fontWeightBold" style={{margin: "10px 2px 10px 2px", display:"inline-block"}}>
+            <TimelapseIcon style={{ fontSize: 12, verticalAlign: "-1px"  }}/>Time elapsed:
           </Box>
-          <Box fontWeight="fontWeightRegular" style={{display:"inline-block"}}>
+          <Box fontWeight="fontWeightRegular" style={{marginRight: "20px", display:"inline-block"}}>
            {deltaHours}h
           </Box>
+
+          {organism &&
+          <React.Fragment>
+            <Box fontWeight="fontWeightBold" style={{display:"inline-block", margin: "10px 2px 10px 0px"}}>
+              <CoronavirusIcon style={{ fontSize: 12, verticalAlign: "-1px"  }}/>Strain:
+            </Box>
+            <Box fontWeight="fontWeightRegular" style={{marginRight: "20px", display:"inline-block"}}>
+             {organism}
+            </Box>
+          </React.Fragment>
+        }
+
+          {media &&
+          <React.Fragment>
+            <Box fontWeight="fontWeightBold" style={{display:"inline-block", margin: "10px 2px 10px 0px"}}>
+              <LocalDrinkIcon style={{ fontSize: 12, verticalAlign: "-1px"  }}/>Media:
+            </Box>
+            <Box fontWeight="fontWeightRegular" style={{display:"inline-block"}}>
+             {media}
+            </Box>
+          </React.Fragment>
+        }
+
         </Typography>
       </div>
       <Card className={classes.root}>

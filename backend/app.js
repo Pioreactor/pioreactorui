@@ -538,7 +538,7 @@ app.get('/get_latest_experiment', function (req, res) {
 app.get('/get_historical_organisms_used', function (req, res) {
   function fetch() {
     db.query(
-      'SELECT DISTINCT organism_used as key FROM experiments WHERE organism_used IS NOT NULL ORDER BY timestamp DESC;',
+      'SELECT DISTINCT organism_used as key FROM experiments WHERE NOT (organism_used IS NULL OR organism_used == "") ORDER BY timestamp DESC;',
       {key: String},
       function (err, rows) {
         if (err) {
@@ -556,7 +556,7 @@ app.get('/get_historical_organisms_used', function (req, res) {
 app.get('/get_historical_media_used', function (req, res) {
   function fetch() {
     db.query(
-      'SELECT DISTINCT media_used as key FROM experiments WHERE media_used IS NOT NULL ORDER BY timestamp DESC;',
+      'SELECT DISTINCT media_used as key FROM experiments WHERE NOT (media_used IS NULL OR media_used == "") ORDER BY timestamp DESC;',
       {key: String},
       function (err, rows) {
         if (err) {

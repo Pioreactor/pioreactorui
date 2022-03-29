@@ -299,7 +299,7 @@ function ExperimentSummaryForm(props) {
           <Grid item xs={12} md={6}>
             <FreeSoloCreateOption
               options={historicalOrganismUsed}
-              label="Organism / strain used (optional)"
+              label="Organism / strain (optional)"
               updateParentCallback={setOrganismUsed}
               value={organismUsed}
             />
@@ -307,7 +307,7 @@ function ExperimentSummaryForm(props) {
           <Grid item xs={12} md={6}>
             <FreeSoloCreateOption
               options={historicalMediaUsed}
-              label="Media used (optional)"
+              label="Media (optional)"
               updateParentCallback={setMediaUsed}
               value={mediaUsed}
             />
