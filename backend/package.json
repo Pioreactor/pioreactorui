@@ -21,6 +21,7 @@
     "ini": "^2.0.0",
     "js-yaml": "^4.1.0",
     "mqtt": "^4.2.8",
-    "showdown": "^1.9.1"
+    "showdown": "^1.9.1",
+    "sqlite-tag-spawned": "^0.5.5"
   }
 }

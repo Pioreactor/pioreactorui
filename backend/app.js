@@ -7,7 +7,7 @@ const dotenv = require('dotenv').config()
 const url = require('url');
 const { execFile } = require("child_process");
 const cp = require('child_process');
-const dblite = require('dblite')
+const SQLiteTagSpawned = require('sqlite-tag-spawned');
 const fs = require('fs')
 const expressStaticGzip = require("express-static-gzip");
 const compression = require('compression');
@@ -21,7 +21,7 @@ app.use(bodyParser.json());
 app.use(compression());
 
 
-var db = dblite(process.env.DB_LOCATION)
+const {query} = SQLiteTagSpawned(process.env.DB_LOCATION);
 
 
 // connect to MQTT for logging
@@ -44,12 +44,12 @@ publishToErrorLog = (msg) => {
   publishToLog(JSON.stringify(msg), "ERROR")
 }
 
+async function test() {
+ const result = await query`SELECT * from experiments`;
+ console.log("result = ", result);
+}
 
-db.on('error', function (err) {
-  // log any DB errors.
-  // TODO: I don't think this is working...
-  publishToErrorLog(err.toString());
-});
+test();
 
 
 ///////////// ROUTES ///////////////////
@@ -220,7 +220,7 @@ app.get('/recent_logs/:experiment', function (req, res) {
     levelString = '(level == "ERROR" or level == "INFO" or level == "WARNING")'
   }
 
-  db.query(`SELECT timestamp, level=="ERROR" as is_error, level=="WARNING" as is_warning, pioreactor_unit, message, task FROM logs WHERE ${levelString} and (experiment=:experiment OR experiment=:universalExperiment) and timestamp >= MAX(strftime('%Y-%m-%dT%H:%M:%S', datetime('now', '-24 hours')), (SELECT timestamp FROM experiments WHERE experiment=:experiment)) ORDER BY timestamp DESC LIMIT 50;`,
+  query(`SELECT timestamp, level=="ERROR" as is_error, level=="WARNING" as is_warning, pioreactor_unit, message, task FROM logs WHERE ${levelString} and (experiment=:experiment OR experiment=:universalExperiment) and timestamp >= MAX(strftime('%Y-%m-%dT%H:%M:%S', datetime('now', '-24 hours')), (SELECT timestamp FROM experiments WHERE experiment=:experiment)) ORDER BY timestamp DESC LIMIT 50;`,
     {experiment: experiment, universalExperiment: "$experiment",  levelString: levelString},
     {timestamp: String, is_error: Boolean, is_warning: Boolean, pioreactor_unit: String, message: String, task: String},
     function (err, rows) {
@@ -240,7 +240,7 @@ app.get('/time_series/growth_rates/:experiment', function (req, res) {
   const queryObject = url.parse(req.url, true).query; // assume that all query params are optional args for the job
   const filterModN = queryObject['filter_mod_N'] || 100
 
-  db.query(
+  query(
     "SELECT json_object('series', json_group_array(unit), 'data', json_group_array(data)) FROM (SELECT pioreactor_unit as unit, json_group_array(json_object('x', timestamp, 'y', round(rate, 5))) as data FROM growth_rates WHERE experiment=:experiment AND ((ROWID * 0.61803398875) - cast(ROWID * 0.61803398875 as int) < 1.0/:filterModN) GROUP BY 1);",
     {experiment: experiment, filterModN: filterModN},
     {results: String},
@@ -261,7 +261,7 @@ app.get('/time_series/temperature_readings/:experiment', function (req, res) {
   const queryObject = url.parse(req.url, true).query; // assume that all query params are optional args for the job
   const filterModN = queryObject['filter_mod_N'] || 100
 
-  db.query(
+  query(
     "SELECT json_object('series', json_group_array(unit), 'data', json_group_array(data)) FROM (SELECT pioreactor_unit as unit, json_group_array(json_object('x', timestamp, 'y', round(temperature_c, 2))) as data FROM temperature_readings WHERE experiment=:experiment AND ((ROWID * 0.61803398875) - cast(ROWID * 0.61803398875 as int) < 1.0/:filterModN) GROUP BY 1);",
     {experiment: experiment, filterModN: filterModN},
     {results: String},
@@ -283,7 +283,7 @@ app.get('/time_series/od_readings_filtered/:experiment', function (req, res) {
   const filterModN = queryObject['filter_mod_N'] || 100
   const lookback = queryObject['lookback'] || 4
 
-  db.query(
+  query(
     "SELECT json_object('series', json_group_array(unit), 'data', json_group_array(data)) FROM (SELECT pioreactor_unit as unit, json_group_array(json_object('x', timestamp, 'y', round(normalized_od_reading, 7))) as data FROM od_readings_filtered WHERE experiment=:experiment AND ((ROWID * 0.61803398875) - cast(ROWID * 0.61803398875 as int) < 1.0/:filterModN) AND timestamp > strftime('%Y-%m-%dT%H:%M:%S', datetime('now', :lookback)) GROUP BY 1);",
     {experiment: experiment, filterModN: filterModN, lookback: `-${lookback} hours`},
     {results: String},
@@ -305,7 +305,7 @@ app.get('/time_series/od_readings_raw/:experiment', function (req, res) {
   const filterModN = queryObject['filter_mod_N'] || 100
   const lookback = queryObject['lookback'] || 4
 
-  db.query(
+  query(
     "SELECT json_object('series', json_group_array(unit), 'data', json_group_array(data)) FROM (SELECT pioreactor_unit || '-' || channel as unit, json_group_array(json_object('x', timestamp, 'y', round(od_reading_v, 7))) as data FROM od_readings_raw WHERE experiment=:experiment AND ((ROWID * 0.61803398875) - cast(ROWID * 0.61803398875 as int) < 1.0/:filterModN) and timestamp > strftime('%Y-%m-%dT%H:%M:%S', datetime('now', :lookback)) GROUP BY 1);",
     {experiment: experiment, filterModN: filterModN, lookback: `-${lookback} hours`},
     {results: String},
@@ -324,7 +324,7 @@ app.get('/time_series/alt_media_fraction/:experiment', function (req, res) {
   const experiment = req.params.experiment
   const queryObject = url.parse(req.url, true).query; // assume that all query params are optional args for the job
 
-  db.query(
+  query(
     "SELECT json_object('series', json_group_array(unit), 'data', json_group_array(data)) FROM (SELECT pioreactor_unit as unit, json_group_array(json_object('x', timestamp, 'y', round(alt_media_fraction, 7))) as data FROM alt_media_fractions WHERE experiment=:experiment GROUP BY 1);",
     {experiment: experiment},
     {results: String},
@@ -343,7 +343,7 @@ app.get('/time_series/alt_media_fraction/:experiment', function (req, res) {
 app.get("/recent_media_rates", function (req, res) {
   const hours = 3
   function fetch(){
-    db.query(`SELECT d.pioreactor_unit, SUM(CASE WHEN event="add_media" THEN volume_change_ml ELSE 0 END) / :hours AS mediaRate, SUM(CASE WHEN event="add_alt_media" THEN volume_change_ml ELSE 0 END) / :hours AS altMediaRate FROM dosing_events AS d JOIN latest_experiment USING (experiment) WHERE datetime(d.timestamp) >= datetime('now', '-:hours Hour') AND event IN ('add_alt_media', 'add_media') AND source_of_event LIKE 'dosing_automation%' GROUP BY d.pioreactor_unit;`,
+    query(`SELECT d.pioreactor_unit, SUM(CASE WHEN event="add_media" THEN volume_change_ml ELSE 0 END) / :hours AS mediaRate, SUM(CASE WHEN event="add_alt_media" THEN volume_change_ml ELSE 0 END) / :hours AS altMediaRate FROM dosing_events AS d JOIN latest_experiment USING (experiment) WHERE datetime(d.timestamp) >= datetime('now', '-:hours Hour') AND event IN ('add_alt_media', 'add_media') AND source_of_event LIKE 'dosing_automation%' GROUP BY d.pioreactor_unit;`,
       {hours: hours},
       {pioreactor_unit: String, mediaRate: Number, altMediaRate: Number},
       function(err, rows) {
@@ -501,7 +501,7 @@ app.post('/export_datasets', function(req, res) {
 
 
 app.get('/get_experiments', function (req, res) {
-  db.query(
+  query(
     'SELECT * FROM experiments ORDER BY timestamp DESC;',
     ["experiment", "timestamp", "description"],
     function (err, rows) {
@@ -517,7 +517,7 @@ app.get('/get_experiments', function (req, res) {
 
 app.get('/get_latest_experiment', function (req, res) {
   function fetch() {
-    db.query(
+    query(
       'SELECT experiment, timestamp, description, media_used, organism_used, delta_hours FROM latest_experiment',
       {experiment: String, timestamp: String, description: String, media_used: String, organism_used: String, delta_hours: Number},
       function (err, rows) {
@@ -535,7 +535,7 @@ app.get('/get_latest_experiment', function (req, res) {
 
 app.get('/get_unit_renames', function (req, res) {
   function fetch() {
-    db.query(
+    query(
       'SELECT r.pioreactor_unit, r.renamed_to FROM pioreactor_unit_renames AS` r JOIN latest_experiment USING (experiment);',
       {pioreactor_unit: String, renamed_to: String},
       function (err, rows) {
@@ -555,7 +555,7 @@ app.get('/get_unit_renames', function (req, res) {
 
 app.get('/get_historical_organisms_used', function (req, res) {
   function fetch() {
-    db.query(
+    query(
       'SELECT DISTINCT organism_used as key FROM experiments WHERE NOT (organism_used IS NULL OR organism_used == "") ORDER BY timestamp DESC;',
       {key: String},
       function (err, rows) {
@@ -573,7 +573,7 @@ app.get('/get_historical_organisms_used', function (req, res) {
 
 app.get('/get_historical_media_used', function (req, res) {
   function fetch() {
-    db.query(
+    query(
       'SELECT DISTINCT media_used as key FROM experiments WHERE NOT (media_used IS NULL OR media_used == "") ORDER BY timestamp DESC;',
       {key: String},
       function (err, rows) {
@@ -591,7 +591,7 @@ app.get('/get_historical_media_used', function (req, res) {
 app.post("/create_experiment", function (req, res) {
     // I was hitting this bug https://github.com/WebReflection/dblite/issues/23 in the previous code that tried
     // to rawdog an insert. I now manually check... sigh.
-    db.query("SELECT experiment FROM experiments WHERE experiment=:experiment", {experiment: req.body.experiment}, function(err, rows){
+    query("SELECT experiment FROM experiments WHERE experiment=:experiment", {experiment: req.body.experiment}, function(err, rows){
         if (rows.length > 0){
           res.sendStatus(422)
           return
@@ -600,7 +600,7 @@ app.post("/create_experiment", function (req, res) {
           db.ignoreErrors = true; // this is a hack to avoid dblite from freezing when we get a db is locked.
           body = req.body
           var insert = 'INSERT INTO experiments (timestamp, experiment, description, media_used, organism_used) VALUES (?,?,?,?,?)'
-          db.query(insert, [body.timestamp, body.experiment, body.description, body.mediaUsed, body.organismUsed], function(err, rows){
+          query(insert, [body.timestamp, body.experiment, body.description, body.mediaUsed, body.organismUsed], function(err, rows){
             if (err){
               publishToErrorLog(err)
 
@@ -618,7 +618,7 @@ app.post("/create_experiment", function (req, res) {
 app.post("/update_experiment_desc", function (req, res, next) {
     var update = 'UPDATE experiments SET description = (?) WHERE experiment=(?)'
     db.ignoreErrors = true; // this is a hack to avoid dblite from freezing when we get a db is locked.
-    db.query(update, [req.body.description, req.body.experiment], function(err, _){
+    query(update, [req.body.description, req.body.experiment], function(err, _){
         if (err){
           // publishToErrorLog(err) probably a database is locked error, ignore.
 
