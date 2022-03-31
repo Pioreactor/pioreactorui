@@ -141,7 +141,7 @@ const CheckboxesGroup = (props) => {
           </Typography>
 
           <FormControlLabel
-            control={<Checkbox checked={props.isChecked.alt_media_fraction} onChange={props.handleChange} name="alt_media_fraction" />}
+            control={<Checkbox checked={props.isChecked.alt_media_fractions} onChange={props.handleChange} name="alt_media_fractions" />}
             label="Alternative media fraction"
           />
           <Typography variant="caption" className={classes.caption} gutterBottom>

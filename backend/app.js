@@ -325,7 +325,7 @@ app.get('/time_series/alt_media_fraction/:experiment', function (req, res) {
   const queryObject = url.parse(req.url, true).query; // assume that all query params are optional args for the job
 
   db.query(
-    "SELECT json_object('series', json_group_array(unit), 'data', json_group_array(data)) FROM (SELECT pioreactor_unit as unit, json_group_array(json_object('x', timestamp, 'y', round(alt_media_fraction, 7))) as data FROM alt_media_fraction WHERE experiment=:experiment GROUP BY 1);",
+    "SELECT json_object('series', json_group_array(unit), 'data', json_group_array(data)) FROM (SELECT pioreactor_unit as unit, json_group_array(json_object('x', timestamp, 'y', round(alt_media_fraction, 7))) as data FROM alt_media_fractions WHERE experiment=:experiment GROUP BY 1);",
     {experiment: experiment},
     {results: String},
     function (err, rows) {
@@ -340,13 +340,11 @@ app.get('/time_series/alt_media_fraction/:experiment', function (req, res) {
 })
 
 
-app.get("/recent_media_rates/:experiment", function (req, res) {
-  const experiment = req.params.experiment
+app.get("/recent_media_rates", function (req, res) {
   const hours = 3
-
   function fetch(){
-    db.query(`SELECT pioreactor_unit, SUM(CASE WHEN event="add_media" THEN volume_change_ml ELSE 0 END) / :hours AS mediaRate, SUM(CASE WHEN event="add_alt_media" THEN volume_change_ml ELSE 0 END) / :hours AS altMediaRate FROM dosing_events where datetime(timestamp) >= datetime('now', '-:hours Hour') and event in ('add_alt_media', 'add_media') and experiment=:experiment and source_of_event LIKE 'dosing_automation%' GROUP BY pioreactor_unit;`,
-      {experiment: experiment, hours: hours},
+    db.query(`SELECT d.pioreactor_unit, SUM(CASE WHEN event="add_media" THEN volume_change_ml ELSE 0 END) / :hours AS mediaRate, SUM(CASE WHEN event="add_alt_media" THEN volume_change_ml ELSE 0 END) / :hours AS altMediaRate FROM dosing_events AS d JOIN latest_experiment USING (experiment) WHERE datetime(d.timestamp) >= datetime('now', '-:hours Hour') AND event IN ('add_alt_media', 'add_media') AND source_of_event LIKE 'dosing_automation%' GROUP BY d.pioreactor_unit;`,
+      {hours: hours},
       {pioreactor_unit: String, mediaRate: Number, altMediaRate: Number},
       function(err, rows) {
         if (err){
@@ -520,7 +518,7 @@ app.get('/get_experiments', function (req, res) {
 app.get('/get_latest_experiment', function (req, res) {
   function fetch() {
     db.query(
-      'SELECT experiment, timestamp, description, media_used, organism_used, round( (strftime("%s","now") - strftime("%s", timestamp))/60/60, 0) as delta_hours FROM experiments ORDER BY timestamp DESC LIMIT 1;',
+      'SELECT experiment, timestamp, description, media_used, organism_used, delta_hours FROM latest_experiment',
       {experiment: String, timestamp: String, description: String, media_used: String, organism_used: String, delta_hours: Number},
       function (err, rows) {
         if (err) {
@@ -533,6 +531,26 @@ app.get('/get_latest_experiment', function (req, res) {
   }
   fetch()
 })
+
+
+app.get('/get_unit_renames', function (req, res) {
+  function fetch() {
+    db.query(
+      'SELECT r.pioreactor_unit, r.renamed_to FROM pioreactor_unit_renames AS` r JOIN latest_experiment USING (experiment);',
+      {pioreactor_unit: String, renamed_to: String},
+      function (err, rows) {
+        if (err) {
+          publishToErrorLog(err)
+
+          return setTimeout(fetch, 500)
+        }
+        res.send(rows)
+    })
+  }
+  fetch()
+})
+
+
 
 
 app.get('/get_historical_organisms_used', function (req, res) {

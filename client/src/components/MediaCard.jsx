@@ -53,11 +53,8 @@ class MediaCard extends React.Component {
   }
 
   async getRecentRates() {
-    if (!this.props.experiment){
-      return
-    }
 
-     await fetch("/recent_media_rates/" + encodeURIComponent(this.props.experiment))
+     await fetch("/recent_media_rates")
     .then((response) => {
       return response.json();
     })
