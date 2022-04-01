@@ -163,7 +163,7 @@ function ListAvailablePlugins({alreadyInstalledPluginsNames}){
       message={snackbarMsg}
       autoHideDuration={15000}
       resumeHideDuration={2000}
-      key={"snackbar-installation"}
+      key="snackbar-available"
     />
     </React.Fragment>
   )
@@ -252,7 +252,7 @@ function ListInstalledPlugins({installedPlugins}){
       message={snackbarMsg}
       autoHideDuration={7000}
       resumeHideDuration={2000}
-      key={"snackbar-installation"}
+      key="snackbar-installation"
     />
     </React.Fragment>
   )

@@ -59,10 +59,7 @@ class LogTable extends React.Component {
   }
 
   async getData() {
-    if (!this.props.experiment){
-      return
-    }
-    await fetch("/recent_logs/" + encodeURIComponent(this.props.experiment) + "?" + new URLSearchParams({
+    await fetch("/recent_logs?" + new URLSearchParams({
         min_level: this.props.config.logging.ui_log_level
       }))
       .then(response => {
@@ -122,11 +119,8 @@ class LogTable extends React.Component {
     });
   }
 
-  renameUnit(name){
-    if (!this.props.config['ui.rename']){
-      return name
-    }
-    return (this.props.config['ui.rename'][name]) || name
+  renameUnit(unit) {
+    return (this.props.renameMap && this.props.renameMap[unit]) ? this.props.renameMap[unit] : unit
   }
 
   render(){

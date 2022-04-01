@@ -31,9 +31,9 @@ function StartHeating(props){
       <ChangeAutomationsDialog
         open={openChangeTemperatureDialog}
         onFinished={() => setOpenChangeTemperatureDialog(false)}
-        unit={"$broadcast"}
+        unit="$broadcast"
         config={props.config}
-        experiment={"+"}
+        experiment="+"
         isJobRunning={false}
         automationType="temperature"
         no_skip_first_run={true}
@@ -72,9 +72,9 @@ function StartStirring(props){
       anchorOrigin={{vertical: "bottom", horizontal: "center"}}
       open={openSnackbar}
       onClose={handleSnackbarClose}
-      message={"Stirring starting"}
+      message="Stirring starting"
       autoHideDuration={7000}
-      key={"snackbarStirring"}
+      key="snackbarStirring"
     />
   </div>
   )
@@ -107,9 +107,9 @@ function StartODReading(props){
       anchorOrigin={{vertical: "bottom", horizontal: "center"}}
       open={openSnackbar}
       onClose={handleSnackbarClose}
-      message={"OD reading starting"}
+      message="OD reading starting"
       autoHideDuration={7000}
-      key={"snackbarOD"}
+      key="snackbarOD"
     />
   </div>
   )

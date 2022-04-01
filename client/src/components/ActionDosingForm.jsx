@@ -153,8 +153,8 @@ export default function ActionPumpForm(props) {
       <br />
       <div style={{display: "flex", justifyContent: "space-between"}}>
         <LoadingButton
-          loading={clicked && (props?.job?.state == "disconnected")}
-          disabled={formErrorML || formErrorDuration || (props?.job?.state == "ready")}
+          loading={clicked && (props?.job?.state === "disconnected")}
+          disabled={formErrorML || formErrorDuration || (props?.job?.state === "ready")}
           type="submit"
           variant="contained"
           size="small"
@@ -167,7 +167,7 @@ export default function ActionPumpForm(props) {
           <Button
             size="small"
             color="primary"
-            disabled={(props?.job?.state == "ready")}
+            disabled={(props?.job?.state === "ready")}
             onClick={runPumpContinuously}
           >
             Run continuously

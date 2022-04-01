@@ -199,8 +199,7 @@ app.post("/run/:job/:unit", function(req, res) {
 /////////// DATA FOR CARDS ON OVERVIEW ///////////////
 
 
-app.get('/recent_logs/:experiment', function (req, res) {
-  const experiment = req.params.experiment
+app.get('/recent_logs', function (req, res) {
   const queryObject = url.parse(req.url, true).query; // assume that all query params are optional args for the job
   const minLevel = queryObject['min_level'] || "INFO"
 
@@ -220,8 +219,8 @@ app.get('/recent_logs/:experiment', function (req, res) {
     levelString = '(level == "ERROR" or level == "INFO" or level == "WARNING")'
   }
 
-  db.query(`SELECT timestamp, level=="ERROR" as is_error, level=="WARNING" as is_warning, pioreactor_unit, message, task FROM logs WHERE ${levelString} and (experiment=:experiment OR experiment=:universalExperiment) and timestamp >= MAX(strftime('%Y-%m-%dT%H:%M:%S', datetime('now', '-24 hours')), (SELECT timestamp FROM experiments WHERE experiment=:experiment)) ORDER BY timestamp DESC LIMIT 50;`,
-    {experiment: experiment, universalExperiment: "$experiment",  levelString: levelString},
+  db.query(`SELECT l.timestamp, level=="ERROR" as is_error, level=="WARNING" as is_warning, l.pioreactor_unit, message, task FROM logs AS l LEFT JOIN latest_experiment AS le ON (le.experiment = l.experiment OR l.experiment=:universalExperiment) WHERE ${levelString} and l.timestamp >= MAX(strftime('%Y-%m-%dT%H:%M:%S', datetime('now', '-24 hours')), le.timestamp) ORDER BY l.timestamp DESC LIMIT 50;`,
+    {universalExperiment: "$experiment",  levelString: levelString},
     {timestamp: String, is_error: Boolean, is_warning: Boolean, pioreactor_unit: String, message: String, task: String},
     function (err, rows) {
       if (err){
@@ -533,10 +532,10 @@ app.get('/get_latest_experiment', function (req, res) {
 })
 
 
-app.get('/get_unit_renames', function (req, res) {
+app.get('/get_current_unit_renames', function (req, res) {
   function fetch() {
     db.query(
-      'SELECT r.pioreactor_unit, r.renamed_to FROM pioreactor_unit_renames AS` r JOIN latest_experiment USING (experiment);',
+      'SELECT r.pioreactor_unit, r.renamed_to FROM pioreactor_unit_renames AS r JOIN latest_experiment USING (experiment);',
       {pioreactor_unit: String, renamed_to: String},
       function (err, rows) {
         if (err) {
@@ -544,13 +543,31 @@ app.get('/get_unit_renames', function (req, res) {
 
           return setTimeout(fetch, 500)
         }
-        res.send(rows)
+
+        var byUnit = rows.reduce(function(map, obj) {
+            map[obj.pioreactor_unit] = obj.renamed_to;
+            return map;
+        }, {});
+
+        res.send(byUnit)
     })
   }
   fetch()
 })
 
+app.post("/update_unit_renames", function (req, res, next) {
+    var upsert = 'INSERT OR REPLACE INTO pioreactor_unit_renames (renamed_to, experiment, pioreactor_unit) VALUES ((?), (?), (?)) ON CONFLICT(experiment, pioreactor_unit) DO UPDATE SET renamed_to=excluded.renamed_to'
+    db.ignoreErrors = true; // this is a hack to avoid dblite from freezing when we get a db is locked.
+    db.query(upsert, [req.body.renamedTo, req.body.experiment, req.body.unit], function(err, _){
+        if (err){
+          // publishToErrorLog(err) probably a database is locked error, ignore.
 
+          res.sendStatus(500)
+        } else {
+          res.sendStatus(200)
+        }
+    })
+})
 
 
 app.get('/get_historical_organisms_used', function (req, res) {

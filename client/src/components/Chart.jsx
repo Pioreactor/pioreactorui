@@ -234,7 +234,7 @@ class Chart extends React.Component {
   }
 
   renameAndFormatSeries(name){
-    if (!this.props.config || !this.props.config['ui.rename']){
+    if (!this.props.renameMap){
       return name
     }
 
@@ -242,10 +242,10 @@ class Chart extends React.Component {
       const results = name.match(/(.*)-([1234])/);
       const index = results[1];
       const sensor = results[2];
-      return this.breakString(this.props.config['ui.rename'][index] || index) + "-ch" + sensor
+      return this.breakString(this.props.renameMap[index] || index) + "-ch" + sensor
     }
     else {
-      return this.breakString(this.props.config['ui.rename'][name] || name)
+      return this.breakString(this.props.renameMap[name] || name)
     }
   }
 
@@ -401,7 +401,7 @@ ${this.renameAndFormatSeries(d.datum.childName)}: ${Math.round(this.yTransformat
             name="legend"
             borderPadding={{ right: 8 }}
             orientation="horizontal"
-            cursor={"pointer"}
+            cursor="pointer"
             gutter={15}
             rowGutter={5}
             style={{

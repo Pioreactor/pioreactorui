@@ -92,9 +92,9 @@ function ConfirmDialog() {
       <Snackbar
         anchorOrigin={{vertical: "bottom", horizontal: "center"}}
         open={openSnackbar}
-        message={"Updating in the background - you may leave this page"}
+        message="Updating in the background - you may leave this page"
         autoHideDuration={20000}
-        key={"snackbar-update"}
+        key="snackbar-update"
       />
     </React.Fragment>
   );

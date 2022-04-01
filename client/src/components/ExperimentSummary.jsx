@@ -5,15 +5,14 @@ import {makeStyles} from '@mui/styles';
 import CardContent from '@mui/material/Card';
 import {Typography} from '@mui/material';
 import Box from '@mui/material/Box';
-import InputBase from '@mui/material/InputBase';
+import OutlinedInput from '@mui/material/OutlinedInput';
+import InputLabel from '@mui/material/InputLabel';
 import Divider from '@mui/material/Divider';
 import Button from '@mui/material/Button';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import TimelapseIcon from '@mui/icons-material/Timelapse';
 import CoronavirusIcon from '@mui/icons-material/Coronavirus';
-import WaterIcon from '@mui/icons-material/Water';
 import LocalDrinkIcon from '@mui/icons-material/LocalDrink';
-import ScienceIcon from '@mui/icons-material/Science';
 import GetAppIcon from '@mui/icons-material/GetApp';
 import ClearIcon from '@mui/icons-material/Clear';
 import AddIcon from '@mui/icons-material/Add';
@@ -113,17 +112,16 @@ class EditableDescription extends React.Component {
   render = () => {
     return (
       <div style={{padding: "0px 5px 0px 5px"}}>
-        <Box fontWeight="fontWeightBold">
-          Description:
-        </Box>
-          <InputBase
-            placeholder={"Provide a description of your experiment."}
-            multiline
-            fullWidth={true}
-            onChange={this.handleChange}
-            value={this.state.desc}
-            style={{padding: "3px 3px 3px 2px", border: "none", fontSize: "14px", fontFamily: "Roboto", width: "100%", overflow: "hidden"}}
-          />
+        <InputLabel  htmlFor="description-box"  >Description</InputLabel>
+        <OutlinedInput
+          placeholder={"Provide a description of your experiment."}
+          id="description-box"
+          multiline
+          fullWidth={true}
+          onChange={this.handleChange}
+          value={this.state.desc}
+          style={{padding: "10px 5px 10px 5px",  fontSize: "14px", fontFamily: "Roboto", width: "100%", overflow: "hidden"}}
+        />
       </div>
     )
   };

@@ -336,7 +336,7 @@ function ButtonConfirmStopProcessDialog() {
         aria-labelledby="alert-dialog-title"
         aria-describedby="alert-dialog-description"
       >
-        <DialogTitle id="alert-dialog-title">{"Stop all Pioreactor activity?"}</DialogTitle>
+        <DialogTitle id="alert-dialog-title">"Stop all Pioreactor activity?"</DialogTitle>
         <DialogContent>
           <DialogContentText id="alert-dialog-description">
             This will stop all activies (stirring, dosing, optical density reading, etc.) in <b>all</b> Pioreactor units. Do you wish to stop all activities?
@@ -486,7 +486,7 @@ function AddNewPioreactor(props){
       onClose={handleSnackbarClose}
       message={`Adding new Pioreactor ${name}`}
       autoHideDuration={7000}
-      key={"snackbar-add-new"}
+      key="snackbar-add-new"
     />
     </React.Fragment>
   );}
@@ -628,7 +628,7 @@ function CalibrateDialog(props) {
       <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
         <DialogTitle>
           <Typography className={classes.suptitle}>
-            <PioreactorIcon style={{verticalAlign: "middle", fontSize: "1.2em"}}/> {(props.config['ui.rename'] &&  props.config['ui.rename'][props.unit]) ? `${props.config['ui.rename'][props.unit]} / ${props.unit}` : `${props.unit}`}
+            <PioreactorIcon style={{verticalAlign: "middle", fontSize: "1.2em"}}/> {(props.rename) ? `${props.rename} / ${props.unit}` : `${props.unit}`}
           </Typography>
           <Tabs
             value={tabValue}
@@ -786,7 +786,7 @@ function SelfTestDialog(props) {
       <Dialog open={open} onClose={handleClose}>
         <DialogTitle>
           <Typography className={classes.suptitle} gutterBottom>
-            <PioreactorIcon style={{verticalAlign: "middle", fontSize: "1.2em"}}/> {(props.config['ui.rename'] &&  props.config['ui.rename'][props.unit]) ? `${props.config['ui.rename'][props.unit]} / ${props.unit}` : `${props.unit}`}
+            <PioreactorIcon style={{verticalAlign: "middle", fontSize: "1.2em"}}/> {props.rename ? `${props.rename} / ${props.unit}` : `${props.unit}`}
           </Typography>
            Self test
           <IconButton
@@ -963,6 +963,22 @@ function SettingsActionsDialog(props) {
     }
   }
 
+  function updateRenameUnit(e) {
+    if ((e.key === "Enter") && (e.target.value)) {
+      const renamedTo = e.target.value
+      setSnackbarMessage(`Updating to ${renamedTo}`)
+      setSnackbarOpen(true)
+      fetch('/update_unit_renames',{
+          method: "POST",
+          body: JSON.stringify({renamedTo: renamedTo, experiment: props.experiment , unit: props.unit}),
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          }
+        }).then(res => setTimeout(() => window.location.reload(), 360))
+    }
+  }
+
 
   const handleClickOpen = () => {
     setOpen(true);
@@ -976,7 +992,6 @@ function SettingsActionsDialog(props) {
   const handleSnackbarClose = () => {
     setSnackbarOpen(false)
   }
-
 
   function createUserButtonsBasedOnState(jobState, job){
     switch (jobState){
@@ -1077,7 +1092,8 @@ function SettingsActionsDialog(props) {
     <Dialog maxWidth={isLargeScreen ? "sm" : "md"} fullWidth={true} open={open} onClose={handleClose}>
       <DialogTitle>
         <Typography className={classes.suptitle}>
-          <PioreactorIcon style={{verticalAlign: "middle", fontSize: "1.2em"}}/> {(props.config['ui.rename'] &&  props.config['ui.rename'][props.unit]) ? `${props.config['ui.rename'][props.unit]} / ${props.unit}` : `${props.unit}`}
+          <PioreactorIcon style={{verticalAlign: "middle", fontSize: "1.2em"}}/>
+          <span> {props.rename ? `${props.rename} / ${props.unit}` : `${props.unit}`} </span>
         </Typography>
         <IconButton
           aria-label="close"
@@ -1191,6 +1207,7 @@ function SettingsActionsDialog(props) {
               open={openChangeTemperatureDialog}
               onFinished={() => setOpenChangeTemperatureDialog(false)}
               unit={props.unit}
+              rename={props.rename}
               config={props.config}
               experiment={props.experiment}
               isJobRunning={temperatureControlJobRunning}
@@ -1257,6 +1274,7 @@ function SettingsActionsDialog(props) {
               open={openChangeDosingDialog}
               onFinished={() => setOpenChangeDosingDialog(false)}
               unit={props.unit}
+              rename={props.rename}
               config={props.config}
               experiment={props.experiment}
               isJobRunning={dosingControlJobRunning}
@@ -1324,6 +1342,7 @@ function SettingsActionsDialog(props) {
               onFinished={() => setOpenChangeLEDDialog(false)}
               unit={props.unit}
               config={props.config}
+              rename={props.rename}
               experiment={props.experiment}
               isJobRunning={ledControlJobRunning}
               no_skip_first_run={false}
@@ -1338,6 +1357,26 @@ function SettingsActionsDialog(props) {
 
 
         <TabPanel value={tabValue} index={1}>
+          <Typography  gutterBottom>
+            Assign label to Pioreactor
+          </Typography>
+          <Typography variant="body2" component="p">
+            Temporarily assign a label to this Pioreactor for the duration of the experiment. The new label will display in the graph legends, and throughout the interface.
+          </Typography>
+          <TextField
+            size="small"
+            autoComplete="off"
+            defaultValue={props.rename}
+            variant="outlined"
+            className={classes.textFieldWide}
+            onKeyPress={updateRenameUnit}
+            InputProps={{
+                autoComplete: 'new-password',
+            }}
+          />
+          <Divider className={classes.divider} />
+
+
           {Object.values(props.jobs)
             .filter(job => job.metadata.display)
             .map(job =>
@@ -1354,11 +1393,12 @@ function SettingsActionsDialog(props) {
               </Typography>
               <TextField
                 size="small"
-                autoComplete={"off"}
+                autoComplete="off"
                 id={`${job.metadata.key.replace("_control", "_automation")}/${key}`}
                 defaultValue={setting.value}
                 InputProps={{
                   endAdornment: <InputAdornment position="end">{setting.unit}</InputAdornment>,
+                  autoComplete: 'new-password',
                 }}
                 variant="outlined"
                 onKeyPress={setPioreactorJobAttrOnEnter(setting.unit)}
@@ -1436,7 +1476,6 @@ function SettingsActionsDialog(props) {
           <ActionLEDForm channel="D" unit={props.unit} />
           <Divider className={classes.divider} />
         </TabPanel>
-
       </DialogContent>
     </Dialog>
     <Snackbar
@@ -1849,7 +1888,7 @@ function SettingsActionsDialogAll({config, experiment}) {
               </Typography>
               <TextField
                 size="small"
-                autoComplete={"off"}
+                autoComplete="off"
                 id={`${job.metadata.key.replace("_control", "_automation")}/${key}`}
                 key={key}
                 defaultValue={setting.value}
@@ -1952,7 +1991,7 @@ function ActiveUnits(props){
       </div>
     </div>
     {props.units.map(unit =>
-      <PioreactorCard isUnitActive={true} key={unit} unit={unit} config={props.config} experiment={props.experiment}/>
+      <PioreactorCard isUnitActive={true} key={unit} unit={unit} config={props.config} experiment={props.experiment} rename={props.renameMap[unit]}/>
   )}
   </React.Fragment>
 )}
@@ -2158,13 +2197,13 @@ function PioreactorCard(props){
       <CardContent className={classes.cardContent}>
         <div className={"fixme"}>
           <Typography className={clsx(classes.suptitle)} color="textSecondary">
-            {(props.config['ui.rename'] && props.config['ui.rename'][unit]) ? unit : ""}
+            {(props.rename) ? unit : ""}
           </Typography>
           <div className={classes.cardHeaderSettings}>
             <div style={{display: "flex", justifyContent: "left"}}>
               <Typography className={clsx(classes.unitTitle, {[classes.disabledText]: !isUnitActive})} gutterBottom>
                 <PioreactorIcon color={isUnitActive ? "inherit" : "disabled"} style={{verticalAlign: "middle"}} sx={{ display: {xs: 'none', sm: 'none', md: 'inline' } }}/>
-                {(props.config['ui.rename'] && props.config['ui.rename'][unit]) ? props.config['ui.rename'][unit] : unit }
+                {(props.rename ) ? props.rename : unit }
               </Typography>
               <Tooltip title={indicatorLabel} placement="right">
                 <div>
@@ -2177,8 +2216,8 @@ function PioreactorCard(props){
                 <SelfTestDialog
                   client={client}
                   disabled={!isUnitActive}
-                  config={props.config}
                   unit={unit}
+                  rename={props.rename}
                   selfTestState={jobs['self_test'] ? jobs['self_test'].state : null}
                   selfTestTests={jobs['self_test'] ? jobs['self_test'] : null}
                 />
@@ -2188,13 +2227,13 @@ function PioreactorCard(props){
               </div>
               <div>
                 <CalibrateDialog
-                  config={props.config}
                   client={client}
                   odBlankReading={jobs['od_blank'] ? jobs['od_blank'].mean.value : null}
                   odBlankJobState={jobs['od_blank'] ? jobs['od_blank'].state : null}
                   stirringCalibrationState={jobs['stirring_calibration'] ? jobs['stirring_calibration'].state : null}
                   experiment={experiment}
                   unit={unit}
+                  rename={props.rename}
                   disabled={!isUnitActive}
                 />
               </div>
@@ -2202,6 +2241,7 @@ function PioreactorCard(props){
                 config={props.config}
                 client={client}
                 unit={unit}
+                rename={props.rename}
                 disabled={!isUnitActive}
                 experiment={experiment}
                 jobs={jobs}
@@ -2311,9 +2351,11 @@ function InactiveUnits(props){
 
 function Pioreactors({title, config}) {
     const [experimentMetadata, setExperimentMetadata] = React.useState({})
+    const [renameMap, setRenameMap] = React.useState({})
 
     React.useEffect(() => {
       document.title = title;
+
       function getLatestExperiment() {
           fetch("/get_latest_experiment")
           .then((response) => {
@@ -2323,10 +2365,24 @@ function Pioreactors({title, config}) {
             setExperimentMetadata(data)
           });
         }
+
+      function getRenameMap() {
+          fetch("/get_current_unit_renames")
+          .then((response) => {
+            return response.json();
+          })
+          .then((data) => {
+            setRenameMap(data)
+          });
+        }
+
       getLatestExperiment()
+      getRenameMap()
     }, [title])
 
     const entries = (a) => Object.entries(a)
+    const activeUnits = config['network.inventory'] ? entries(config['network.inventory']).filter((v) => v[1] === "1").map((v) => v[0]) : []
+    const inactiveUnits = config['network.inventory'] ? entries(config['network.inventory']).filter((v) => v[1] === "0").map((v) => v[0]) : []
 
     return (
         <Grid container spacing={2} >
@@ -2334,8 +2390,8 @@ function Pioreactors({title, config}) {
 
           <Grid item md={12} xs={12}>
             <PioreactorHeader config={config} experiment={experimentMetadata.experiment}/>
-            <ActiveUnits experiment={experimentMetadata.experiment} config={config} units={config['network.inventory'] ? entries(config['network.inventory']).filter((v) => v[1] === "1").map((v) => v[0]) : [] }/>
-            <InactiveUnits experiment={experimentMetadata.experiment} config={config} units={config['network.inventory'] ? entries(config['network.inventory']).filter((v) => v[1] === "0").map((v) => v[0]) : [] }/>
+            <ActiveUnits experiment={experimentMetadata.experiment} config={config} units={activeUnits} renameMap={renameMap}/>
+            <InactiveUnits experiment={experimentMetadata.experiment} config={config} units={inactiveUnits}/>
           </Grid>
         </Grid>
     )

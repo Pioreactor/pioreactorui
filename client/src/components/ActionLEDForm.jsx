@@ -69,7 +69,7 @@ export default function ActionLEDForm(props) {
       <TextField
         error={errorForm}
         name="intensity"
-        autoComplete={"off"}
+        autoComplete="off"
         value={intensity}
         size="small"
         id={props.channel + "_intensity_edit"}

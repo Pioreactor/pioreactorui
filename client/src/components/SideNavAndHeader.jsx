@@ -108,37 +108,37 @@ export default function SideNavAndHeader() {
     <div className={classes.drawerContainer}>
       <List>
 
-        <ListItemButton href="/overview" component="a"  key={"overview"} selected={isSelected("/") || isSelected("/overview")}>
+        <ListItemButton href="/overview" component="a"  key="overview" selected={isSelected("/") || isSelected("/overview")}>
           <ListItemIcon className={classes.listItemIcon}><DashboardOutlinedIcon color={(isSelected("/") || isSelected("/overview")) ? "primary" : "inherit"}/> </ListItemIcon>
-          <ListItemText primaryTypographyProps={{color: isSelected("/") || isSelected("/overview") ? "primary" : "rgba(0, 0, 0, 0.87)"}} primary={"Overview"} />
+          <ListItemText primaryTypographyProps={{color: isSelected("/") || isSelected("/overview") ? "primary" : "rgba(0, 0, 0, 0.87)"}} primary="Overview" />
         </ListItemButton>
 
-        <ListItemButton href="/pioreactors"  component="a" key={"pioreactors"} selected={isSelected("/pioreactors")}>
+        <ListItemButton href="/pioreactors"  component="a" key="pioreactors" selected={isSelected("/pioreactors")}>
           <ListItemIcon className={classes.listItemIcon}> <PioreactorIcon color={isSelected("/pioreactors") ? "primary" : "inherit"} viewBox="-3 0 24 24"/> </ListItemIcon>
-          <ListItemText primaryTypographyProps={{color: isSelected("/pioreactors") ? "primary" : "rgba(0, 0, 0, 0.87)"}} primary={"Pioreactors"} />
+          <ListItemText primaryTypographyProps={{color: isSelected("/pioreactors") ? "primary" : "rgba(0, 0, 0, 0.87)"}} primary="Pioreactors" />
         </ListItemButton>
 
 
-        <ListItemButton href="/export-data" component="a"  key={"export_data"} selected={isSelected("/export-data")}>
+        <ListItemButton href="/export-data" component="a"  key="export_data" selected={isSelected("/export-data")}>
           <ListItemIcon className={classes.listItemIcon}><SaveAltIcon color={isSelected("/export-data") ? "primary" : "inherit"}/> </ListItemIcon>
-          <ListItemText primaryTypographyProps={{color: isSelected("/export-data") ? "primary" : "rgba(0, 0, 0, 0.87)"}} primary={"Export data"} />
+          <ListItemText primaryTypographyProps={{color: isSelected("/export-data") ? "primary" : "rgba(0, 0, 0, 0.87)"}} primary="Export data" />
         </ListItemButton>
 
-        <ListItemButton  href="/config"  component="a" key={"config"} selected={isSelected("/config")}>
+        <ListItemButton  href="/config"  component="a" key="config" selected={isSelected("/config")}>
           <ListItemIcon className={classes.listItemIcon}> <SettingsOutlinedIcon color={isSelected("/config") ? "primary" : "inherit"}/> </ListItemIcon>
-          <ListItemText primaryTypographyProps={{color: isSelected("/config") ? "primary" : "rgba(0, 0, 0, 0.87)"}} primary={"Configuration"} />
+          <ListItemText primaryTypographyProps={{color: isSelected("/config") ? "primary" : "rgba(0, 0, 0, 0.87)"}} primary="Configuration" />
         </ListItemButton>
 
-        <ListItemButton  href="/analysis"  component="a" key={"analysis"} selected={isSelected("/analysis")}>
+        <ListItemButton  href="/analysis"  component="a" key="analysis" selected={isSelected("/analysis")}>
           <ListItemIcon className={classes.listItemIcon}> <InsertChartOutlinedIcon color={isSelected("/analysis") ? "primary" : "inherit"}/> </ListItemIcon>
-          <ListItemText primaryTypographyProps={{color: isSelected("/analysis") ? "primary" : "rgba(0, 0, 0, 0.87)"}} primary={"Analysis"} />
+          <ListItemText primaryTypographyProps={{color: isSelected("/analysis") ? "primary" : "rgba(0, 0, 0, 0.87)"}} primary="Analysis" />
         </ListItemButton>
 
         <Divider className={classes.divider} />
 
-        <ListItemButton href="/plugins" component="a"  key={"plugins"} selected={isSelected("/plugins")}>
+        <ListItemButton href="/plugins" component="a"  key="plugins" selected={isSelected("/plugins")}>
           <ListItemIcon className={classes.listItemIcon}><LibraryAddOutlinedIcon color={isSelected("/plugins") ? "primary" : "inherit"}/> </ListItemIcon>
-          <ListItemText primaryTypographyProps={{color: isSelected("/plugins") ? "primary" : "rgba(0, 0, 0, 0.87)"}} primary={"Plugins"} />
+          <ListItemText primaryTypographyProps={{color: isSelected("/plugins") ? "primary" : "rgba(0, 0, 0, 0.87)"}} primary="Plugins" />
         </ListItemButton>
 
         <ListItemButton href="/updates" component="a"  key="updates" selected={isSelected("/updates")}>
@@ -147,7 +147,7 @@ export default function SideNavAndHeader() {
               <UpdateIcon color={isSelected("/updates") ? "primary" : "inherit"}/>
             </Badge>
           </ListItemIcon>
-          <ListItemText primaryTypographyProps={{color: isSelected("/updates") ? "primary" : "rgba(0, 0, 0, 0.87)"}} primary={"Updates"}/>
+          <ListItemText primaryTypographyProps={{color: isSelected("/updates") ? "primary" : "rgba(0, 0, 0, 0.87)"}} primary="Updates"/>
         </ListItemButton>
 
         <ListItemButton target="_blank" rel="noopener noreferrer" href="https://docs.pioreactor.com" component="a"  key="help">
@@ -159,7 +159,7 @@ export default function SideNavAndHeader() {
           <ListItemIcon className={classes.listItemIcon}>
             <FeedbackOutlinedIcon color={isSelected("/feedback") ? "primary" : "inherit"}/>
           </ListItemIcon>
-          <ListItemText primaryTypographyProps={{color: isSelected("/feedback") ? "primary" : "rgba(0, 0, 0, 0.87)"}} primary={"Share feedback"}/>
+          <ListItemText primaryTypographyProps={{color: isSelected("/feedback") ? "primary" : "rgba(0, 0, 0, 0.87)"}} primary="Share feedback"/>
         </ListItemButton>
 
       </List>
