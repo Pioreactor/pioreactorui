@@ -170,8 +170,8 @@ function ChangeAutomationsDialog(props) {
           <PioreactorIcon style={{verticalAlign: "middle", fontSize: "1.2em"}}/>
             {(props.unit === "$broadcast")
               ? <b>All active Pioreactors</b>
-              :((props.title || props.rename)
-                  ? ` ${props.rename} / ${props.unit}`
+              :((props.title || props.label)
+                  ? ` ${props.label} / ${props.unit}`
                   : `${props.unit}`
               )
             }

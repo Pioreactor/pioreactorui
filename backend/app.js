@@ -532,11 +532,11 @@ app.get('/get_latest_experiment', function (req, res) {
 })
 
 
-app.get('/get_current_unit_renames', function (req, res) {
+app.get('/get_current_unit_labels', function (req, res) {
   function fetch() {
     db.query(
-      'SELECT r.pioreactor_unit, r.renamed_to FROM pioreactor_unit_renames AS r JOIN latest_experiment USING (experiment);',
-      {pioreactor_unit: String, renamed_to: String},
+      'SELECT r.pioreactor_unit, r.label FROM pioreactor_unit_labels AS r JOIN latest_experiment USING (experiment);',
+      {pioreactor_unit: String, label: String},
       function (err, rows) {
         if (err) {
           publishToErrorLog(err)
@@ -545,7 +545,7 @@ app.get('/get_current_unit_renames', function (req, res) {
         }
 
         var byUnit = rows.reduce(function(map, obj) {
-            map[obj.pioreactor_unit] = obj.renamed_to;
+            map[obj.pioreactor_unit] = obj.label;
             return map;
         }, {});
 
@@ -555,10 +555,10 @@ app.get('/get_current_unit_renames', function (req, res) {
   fetch()
 })
 
-app.post("/update_unit_renames", function (req, res, next) {
-    var upsert = 'INSERT OR REPLACE INTO pioreactor_unit_renames (renamed_to, experiment, pioreactor_unit) VALUES ((?), (?), (?)) ON CONFLICT(experiment, pioreactor_unit) DO UPDATE SET renamed_to=excluded.renamed_to'
+app.post("/update_current_unit_labels", function (req, res, next) {
+    var upsert = 'INSERT OR REPLACE INTO pioreactor_unit_labels (label, experiment, pioreactor_unit) VALUES ((?), (SELECT experiment FROM latest_experiment), (?)) ON CONFLICT(experiment, pioreactor_unit) DO UPDATE SET label=excluded.label'
     db.ignoreErrors = true; // this is a hack to avoid dblite from freezing when we get a db is locked.
-    db.query(upsert, [req.body.renamedTo, req.body.experiment, req.body.unit], function(err, _){
+    db.query(upsert, [req.body.label, req.body.unit], function(err, _){
         if (err){
           // publishToErrorLog(err) probably a database is locked error, ignore.
 

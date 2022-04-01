@@ -4,7 +4,8 @@ import Button from "@mui/material/Button";
 import Snackbar from "@mui/material/Snackbar";
 import Chart from "./Chart";
 import ChangeAutomationsDialog from "./ChangeAutomationsDialog"
-
+import CheckBoxOutlineBlankOutlinedIcon from '@mui/icons-material/CheckBoxOutlineBlankOutlined';
+import CheckBoxOutlinedIcon from '@mui/icons-material/CheckBoxOutlined';
 
 function StartHeating(props){
 
@@ -22,8 +23,8 @@ function StartHeating(props){
 
       <Button
         variant="contained"
-        disabled={isClicked ? true : false }
         onClick={onClick}
+        endIcon={isClicked ? <CheckBoxOutlinedIcon/> : <CheckBoxOutlineBlankOutlinedIcon />}
       >
         Start heating
       </Button>
@@ -67,7 +68,13 @@ function StartStirring(props){
   return(
     <div>
       <p> To get an accurate reading, we need to start start the stirring. This also provides gas transfer and keeps the cells in suspension.</p>
-      <Button variant="contained"  color="primary" disabled={isClicked ? true : false } onClick={onClick}> Start stirring </Button>
+      <Button
+        variant="contained"
+        color="primary"
+        endIcon={isClicked ? <CheckBoxOutlinedIcon/> : <CheckBoxOutlineBlankOutlinedIcon />}
+        onClick={onClick}>
+        Start stirring
+      </Button>
       <Snackbar
       anchorOrigin={{vertical: "bottom", horizontal: "center"}}
       open={openSnackbar}
@@ -88,7 +95,7 @@ function StartODReading(props){
 
   const onClick = (e) => {
     setIsClicked(true)
-    fetch("/run/od_reading/$broadcast",  {method: "POST"}).then(res => {
+    fetch("/run/od_reading/$broadcast", {method: "POST"}).then(res => {
       if (res.status === 200){
         setOpenSnackbar(true);
       }
@@ -102,7 +109,13 @@ function StartODReading(props){
   return(
     <div>
       <p> Next, we will turn on the optical density reading. We also call this <em>OD readings</em>. This will provide us with a measure of cell density. In a moment, you should see the data in the chart below. </p>
-      <Button variant="contained"  color="primary" disabled={isClicked ? true : false } onClick={onClick}> Start OD readings </Button>
+      <Button
+        variant="contained"
+        color="primary"
+        endIcon={isClicked ? <CheckBoxOutlinedIcon/> : <CheckBoxOutlineBlankOutlinedIcon />}
+        onClick={onClick}>
+        Start OD readings
+      </Button>
       <Snackbar
       anchorOrigin={{vertical: "bottom", horizontal: "center"}}
       open={openSnackbar}

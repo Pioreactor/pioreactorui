@@ -119,8 +119,8 @@ class LogTable extends React.Component {
     });
   }
 
-  renameUnit(unit) {
-    return (this.props.renameMap && this.props.renameMap[unit]) ? this.props.renameMap[unit] : unit
+  relabelUnit(unit) {
+    return (this.props.relabelMap && this.props.relabelMap[unit]) ? this.props.relabelMap[unit] : unit
   }
 
   render(){
@@ -150,7 +150,7 @@ class LogTable extends React.Component {
                     <TableCell className={clsx(classes.tightCell, classes.smallText, {[classes.errorLog]: log.is_error, [classes.warningLog]: log.is_warning})}>
                       <span title={moment.utc(log.timestamp, 'YYYY-MM-DD[T]HH:mm:ss.SSSSS[Z]').local().format('YYYY-MM-DD HH:mm:ss.SS')}>{moment.utc(log.timestamp, 'YYYY-MM-DD[T]HH:mm:ss.SSSSS[Z]').local().format('HH:mm:ss')} </span>
                     </TableCell>
-                    <TableCell className={clsx(classes.tightCell, classes.smallText, {[classes.errorLog]: log.is_error, [classes.warningLog]: log.is_warning})}> {this.renameUnit(log.pioreactor_unit)}</TableCell>
+                    <TableCell className={clsx(classes.tightCell, classes.smallText, {[classes.errorLog]: log.is_error, [classes.warningLog]: log.is_warning})}> {this.relabelUnit(log.pioreactor_unit)}</TableCell>
                     <TableCell className={clsx(classes.tightCell, classes.smallText, {[classes.errorLog]: log.is_error, [classes.warningLog]: log.is_warning})}>{log.task.replace(/_/g, ' ')}</TableCell>
                     <TableCell className={clsx(classes.tightCell, classes.smallText, {[classes.errorLog]: log.is_error, [classes.warningLog]: log.is_warning})}>{log.message}</TableCell>
                   </TableRow>

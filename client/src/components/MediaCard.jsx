@@ -124,8 +124,8 @@ class MediaCard extends React.Component {
     })
   }
 
-  renameUnit(unit) {
-    return (this.props.renameMap && this.props.renameMap[unit]) ? this.props.renameMap[unit] : unit
+  relabelUnit(unit) {
+    return (this.props.relabelMap && this.props.relabelMap[unit]) ? this.props.relabelMap[unit] : unit
   }
 
   render(){
@@ -158,7 +158,7 @@ class MediaCard extends React.Component {
               {this.state.activeUnits.map((unit) => (
                 <TableRow key={unit}>
                   <TableCell style={{padding: "6px 0px"}} component="th" scope="row">
-                      <PioreactorIcon style={{ fontSize: 14, verticalAlign: "middle" }} color="inherit"/> <UnderlineSpan title={this.renameUnit(unit) === unit ? null : unit}>{this.renameUnit(unit)}</UnderlineSpan>
+                      <PioreactorIcon style={{ fontSize: 14, verticalAlign: "middle" }} color="inherit"/> <UnderlineSpan title={this.relabelUnit(unit) === unit ? null : unit}>{this.relabelUnit(unit)}</UnderlineSpan>
                   </TableCell>
                   <TableCell align="right" style={{ fontSize: 13, padding: "6px 0px"}}>{(this.state.mediaThroughputPerUnit[unit] || 0).toFixed(1)}mL (~{this.state.rates[unit] ? this.state.rates[unit].mediaRate.toFixed(1) : "0.0"}mL/h)</TableCell>
                   <TableCell align="right" style={{ fontSize: 13, padding: "6px 0px"}}>{(this.state.altMediaThroughputPerUnit[unit] || 0).toFixed(1)}mL (~{this.state.rates[unit] ? this.state.rates[unit].altMediaRate.toFixed(1): "0.0"}mL/h)</TableCell>

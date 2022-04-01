@@ -12,7 +12,7 @@ import PioreactorIcon from './components/PioreactorIcon';
 function Overview(props) {
 
   const [experimentMetadata, setExperimentMetadata] = React.useState({})
-  const [renameMap, setRenameMap] = React.useState({})
+  const [relabelMap, setRelabelMap] = React.useState({})
 
   React.useEffect(() => {
     document.title = props.title;
@@ -26,12 +26,12 @@ function Overview(props) {
         });
       }
       function getRenameMap() {
-          fetch("/get_current_unit_renames")
+          fetch("/get_current_unit_labels")
           .then((response) => {
             return response.json();
           })
           .then((data) => {
-            setRenameMap(data)
+            setRelabelMap(data)
           });
         }
 
@@ -68,7 +68,7 @@ function Overview(props) {
               yAxisDomain={props.config['ui.overview.settings']['daily_growth_rate'] === "1" ? [-0.1, 1.0] : [-0.02, 0.1]}
               lookback={100000}
               fixedDecimals={2}
-              renameMap={renameMap}
+              relabelMap={relabelMap}
             />
           </Grid>
           }
@@ -88,7 +88,7 @@ function Overview(props) {
               deltaHours={1} // hack to make all points display
               fixedDecimals={3}
               lookback={100000}
-              renameMap={renameMap}
+              relabelMap={relabelMap}
 
             />
           </Grid>
@@ -109,7 +109,7 @@ function Overview(props) {
               lookback={parseFloat(props.config['ui.overview.settings']['filtered_od_lookback_hours'])}
               fixedDecimals={2}
               yAxisDomain={[0.98, 1.02]}
-              renameMap={renameMap}
+              relabelMap={relabelMap}
 
             />
           </Grid>
@@ -130,7 +130,7 @@ function Overview(props) {
               interpolation="stepAfter"
               lookback={parseFloat(props.config['ui.overview.settings']['raw_od_lookback_hours'])}
               fixedDecimals={3}
-              renameMap={renameMap}
+              relabelMap={relabelMap}
 
             />
           </Grid>
@@ -150,7 +150,7 @@ function Overview(props) {
               deltaHours={1} // hack to display all data points
               yAxisDomain={[22.5, 37.5]}
               fixedDecimals={1}
-              renameMap={renameMap}
+              relabelMap={relabelMap}
 
             />
           </Grid>
@@ -162,7 +162,7 @@ function Overview(props) {
 
           {( props.config['ui.overview.cards'] && (props.config['ui.overview.cards']['dosings'] === "1")) &&
             <Grid item xs={12} >
-              <MediaCard experiment={experimentMetadata.experiment} config={props.config} renameMap={renameMap}/>
+              <MediaCard experiment={experimentMetadata.experiment} config={props.config} relabelMap={relabelMap}/>
               <Button href="/pioreactors" color="primary" style={{textTransform: "none", verticalAlign: "middle", margin: "0px 3px"}}> <PioreactorIcon style={{ fontSize: 17 }} color="primary"/> See all Pioreactor details </Button>
             </Grid>
           }
@@ -170,7 +170,7 @@ function Overview(props) {
 
           {( props.config['ui.overview.cards'] && (props.config['ui.overview.cards']['event_logs'] === "1")) &&
             <Grid item xs={12}>
-              <LogTable experiment={experimentMetadata.experiment} config={props.config} renameMap={renameMap}/>
+              <LogTable experiment={experimentMetadata.experiment} config={props.config} relabelMap={relabelMap}/>
             </Grid>
           }
 

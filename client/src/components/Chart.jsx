@@ -233,8 +233,8 @@ class Chart extends React.Component {
     return string
   }
 
-  renameAndFormatSeries(name){
-    if (!this.props.renameMap){
+  relabelAndFormatSeries(name){
+    if (!this.props.relabelMap){
       return name
     }
 
@@ -242,10 +242,10 @@ class Chart extends React.Component {
       const results = name.match(/(.*)-([1234])/);
       const index = results[1];
       const sensor = results[2];
-      return this.breakString(this.props.renameMap[index] || index) + "-ch" + sensor
+      return this.breakString(this.props.relabelMap[index] || index) + "-ch" + sensor
     }
     else {
-      return this.breakString(this.props.renameMap[name] || name)
+      return this.breakString(this.props.relabelMap[name] || name)
     }
   }
 
@@ -253,12 +253,12 @@ class Chart extends React.Component {
 
   createToolTip = (d) => {
       return `${d.datum.x.format("MMM DD HH:mm")}
-${this.renameAndFormatSeries(d.datum.childName)}: ${Math.round(this.yTransformation(d.datum.y) * 10 ** this.props.fixedDecimals) / 10 ** this.props.fixedDecimals}`
+${this.relabelAndFormatSeries(d.datum.childName)}: ${Math.round(this.yTransformation(d.datum.y) * 10 ** this.props.fixedDecimals) / 10 ** this.props.fixedDecimals}`
   }
 
 
   selectLegendData(name){
-    var reformattedName = this.renameAndFormatSeries(name)
+    var reformattedName = this.relabelAndFormatSeries(name)
     if (!this.state.seriesMap) {
       return {}
     }
@@ -274,7 +274,7 @@ ${this.renameAndFormatSeries(d.datum.childName)}: ${Math.round(this.yTransformat
   }
 
   selectVictoryLines(name) {
-    var reformattedName = this.renameAndFormatSeries(name)
+    var reformattedName = this.relabelAndFormatSeries(name)
 
     var marker = null;
     if (this.state.seriesMap[name].data.length === 1){

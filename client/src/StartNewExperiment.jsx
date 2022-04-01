@@ -16,6 +16,7 @@ import TextField from '@mui/material/TextField';
 import Autocomplete, { createFilterOptions } from '@mui/material/Autocomplete';
 
 //import CleaningScript from "./components/CleaningScript"
+import AssignLabels from "./components/AssignLabels"
 import StartSensors from "./components/StartSensors"
 import StartCalculations from "./components/StartCalculations"
 
@@ -220,7 +221,7 @@ function ExperimentSummaryForm(props) {
       return
     }
 
-    // TODO: confirm we are connected to MQTT
+    // TODO: confirm we are connected to MQTT and it received the new experiment name...
 
     fetch('create_experiment',{
         method: "POST",
@@ -256,7 +257,7 @@ function ExperimentSummaryForm(props) {
   }
   return (
     <div className={classes.root}>
-        <FormGroup>
+      <FormGroup>
         <Grid container spacing={1}>
           <Grid item xs={12} md={6}>
             <TextField
@@ -287,7 +288,7 @@ function ExperimentSummaryForm(props) {
             <TextField
               label="Description (optional)"
               maxRows={4}
-              placeholder={"Add a description: what is your hypothesis? What is the experiment protocol? This description can always be changed later."}
+              placeholder="Add a description: what is your hypothesis? What is the experiment protocol? This description can always be changed later."
               multiline
               value={description}
               className={classes.textField}
@@ -323,7 +324,7 @@ function ExperimentSummaryForm(props) {
             </div>
           </Grid>
         </Grid>
-        </FormGroup>
+      </FormGroup>
     </div>
   );
 }
@@ -389,6 +390,7 @@ function StartNewExperimentContainer(props) {
   const steps = [
     {title: 'Experiment summary', content: <ExperimentSummaryForm config={props.config} handleNext={handleNext}/>, optional: false},
     //{title: 'Cleaning and preparation', content: <CleaningScript config={props.config}/>, optional: true},
+    {title: 'Assign labels', content: <AssignLabels config={props.config} handleNext={handleNext} />,  optional: true},
     {title: 'Start sensors', content: <StartSensors config={props.config}/>, optional: false},
     {title: 'Start calculations', content: <StartCalculations config={props.config}/>, optional: false},
   ];
@@ -428,7 +430,7 @@ function StartNewExperimentContainer(props) {
             </div>
           ) : (
             <div>
-              <Typography className={classes.instructions}>{getStepContent(activeStep)}</Typography>
+              <div className={classes.instructions}>{getStepContent(activeStep)}</div>
               <div>
                 <Button disabled={activeStep === 0} onClick={handleBack} className={classes.button}>
                   Back
