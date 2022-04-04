@@ -200,6 +200,7 @@ app.post("/run/:job/:unit", function(req, res) {
 
 
 app.get('/recent_logs', function (req, res) {
+  // TODO: this query can get really slow when the log table starts to fill up.
   const queryObject = url.parse(req.url, true).query; // assume that all query params are optional args for the job
   const minLevel = queryObject['min_level'] || "INFO"
 
@@ -523,7 +524,7 @@ app.get('/get_latest_experiment', function (req, res) {
         if (err) {
           publishToErrorLog(err)
 
-          return setTimeout(fetch, 500)
+          return setTimeout(fetch, 150)
         }
         res.send(rows[0])
     })

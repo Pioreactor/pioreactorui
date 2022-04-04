@@ -221,8 +221,6 @@ function ButtonConfirmStopProcessDialog() {
 function ExperimentSummary(props){
   const classes = useStyles();
   const experiment = props.experimentMetadata.experiment || ""
-  const organism = props.experimentMetadata.organism_used || ""
-  const media = props.experimentMetadata.media_used || ""
   const startedAt = props.experimentMetadata.timestamp || moment()
   const desc = props.experimentMetadata.description || ""
   const deltaHours = props.experimentMetadata.delta_hours || 0
@@ -259,28 +257,6 @@ function ExperimentSummary(props){
           <Box fontWeight="fontWeightRegular" style={{marginRight: "20px", display:"inline-block"}}>
            {deltaHours}h
           </Box>
-
-          {organism &&
-          <React.Fragment>
-            <Box fontWeight="fontWeightBold" style={{display:"inline-block", margin: "10px 2px 10px 0px"}}>
-              <CoronavirusIcon style={{ fontSize: 12, verticalAlign: "-1px"  }}/>Strain:
-            </Box>
-            <Box fontWeight="fontWeightRegular" style={{marginRight: "20px", display:"inline-block"}}>
-             {organism}
-            </Box>
-          </React.Fragment>
-        }
-
-          {media &&
-          <React.Fragment>
-            <Box fontWeight="fontWeightBold" style={{display:"inline-block", margin: "10px 2px 10px 0px"}}>
-              <LocalDrinkIcon style={{ fontSize: 12, verticalAlign: "-1px"  }}/>Media:
-            </Box>
-            <Box fontWeight="fontWeightRegular" style={{display:"inline-block"}}>
-             {media}
-            </Box>
-          </React.Fragment>
-        }
 
         </Typography>
       </div>

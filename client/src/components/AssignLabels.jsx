@@ -71,7 +71,7 @@ function FlashLEDButton(props){
 
   return (
     <Button style={{textTransform: 'none', float: "right"}} className={clsx({blinkled: flashing})} disabled={props.disabled} onClick={onClick} color="primary">
-      <FlareIcon color={props.disabled ? "disabled" : "primary"} fontSize="15" classes={{root: classes.textIcon}}/> <span > Blink </span>
+      <FlareIcon color={props.disabled ? "disabled" : "primary"} fontSize="15" classes={{root: classes.textIcon}}/> <span > Identify </span>
     </Button>
 )}
 
@@ -133,7 +133,7 @@ function AssignLabels(props){
                     <span style={{lineHeight: "40px"}}>{unit}</span>
                   </div>
                   <div>
-                    <TextField size="small" placeholder="(Optional)" onChange={onLabelChange(unit)}/>
+                    <TextField size="small" placeholder="(Optional)" onChange={onLabelChange(unit)} style={{width: "140px"}}/>
                     <FlashLEDButton client={client} disable={false} config={props.config} unit={unit}/>
                   </div>
                 </div>

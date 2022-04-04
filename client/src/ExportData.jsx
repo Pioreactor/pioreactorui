@@ -208,6 +208,14 @@ const CheckboxesGroup = (props) => {
           </Typography>
 
           <FormControlLabel
+            control={<Checkbox checked={props.isChecked.pioreactor_unit_labels} onChange={props.handleChange} name="pioreactor_unit_labels" />}
+            label="Pioreactor unit labels"
+          />
+          <Typography variant="caption" className={classes.caption} gutterBottom>
+            Labels assigned to a Pioreactor during an experiment.
+          </Typography>
+
+          <FormControlLabel
             control={<Checkbox checked={props.isChecked.logs} onChange={props.handleChange} name="logs" />}
             label="Pioreactor logs"
           />
@@ -243,7 +251,8 @@ function ExportDataContainer() {
       temperature_automation_settings: false,
       kalman_filter_outputs: false,
       stirring_rates: false,
-      temperature_readings: false
+      temperature_readings: false,
+      pioreactor_unit_labels: false,
     }
   });
 

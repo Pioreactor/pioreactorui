@@ -570,8 +570,7 @@ function CalibrateDialog(props) {
 
   function startPioreactorJob(job){
     return function() {
-      fetch("/run/" + job + "/" + props.unit, {method: "POST"}).then(res => {
-      })
+      fetch("/run/" + job + "/" + props.unit, {method: "POST"})
     }
   }
 
@@ -713,8 +712,7 @@ function SelfTestDialog(props) {
 
   function startPioreactorJob(job){
     return function() {
-      fetch("/run/" + job + "/" + props.unit, {method: "POST"}).then(res => {
-      })
+      fetch("/run/" + job + "/" + props.unit, {method: "POST"})
     }
   }
 
@@ -922,8 +920,7 @@ function SettingsActionsDialog(props) {
 
   function startPioreactorJob(job){
     return function() {
-      fetch("/run/" + job + "/" + props.unit, {method: "POST"}).then(res => {
-      })
+      fetch("/run/" + job + "/" + props.unit, {method: "POST"})
     }
   }
 
@@ -975,7 +972,11 @@ function SettingsActionsDialog(props) {
             'Accept': 'application/json',
             'Content-Type': 'application/json'
           }
-        }).then(res => setTimeout(() => window.location.reload(), 360))
+        }).then(res => {
+          if (res.ok) {
+            props.setLabel(relabeledTo)
+          }
+        })
     }
   }
 
@@ -1361,7 +1362,7 @@ function SettingsActionsDialog(props) {
             Assign label to Pioreactor
           </Typography>
           <Typography variant="body2" component="p">
-            Temporarily assign a label to this Pioreactor for the duration of the experiment. The new label will display in the graph legends, and throughout the interface.
+            Temporarily assign a label to this Pioreactor for the duration of the experiment. The new label will display in graph legends, and throughout the interface.
           </Typography>
           <TextField
             size="small"
@@ -1978,6 +1979,22 @@ function SettingsActionsDialogAll({config, experiment}) {
 
 
 function ActiveUnits(props){
+    const [relabelMap, setRelabelMap] = React.useState({})
+    React.useEffect(() => {
+
+      function getRelabelMap() {
+          fetch("/get_current_unit_labels")
+          .then((response) => {
+            return response.json();
+          })
+          .then((data) => {
+            setRelabelMap(data)
+          });
+        }
+
+      getRelabelMap()
+    }, [])
+
   return (
   <React.Fragment>
     <div style={{display: "flex", justifyContent: "space-between", marginBottom: "10px", marginTop: "15px"}}>
@@ -1991,7 +2008,7 @@ function ActiveUnits(props){
       </div>
     </div>
     {props.units.map(unit =>
-      <PioreactorCard isUnitActive={true} key={unit} unit={unit} config={props.config} experiment={props.experiment} label={props.relabelMap[unit]}/>
+      <PioreactorCard isUnitActive={true} key={unit} unit={unit} config={props.config} experiment={props.experiment} label={relabelMap[unit]}/>
   )}
   </React.Fragment>
 )}
@@ -2030,7 +2047,7 @@ function FlashLEDButton(props){
 
   return (
     <Button style={{textTransform: 'none', float: "right"}} className={clsx({blinkled: flashing})} disabled={props.disabled} onClick={onClick} color="primary">
-      <FlareIcon color={props.disabled ? "disabled" : "primary"} fontSize="15" classes={{root: classes.textIcon}}/> <span > Blink </span>
+      <FlareIcon color={props.disabled ? "disabled" : "primary"} fontSize="15" classes={{root: classes.textIcon}}/> <span > Identify </span>
     </Button>
 )}
 
@@ -2043,6 +2060,7 @@ function PioreactorCard(props){
   const experiment = props.experiment
   const config = props.config
   const [fetchComplete, setFetchComplete] = useState(false)
+  const [label, setLabel] = useState(props.label)
 
   const [client, setClient] = useState(null)
   const [jobs, setJobs] = useState({
@@ -2197,13 +2215,13 @@ function PioreactorCard(props){
       <CardContent className={classes.cardContent}>
         <div className={"fixme"}>
           <Typography className={clsx(classes.suptitle)} color="textSecondary">
-            {(props.label) ? unit : ""}
+            {(label) ? unit : ""}
           </Typography>
           <div className={classes.cardHeaderSettings}>
             <div style={{display: "flex", justifyContent: "left"}}>
               <Typography className={clsx(classes.unitTitle, {[classes.disabledText]: !isUnitActive})} gutterBottom>
                 <PioreactorIcon color={isUnitActive ? "inherit" : "disabled"} style={{verticalAlign: "middle"}} sx={{ display: {xs: 'none', sm: 'none', md: 'inline' } }}/>
-                {(props.label ) ? props.label : unit }
+                {(label ) ? label : unit }
               </Typography>
               <Tooltip title={indicatorLabel} placement="right">
                 <div>
@@ -2217,7 +2235,7 @@ function PioreactorCard(props){
                   client={client}
                   disabled={!isUnitActive}
                   unit={unit}
-                  label={props.label}
+                  label={label}
                   selfTestState={jobs['self_test'] ? jobs['self_test'].state : null}
                   selfTestTests={jobs['self_test'] ? jobs['self_test'] : null}
                 />
@@ -2233,7 +2251,7 @@ function PioreactorCard(props){
                   stirringCalibrationState={jobs['stirring_calibration'] ? jobs['stirring_calibration'].state : null}
                   experiment={experiment}
                   unit={unit}
-                  label={props.label}
+                  label={label}
                   disabled={!isUnitActive}
                 />
               </div>
@@ -2241,10 +2259,11 @@ function PioreactorCard(props){
                 config={props.config}
                 client={client}
                 unit={unit}
-                label={props.label}
+                label={label}
                 disabled={!isUnitActive}
                 experiment={experiment}
                 jobs={jobs}
+                setLabel={setLabel}
               />
             </div>
           </div>
@@ -2390,7 +2409,7 @@ function Pioreactors({title, config}) {
 
           <Grid item md={12} xs={12}>
             <PioreactorHeader config={config} experiment={experimentMetadata.experiment}/>
-            <ActiveUnits experiment={experimentMetadata.experiment} config={config} units={activeUnits} relabelMap={relabelMap}/>
+            <ActiveUnits experiment={experimentMetadata.experiment} config={config} units={activeUnits} />
             <InactiveUnits experiment={experimentMetadata.experiment} config={config} units={inactiveUnits}/>
           </Grid>
         </Grid>
