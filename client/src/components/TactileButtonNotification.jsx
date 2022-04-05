@@ -6,9 +6,25 @@ import AlertTitle from '@mui/material/AlertTitle';
 import Snackbar from '@mui/material/Snackbar';
 
 function TactileButtonNotification(props) {
-  var [unit, setUnit] = React.useState("")
-  var [renamedUnit, setRenamedUnit] = React.useState("")
-  var [open, setOpen] = React.useState(false)
+  const [unit, setUnit] = React.useState("")
+  const [renamedUnit, setRenamedUnit] = React.useState("")
+  const [open, setOpen] = React.useState(false)
+  const [relabelMap, setRelabelMap] = React.useState({})
+
+  React.useEffect(() => {
+
+    function getRelabelMap() {
+        fetch("/get_current_unit_labels")
+        .then((response) => {
+          return response.json();
+        })
+        .then((data) => {
+          setRelabelMap(data)
+        });
+      }
+
+    getRelabelMap()
+  }, [])
 
   React.useEffect(() => {
     if (!props.config['network.topology']){
@@ -20,7 +36,7 @@ function TactileButtonNotification(props) {
         var unit = msg.topic.split("/")[1]
         setUnit(unit)
         try {
-          setRenamedUnit(props.config['ui.rename'][unit])
+          setRenamedUnit(relabelMap[unit])
         }
         catch {}
         setOpen(true)

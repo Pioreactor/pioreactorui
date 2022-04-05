@@ -6,12 +6,29 @@ import AlertTitle from '@mui/material/AlertTitle';
 import Snackbar from '@mui/material/Snackbar';
 
 function ErrorSnackbar(props) {
-  var [open, setOpen] = React.useState(false)
-  var [renamedUnit, setRenamedUnit] = React.useState("")
-  var [unit, setUnit] = React.useState("")
-  var [msg, setMsg] = React.useState("")
-  var [level, setLevel] = React.useState("error")
-  var [task, setTask] = React.useState("")
+  const [open, setOpen] = React.useState(false)
+  const [renamedUnit, setRenamedUnit] = React.useState("")
+  const [unit, setUnit] = React.useState("")
+  const [msg, setMsg] = React.useState("")
+  const [level, setLevel] = React.useState("error")
+  const [task, setTask] = React.useState("")
+  const [relabelMap, setRelabelMap] = React.useState({})
+
+  React.useEffect(() => {
+
+    function getRelabelMap() {
+        fetch("/get_current_unit_labels")
+        .then((response) => {
+          return response.json();
+        })
+        .then((data) => {
+          setRelabelMap(data)
+        });
+      }
+
+    getRelabelMap()
+  }, [])
+
 
   const handleClose = (event, reason) => {
     if (reason === 'clickaway') {
@@ -31,7 +48,7 @@ function ErrorSnackbar(props) {
       if ((payload.level === "ERROR" || payload.level === "WARNING") && (!message.topic.endsWith("/ui"))){
         const unit = message.topic.split("/")[1]
         try {
-          setRenamedUnit(props.config['ui.rename'][unit])
+          setRenamedUnit(relabelMap[unit])
         }
         catch {}
         setMsg(payload.message)

@@ -140,6 +140,7 @@ function StartSensors(props){
     >
       <Grid item xs={2}/>
       <Grid container>
+        <Grid item xs={10}><p>Place the vials in the Pioreactor(s) </p></Grid>
         <Grid item xs={10}><StartHeating config={props.config}/></Grid>
         <Grid item xs={10}><StartStirring/></Grid>
         <Grid item xs={10}><StartODReading/></Grid>

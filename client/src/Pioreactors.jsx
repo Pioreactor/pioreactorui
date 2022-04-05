@@ -2060,7 +2060,7 @@ function PioreactorCard(props){
   const experiment = props.experiment
   const config = props.config
   const [fetchComplete, setFetchComplete] = useState(false)
-  const [label, setLabel] = useState(props.label)
+  const [label, setLabel] = useState("")
 
   const [client, setClient] = useState(null)
   const [jobs, setJobs] = useState({
@@ -2069,6 +2069,10 @@ function PioreactorCard(props){
     },
   })
 
+
+  useEffect(() => {
+    setLabel(props.label)
+  }, [props.label])
 
 
   useEffect(() => {
@@ -2370,7 +2374,6 @@ function InactiveUnits(props){
 
 function Pioreactors({title, config}) {
     const [experimentMetadata, setExperimentMetadata] = React.useState({})
-    const [relabelMap, setRelabelMap] = React.useState({})
 
     React.useEffect(() => {
       document.title = title;
@@ -2385,18 +2388,8 @@ function Pioreactors({title, config}) {
           });
         }
 
-      function getRelabelMap() {
-          fetch("/get_current_unit_labels")
-          .then((response) => {
-            return response.json();
-          })
-          .then((data) => {
-            setRelabelMap(data)
-          });
-        }
 
       getLatestExperiment()
-      getRelabelMap()
     }, [title])
 
     const entries = (a) => Object.entries(a)
