@@ -24,7 +24,7 @@ app.use(compression());
 var db = dblite(process.env.DB_LOCATION)
 
 
-// connect to MQTT for logging
+// connect to MQTT
 var client  = mqtt.connect('mqtt://localhost:1883')
 const LOG_TOPIC = `pioreactor/${os.hostname()}/$experiment/logs/ui`
 
@@ -559,16 +559,18 @@ app.get('/get_current_unit_labels', function (req, res) {
 app.post("/update_current_unit_labels", function (req, res, next) {
     const unit = req.body.unit
     const label = req.body.label
-    var upsert = 'INSERT OR REPLACE INTO pioreactor_unit_labels (label, experiment, pioreactor_unit) VALUES ((?), (SELECT experiment FROM latest_experiment), (?)) ON CONFLICT(experiment, pioreactor_unit) DO UPDATE SET label=excluded.label'
-    db.ignoreErrors = true; // this is a hack to avoid dblite from freezing when we get a db is locked.
-    db.query(upsert, [label, unit], function(err, _){
-        if (err){
-          // publishToErrorLog(err) probably a database is locked error, ignore.
-          res.sendStatus(500)
-        } else {
-          res.sendStatus(200)
-          client.publish(`pioreactor/${unit}/$experiment/unit_label`, label, {retain: true}) // TODO: this should be latest experiment, not universal experiment...
-        }
+    db.query("SELECT experiment FROM latest_experiment", function(err, rows) {
+      const latest_experiment = rows[0][0]
+      var upsert = 'INSERT OR REPLACE INTO pioreactor_unit_labels (label, experiment, pioreactor_unit) VALUES ((?), (?), (?)) ON CONFLICT(experiment, pioreactor_unit) DO UPDATE SET label=excluded.label'
+      db.ignoreErrors = true; // this is a hack to avoid dblite from freezing when we get a db is locked.
+      db.query(upsert, [label, latest_experiment, unit], function(err, _){
+          if (err){
+            res.sendStatus(500)
+          } else {
+            res.sendStatus(200)
+            client.publish(`pioreactor/${unit}/${latest_experiment}/unit_label`, label, {retain: true})
+          }
+      })
     })
 })
 
