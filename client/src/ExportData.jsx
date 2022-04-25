@@ -216,6 +216,14 @@ const CheckboxesGroup = (props) => {
           </Typography>
 
           <FormControlLabel
+            control={<Checkbox checked={props.isChecked.automation_events} onChange={props.handleChange} name="automation_events" />}
+            label="Automation events"
+          />
+          <Typography variant="caption" className={classes.caption} gutterBottom>
+            Log of automation events created by temprature, LED, and dosing automations.
+          </Typography>
+
+          <FormControlLabel
             control={<Checkbox checked={props.isChecked.logs} onChange={props.handleChange} name="logs" />}
             label="Pioreactor logs"
           />
@@ -253,6 +261,7 @@ function ExportDataContainer() {
       stirring_rates: false,
       temperature_readings: false,
       pioreactor_unit_labels: false,
+      automation_events: false,
     }
   });
 

@@ -140,7 +140,7 @@ app.post('/stop/:job/:unit', function (req, res) {
   jobsToKillOverMQTT = ["add_media", "add_alt_media", "remove_waste"]
 
   if (jobsToKillOverMQTT.includes(job)){
-    client.publish(`pioreactor/${unit}/$experiment/${job}/$state/set`, "disconnected")
+    client.publish(`pioreactor/${unit}/$experiment/${job}/$state/set`, "disconnected", {qos: 2})
     res.sendStatus(200)
   }
   else {
@@ -166,7 +166,7 @@ app.post("/run/:job/:unit", function(req, res) {
     unit = req.params.unit
     job = req.params.job
 
-    client.publish(`pioreactor/${unit}/$experiment/run/${job}`, JSON.stringify(req.body))
+    client.publish(`pioreactor/${unit}/$experiment/run/${job}`, JSON.stringify(req.body), {qos: 2})
     res.sendStatus(200)
 
     /*
@@ -557,15 +557,17 @@ app.get('/get_current_unit_labels', function (req, res) {
 })
 
 app.post("/update_current_unit_labels", function (req, res, next) {
+    const unit = req.body.unit
+    const label = req.body.label
     var upsert = 'INSERT OR REPLACE INTO pioreactor_unit_labels (label, experiment, pioreactor_unit) VALUES ((?), (SELECT experiment FROM latest_experiment), (?)) ON CONFLICT(experiment, pioreactor_unit) DO UPDATE SET label=excluded.label'
     db.ignoreErrors = true; // this is a hack to avoid dblite from freezing when we get a db is locked.
-    db.query(upsert, [req.body.label, req.body.unit], function(err, _){
+    db.query(upsert, [label, unit], function(err, _){
         if (err){
           // publishToErrorLog(err) probably a database is locked error, ignore.
-
           res.sendStatus(500)
         } else {
           res.sendStatus(200)
+          client.publish(`pioreactor/${unit}/$experiment/unit_label`, label, {retain: true}) // TODO: this should be latest experiment, not universal experiment...
         }
     })
 })
@@ -609,23 +611,25 @@ app.get('/get_historical_media_used', function (req, res) {
 app.post("/create_experiment", function (req, res) {
     // I was hitting this bug https://github.com/WebReflection/dblite/issues/23 in the previous code that tried
     // to rawdog an insert. I now manually check... sigh.
-    db.query("SELECT experiment FROM experiments WHERE experiment=:experiment", {experiment: req.body.experiment}, function(err, rows){
+    body = req.body
+    db.query("SELECT experiment FROM experiments WHERE experiment=:experiment", {experiment: body.experiment}, function(err, rows){
         if (rows.length > 0){
           res.sendStatus(422)
           return
         }
         else{
           db.ignoreErrors = true; // this is a hack to avoid dblite from freezing when we get a db is locked.
-          body = req.body
           var insert = 'INSERT INTO experiments (timestamp, experiment, description, media_used, organism_used) VALUES (?,?,?,?,?)'
           db.query(insert, [body.timestamp, body.experiment, body.description, body.mediaUsed, body.organismUsed], function(err, rows){
             if (err){
               publishToErrorLog(err)
-
               next(err)
               res.sendStatus(500)
             } else {
               res.sendStatus(200)
+              // success, so publish to MQTT too.
+              client.publish("pioreactor/latest_experiment", body.experiment, {qos: 2, retain: true})
+
             }
             return
           })

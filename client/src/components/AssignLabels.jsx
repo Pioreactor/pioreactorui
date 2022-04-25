@@ -78,21 +78,27 @@ function FlashLEDButton(props){
 function AssignLabels(props){
   const classes = useStyles();
   const [labels, setLabels] = useState({})
+  const [client, setClient] = useState(null)
   const activeUnits = props.config['network.inventory'] ? Object.entries(props.config['network.inventory']).filter((v) => v[1] === "1").map((v) => v[0]) : []
 
-  var client
-  if (props.config.remote && props.config.remote.ws_url) {
-    client = new Client(
-      `ws://${props.config.remote.ws_url}/`,
-      "webui_publishExpNameToMQTT" + Math.random()
-    )}
-  else {
-    client = new Client(
-      `${props.config['network.topology']['leader_address']}`, 9001,
-      "webui_publishExpNameToMQTT" + Math.random()
-    );
-  }
-  client.connect();
+
+  useEffect(() => {
+    var client
+    if (props.config.remote && props.config.remote.ws_url) {
+      client = new Client(
+        `ws://${props.config.remote.ws_url}/`,
+        "webui_publishExpNameToMQTT" + Math.random()
+      )}
+    else {
+      client = new Client(
+        `${props.config['network.topology']['leader_address']}`, 9001,
+        "webui_publishExpNameToMQTT" + Math.random()
+      );
+    }
+    client.connect();
+    setClient(client)
+  },[props.config])
+
 
   const onSubmit = () => {
     Object.entries(labels).map(unit_label => (

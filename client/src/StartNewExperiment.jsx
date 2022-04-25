@@ -1,6 +1,5 @@
 import React from "react";
 import moment from "moment";
-import { Client, Message } from "paho-mqtt";
 
 import Grid from '@mui/material/Grid';
 import { makeStyles } from '@mui/styles';
@@ -164,32 +163,6 @@ function ExperimentSummaryForm(props) {
   }, [])
 
 
-  function publishExpNameToMQTT(){
-
-    function onConnect() {
-      var message = new Message(expName.trim());
-      message.destinationName = "pioreactor/latest_experiment"
-      message.qos = 1;
-      message.retained = true;
-      client.publish(message);
-    }
-
-    var client
-    if (props.config.remote && props.config.remote.ws_url) {
-      client = new Client(
-        `ws://${props.config.remote.ws_url}/`,
-        "webui_publishExpNameToMQTT" + Math.random()
-      )}
-    else {
-      client = new Client(
-        `${props.config['network.topology']['leader_address']}`, 9001,
-        "webui_publishExpNameToMQTT" + Math.random()
-      );
-    }
-    client.connect({ onSuccess: onConnect, timeout: 180});
-
-  }
-
   function populateFields(){
     fetch("/get_latest_experiment")
       .then((response) => {
@@ -232,7 +205,6 @@ function ExperimentSummaryForm(props) {
         }
       }).then(res => {
         if (res.status === 200){
-          publishExpNameToMQTT()
           setHelperText("")
           setFormError(false);
           killExistingJobs()

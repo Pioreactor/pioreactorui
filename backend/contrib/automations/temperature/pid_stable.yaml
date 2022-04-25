@@ -1,9 +1,0 @@
----
-display_name: Stable
-automation_name: stable
-description: Vary the amount of applied heating to keep the culture near a target temperature, using a control-loop.
-fields:
-  - key: target_temperature
-    default: 25
-    unit: ℃
-    label: Target Temperature

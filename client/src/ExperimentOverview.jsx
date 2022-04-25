@@ -122,12 +122,12 @@ function Overview(props) {
               isODReading={true}
               dataSource="od_readings_raw"
               title="Optical density"
-              payloadKey="voltage"
+              interpolation="stepAfter"
               topic="od_reading/od_raw/+"
               yAxisLabel="Voltage"
+              payloadKey="voltage"
               experiment={experimentMetadata.experiment}
               deltaHours={experimentMetadata.delta_hours}
-              interpolation="stepAfter"
               lookback={parseFloat(props.config['ui.overview.settings']['raw_od_lookback_hours'])}
               fixedDecimals={3}
               relabelMap={relabelMap}

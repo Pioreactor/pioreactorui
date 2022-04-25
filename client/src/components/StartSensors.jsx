@@ -140,7 +140,7 @@ function StartSensors(props){
     >
       <Grid item xs={2}/>
       <Grid container>
-        <Grid item xs={10}><p>Place the vials in the Pioreactor(s) </p></Grid>
+        <Grid item xs={10}><p>Place the vials in the Pioreactor(s).</p></Grid>
         <Grid item xs={10}><StartHeating config={props.config}/></Grid>
         <Grid item xs={10}><StartStirring/></Grid>
         <Grid item xs={10}><StartODReading/></Grid>
@@ -148,14 +148,13 @@ function StartSensors(props){
           <Chart
             config={props.config}
             isODReading={true}
-            fontScale={1.0}
             dataSource="od_readings_raw"
-            interpolation="stepAfter"
             title="Optical density"
+            interpolation="stepAfter"
             topic="od_reading/od_raw/+"
             yAxisLabel="Voltage"
             payloadKey="voltage"
-            experiment="+"
+            experiment={null}
             deltaHours={1}
             lookback={1}
             fixedDecimals={3}
