@@ -1995,6 +1995,22 @@ function ActiveUnits(props){
       getRelabelMap()
     }, [])
 
+  const cards = props.units.map(unit =>
+      <PioreactorCard isUnitActive={true} key={unit} unit={unit} config={props.config} experiment={props.experiment} label={relabelMap[unit]}/>
+  )
+  var emptyState = (
+    <div style={{textAlign: "center", marginBottom: '50px', marginTop: "50px"}}>
+      <Typography>
+        <Box fontWeight="fontWeightRegular">
+          No active Pioreactors. Do you need to update `network.inventory` section in the <a href="/config">configuration</a>?
+        </Box>
+        <Box fontWeight="fontWeightRegular">
+          Or, <a href="https://docs.pioreactor.com/user-guide/create-cluster">read our documentation</a> about managing inventory.
+        </Box>
+      </Typography>
+    </div>
+  )
+
   return (
   <React.Fragment>
     <div style={{display: "flex", justifyContent: "space-between", marginBottom: "10px", marginTop: "15px"}}>
@@ -2007,9 +2023,9 @@ function ActiveUnits(props){
 
       </div>
     </div>
-    {props.units.map(unit =>
-      <PioreactorCard isUnitActive={true} key={unit} unit={unit} config={props.config} experiment={props.experiment} label={relabelMap[unit]}/>
-  )}
+
+    {(props.units.length == 0) && (props.experiment) ? emptyState :cards }
+
   </React.Fragment>
 )}
 

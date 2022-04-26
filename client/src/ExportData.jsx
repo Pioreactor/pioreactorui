@@ -6,6 +6,7 @@ import Grid from '@mui/material/Grid';
 import { makeStyles } from '@mui/styles';
 import FormLabel from '@mui/material/FormLabel';
 import FormControl from '@mui/material/FormControl';
+import InputLabel from '@mui/material/InputLabel';
 import FormGroup from '@mui/material/FormGroup';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import Checkbox from '@mui/material/Checkbox';
@@ -19,7 +20,8 @@ import LoadingButton from "@mui/lab/LoadingButton";
 
 const useStyles = makeStyles((theme) => ({
   root: {
-    marginTop: "15px"
+    marginTop: "15px",
+    marginLeft: "10px"
   },
   formControl: {
     margin: theme.spacing(2),
@@ -66,25 +68,27 @@ function ExperimentSelection(props) {
 
   return (
     <div className={classes.root}>
-      <FormControl component="fieldset" className={classes.formControl}>
-
-        <Select
-          native
-          variant="standard"
-          value={props.ExperimentSelection}
-          onChange={handleExperimentSelectionChange}
-          inputProps={{
-            name: 'experiment',
-            id: 'experiment',
-          }}
-        >
-          {experiments.map((v) => {
-            return <option value={v.experiment}>{v.experiment +  (v.timestamp ? ` (started ${moment(v.timestamp).format("MMMM D, YYYY")})` : "")}</option>
-            }
-          )}
-        </Select>
-      </FormControl>
-
+      <div style={{maxWidth: "450px"}}>
+        <FormControl fullWidth component="fieldset" className={classes.formControl}>
+          <InputLabel id="expSelect" variant="standard"> Experiment </InputLabel>
+          <Select
+            native
+            labelId="expSelect"
+            variant="standard"
+            value={props.ExperimentSelection}
+            onChange={handleExperimentSelectionChange}
+            inputProps={{
+              name: 'experiment',
+              id: 'experiment',
+            }}
+          >
+            {experiments.map((v) => {
+              return <option value={v.experiment}>{v.experiment +  (v.timestamp ? ` (started ${moment(v.timestamp).format("MMMM D, YYYY")})` : "")}</option>
+              }
+            )}
+          </Select>
+        </FormControl>
+      </div>
     </div>
   )
 }
@@ -157,20 +161,20 @@ const CheckboxesGroup = (props) => {
           </Typography>
 
           <FormControlLabel
+            control={<Checkbox checked={props.isChecked.led_events} onChange={props.handleChange} name="led_events" />}
+            label="LED event log"
+          />
+          <Typography variant="caption" className={classes.caption} gutterBottom>
+            A detailed log table of all LED events, including the channel, intensity, and the source of who or what triggered the event.
+          </Typography>
+
+          <FormControlLabel
             control={<Checkbox checked={props.isChecked.dosing_automation_settings} onChange={props.handleChange} name="dosing_automation_settings" />}
             label="Dosing automation changelog"
           />
           <Typography variant="caption" className={classes.caption} gutterBottom>
             Whenever a dosing automation is updated (new automation, new setting, etc.), a new row is recorded. You can reconstruct all the dosing automation states
             from this dataset.
-          </Typography>
-
-          <FormControlLabel
-            control={<Checkbox checked={props.isChecked.led_events} onChange={props.handleChange} name="led_events" />}
-            label="LED event log"
-          />
-          <Typography variant="caption" className={classes.caption} gutterBottom>
-            A detailed log table of all LED events, including the channel, intensity, and the source of who or what triggered the event.
           </Typography>
 
           <FormControlLabel
@@ -189,6 +193,30 @@ const CheckboxesGroup = (props) => {
           <Typography variant="caption" className={classes.caption} gutterBottom>
             Whenever a temperature automation is updated (new automation, new setting, etc.), a new row is recorded. You can reconstruct all the temperature automation states
             from this dataset.
+          </Typography>
+
+          <FormControlLabel
+            control={<Checkbox checked={props.isChecked.dosing_automation_events} onChange={props.handleChange} name="dosing_automation_events" />}
+            label="Dosing automation events"
+          />
+          <Typography variant="caption" className={classes.caption} gutterBottom>
+            Log of automation events created by dosing automations.
+          </Typography>
+
+          <FormControlLabel
+            control={<Checkbox checked={props.isChecked.led_automation_events} onChange={props.handleChange} name="led_automation_events" />}
+            label="LED automation events"
+          />
+          <Typography variant="caption" className={classes.caption} gutterBottom>
+            Log of automation events created by LED automations.
+          </Typography>
+
+          <FormControlLabel
+            control={<Checkbox checked={props.isChecked.temperature_automation_events} onChange={props.handleChange} name="temperature_automation_events" />}
+            label="Temperature automation events"
+          />
+          <Typography variant="caption" className={classes.caption} gutterBottom>
+            Log of automation events created by temperature automations.
           </Typography>
 
           <FormControlLabel
@@ -213,14 +241,6 @@ const CheckboxesGroup = (props) => {
           />
           <Typography variant="caption" className={classes.caption} gutterBottom>
             Labels assigned to a Pioreactor during an experiment.
-          </Typography>
-
-          <FormControlLabel
-            control={<Checkbox checked={props.isChecked.automation_events} onChange={props.handleChange} name="automation_events" />}
-            label="Automation events"
-          />
-          <Typography variant="caption" className={classes.caption} gutterBottom>
-            Log of automation events created by temprature, LED, and dosing automations.
           </Typography>
 
           <FormControlLabel
@@ -261,7 +281,9 @@ function ExportDataContainer() {
       stirring_rates: false,
       temperature_readings: false,
       pioreactor_unit_labels: false,
-      automation_events: false,
+      led_automation_events: false,
+      dosing_automation_events: false,
+      temperature_automation_events: false,
     }
   });
 

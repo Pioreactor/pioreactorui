@@ -4,7 +4,9 @@ import Grid from '@mui/material/Grid';
 import { makeStyles } from '@mui/styles';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/Card';
+import FormControl from '@mui/material/FormControl';
 import Button from '@mui/material/Button';
+import InputLabel from '@mui/material/InputLabel';
 import Box from '@mui/material/Box';
 import {Typography} from '@mui/material';
 import Snackbar from '@mui/material/Snackbar';
@@ -135,26 +137,31 @@ class EditableCodeDiv extends React.Component {
   render() {
     return (
       <React.Fragment>
-        <div>
-          <Select
-            style={{margin: "10px 10px 10px 10px"}}
-            native
-            variant="standard"
-            value={this.state.filename}
-            onChange={this.onSelectionChange}
-            inputProps={{
-              name: 'config',
-              id: 'config',
-            }}
-          >
-            {this.state.availableConfigs.map((v) => {
-              return <option key={v.filename} value={v.filename}>{v.name}</option>
-              }
-            )}
-          </Select>
+        <div style={{maxWidth: "200px", margin: "10px"}}>
+          <FormControl fullWidth>
+
+            <InputLabel id="configSelect" variant="standard">Config file</InputLabel>
+            <Select
+              native
+              labelId="configSelect"
+              variant="standard"
+              value={this.state.filename}
+              onChange={this.onSelectionChange}
+              inputProps={{
+                name: 'config',
+                id: 'config',
+              }}
+            >
+              {this.state.availableConfigs.map((v) => {
+                return <option key={v.filename} value={v.filename}>{v.name}</option>
+                }
+              )}
+            </Select>
+          </FormControl>
+
         </div>
 
-        <div style={{letterSpacing: "0em", margin: "10px auto 10px auto", position: "relative", width: "98%", height: "300px", border: "1px solid #ccc"}}>
+        <div style={{letterSpacing: "0em", margin: "10px auto 10px auto", position: "relative", width: "98%", height: "280px", border: "1px solid #ccc"}}>
           <CodeFlaskReact
             code={this.state.code}
             onChange={this.onTextChange}
@@ -212,9 +219,8 @@ function EditConfigContainer(){
       </div>
       <Card className={classes.root}>
         <CardContent className={classes.cardContent}>
-          <p>Update the <code>config.ini</code> files. The shared <code>config.ini</code> will be deployed to <em>all</em> Pioreactors, but configuration can be overwritten by editing specific Pioreactor's <code>config.ini</code>.</p>
           <EditableCodeDiv/>
-          <p style={{textAlign: "center", marginTop: "30px"}}><span role="img">💡</span> Learn more about Pioreactor  <a href="https://docs.pioreactor.com/user_guide/Configuration%20via%20config" target="_blank" rel="noopener noreferrer">configuration</a>.</p>
+          <p style={{textAlign: "center", marginTop: "30px"}}><span role="img">💡</span> Learn more about Pioreactor  <a href="https://docs.pioreactor.com/user-guide/configuration" target="_blank" rel="noopener noreferrer">configuration</a>.</p>
         </CardContent>
       </Card>
     </React.Fragment>
