@@ -2024,7 +2024,7 @@ function ActiveUnits(props){
       </div>
     </div>
 
-    {(props.units.length == 0) && (props.experiment) ? emptyState :cards }
+    {(props.units.length === 0) && (props.experiment) ? emptyState : cards }
 
   </React.Fragment>
 )}
@@ -2196,7 +2196,7 @@ function PioreactorCard(props){
       return "Offline, change inventory status in config.ini"
     }
     else if (state === "lost"){
-      return "Lost, something went wrong. Try power-cycling the unit."
+      return "Lost, something went wrong. Try manually power-cycling the unit."
     }
     else {
       return "Online and ready"
@@ -2215,17 +2215,10 @@ function PioreactorCard(props){
     }
   }
 
-  const getIndicatorDotShadow = (state) => {
-    if (state === "disconnected") {
-      return 0
-    }
-    else {
-      return 6
-    }
-  }
+
 
   const indicatorDotColor = getIndicatorDotColor(jobs.monitor.state)
-  const indicatorDotShadow = getIndicatorDotShadow(jobs.monitor.state)
+  const indicatorDotShadow = 0
   const indicatorLabel = getInicatorLabel(jobs.monitor.state, isUnitActive)
 
 

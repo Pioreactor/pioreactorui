@@ -21,10 +21,6 @@ import LoadingButton from "@mui/lab/LoadingButton";
 const useStyles = makeStyles((theme) => ({
   root: {
     marginTop: "15px",
-    marginLeft: "10px"
-  },
-  formControl: {
-    margin: theme.spacing(2),
   },
   title: {
     fontSize: 14,
@@ -67,28 +63,26 @@ function ExperimentSelection(props) {
   }
 
   return (
-    <div className={classes.root}>
-      <div style={{maxWidth: "450px"}}>
-        <FormControl fullWidth component="fieldset" className={classes.formControl}>
-          <InputLabel id="expSelect" variant="standard"> Experiment </InputLabel>
-          <Select
-            native
-            labelId="expSelect"
-            variant="standard"
-            value={props.ExperimentSelection}
-            onChange={handleExperimentSelectionChange}
-            inputProps={{
-              name: 'experiment',
-              id: 'experiment',
-            }}
-          >
-            {experiments.map((v) => {
-              return <option value={v.experiment}>{v.experiment +  (v.timestamp ? ` (started ${moment(v.timestamp).format("MMMM D, YYYY")})` : "")}</option>
-              }
-            )}
-          </Select>
-        </FormControl>
-      </div>
+    <div style={{maxWidth: "450px", margin: "10px"}}>
+      <FormControl fullWidth component="fieldset" className={classes.formControl}>
+        <InputLabel id="expSelect" variant="standard"> Experiment </InputLabel>
+        <Select
+          native
+          labelId="expSelect"
+          variant="standard"
+          value={props.ExperimentSelection}
+          onChange={handleExperimentSelectionChange}
+          inputProps={{
+            name: 'experiment',
+            id: 'experiment',
+          }}
+        >
+          {experiments.map((v) => {
+            return <option value={v.experiment}>{v.experiment +  (v.timestamp ? ` (started ${moment(v.timestamp).format("MMMM D, YYYY")})` : "")}</option>
+            }
+          )}
+        </Select>
+      </FormControl>
     </div>
   )
 }
@@ -99,7 +93,7 @@ const CheckboxesGroup = (props) => {
   const classes = useStyles();
 
   return (
-    <div className={classes.root}>
+    <div className={classes.root} style={{margin: "10px"}}>
       <FormControl component="fieldset" className={classes.formControl}>
         <FormLabel component="legend">Datasets</FormLabel>
         <FormGroup>
@@ -382,7 +376,7 @@ function ExportDataContainer() {
 
               </Grid>
               <Grid item xs={12}>
-                <p style={{textAlign: "center", marginTop: "30px"}}>💡 Learn more about <a href="https://docs.pioreactor.com/user_guide/Exporting%20Data" target="_blank" rel="noopener noreferrer">data exporting</a>.</p>
+                <p style={{textAlign: "center", marginTop: "30px"}}><span role="img" aria-labelledby="Note">💡</span> Learn more about <a href="https://docs.pioreactor.com/user_guide/Exporting%20Data" target="_blank" rel="noopener noreferrer">data exporting</a>.</p>
               </Grid>
             </Grid>
           </form>

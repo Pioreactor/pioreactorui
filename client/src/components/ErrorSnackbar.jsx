@@ -88,14 +88,14 @@ function ErrorSnackbar(props) {
     client.connect({onSuccess: onSuccess, timeout: 180, reconnect: true});
     client.onMessageArrived = onMessageArrived;
 
-  },[props.config])
+  },[props.config, relabelMap])
 
   return (
     <Snackbar
       open={open}
       anchorOrigin={{vertical: "bottom", horizontal: "right"}}
       key="error-snackbar"
-      autoHideDuration={11000}
+      autoHideDuration={12000}
       style={{maxWidth: "500px"}}
       onClose={handleClose}
     >

@@ -11,8 +11,6 @@ import Divider from '@mui/material/Divider';
 import Button from '@mui/material/Button';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import TimelapseIcon from '@mui/icons-material/Timelapse';
-import CoronavirusIcon from '@mui/icons-material/Coronavirus';
-import LocalDrinkIcon from '@mui/icons-material/LocalDrink';
 import GetAppIcon from '@mui/icons-material/GetApp';
 import ClearIcon from '@mui/icons-material/Clear';
 import AddIcon from '@mui/icons-material/Add';

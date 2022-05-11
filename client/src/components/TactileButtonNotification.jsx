@@ -74,7 +74,7 @@ function TactileButtonNotification(props) {
     client.connect({onSuccess: onSuccess, timeout: 180, reconnect: true});
     client.onMessageArrived = onMessageArrived;
 
-  },[props.config])
+  },[props.config, relabelMap])
 
   return (
     <Snackbar

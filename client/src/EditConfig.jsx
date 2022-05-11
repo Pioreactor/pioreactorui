@@ -17,7 +17,7 @@ import { CodeFlaskReact } from "react-codeflask"
 
 const useStyles = makeStyles((theme) => ({
   root: {
-    marginTop: "15px"
+    marginTop: "15px",
   },
   title: {
     fontSize: 14,
@@ -220,7 +220,7 @@ function EditConfigContainer(){
       <Card className={classes.root}>
         <CardContent className={classes.cardContent}>
           <EditableCodeDiv/>
-          <p style={{textAlign: "center", marginTop: "30px"}}><span role="img">💡</span> Learn more about Pioreactor  <a href="https://docs.pioreactor.com/user-guide/configuration" target="_blank" rel="noopener noreferrer">configuration</a>.</p>
+          <p style={{textAlign: "center", marginTop: "30px"}}><span role="img" aria-labelledby="Note">💡</span> Learn more about Pioreactor  <a href="https://docs.pioreactor.com/user-guide/configuration" target="_blank" rel="noopener noreferrer">configuration</a>.</p>
         </CardContent>
       </Card>
     </React.Fragment>
