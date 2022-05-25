@@ -7,7 +7,7 @@ is_testing: true
 editable_settings:
   - key: test_detect_heating_pcb
     display: false
-  - key: test_positive_correlation_between_temp_and_heating
+  - key: test_positive_correlation_between_temperature_and_heating
     display: false
   - key: test_all_positive_correlations_between_pds_and_leds
     display: false
