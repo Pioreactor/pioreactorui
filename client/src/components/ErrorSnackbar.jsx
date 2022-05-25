@@ -45,7 +45,7 @@ function ErrorSnackbar(props) {
     const onMessageArrived = (message) => {
       const payload = JSON.parse(message.payloadString)
 
-      if ((payload.level === "ERROR" || payload.level === "WARNING") && (!message.topic.endsWith("/ui"))){
+      if ((payload.level === "ERROR" || payload.level === "WARNING" || payload.level === "NOTICE") && (!message.topic.endsWith("/ui"))){
         const unit = message.topic.split("/")[1]
         try {
           setRenamedUnit(relabelMap[unit])
@@ -53,7 +53,7 @@ function ErrorSnackbar(props) {
         catch {}
         setMsg(payload.message)
         setTask(payload.task)
-        setLevel(payload.level)
+        setLevel(payload.level === "NOTICE" ? "SUCCESS" : payload.level)
         setUnit(unit)
         setOpen(true)
       }
@@ -100,7 +100,7 @@ function ErrorSnackbar(props) {
       onClose={handleClose}
     >
     <Alert variant="standard" severity={level.toLowerCase()} onClose={handleClose}>
-      <AlertTitle style={{fontSize: 15}}>{task} encountered the following {level.toLowerCase()} in {unit + (renamedUnit ? " / " + renamedUnit : "")}</AlertTitle>
+      <AlertTitle style={{fontSize: 15}}>{task} encountered a {level.toLowerCase()} in {unit + (renamedUnit ? " / " + renamedUnit : "")}</AlertTitle>
       <span style={{whiteSpace: 'pre-wrap'}}>{msg}</span>
     </Alert>
     </Snackbar>

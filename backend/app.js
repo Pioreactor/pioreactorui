@@ -205,10 +205,10 @@ app.get('/recent_logs', function (req, res) {
   const minLevel = queryObject['min_level'] || "INFO"
 
   if (minLevel == "DEBUG"){
-    levelString = '(level == "ERROR" or level == "WARNING" or level == "INFO" or level == "DEBUG")'
+    levelString = '(level == "ERROR" or level == "WARNING" or level == "NOTICE" or level == "INFO" or level == "DEBUG")'
   }
   else if (minLevel == "INFO") {
-    levelString = '(level == "ERROR" or level == "INFO" or level == "WARNING")'
+    levelString = '(level == "ERROR" or level == "NOTICE" or level == "INFO" or level == "WARNING")'
   }
   else if (minLevel == "WARNING") {
     levelString = '(level == "ERROR" or level == "WARNING")'
@@ -217,7 +217,7 @@ app.get('/recent_logs', function (req, res) {
     levelString = '(level == "ERROR")'
   }
   else{
-    levelString = '(level == "ERROR" or level == "INFO" or level == "WARNING")'
+    levelString = '(level == "ERROR" or level == "NOTICE" or level == "INFO" or level == "WARNING")'
   }
 
   db.query(`SELECT l.timestamp, level=="ERROR" as is_error, level=="WARNING" as is_warning, l.pioreactor_unit, message, task FROM logs AS l LEFT JOIN latest_experiment AS le ON (le.experiment = l.experiment OR l.experiment=:universalExperiment) WHERE ${levelString} and l.timestamp >= MAX(strftime('%Y-%m-%dT%H:%M:%S', datetime('now', '-24 hours')), le.timestamp) ORDER BY l.timestamp DESC LIMIT 50;`,
