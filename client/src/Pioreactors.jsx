@@ -863,7 +863,7 @@ function SelfTestDialog(props) {
 
               <ListItem className={classes.testingListItem}>
                 <ListItemIcon className={classes.testingListItemIcon}>
-                  {displayIcon("test_positive_correlation_between_temp_and_heating", props.selfTestState)}
+                  {displayIcon("test_positive_correlation_between_temperature_and_heating", props.selfTestState)}
                 </ListItemIcon>
                 <ListItemText primary="Heating is responsive" />
               </ListItem>
