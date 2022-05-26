@@ -297,7 +297,7 @@ function PluginContainer(){
           <ListAvailablePlugins alreadyInstalledPluginsNames={installedPlugins.map(plugin => plugin.name)}/>
 
 
-          <p style={{textAlign: "center", marginTop: "30px"}}><span role="img" aria-labelledby="Note">💡</span> Learn more about Pioreactor  <a href="https://docs.pioreactor.com/user_guide/Using%20community-built%20plugins" target="_blank" rel="noopener noreferrer">plugins</a>.</p>
+          <p style={{textAlign: "center", marginTop: "30px"}}><span role="img" aria-labelledby="Note">💡</span> Learn more about Pioreactor  <a href="https://docs.pioreactor.com/user-guide/using-community-plugins" target="_blank" rel="noopener noreferrer">plugins</a>.</p>
 
         </CardContent>
       </Card>

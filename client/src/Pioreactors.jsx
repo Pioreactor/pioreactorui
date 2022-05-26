@@ -436,7 +436,7 @@ function AddNewPioreactor(props){
         </IconButton>
       </DialogTitle>
       <DialogContent>
-      <p>Follow the instructions to <a href="https://docs.pioreactor.com/user_guide/Raspberry%20Pi%20set%20up%20and%20software%20installation#adding-workers-to-your-cluster">set up your Pioreactor's Raspberry Pi</a>.</p>
+      <p>Follow the instructions to <a href="https://docs.pioreactor.com/user-guide/software-set-up#adding-workers-to-your-cluster">set up your Pioreactor's Raspberry Pi</a>.</p>
 
       <p>Below, provide the hostname you used when installing the Pioreactor image onto the Raspberry Pi.
       Your existing Pioreactors will automatically connect it to the cluster.
@@ -1170,8 +1170,8 @@ function SettingsActionsDialog(props) {
               {(temperatureControlJob.state === "ready") || (temperatureControlJob.state === "sleeping")
               ?<React.Fragment>
                 <Typography variant="body2" component="p" gutterBottom>
-                Currently running LED automation <code>{temperatureControlJob.automation_name.value}</code>.
-                Learn more about <a target="_blank" rel="noopener noreferrer" href="https://docs.pioreactor.com/user_guide/Automations/LED%20Automations">LED automations</a>.
+                Currently running temperature automation <code>{temperatureControlJob.automation_name.value}</code>.
+                Learn more about <a target="_blank" rel="noopener noreferrer" href="https://docs.pioreactor.com/user-guide/temperature-automations">temperature automations</a>.
                 </Typography>
                 {buttons[temperatureControlJob.metadata.key]}
                </React.Fragment>
@@ -1237,7 +1237,7 @@ function SettingsActionsDialog(props) {
               ?<React.Fragment>
                 <Typography variant="body2" component="p" gutterBottom>
                 Currently running dosing automation <code>{dosingControlJob.automation_name.value}</code>.
-                Learn more about <a target="_blank" rel="noopener noreferrer" href="https://docs.pioreactor.com/user_guide/Automations/Dosing%20Automations">dosing automations</a>.
+                Learn more about <a target="_blank" rel="noopener noreferrer" href="https://docs.pioreactor.com/user-guide/dosing-automations">dosing automations</a>.
                 </Typography>
                 {buttons[dosingControlJob.metadata.key]}
                </React.Fragment>
@@ -1304,7 +1304,7 @@ function SettingsActionsDialog(props) {
               ?<React.Fragment>
                 <Typography variant="body2" component="p" gutterBottom>
                 Currently running LED automation <code>{ledControlJob.automation_name.value}</code>.
-                Learn more about <a target="_blank" rel="noopener noreferrer" href="https://docs.pioreactor.com/user_guide/Automations/LED%20Automations">LED automations</a>.
+                Learn more about <a target="_blank" rel="noopener noreferrer" href="https://docs.pioreactor.com/user-guide/led-automations">LED automations</a>.
                 </Typography>
                 {buttons[ledControlJob.metadata.key]}
                </React.Fragment>
