@@ -78,7 +78,7 @@ const useStyles = makeStyles((theme) => ({
     color: "rgba(0, 0, 0, 0.38)",
   },
   textbox:{
-    width: "127px",
+    width: "130px",
     marginTop: "10px"
   },
   textboxLabel:{
@@ -817,7 +817,7 @@ function SelfTestDialog(props) {
             >
               <ListItem className={classes.testingListItem}>
                 <ListItemIcon className={classes.testingListItemIcon}>
-                  {displayIcon("test_pioreactor_hat_present", props.selfTestState)}
+                  {displayIcon("test_pioreactor_HAT_present", props.selfTestState)}
                 </ListItemIcon>
                 <ListItemText primary="Pioreactor HAT is detected" />
               </ListItem>

@@ -20,7 +20,7 @@ editable_settings:
     default: '[]'
   - key: test_positive_correlation_between_rpm_and_stirring
     display: false
-  - key: test_pioreactor_hat_present
+  - key: test_pioreactor_HAT_present
     display: false
   - key: test_positive_correlation_between_rpm_and_stirring
     display: false
