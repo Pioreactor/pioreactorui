@@ -54,6 +54,12 @@ const disconnectedGrey = "grey"
 const lostRed = "#DE3618"
 
 const useStyles = makeStyles((theme) => ({
+  lostRed: {
+    color: lostRed
+  },
+  readyGreen: {
+    color: readyGreen
+  },
   textIcon: {
     verticalAlign: "middle",
     margin: "0px 3px"
@@ -361,10 +367,15 @@ function AddNewPioreactor(props){
   const [open, setOpen] = useState(false);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [name, setName] = React.useState("");
-  const [isRunning, setIsRunning] = React.useState(false)
+
+  const [isError, setIsError] = React.useState(false)
   const [errorMsg, setErrorMsg] = React.useState("")
+
+  const [isSuccess, setIsSuccess] = React.useState(false)
+  const [successMsg, setSuccessMsg] = React.useState("")
+
+  const [isRunning, setIsRunning] = React.useState(false)
   const [expectedPathMsg, setExpectedPathMsg] = React.useState("")
-  const [isError, setIsError] = React.useState("")
 
   const handleClickOpen = () => {
     setOpen(true);
@@ -391,8 +402,9 @@ function AddNewPioreactor(props){
       return
     }
     setIsError(false)
+    setIsSuccess(false)
     setIsRunning(true)
-    setExpectedPathMsg("Installation is occurring in the background. You may navigate away from this page, including adding more Pioreactors.")
+    setExpectedPathMsg("Installation is occurring...")
     fetch('add_new_pioreactor', {
         method: "POST",
         body: JSON.stringify({newPioreactorName: name}),
@@ -403,11 +415,13 @@ function AddNewPioreactor(props){
     })
     .then(response => {
         setIsRunning(false)
+        setExpectedPathMsg("")
         if(!response.ok){
           setIsError(true)
-          response.json().then(data => setErrorMsg(`🔴 Unable to complete installation. ${data.msg}`))
+          response.json().then(data => setErrorMsg(`Unable to complete installation. The following error occurred: ${data.msg}`))
         } else {
-          setExpectedPathMsg(`🟢 Success! Refresh the page to see ${name}.`)
+          setIsSuccess(true)
+          setSuccessMsg(`Success! Rebooting ${name} now. Refresh to see ${name} in your cluster.`)
         }
     })
   }
@@ -439,10 +453,7 @@ function AddNewPioreactor(props){
       <p>Follow the instructions to <a href="https://docs.pioreactor.com/user-guide/software-set-up#adding-workers-to-your-cluster">set up your Pioreactor's Raspberry Pi</a>.</p>
 
       <p>Below, provide the hostname you used when installing the Pioreactor image onto the Raspberry Pi.
-      Your existing Pioreactors will automatically connect it to the cluster.
-      When finished, the new Pioreactor will show up on this page.</p>
-
-
+      Your existing Pioreactors will automatically connect it to the cluster. When finished, the new Pioreactor will show up on this page.</p>
       <div>
         <TextField
           required
@@ -463,9 +474,10 @@ function AddNewPioreactor(props){
         />
       </div>
 
-      <div style={{minHeight: "50px"}}>
-        {isError? <p><Box color="error.main">{errorMsg}</Box></p> : <p></p>}
-        {isRunning? <p>{expectedPathMsg}</p> : <p> </p>}
+      <div style={{minHeight: "60px", alignItems: "center", display: "flex"}}>
+        {isError   ? <p><CloseIcon className={clsx(classes.textIcon, classes.lostRed)}/>{errorMsg}</p>           : <React.Fragment/>}
+        {isRunning ? <p>{expectedPathMsg}</p>                                                                    : <React.Fragment/>}
+        {isSuccess ? <p><CheckIcon className={clsx(classes.textIcon, classes.readyGreen)}/>{successMsg}</p>      : <React.Fragment/>}
       </div>
 
       <Button
@@ -721,10 +733,10 @@ function SelfTestDialog(props) {
       return <IndeterminateCheckBoxIcon />
     }
     else if (props.selfTestTests[key].value === 1){
-      return <CheckIcon style={{color: readyGreen}}/>
+      return <CheckIcon className={classes.readyGreen}/>
     }
     else if (props.selfTestTests[key].value === 0){
-      return <CloseIcon style={{color: lostRed}}/>
+      return <CloseIcon className={classes.lostRed}/>
     }
     else if (state === "ready") {
       return <CircularProgress size={20} />
@@ -2412,7 +2424,9 @@ function Pioreactors({title, config}) {
           <Grid item md={12} xs={12}>
             <PioreactorHeader config={config} experiment={experimentMetadata.experiment}/>
             <ActiveUnits experiment={experimentMetadata.experiment} config={config} units={activeUnits} />
+            { (inactiveUnits.length > 0) &&
             <InactiveUnits experiment={experimentMetadata.experiment} config={config} units={inactiveUnits}/>
+            }
           </Grid>
         </Grid>
     )
