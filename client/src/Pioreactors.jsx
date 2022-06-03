@@ -586,21 +586,6 @@ function CalibrateDialog(props) {
     }
   }
 
-  function clearBlank() {
-    return function() {
-      var message = new Message("");
-      message.retained = true
-      message.destinationName = [
-        "pioreactor",
-        props.unit,
-        props.experiment,
-        "od_blank",
-        "mean",
-      ].join("/");
-      props.client.publish(message);
-    }
-  }
-
   function createUserButtonsBasedOnState(jobState, job){
 
     switch (jobState){
@@ -677,7 +662,7 @@ function CalibrateDialog(props) {
             {blankODButton}
 
             <Typography variant="body2" component="p" style={{marginTop: "20px"}}>
-              Recorded optical densities of blank vial: <code>{props.odBlankReading ? Object.entries(JSON.parse(props.odBlankReading)).map( ([k, v]) => `${k}:${v.toFixed(4)}` ).join(", ") : "—"}</code> <Button color="primary" size="small" disabled={!props.odBlankReading} onClick={clearBlank()}>Clear</Button>
+              Recorded optical densities of blank vial: <code>{props.odBlankReading ? Object.entries(JSON.parse(props.odBlankReading)).map( ([k, v]) => `${k}:${v.toFixed(4)}` ).join(", ") : "—"}</code>
             </Typography>
             <Divider className={classes.divider} />
 
@@ -1660,12 +1645,27 @@ function SettingsActionsDialogAll({config, experiment}) {
 
 
   function createUserButtonsBasedOnState(job){
-    return (<div key={job.key}>
+    console.log(job.metadata)
+    if (job.metadata.key === "temperature_control"){
+      var startAction = () => setOpenChangeTemperatureDialog(true)
+    }
+    else if (job.metadata.key === "dosing_control"){
+      var startAction = () => setOpenChangeDosingDialog(true)
+    }
+    else if (job.metadata.key === "temperature_control"){
+      var startAction = () => setOpenChangeLEDDialog(true)
+    }
+    else {
+      var startAction = startPioreactorJob(job)
+    }
+
+
+    return (<div key={job.metadata.key}>
         <Button
           className={classes.jobButton}
           disableElevation
           color="primary"
-          onClick={startPioreactorJob(job)}
+          onClick={startAction}
         >
           Start
         </Button>
@@ -1777,22 +1777,13 @@ function SettingsActionsDialogAll({config, experiment}) {
               {buttons['temperature_control']}
             </div>
 
-            <Button
-              onClick={() => setOpenChangeTemperatureDialog(true)}
-              style={{marginTop: "10px"}}
-              size="small"
-              color="primary"
-            >
-              Change temperature automation
-            </Button>
-
             <ChangeAutomationsDialog
               open={openChangeTemperatureDialog}
               onFinished={() => setOpenChangeTemperatureDialog(false)}
               unit={unit}
               config={config}
               experiment={experiment}
-              isJobRunning={true}
+              isJobRunning={false}
               automationType="temperature"
               no_skip_first_run={true}
             />
@@ -1817,15 +1808,6 @@ function SettingsActionsDialogAll({config, experiment}) {
 
               {buttons['dosing_control']}
             </div>
-
-            <Button
-              onClick={() => setOpenChangeDosingDialog(true)}
-              style={{marginTop: "10px"}}
-              size="small"
-              color="primary"
-            >
-              Change dosing automation
-            </Button>
 
             <ChangeAutomationsDialog
               automationType="dosing"
@@ -1857,15 +1839,6 @@ function SettingsActionsDialogAll({config, experiment}) {
 
               {buttons['led_control']}
             </div>
-
-            <Button
-              onClick={() => setOpenChangeLEDDialog(true)}
-              style={{marginTop: "10px"}}
-              size="small"
-              color="primary"
-            >
-              Change LED automation
-            </Button>
 
             <ChangeAutomationsDialog
               automationType="led"
@@ -2271,7 +2244,7 @@ function PioreactorCard(props){
               <div>
                 <CalibrateDialog
                   client={client}
-                  odBlankReading={jobs['od_blank'] ? jobs['od_blank'].mean.value : null}
+                  odBlankReading={jobs['od_blank'] ? jobs['od_blank'].means.value : null}
                   odBlankJobState={jobs['od_blank'] ? jobs['od_blank'].state : null}
                   stirringCalibrationState={jobs['stirring_calibration'] ? jobs['stirring_calibration'].state : null}
                   experiment={experiment}
