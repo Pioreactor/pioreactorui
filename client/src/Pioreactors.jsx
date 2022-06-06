@@ -1652,7 +1652,7 @@ function SettingsActionsDialogAll({config, experiment}) {
     else if (job.metadata.key === "dosing_control"){
       var startAction = () => setOpenChangeDosingDialog(true)
     }
-    else if (job.metadata.key === "temperature_control"){
+    else if (job.metadata.key === "led_control"){
       var startAction = () => setOpenChangeLEDDialog(true)
     }
     else {
