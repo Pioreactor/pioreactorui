@@ -11,6 +11,7 @@ import {
   VictoryLegend,
   VictoryTooltip,
   VictoryVoronoiContainer,
+  createContainer
 } from "victory";
 import moment from "moment";
 import Card from "@mui/material/Card";
@@ -64,6 +65,8 @@ class Chart extends React.Component {
     this.selectLegendData = this.selectLegendData.bind(this);
     this.selectVictoryLines = this.selectVictoryLines.bind(this);
     this.yTransformation = this.props.yTransformation || ((y) => y)
+    this.VictoryZoomVoronoiContainer = createContainer("zoom", "voronoi");
+
 
   }
 
@@ -330,7 +333,7 @@ ${this.relabelAndFormatSeries(d.datum.childName)}: ${Math.round(this.yTransforma
           scale={{x: 'time'}}
           theme={VictoryTheme.material}
           containerComponent={
-           <VictoryVoronoiContainer
+           <this.VictoryZoomVoronoiContainer
              responsive={true}
              voronoiBlacklist={['parent']}
              labels={this.createToolTip}
