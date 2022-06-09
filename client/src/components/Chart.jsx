@@ -334,6 +334,7 @@ ${this.relabelAndFormatSeries(d.datum.childName)}: ${Math.round(this.yTransforma
           theme={VictoryTheme.material}
           containerComponent={
            <this.VictoryZoomVoronoiContainer
+             zoomDimension={'x'}
              responsive={true}
              voronoiBlacklist={['parent']}
              labels={this.createToolTip}
