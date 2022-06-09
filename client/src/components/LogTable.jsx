@@ -37,7 +37,10 @@ const useStyles = theme => ({
   },
   warningLog: {
     backgroundColor: "#FFEA8A"
-  }
+  },
+  noticeLog: {
+    backgroundColor: "#addcaf"
+  },
 });
 
 const levelMappingToOrdinal = {
@@ -112,7 +115,7 @@ class LogTable extends React.Component {
     }
 
     this.state.listOfLogs.unshift(
-      {timestamp: moment.utc().format('YYYY-MM-DD[T]HH:mm:ss.SSSSS[Z]'), pioreactor_unit: unit, message: String(payload.message), task: payload.task, is_error: (payload.level === "ERROR"), is_warning: (payload.level === "WARNING")}
+      {timestamp: moment.utc().format('YYYY-MM-DD[T]HH:mm:ss.SSSSS[Z]'), pioreactor_unit: unit, message: String(payload.message), task: payload.task, is_error: (payload.level === "ERROR"), is_warning: (payload.level === "WARNING"), is_notice: (payload.level === "NOTICE")}
     )
     this.setState({
       listOfLogs: this.state.listOfLogs
@@ -120,7 +123,7 @@ class LogTable extends React.Component {
   }
 
   relabelUnit(unit) {
-    return (this.props.relabelMap && this.props.relabelMap[unit]) ? this.props.relabelMap[unit] : unit
+    return (this.props.relabelMap && this.props.relabelMap[unit]) ? `${this.props.relabelMap[unit]} / ${unit}` : unit
   }
 
   render(){
@@ -147,12 +150,12 @@ class LogTable extends React.Component {
               <TableBody>
                 {this.state.listOfLogs.map((log, i) => (
                   <TableRow key={i}>
-                    <TableCell className={clsx(classes.tightCell, classes.smallText, {[classes.errorLog]: log.is_error, [classes.warningLog]: log.is_warning})}>
+                    <TableCell className={clsx(classes.tightCell, classes.smallText, {[classes.noticeLog]: log.is_notice, [classes.errorLog]: log.is_error, [classes.warningLog]: log.is_warning})}>
                       <span title={moment.utc(log.timestamp, 'YYYY-MM-DD[T]HH:mm:ss.SSSSS[Z]').local().format('YYYY-MM-DD HH:mm:ss.SS')}>{moment.utc(log.timestamp, 'YYYY-MM-DD[T]HH:mm:ss.SSSSS[Z]').local().format('HH:mm:ss')} </span>
                     </TableCell>
-                    <TableCell className={clsx(classes.tightCell, classes.smallText, {[classes.errorLog]: log.is_error, [classes.warningLog]: log.is_warning})}> {this.relabelUnit(log.pioreactor_unit)}</TableCell>
-                    <TableCell className={clsx(classes.tightCell, classes.smallText, {[classes.errorLog]: log.is_error, [classes.warningLog]: log.is_warning})}>{log.task.replace(/_/g, ' ')}</TableCell>
-                    <TableCell className={clsx(classes.tightCell, classes.smallText, {[classes.errorLog]: log.is_error, [classes.warningLog]: log.is_warning})}>{log.message}</TableCell>
+                    <TableCell className={clsx(classes.tightCell, classes.smallText, {[classes.noticeLog]: log.is_notice, [classes.errorLog]: log.is_error, [classes.warningLog]: log.is_warning})}> {this.relabelUnit(log.pioreactor_unit)}</TableCell>
+                    <TableCell className={clsx(classes.tightCell, classes.smallText, {[classes.noticeLog]: log.is_notice, [classes.errorLog]: log.is_error, [classes.warningLog]: log.is_warning})}>{log.task.replace(/_/g, ' ')}</TableCell>
+                    <TableCell className={clsx(classes.tightCell, classes.smallText, {[classes.noticeLog]: log.is_notice, [classes.errorLog]: log.is_error, [classes.warningLog]: log.is_warning})}>{log.message}</TableCell>
                   </TableRow>
                   ))
                 }
