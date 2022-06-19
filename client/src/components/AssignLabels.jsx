@@ -79,7 +79,7 @@ function AssignLabels(props){
   const classes = useStyles();
   const [labels, setLabels] = useState({})
   const [client, setClient] = useState(null)
-  const activeUnits = props.config['network.inventory'] ? Object.entries(props.config['network.inventory']).filter((v) => v[1] === "1").map((v) => v[0]) : []
+  const activeUnits = props.config['cluster.inventory'] ? Object.entries(props.config['cluster.inventory']).filter((v) => v[1] === "1").map((v) => v[0]) : []
 
 
   useEffect(() => {
@@ -91,7 +91,7 @@ function AssignLabels(props){
       )}
     else {
       client = new Client(
-        `${props.config['network.topology']['leader_address']}`, 9001,
+        `${props.config['cluster.topology']['leader_address']}`, 9001,
         "webui_publishExpNameToMQTT" + Math.random()
       );
     }

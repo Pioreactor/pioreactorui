@@ -27,7 +27,7 @@ function TactileButtonNotification(props) {
   }, [])
 
   React.useEffect(() => {
-    if (!props.config['network.topology']){
+    if (!props.config['cluster.topology']){
       return
     }
 
@@ -67,7 +67,7 @@ function TactileButtonNotification(props) {
       )}
     else {
       client = new Client(
-        `${props.config['network.topology']['leader_address']}`, 9001,
+        `${props.config['cluster.topology']['leader_address']}`, 9001,
         "webui_TactileButtonNotification" + Math.random()
       );
     }

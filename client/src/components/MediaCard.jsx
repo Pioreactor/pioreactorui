@@ -78,14 +78,14 @@ class MediaCard extends React.Component {
       )}
     else {
       this.client = new Client(
-        `${this.props.config['network.topology']['leader_address']}`, 9001,
+        `${this.props.config['cluster.topology']['leader_address']}`, 9001,
         "webui_MediaCard" + Math.random()
       );
     }
 
     this.client.connect({timeout: 180, 'onSuccess': this.onConnect});
     this.client.onMessageArrived = this.onMessageArrived;
-    this.setState({activeUnits: Object.entries(this.props.config['network.inventory']).filter((v) => v[1] === "1").map((v) => v[0])})
+    this.setState({activeUnits: Object.entries(this.props.config['cluster.inventory']).filter((v) => v[1] === "1").map((v) => v[0])})
     this.getRecentRates()
   }
 

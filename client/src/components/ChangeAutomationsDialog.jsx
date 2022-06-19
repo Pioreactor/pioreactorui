@@ -81,7 +81,7 @@ function ChangeAutomationsDialog(props) {
 
   useEffect(() => {
     // MQTT - client ids should be unique
-    if (!props.config['network.topology']){
+    if (!props.config['cluster.topology']){
       return
     }
 
@@ -93,7 +93,7 @@ function ChangeAutomationsDialog(props) {
       )}
     else {
       client = new Client(
-        `${props.config['network.topology']['leader_address']}`, 9001,
+        `${props.config['cluster.topology']['leader_address']}`, 9001,
         "webui_ButtonChangeDialog" + Math.random()
       );
     }

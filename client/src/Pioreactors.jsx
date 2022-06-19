@@ -1534,7 +1534,7 @@ function SettingsActionsDialogAll({config, experiment}) {
 
 
   useEffect(() => {
-    if (!config['network.topology']){
+    if (!config['cluster.topology']){
       return
     }
 
@@ -1546,7 +1546,7 @@ function SettingsActionsDialogAll({config, experiment}) {
       )}
     else {
       client = new Client(
-        `${config['network.topology']['leader_address']}`, 9001,
+        `${config['cluster.topology']['leader_address']}`, 9001,
         "webui_SettingsActionsDialogAll" + Math.random()
       );
     }
@@ -1645,7 +1645,7 @@ function SettingsActionsDialogAll({config, experiment}) {
 
 
   function createUserButtonsBasedOnState(job){
-    console.log(job.metadata)
+
     if (job.metadata.key === "temperature_control"){
       var startAction = () => setOpenChangeTemperatureDialog(true)
     }
@@ -1987,7 +1987,7 @@ function ActiveUnits(props){
     <div style={{textAlign: "center", marginBottom: '50px', marginTop: "50px"}}>
       <Typography>
         <Box fontWeight="fontWeightRegular">
-          No active Pioreactors. Do you need to update `network.inventory` section in the <a href="/config">configuration</a>?
+          No active Pioreactors. Do you need to update `cluster.inventory` section in the <a href="/config">configuration</a>?
         </Box>
         <Box fontWeight="fontWeightRegular">
           Or, <a href="https://docs.pioreactor.com/user-guide/create-cluster">read our documentation</a> about managing inventory.
@@ -2144,7 +2144,7 @@ function PioreactorCard(props){
       }
     }
 
-    if (!props.config['network.topology']){
+    if (!props.config['cluster.topology']){
       return
     }
 
@@ -2164,7 +2164,7 @@ function PioreactorCard(props){
       )}
     else {
       client = new Client(
-        `${props.config['network.topology']['leader_address']}`, 9001,
+        `${props.config['cluster.topology']['leader_address']}`, 9001,
         "webui" + Math.random()
       );
     }
@@ -2387,8 +2387,8 @@ function Pioreactors({title, config}) {
     }, [title])
 
     const entries = (a) => Object.entries(a)
-    const activeUnits = config['network.inventory'] ? entries(config['network.inventory']).filter((v) => v[1] === "1").map((v) => v[0]) : []
-    const inactiveUnits = config['network.inventory'] ? entries(config['network.inventory']).filter((v) => v[1] === "0").map((v) => v[0]) : []
+    const activeUnits = config['cluster.inventory'] ? entries(config['cluster.inventory']).filter((v) => v[1] === "1").map((v) => v[0]) : []
+    const inactiveUnits = config['cluster.inventory'] ? entries(config['cluster.inventory']).filter((v) => v[1] === "0").map((v) => v[0]) : []
 
     return (
         <Grid container spacing={2} >

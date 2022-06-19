@@ -85,7 +85,7 @@ class Chart extends React.Component {
   componentDidMount() {
     this.getData()
 
-    if (!this.props.config || !this.props.config['network.topology']){
+    if (!this.props.config || !this.props.config['cluster.topology']){
       return
     }
 
@@ -96,7 +96,7 @@ class Chart extends React.Component {
       )}
     else {
       this.client = new Client(
-        `${this.props.config['network.topology']['leader_address']}`, 9001,
+        `${this.props.config['cluster.topology']['leader_address']}`, 9001,
         "webui_Chart" + Math.random()
       );
     }

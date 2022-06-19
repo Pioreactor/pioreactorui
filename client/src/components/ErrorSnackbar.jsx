@@ -38,7 +38,7 @@ function ErrorSnackbar(props) {
   };
 
   React.useEffect(() => {
-    if (!props.config['network.topology']){
+    if (!props.config['cluster.topology']){
       return
     }
 
@@ -81,7 +81,7 @@ function ErrorSnackbar(props) {
       )}
     else {
       client = new Client(
-        `${props.config['network.topology']['leader_address']}`, 9001,
+        `${props.config['cluster.topology']['leader_address']}`, 9001,
         "webui_ErrorSnackbarNotification" + Math.random()
       );
     }

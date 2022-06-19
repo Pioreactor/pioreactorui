@@ -19,7 +19,7 @@ import TableRow from '@mui/material/TableRow';
 
 const useStyles = theme => ({
   tightCell: {
-    padding: "6px 10px 6px 10px",
+    padding: "6px 6px 6px 10px",
     fontSize: 13,
   },
   smallText: {
@@ -47,6 +47,7 @@ const levelMappingToOrdinal = {
   NOTSET: 0,
   DEBUG: 1,
   INFO: 2,
+  NOTICE: 2.5,
   WARNING: 3,
   ERROR: 4,
   CRITICAL: 5
@@ -84,7 +85,7 @@ class LogTable extends React.Component {
       )}
     else {
       this.client = new Client(
-        `${this.props.config['network.topology']['leader_address']}`, 9001,
+        `${this.props.config['cluster.topology']['leader_address']}`, 9001,
         "webui_LogTable" + Math.random()
       );
     }
