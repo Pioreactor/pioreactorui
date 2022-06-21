@@ -220,7 +220,7 @@ app.get('/recent_logs', function (req, res) {
     levelString = '(level == "ERROR" or level == "NOTICE" or level == "INFO" or level == "WARNING")'
   }
 
-  db.query(`SELECT l.timestamp, level=="ERROR" as is_error, level=="WARNING" as is_warning, level=="NOTICE" as is_notice, l.pioreactor_unit, message, task FROM logs AS l LEFT JOIN latest_experiment AS le ON (le.experiment = l.experiment OR l.experiment=:universalExperiment) WHERE ${levelString} and l.timestamp >= MAX(strftime('%Y-%m-%dT%H:%M:%S', datetime('now', '-24 hours')), le.timestamp) ORDER BY l.timestamp DESC LIMIT 50;`,
+  db.query(`SELECT l.timestamp, level=="ERROR" as is_error, level=="WARNING" as is_warning, level=="NOTICE" as is_notice, l.pioreactor_unit, message, task FROM logs AS l LEFT JOIN latest_experiment AS le ON (le.experiment = l.experiment OR l.experiment=:universalExperiment) WHERE ${levelString} and l.timestamp >= MAX(strftime('%Y-%m-%dT%H:%M:%S', datetime('now', '-24 hours')), le.created_at) ORDER BY l.timestamp DESC LIMIT 50;`,
     {universalExperiment: "$experiment",  levelString: levelString},
     {timestamp: String, is_error: Boolean, is_warning: Boolean, is_notice: Boolean, pioreactor_unit: String, message: String, task: String},
     function (err, rows) {
@@ -502,8 +502,8 @@ app.post('/export_datasets', function(req, res) {
 
 app.get('/get_experiments', function (req, res) {
   db.query(
-    'SELECT * FROM experiments ORDER BY timestamp DESC;',
-    ["experiment", "timestamp", "description"],
+    'SELECT experiment, created_at, description FROM experiments ORDER BY created_at DESC;',
+    ["experiment", "created_at", "description"],
     function (err, rows) {
       if (err){
         publishToErrorLog(err)
@@ -518,8 +518,8 @@ app.get('/get_experiments', function (req, res) {
 app.get('/get_latest_experiment', function (req, res) {
   function fetch() {
     db.query(
-      'SELECT experiment, timestamp, description, media_used, organism_used, delta_hours FROM latest_experiment',
-      {experiment: String, timestamp: String, description: String, media_used: String, organism_used: String, delta_hours: Number},
+      'SELECT experiment, created_at, description, media_used, organism_used, delta_hours FROM latest_experiment',
+      {experiment: String, created_at: String, description: String, media_used: String, organism_used: String, delta_hours: Number},
       function (err, rows) {
         if (err) {
           publishToErrorLog(err)
@@ -561,7 +561,7 @@ app.post("/update_current_unit_labels", function (req, res, next) {
     const label = req.body.label
     db.query("SELECT experiment FROM latest_experiment", function(err, rows) {
       const latest_experiment = rows[0][0]
-      var upsert = 'INSERT OR REPLACE INTO pioreactor_unit_labels (label, experiment, pioreactor_unit) VALUES ((?), (?), (?)) ON CONFLICT(experiment, pioreactor_unit) DO UPDATE SET label=excluded.label'
+      var upsert = 'INSERT OR REPLACE INTO pioreactor_unit_labels (label, experiment, pioreactor_unit, created_at) VALUES ((?), (?), (?), strftime("%Y-%m-%dT%H:%M:%S", datetime("now")) ) ON CONFLICT(experiment, pioreactor_unit) DO UPDATE SET label=excluded.label, created_at=strftime("%Y-%m-%dT%H:%M:%S", datetime("now"))'
       db.ignoreErrors = true; // this is a hack to avoid dblite from freezing when we get a db is locked.
       db.query(upsert, [label, latest_experiment, unit], function(err, _){
           if (err){
@@ -578,7 +578,7 @@ app.post("/update_current_unit_labels", function (req, res, next) {
 app.get('/get_historical_organisms_used', function (req, res) {
   function fetch() {
     db.query(
-      'SELECT DISTINCT organism_used as key FROM experiments WHERE NOT (organism_used IS NULL OR organism_used == "") ORDER BY timestamp DESC;',
+      'SELECT DISTINCT organism_used as key FROM experiments WHERE NOT (organism_used IS NULL OR organism_used == "") ORDER BY created_at DESC;',
       {key: String},
       function (err, rows) {
         if (err) {
@@ -596,7 +596,7 @@ app.get('/get_historical_organisms_used', function (req, res) {
 app.get('/get_historical_media_used', function (req, res) {
   function fetch() {
     db.query(
-      'SELECT DISTINCT media_used as key FROM experiments WHERE NOT (media_used IS NULL OR media_used == "") ORDER BY timestamp DESC;',
+      'SELECT DISTINCT media_used as key FROM experiments WHERE NOT (media_used IS NULL OR media_used == "") ORDER BY created_at DESC;',
       {key: String},
       function (err, rows) {
         if (err) {
@@ -621,8 +621,8 @@ app.post("/create_experiment", function (req, res) {
         }
         else{
           db.ignoreErrors = true; // this is a hack to avoid dblite from freezing when we get a db is locked.
-          var insert = 'INSERT INTO experiments (timestamp, experiment, description, media_used, organism_used) VALUES (?,?,?,?,?)'
-          db.query(insert, [body.timestamp, body.experiment, body.description, body.mediaUsed, body.organismUsed], function(err, rows){
+          var insert = 'INSERT INTO experiments (created_at, experiment, description, media_used, organism_used) VALUES (?,?,?,?,?)'
+          db.query(insert, [body.created_at, body.experiment, body.description, body.mediaUsed, body.organismUsed], function(err, rows){
             if (err){
               publishToErrorLog(err)
               next(err)

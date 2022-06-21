@@ -219,7 +219,7 @@ function ButtonConfirmStopProcessDialog() {
 function ExperimentSummary(props){
   const classes = useStyles();
   const experiment = props.experimentMetadata.experiment || ""
-  const startedAt = props.experimentMetadata.timestamp || moment()
+  const startedAt = props.experimentMetadata.created_at || moment()
   const desc = props.experimentMetadata.description || ""
   const deltaHours = props.experimentMetadata.delta_hours || 0
 

@@ -198,7 +198,7 @@ function ExperimentSummaryForm(props) {
 
     fetch('create_experiment',{
         method: "POST",
-        body: JSON.stringify({experiment : expName.trim(), timestamp: timestamp.toISOString(), description: description, mediaUsed: mediaUsed, organismUsed: organismUsed }),
+        body: JSON.stringify({experiment : expName.trim(), created_at: timestamp.toISOString(), description: description, mediaUsed: mediaUsed, organismUsed: organismUsed }),
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json'

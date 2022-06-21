@@ -78,7 +78,7 @@ function ExperimentSelection(props) {
           }}
         >
           {experiments.map((v) => {
-            return <option value={v.experiment}>{v.experiment +  (v.timestamp ? ` (started ${moment(v.timestamp).format("MMMM D, YYYY")})` : "")}</option>
+            return <option value={v.experiment}>{v.experiment +  (v.created_at ? ` (started ${moment(v.created_at).format("MMMM D, YYYY")})` : "")}</option>
             }
           )}
         </Select>
