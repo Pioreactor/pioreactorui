@@ -807,7 +807,7 @@ function SelfTestDialog(props) {
 
             <List component="nav"
               subheader={
-                <ListSubheader style={{lineHeight: "35px"}} component="div" disableSticky={true} disableGutters={true}>
+                <ListSubheader style={{lineHeight: "20px"}} component="div" disableSticky={true} disableGutters={true}>
                   LEDs & photodiodes
                 </ListSubheader>
               }
@@ -842,11 +842,18 @@ function SelfTestDialog(props) {
                 </ListItemIcon>
                 <ListItemText primary="Reference photodiode is correct magnitude" />
               </ListItem>
+
+              <ListItem className={classes.testingListItem}>
+                <ListItemIcon className={classes.testingListItemIcon}>
+                  {displayIcon("test_REF_is_in_correct_position", props.selfTestState)}
+                </ListItemIcon>
+                <ListItemText primary="Reference photodiode is in correct position" />
+              </ListItem>
             </List>
 
             <List component="nav"
               subheader={
-                <ListSubheader style={{lineHeight: "35px"}} component="div" disableSticky={true} disableGutters={true}>
+                <ListSubheader style={{lineHeight: "20px"}} component="div" disableSticky={true} disableGutters={true}>
                   Heating & temperature
                 </ListSubheader>
               }
@@ -869,7 +876,7 @@ function SelfTestDialog(props) {
 
             <List component="nav"
               subheader={
-                <ListSubheader style={{lineHeight: "35px"}} component="div" disableSticky={true} disableGutters={true}>
+                <ListSubheader style={{lineHeight: "20px"}} component="div" disableSticky={true} disableGutters={true}>
                   Stirring
                 </ListSubheader>
               }

@@ -401,7 +401,7 @@ ${this.relabelAndFormatSeries(d.datum.childName)}: ${Math.round(this.yTransforma
             x={65}
             y={270}
             symbolSpacer={6}
-            itemsPerRow={5}
+            itemsPerRow={4}
             name="legend"
             borderPadding={{ right: 8 }}
             orientation="horizontal"

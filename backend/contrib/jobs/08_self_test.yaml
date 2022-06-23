@@ -24,6 +24,8 @@ editable_settings:
     display: false
   - key: test_positive_correlation_between_rpm_and_stirring
     display: false
+  - key: test_REF_is_in_correct_position
+    display: false
   - key: all_tests_passed
     display: false
     default: false
