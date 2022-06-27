@@ -928,6 +928,12 @@ function SettingsActionsDialog(props) {
     }
   }
 
+  function rebootRaspberryPi(){
+    return function() {
+      fetch("/reboot/" + props.unit, {method: "POST"})
+    }
+  }
+
   function stopPioreactorJob(job){
     return function() {
       setPioreactorJobAttr(`${job}/$state`, "disconnected")
@@ -1125,6 +1131,7 @@ function SettingsActionsDialog(props) {
         <Tab label="Settings"/>
         <Tab label="Dosing"/>
         <Tab label="LEDs"/>
+        <Tab label="System"/>
       </Tabs>
       </DialogTitle>
       <DialogContent>
@@ -1481,6 +1488,27 @@ function SettingsActionsDialog(props) {
           <ActionLEDForm channel="D" unit={props.unit} />
           <Divider className={classes.divider} />
         </TabPanel>
+        <TabPanel value={tabValue} index={4}>
+
+          <Typography  gutterBottom>
+            Reboot
+          </Typography>
+          <Typography variant="body2" component="p">
+            Reboot the Raspberry Pi operating system. This will stop all jobs, and the Pioreactor will be inaccessible for a few minutes.
+          </Typography>
+          <Button
+            variant="contained"
+            color="primary"
+            size="small"
+            style={{marginTop: "15px"}}
+            onClick={rebootRaspberryPi()}
+          >
+            Reboot
+          </Button>
+          <Divider className={classes.divider} />
+
+        </TabPanel>
+
       </DialogContent>
     </Dialog>
     <Snackbar

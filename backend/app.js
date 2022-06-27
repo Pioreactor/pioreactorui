@@ -144,7 +144,7 @@ app.post('/stop/:job/:unit', function (req, res) {
     res.sendStatus(200)
   }
   else {
-    execFile("pios", ["kill", job, "-y", "--units", req.params.unit], (error, stdout, stderr) => {
+    execFile("pios", ["kill", job, "-y", "--units", unit], (error, stdout, stderr) => {
       if (error) {
           publishToErrorLog(error)
 
@@ -195,6 +195,24 @@ app.post("/run/:job/:unit", function(req, res) {
 
 
 
+app.post('/reboot/:unit', function (req, res) {
+
+  unit = req.params.unit
+
+  execFile("pios", ["reboot", "-y", "--units", unit], (error, stdout, stderr) => {
+    if (error) {
+        publishToErrorLog(error)
+
+    }
+    if (stderr) {
+        publishToLog(stderr)
+
+    }
+    publishToLog(stdout)
+
+  })
+  res.sendStatus(200)
+})
 
 /////////// DATA FOR CARDS ON OVERVIEW ///////////////
 
