@@ -65,7 +65,7 @@ class Chart extends React.Component {
     this.selectLegendData = this.selectLegendData.bind(this);
     this.selectVictoryLines = this.selectVictoryLines.bind(this);
     this.yTransformation = this.props.yTransformation || ((y) => y)
-    this.VictoryZoomVoronoiContainer = createContainer("zoom", "voronoi");
+    this.VictoryVoronoiContainer = createContainer("voronoi");
 
 
   }
@@ -333,7 +333,7 @@ ${this.relabelAndFormatSeries(d.datum.childName)}: ${Math.round(this.yTransforma
           scale={{x: 'time'}}
           theme={VictoryTheme.material}
           containerComponent={
-           <this.VictoryZoomVoronoiContainer
+           <this.VictoryVoronoiContainer
              zoomDimension={'x'}
              responsive={true}
              voronoiBlacklist={['parent']}

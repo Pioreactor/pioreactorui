@@ -33,6 +33,7 @@ function AutomationForm(props){
           key={field.key + props.name}
           label={field.label}
           defaultValue={field.default}
+          disabled={field.disabled}
           InputProps={{
             endAdornment: <InputAdornment position="end">{field.unit}</InputAdornment>,
           }}
