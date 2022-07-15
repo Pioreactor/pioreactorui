@@ -78,6 +78,7 @@ export default function SideNavAndHeader() {
       }
 
     async function getLatestVersion() {
+         // TODO: what happens when there is not internet connection?
          await fetch("https://api.github.com/repos/pioreactor/pioreactor/releases/latest")
         .then((response) => {
           return response.json();

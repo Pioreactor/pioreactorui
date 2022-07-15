@@ -1,0 +1,18 @@
+---
+display_name: Turbidostat
+automation_name: turbidostat
+description: Every 1 minute, check if the OD is above target OD. If so, exchange volume.
+fields:
+  - key: duration
+    default: 1
+    unit: min
+    label: Time between check
+    disabled: True
+  - key: target_od
+    default: 2.0
+    unit: AU
+    label: Target OD
+  - key: volume
+    default: 0.5
+    unit: mL
+    label: Volume

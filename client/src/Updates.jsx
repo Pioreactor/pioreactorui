@@ -188,7 +188,10 @@ function ChangelogContainer(){
         })
         .then((data) => {
           setChangelog(data)
-        });
+        }).catch(e => {
+          // no internet?
+          setChangelog("Could not find changelog. Are you connected to the internet?")
+        })
       }
       getData()
   }, [])

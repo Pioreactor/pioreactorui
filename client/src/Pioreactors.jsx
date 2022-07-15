@@ -1539,7 +1539,6 @@ function SettingsActionsDialogAll({config, experiment}) {
   const [openChangeDosingDialog, setOpenChangeDosingDialog] = React.useState(false);
   const [openChangeLEDDialog, setOpenChangeLEDDialog] = React.useState(false);
 
-
   useEffect(() => {
     function fetchContribBackgroundJobs() {
       fetch("/contrib/jobs")
@@ -1851,7 +1850,7 @@ function SettingsActionsDialogAll({config, experiment}) {
               unit={unit}
               config={config}
               experiment={experiment}
-              isJobRunning={true}
+              isJobRunning={false}
               no_skip_first_run={false}
             />
           </React.Fragment>
@@ -1882,7 +1881,7 @@ function SettingsActionsDialogAll({config, experiment}) {
               unit={unit}
               config={config}
               experiment={experiment}
-              isJobRunning={true}
+              isJobRunning={false}
               no_skip_first_run={false}
             />
           </React.Fragment>
