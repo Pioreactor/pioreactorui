@@ -13,7 +13,8 @@ process.on('message', function(options) {
     }
     else{
         experimentOption = ["--experiment", experiment.replace(/ /g, '\ ')]
-        filename = `export_${experiment.replace(/ /g, "_")}_${Math.floor(Date.now() / 1000).toString()}.zip`
+        // we munge the experiment name so that it works on windows, osx, etc.
+        filename = `export_${experiment.replace(/[<>:\"/\\\\|?* ]/g, "_")}_${Math.floor(Date.now() / 1000).toString()}.zip`
     }
 
     execFile("pio",

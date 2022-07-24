@@ -1,7 +1,7 @@
 ---
 display_name: Turbidostat
 automation_name: turbidostat
-description: Every 1 minute, check if the OD is above target OD. If so, exchange volume.
+description: Every minute, check if the normalized OD is above target OD. If so, exchange volume amount. For high growth cultures (for example, h⁻¹ > 1.0), try a volume larger than 2.0 mL.
 fields:
   - key: duration
     default: 1

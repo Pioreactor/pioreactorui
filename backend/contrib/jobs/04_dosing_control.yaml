@@ -27,13 +27,6 @@ editable_settings:
     default: null
     display: true
     description: Change the target optical density. Typical values are between 1.0 and 2.5 (arbitrary units)
-  - key: target_growth_rate
-    unit: h⁻¹
-    label: Target growth rate
-    type: numeric
-    default: null
-    display: true
-    description: Change the target hourly growth rate - only applicable in morbidostat mode. Typical values are between 0.05h⁻¹ and 0.4h⁻¹.
   - key: automation_name
     type: text
     display: false

@@ -99,6 +99,14 @@ const CheckboxesGroup = (props) => {
         <FormGroup>
 
           <FormControlLabel
+            control={<Checkbox checked={props.isChecked.pioreactor_unit_accumulating_state} onChange={props.handleChange} name="pioreactor_unit_accumulating_state" />}
+            label="Pioreactor Accumulating State"
+          />
+          <Typography variant="caption" className={classes.caption} gutterBottom>
+            The time series of metrics, sensor readings, LED updates, and dosings.
+          </Typography>
+
+          <FormControlLabel
             control={<Checkbox checked={props.isChecked.growth_rates} onChange={props.handleChange} name="growth_rates" />}
             label="Implied growth rate"
           />
@@ -260,6 +268,7 @@ function ExportDataContainer() {
   const [state, setState] = React.useState({
     experimentSelection: "",
     datasetCheckbox: {
+      pioreactor_unit_accumulating_state: false,
       growth_rates: false,
       dosing_events: false,
       led_events: false,
