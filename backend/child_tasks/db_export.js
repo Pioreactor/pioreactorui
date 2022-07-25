@@ -12,7 +12,7 @@ process.on('message', function(options) {
         filename = `export_${Math.floor(Date.now() / 1000).toString()}.zip`
     }
     else{
-        experimentOption = ["--experiment", experiment.replace(/ /g, '\ ')]
+        experimentOption = ["--experiment", `"${experiment}"`]
         // we munge the experiment name so that it works on windows, osx, etc.
         filename = `export_${experiment.replace(/[<>:\"/\\\\|?* ]/g, "_")}_${Math.floor(Date.now() / 1000).toString()}.zip`
     }

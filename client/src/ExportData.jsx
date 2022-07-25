@@ -99,11 +99,11 @@ const CheckboxesGroup = (props) => {
         <FormGroup>
 
           <FormControlLabel
-            control={<Checkbox checked={props.isChecked.pioreactor_unit_accumulating_state} onChange={props.handleChange} name="pioreactor_unit_accumulating_state" />}
-            label="Pioreactor Accumulating State"
+            control={<Checkbox checked={props.isChecked.pioreactor_unit_activity_data} onChange={props.handleChange} name="pioreactor_unit_activity_data" />}
+            label="Pioreactor Unit Activity Data"
           />
           <Typography variant="caption" className={classes.caption} gutterBottom>
-            The time series of metrics, sensor readings, LED updates, and dosings.
+            The time series of OD metrics, temperature, stirring rates, LED updates, and dosings.
           </Typography>
 
           <FormControlLabel
@@ -268,7 +268,7 @@ function ExportDataContainer() {
   const [state, setState] = React.useState({
     experimentSelection: "",
     datasetCheckbox: {
-      pioreactor_unit_accumulating_state: false,
+      pioreactor_unit_activity_data: false,
       growth_rates: false,
       dosing_events: false,
       led_events: false,
