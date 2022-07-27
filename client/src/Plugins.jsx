@@ -97,6 +97,7 @@ function ListAvailablePlugins({alreadyInstalledPluginsNames}){
         if (response.ok) {
           window.location.reload();
         } else {
+          setSnackbarMsg("Error occurred. See logs.")
           throw new Error('Installation went wrong');
         }
       })
@@ -128,9 +129,8 @@ function ListAvailablePlugins({alreadyInstalledPluginsNames}){
 
               <Button
                 onClick={installPlugin(plugin.name)}
-                variant="text"
+                variant="contained"
                 size="small"
-                color="inherit"
                 aria-label="delete"
                 endIcon={<GetAppIcon />}
                 className={classes.secondaryActionButton}

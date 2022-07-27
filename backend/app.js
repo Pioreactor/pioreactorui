@@ -393,13 +393,15 @@ app.get('/get_installed_plugins', function(req, res) {
   execFile("pio", ["list-plugins", "--json"], (error, stdout, stderr) => {
       if (error) {
         publishToErrorLog(error)
-
+        res.send([])
       }
-      if (stderr) {
+      else if (stderr) {
         publishToLog(stderr)
-
+        res.send([]) // does this belong here?
       }
-      res.send(stdout)
+      else{
+        res.send(stdout)
+      }
   })
 })
 
@@ -408,13 +410,15 @@ app.post('/install_plugin', function(req, res) {
   execFile("pios", ["install-plugin", req.body.plugin_name], (error, stdout, stderr) => {
       if (error) {
         publishToErrorLog(error)
-
+        res.sendStatus(500)
       }
-      if (stderr) {
+      else if (stderr) {
         publishToLog(stderr)
-
+        res.sendStatus(200)
       }
-      res.sendStatus(200)
+      else {
+        res.sendStatus(200)
+    }
   })
 })
 
@@ -424,13 +428,15 @@ app.post('/uninstall_plugin', function(req, res) {
   execFile("pios", ["uninstall-plugin", req.body.plugin_name], (error, stdout, stderr) => {
       if (error) {
         publishToErrorLog(error)
-
+        res.sendStatus(500)
       }
-      if (stderr) {
+      else if (stderr) {
         publishToLog(stderr)
-
+        res.sendStatus(200)
       }
-      res.sendStatus(200)
+      else {
+        res.sendStatus(200)
+    }
   })
 })
 

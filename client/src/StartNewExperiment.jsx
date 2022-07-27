@@ -290,7 +290,13 @@ function ExperimentSummaryForm(props) {
           <Grid item xs={12} md={8}>
             <div style={{display: "flex", justifyContent: "flex-end"}}>
               <Button style={{marginRight: "10px"}} size="small" color="primary" onClick={populateFields}>Populate with previous experiment</Button>
-              <Button variant="contained" color="primary" onClick={onSubmit}> Create </Button>
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={onSubmit}
+              >
+                Save
+              </Button>
             </div>
           </Grid>
         </Grid>
@@ -407,7 +413,7 @@ function StartNewExperimentContainer(props) {
                 </Button>
                 {isStepOptional(activeStep) && (
                   <Button
-                    variant="contained"
+                    variant="text"
                     onClick={handleSkip}
                     className={classes.button}
                   >
@@ -416,7 +422,7 @@ function StartNewExperimentContainer(props) {
                 )}
 
                 <Button
-                  variant="contained"
+                  variant="text"
                   onClick={handleNext}
                   className={classes.button}
                 >

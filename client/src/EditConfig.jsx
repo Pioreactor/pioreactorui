@@ -12,7 +12,7 @@ import {Typography} from '@mui/material';
 import Snackbar from '@mui/material/Snackbar';
 import Select from '@mui/material/Select';
 import CircularProgress from '@mui/material/CircularProgress';
-
+import SaveIcon from '@mui/icons-material/Save';
 import { CodeFlaskReact } from "react-codeflask"
 
 const useStyles = makeStyles((theme) => ({
@@ -176,6 +176,7 @@ class EditableCodeDiv extends React.Component {
             variant="contained"
             onClick={this.saveCurrentCode}
             disabled={!this.state.hasChangedSinceSave}
+            endIcon={<SaveIcon />}
             >
             {this.state.buttonText}
           </Button>

@@ -6,6 +6,7 @@ import Grid from '@mui/material/Grid';
 import { makeStyles } from '@mui/styles';
 import FormLabel from '@mui/material/FormLabel';
 import FormControl from '@mui/material/FormControl';
+import Divider from '@mui/material/Divider';
 import InputLabel from '@mui/material/InputLabel';
 import FormGroup from '@mui/material/FormGroup';
 import FormControlLabel from '@mui/material/FormControlLabel';
@@ -16,7 +17,7 @@ import {Typography} from '@mui/material';
 import Select from '@mui/material/Select';
 import Box from '@mui/material/Box';
 import LoadingButton from "@mui/lab/LoadingButton";
-
+import FileDownloadIcon from '@mui/icons-material/FileDownload';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -378,6 +379,7 @@ function ExportDataContainer() {
                   loading={isRunning}
                   onClick={onSubmit}
                   style={{width: "120px", marginLeft: 24}}
+                  endIcon={<FileDownloadIcon />}
                 >
                   Export
                 </LoadingButton>

@@ -81,7 +81,7 @@ function ConfirmDialog() {
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={updateVersion} color="primary">
+          <Button onClick={updateVersion} color="primary" variant="contained">
             Update now
           </Button>
           <Button onClick={handleClose} color="secondary" autoFocus>
