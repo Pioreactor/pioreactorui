@@ -1,23 +1,13 @@
 import React from "react";
 import Grid from '@mui/material/Grid';
-import Snackbar from "@mui/material/Snackbar";
 import FlareIcon from '@mui/icons-material/Flare';
 import { Client, Message } from "paho-mqtt";
 import clsx from 'clsx';
 import {useState, useEffect} from "react";
-import LoadingButton from '@mui/lab/LoadingButton';
 import { makeStyles } from '@mui/styles';
-import FormGroup from '@mui/material/FormGroup';
-import Card from '@mui/material/Card';
-import CardContent from '@mui/material/Card';
-import {Typography} from '@mui/material';
 import Button from "@mui/material/Button";
-import Stepper from '@mui/material/Stepper';
-import Step from '@mui/material/Step';
-import StepLabel from '@mui/material/StepLabel';
 import TextField from '@mui/material/TextField';
 import Divider from '@mui/material/Divider';
-import Autocomplete, { createFilterOptions } from '@mui/material/Autocomplete';
 import PioreactorIcon from "./PioreactorIcon"
 
 const useStyles = makeStyles((theme) => ({

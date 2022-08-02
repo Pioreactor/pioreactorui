@@ -6,6 +6,7 @@ import Card from '@mui/material/Card';
 import CardContent from '@mui/material/Card';
 import FormControl from '@mui/material/FormControl';
 import Button from '@mui/material/Button';
+import LoadingButton from '@mui/lab/LoadingButton';
 import InputLabel from '@mui/material/InputLabel';
 import Box from '@mui/material/Box';
 import {Typography} from '@mui/material';
@@ -38,7 +39,7 @@ class EditableCodeDiv extends React.Component {
       openSnackbar: false,
       filename: "config.ini",
       snackbarMsg: "",
-      buttonText: "Save",
+      saving: false,
       hasChangedSinceSave: true,
       availableConfigs: [
         {name: "shared config.ini", filename: "config.ini"},
@@ -71,7 +72,7 @@ class EditableCodeDiv extends React.Component {
   }
 
   saveCurrentCode() {
-    this.setState({buttonText: <CircularProgress color="inherit" size={24}/>})
+    this.setState({saving: true})
     fetch('/save_new_config',{
         method: "POST",
         body: JSON.stringify({code :this.state.code, filename: this.state.filename}),
@@ -82,9 +83,9 @@ class EditableCodeDiv extends React.Component {
       })
     .then(res => {
       if (res.ok) {
-        this.setState({snackbarMsg: this.state.filename + " saved and synced.", hasChangedSinceSave: false, buttonText: "Saved"})
+        this.setState({snackbarMsg: this.state.filename + " saved and synced.", hasChangedSinceSave: false, saving: false})
       } else {
-        this.setState({snackbarMsg: "Hm. Something when wrong saving or syncing...", hasChangedSinceSave: true, buttonText: "Save"})
+        this.setState({snackbarMsg: "Hm. Something when wrong saving or syncing...", hasChangedSinceSave: true, saving: false})
       }
       this.setState({openSnackbar: true});
     })
@@ -170,16 +171,18 @@ class EditableCodeDiv extends React.Component {
           />
         </div>
         <div style={{display: "flex", justifyContent: "space-between"}}>
-          <Button
+          <LoadingButton
             style={{margin: "5px 12px 5px 12px"}}
             color="primary"
             variant="contained"
             onClick={this.saveCurrentCode}
             disabled={!this.state.hasChangedSinceSave}
+            loading={this.state.saving}
+            loadingPosition="end"
             endIcon={<SaveIcon />}
             >
-            {this.state.buttonText}
-          </Button>
+            Save
+          </LoadingButton>
           <Button
             style={{margin: "5px 10px 5px 10px"}}
             color="secondary"

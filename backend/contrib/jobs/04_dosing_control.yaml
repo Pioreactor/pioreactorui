@@ -12,7 +12,7 @@ editable_settings:
     type: numeric
     default: null
     display: true
-    description: Change how long to wait between dilutions. Typically between 5 and 90 minutes. Changing this will immediately trigger a dosing event.
+    description: Change how long to wait between dilutions. Typically between 0.5 and 60 minutes. Changing may immediately trigger a dosing event.
   - key: volume
     unit: mL
     label: Volume / dosing

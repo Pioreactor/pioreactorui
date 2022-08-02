@@ -144,7 +144,7 @@ function ListAvailablePlugins({alreadyInstalledPluginsNames}){
                 size="small"
                 color="inherit"
                 aria-label="install"
-                disabled={!plugin.homepage}
+                disabled={!plugin.homepage || (plugin.homepage === "Unknown")}
                 endIcon={<OpenInNewIcon />}
                 className={classes.secondaryActionButton}
               >
@@ -211,7 +211,7 @@ function ListInstalledPlugins({installedPlugins}){
               </Avatar>
             </ListItemAvatar>
             <ListItemText
-              primary={`${plugin.name} (${plugin.version})`}
+              primary={`${plugin.name} (${(plugin.version === "Unknown")  ? "" : plugin.version})`}
               secondary={plugin.description}
             />
             <ListItemSecondaryAction sx={{display: {xs: 'contents', md: 'block'}}}>

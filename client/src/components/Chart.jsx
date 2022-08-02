@@ -10,7 +10,6 @@ import {
   VictoryGroup,
   VictoryLegend,
   VictoryTooltip,
-  VictoryVoronoiContainer,
   createContainer
 } from "victory";
 import moment from "moment";

@@ -26,6 +26,7 @@ import InputAdornment from '@mui/material/InputAdornment';
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 import Button from "@mui/material/Button";
+import LoadingButton from '@mui/lab/LoadingButton';
 import AddIcon from '@mui/icons-material/Add';
 import ClearIcon from '@mui/icons-material/Clear';
 import CloseIcon from '@mui/icons-material/Close';
@@ -887,6 +888,15 @@ function SelfTestDialog(props) {
                 </ListItemIcon>
                 <ListItemText primary="Stirring RPM is responsive" />
               </ListItem>
+
+              <ListItem className={classes.testingListItem}>
+                <ListItemIcon className={classes.testingListItemIcon}>
+                  {displayIcon("test_aux_power_is_not_too_high", props.selfTestState)}
+                </ListItemIcon>
+                <ListItemText primary="AUX power supply is appropriate value" />
+              </ListItem>
+
+
             </List>
 
           <Divider className={classes.divider} />
@@ -907,6 +917,7 @@ function SettingsActionsDialog(props) {
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [tabValue, setTabValue] = React.useState(0);
+  const [rebooting, setRebooting] = React.useState(false);
   const [openChangeDosingDialog, setOpenChangeDosingDialog] = React.useState(false);
   const [openChangeLEDDialog, setOpenChangeLEDDialog] = React.useState(false);
   const [openChangeTemperatureDialog, setOpenChangeTemperatureDialog] = React.useState(false);
@@ -930,6 +941,7 @@ function SettingsActionsDialog(props) {
 
   function rebootRaspberryPi(){
     return function() {
+      setRebooting(true)
       fetch("/reboot/" + props.unit, {method: "POST"})
     }
   }
@@ -1496,15 +1508,18 @@ function SettingsActionsDialog(props) {
           <Typography variant="body2" component="p">
             Reboot the Raspberry Pi operating system. This will stop all jobs, and the Pioreactor will be inaccessible for a few minutes.
           </Typography>
-          <Button
+
+          <LoadingButton
+            loadingIndicator="Rebooting..."
+            loading={rebooting}
             variant="contained"
             color="primary"
             size="small"
             style={{marginTop: "15px"}}
             onClick={rebootRaspberryPi()}
           >
-            Reboot
-          </Button>
+            Reboot RPi
+          </LoadingButton>
           <Divider className={classes.divider} />
 
         </TabPanel>

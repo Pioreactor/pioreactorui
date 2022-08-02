@@ -6,7 +6,6 @@ import Grid from '@mui/material/Grid';
 import { makeStyles } from '@mui/styles';
 import FormLabel from '@mui/material/FormLabel';
 import FormControl from '@mui/material/FormControl';
-import Divider from '@mui/material/Divider';
 import InputLabel from '@mui/material/InputLabel';
 import FormGroup from '@mui/material/FormGroup';
 import FormControlLabel from '@mui/material/FormControlLabel';
@@ -291,7 +290,7 @@ function ExportDataContainer() {
     }
   });
 
-  const onSubmit = (event) =>{
+  const onSubmit =  (event) => {
     event.preventDefault()
 
     if (!Object.values(state['datasetCheckbox']).some((e) => e)) {
@@ -377,6 +376,7 @@ function ExportDataContainer() {
                   variant="contained"
                   color="primary"
                   loading={isRunning}
+                  loadingPosition="end"
                   onClick={onSubmit}
                   style={{width: "120px", marginLeft: 24}}
                   endIcon={<FileDownloadIcon />}
