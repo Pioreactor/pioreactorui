@@ -128,7 +128,7 @@ class EditableCodeDiv extends React.Component {
   }
 
   onTextChange = (code) => {
-    this.setState({code: code, hasChangedSinceSave: true, buttonText: "Save"})
+    this.setState({code: code, hasChangedSinceSave: true})
   }
 
   handleSnackbarClose = () => {
