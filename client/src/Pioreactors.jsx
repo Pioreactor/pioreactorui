@@ -436,7 +436,7 @@ function AddNewPioreactor(props){
     </Button>
     <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
       <DialogTitle>
-        Add new Pioreactor
+        Add a Pioreactor worker to your current cluster
         <IconButton
           aria-label="close"
           onClick={handleClose}
@@ -451,16 +451,15 @@ function AddNewPioreactor(props){
         </IconButton>
       </DialogTitle>
       <DialogContent>
-      <p>Follow the instructions to <a href="https://docs.pioreactor.com/user-guide/software-set-up#adding-workers-to-your-cluster">set up your Pioreactor's Raspberry Pi</a>.</p>
+      <p>If not set up yet, follow the instructions to <a href="https://docs.pioreactor.com/user-guide/software-set-up#adding-workers-to-your-cluster">set up your Pioreactor's Raspberry Pi</a>.</p>
 
       <p>Below, provide the hostname you used when installing the Pioreactor image onto the Raspberry Pi.
-      Your existing Pioreactors will automatically connect it to the cluster. When finished, the new Pioreactor will show up on this page.</p>
+      Your Pioreactor will automatically connect it to this cluster. When finished, the Pioreactor will show up on this page after a refresh.</p>
       <div>
         <TextField
-          required
           size="small"
           id="new-pioreactor-name"
-          label="Provide hostname"
+          label="Hostname"
           variant="outlined"
           className={classes.textFieldWide}
           onChange={handleNameChange}
@@ -635,7 +634,8 @@ function CalibrateDialog(props) {
             >
             <Tab label="Blanks"/>
             <Tab label="Stirring"/>
-            <Tab label="Dosing" disabled={true}/>
+            <Tab label="Dosing" />
+            <Tab label="OD600"  />
           </Tabs>
           <IconButton
             aria-label="close"
@@ -685,6 +685,32 @@ function CalibrateDialog(props) {
 
             <Divider className={classes.divider} />
 
+          </TabPanel>
+          <TabPanel value={tabValue} index={2}>
+            <Typography  gutterBottom>
+             Dosing calibration for pumps
+            </Typography>
+            <Typography variant="body2" component="p" gutterBottom>
+            To use a peristatlic pump with your Pioreactor, you'll need to calibrate it to accuractly dose specific volumes.
+            </Typography>
+            <Typography variant="body2" component="p" gutterBottom>
+            See instructions <a href="https://docs.pioreactor.com/user-guide/hardware-calibrations#pump-calibration">here</a>.
+            </Typography>
+            <Divider className={classes.divider} />
+
+          </TabPanel>
+
+          <TabPanel value={tabValue} index={3}>
+            <Typography  gutterBottom>
+             OD600 Calibration (optional)
+            </Typography>
+            <Typography variant="body2" component="p" gutterBottom>
+            By performing the following calibration, you can relate Pioreactor's internal OD readings (measured in volts) to an offline OD600 value. The UI and datasets will be measured in your OD600 values instead of voltages.
+            </Typography>
+            <Typography variant="body2" component="p" gutterBottom>
+            See instructions <a href="https://docs.pioreactor.com/user-guide/calibrate-od600">here</a>.
+            </Typography>
+            <Divider className={classes.divider} />
           </TabPanel>
         </DialogContent>
       </Dialog>

@@ -181,11 +181,11 @@ function Analysis(props) {
             <Chart
 
               isODReading={true}
-              dataSource="od_readings_raw"
+              dataSource="od_readings"
               title="Optical density"
-              payloadKey="voltage"
-              topic="od_reading/od_raw/+"
-              yAxisLabel="Voltage"
+              payloadKey="od"
+              topic="od_reading/od/+"
+              yAxisLabel="Reading"
               experiment={experimentSelection}
               deltaHours={20}
               interpolation="stepAfter"

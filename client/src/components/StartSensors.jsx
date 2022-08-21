@@ -148,12 +148,12 @@ function StartSensors(props){
           <Chart
             config={props.config}
             isODReading={true}
-            dataSource="od_readings_raw"
+            dataSource="od_readings"
             title="Optical density"
             interpolation="stepAfter"
-            topic="od_reading/od_raw/+"
-            yAxisLabel="Voltage"
-            payloadKey="voltage"
+            topic="od_reading/od/+"
+            yAxisLabel="Reading"
+            payloadKey="od"
             experiment={null}
             deltaHours={1}
             lookback={1}

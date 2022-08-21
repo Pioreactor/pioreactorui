@@ -115,11 +115,11 @@ const CheckboxesGroup = (props) => {
           </Typography>
 
           <FormControlLabel
-            control={<Checkbox checked={props.isChecked.od_readings_raw} onChange={props.handleChange} name="od_readings_raw" />}
-            label="Raw optical density"
+            control={<Checkbox checked={props.isChecked.od_readings} onChange={props.handleChange} name="od_readings" />}
+            label="Optical density"
           />
           <Typography variant="caption" className={classes.caption} gutterBottom>
-            The time series of raw voltages provided by the senors, the inputs for growth calculations and normalized optical densities. Same data as presented in the "Raw optical density" chart in the Experiment Overview.
+            The time series of readings provided by the sensors (transformed via a calibration curve, if available), the inputs for growth calculations and normalized optical densities. Same data as presented in the "Optical density" chart in the Experiment Overview.
           </Typography>
 
           <FormControlLabel
@@ -273,7 +273,7 @@ function ExportDataContainer() {
       dosing_events: false,
       led_events: false,
       experiments: false,
-      od_readings_raw: false,
+      od_readings: false,
       od_readings_filtered: false,
       logs: false,
       alt_media_fraction: false,
