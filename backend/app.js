@@ -403,7 +403,7 @@ app.get('/calibrations/:unit/:type', function (req, res) {
 
         res.sendStatus(500)
       } else {
-        if (rows.length() > 0) {
+        if (rows.length > 0) {
           res.send(rows[0]['results'])
         }
         else {
