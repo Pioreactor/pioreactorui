@@ -43,6 +43,7 @@ import IconButton from '@mui/material/IconButton';
 import ListItem from '@mui/material/ListItem';
 import ListSubheader from '@mui/material/ListSubheader';
 import IndeterminateCheckBoxOutlinedIcon from '@mui/icons-material/IndeterminateCheckBoxOutlined';
+import Switch from '@mui/material/Switch';
 
 import ChangeAutomationsDialog from "./components/ChangeAutomationsDialog"
 import ActionDosingForm from "./components/ActionDosingForm"
@@ -1008,6 +1009,15 @@ function SettingsActionsDialog(props) {
     }
   }
 
+  function setPioreactorJobAttrOnSwitch() {
+    return function(e) {
+      setPioreactorJobAttr(e.target.id,  e.target.checked ? 1 : 0);
+      const v = e.target.checked ? "on" : "off"
+      setSnackbarMessage(`Updating to ${v}.`)
+      setSnackbarOpen(true)
+    }
+  }
+
   function updateRenameUnit(e) {
     if ((e.key === "Enter") && (e.target.value)) {
       const relabeledTo = e.target.value
@@ -1441,19 +1451,32 @@ function SettingsActionsDialog(props) {
               <Typography variant="body2" component="p">
                 {setting.description}
               </Typography>
-              <TextField
-                size="small"
-                autoComplete="off"
-                id={`${job.metadata.key.replace("_control", "_automation")}/${key}`}
-                defaultValue={setting.value}
-                InputProps={{
-                  endAdornment: <InputAdornment position="end">{setting.unit}</InputAdornment>,
-                  autoComplete: 'new-password',
-                }}
-                variant="outlined"
-                onKeyPress={setPioreactorJobAttrOnEnter(setting.unit)}
-                className={classes.textFieldCompact}
-              />
+
+              {(setting.type == "boolean") && (
+                <Switch
+                  defaultChecked={setting.value}
+                  onChange={setPioreactorJobAttrOnSwitch()}
+                  id={`${job.metadata.key.replace("_control", "_automation")}/${key}`}
+                />
+              )}
+
+              {(setting.type != "boolean") && (
+                <TextField
+                  size="small"
+                  autoComplete="off"
+                  id={`${job.metadata.key.replace("_control", "_automation")}/${key}`}
+                  defaultValue={setting.value}
+                  InputProps={{
+                    endAdornment: <InputAdornment position="end">{setting.unit}</InputAdornment>,
+                    autoComplete: 'new-password',
+                  }}
+                  variant="outlined"
+                  onKeyPress={setPioreactorJobAttrOnEnter(setting.unit)}
+                  className={classes.textFieldCompact}
+                />
+              )}
+
+
               <Divider className={classes.divider} />
             </React.Fragment>
 
@@ -1698,7 +1721,7 @@ function SettingsActionsDialogAll({config, experiment}) {
     return function(e) {
       if ((e.key === "Enter") && (e.target.value)) {
         setPioreactorJobAttr(e.target.id, e.target.value);
-        setSnackbarMessage(`Updating to ${e.target.value} ${measurementUnit}.`)
+        setSnackbarMessage(`Updating to ${e.target.value} ${!measurementUnit ? measurementUnit  : ''}.`)
         setSnackbarOpen(true)
       }
     }
