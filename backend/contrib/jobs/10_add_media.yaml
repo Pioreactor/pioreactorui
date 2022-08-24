@@ -1,6 +1,6 @@
 ---
-name: add media
+display_name: add media
 job_name: add_media
 display: false
 source: app
-editable_settings: []
+published_settings: []

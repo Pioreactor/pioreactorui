@@ -1002,7 +1002,7 @@ function SettingsActionsDialog(props) {
     return function(e) {
       if ((e.key === "Enter") && (e.target.value)) {
         setPioreactorJobAttr(e.target.id, e.target.value);
-        setSnackbarMessage(`Updating to ${e.target.value} ${measurementUnit}.`)
+        setSnackbarMessage(`Updating to ${e.target.value} ${ !measurementUnit ? measurementUnit  : ''}.`)
         setSnackbarOpen(true)
       }
     }
@@ -1182,7 +1182,7 @@ function SettingsActionsDialog(props) {
             <div key={job_key}>
               <div style={{justifyContent: "space-between", display: "flex"}}>
                 <Typography display="block">
-                  {job.metadata.name}
+                  {job.metadata.display_name}
                 </Typography>
                 <Typography display="block" gutterBottom>
                   <span style={{color:stateDisplay[job.state].color}}>{stateDisplay[job.state].display}</span>
@@ -1593,9 +1593,9 @@ function SettingsActionsDialogAll({config, experiment}) {
         .then((listOfJobs) => {
           var jobs_ = {}
           for (const job of listOfJobs){
-            var metaData_ = {state: "disconnected", metadata: {name: job.name, subtext: job.subtext, display: job.display, description: job.description, key: job.job_name, source:job.source}}
-            for(var i = 0; i < job["editable_settings"].length; ++i){
-              var field = job["editable_settings"][i]
+            var metaData_ = {state: "disconnected", metadata: {display_name: job.display_name, subtext: job.subtext, display: job.display, description: job.description, key: job.job_name, source:job.source}}
+            for(var i = 0; i < job["published_settings"].length; ++i){
+              var field = job["published_settings"][i]
               metaData_[field.key] = {value: field.default, label: field.label, type: field.type, unit: field.unit || null, display: field.display, description: field.description}
             }
             jobs_[job.job_name] = metaData_
@@ -1659,7 +1659,7 @@ function SettingsActionsDialogAll({config, experiment}) {
           "disconnected":  "Stopping",
           "ready":  "Resuming",
         }
-        setSnackbarMessage(`${verbs[state]} ${job.metadata.name.toLowerCase()} on all active Pioreactors`)
+        setSnackbarMessage(`${verbs[state]} ${job.metadata.display_name.toLowerCase()} on all active Pioreactors`)
         setSnackbarOpen(true)
       }
     };
@@ -1667,7 +1667,7 @@ function SettingsActionsDialogAll({config, experiment}) {
 
   function startPioreactorJob(job){
     return function() {
-      setSnackbarMessage(`Starting ${job.metadata.name.toLowerCase()} on all active Pioreactors`)
+      setSnackbarMessage(`Starting ${job.metadata.display_name.toLowerCase()} on all active Pioreactors`)
       setSnackbarOpen(true)
       fetch("/run/" + job.metadata.key + "/" + unit, {method: "POST"})
     }
@@ -1824,7 +1824,7 @@ function SettingsActionsDialogAll({config, experiment}) {
             .map(([job_key, job]) =>
             <div key={job_key}>
               <Typography gutterBottom>
-                {job.metadata.name}
+                {job.metadata.display_name}
               </Typography>
               <Typography variant="body2" component="p" gutterBottom>
                 <div dangerouslySetInnerHTML={{__html: job.metadata.description}}/>
@@ -2164,9 +2164,9 @@ function PioreactorCard(props){
         .then((listOfJobs) => {
           var jobs_ = {}
           for (const job of listOfJobs){
-            var metaData_ = {state: "disconnected", metadata: {name: job.name, subtext: job.subtext, display: job.display, description: job.description, key: job.job_name, source: job.source, is_testing: job.is_testing}}
-            for(var i = 0; i < job["editable_settings"].length; ++i){
-              var field = job["editable_settings"][i]
+            var metaData_ = {state: "disconnected", metadata: {display_name: job.display_name, subtext: job.subtext, display: job.display, description: job.description, key: job.job_name, source: job.source, is_testing: job.is_testing}}
+            for(var i = 0; i < job["published_settings"].length; ++i){
+              var field = job["published_settings"][i]
               metaData_[field.key] = {value: field.default, label: field.label, type: field.type, unit: field.unit || null, display: field.display, description: field.description}
             }
             jobs_[job.job_name] = metaData_
@@ -2363,7 +2363,7 @@ function PioreactorCard(props){
               .map(job => (
             <div className={classes.textbox} key={job.metadata.key}>
               <Typography variant="body2" style={{fontSize: "0.84rem"}} className={clsx({[classes.disabledText]: !isUnitActive})}>
-                {job.metadata.name}
+                {job.metadata.display_name}
               </Typography>
               <UnitSettingDisplay
                 value={job.state}

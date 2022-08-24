@@ -1,7 +1,7 @@
 ---
-name: Growth rate
+display_name: Growth rate
 job_name: growth_rate_calculating
-editable_settings: []
+published_settings: []
 display: true
 source: app
 description: Transform optical density measurements into culture growth rate measurements.

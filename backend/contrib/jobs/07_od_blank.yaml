@@ -1,8 +1,8 @@
 ---
-name: od blank
+display_name: od blank
 job_name: od_blank
 display: false
 source: app
-editable_settings:
+published_settings:
   - key: means
     display: false

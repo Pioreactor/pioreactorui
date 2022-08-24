@@ -1,11 +1,11 @@
 ---
-name: Temperature automation
+display_name: Temperature automation
 job_name: temperature_control
 subtext: automation_name
 display: true
 source: app
 description: Start a temperature automation to control the culture's temperature. Learn more about <a href="https://docs.pioreactor.com/user_guide/Automations/Temperature%20Automations">temperature automations</a>.
-editable_settings:
+published_settings:
   - key: target_temperature
     unit: ℃
     label: Target temperature

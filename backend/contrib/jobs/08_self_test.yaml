@@ -1,10 +1,10 @@
 ---
-name: self test
+display_name: self test
 job_name: self_test
 display: false
 source: app
 is_testing: true
-editable_settings:
+published_settings:
   - key: test_detect_heating_pcb
     display: false
   - key: test_positive_correlation_between_temperature_and_heating

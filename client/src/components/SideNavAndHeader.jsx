@@ -12,6 +12,7 @@ import IconButton from '@mui/material/IconButton';
 import SaveAltIcon from '@mui/icons-material/SaveAlt';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import FeedbackOutlinedIcon from '@mui/icons-material/FeedbackOutlined';
+import TuneIcon from '@mui/icons-material/Tune';
 import UpdateIcon from '@mui/icons-material/Update';
 import Toolbar from '@mui/material/Toolbar';
 import {AppBar, Typography, Link, Button} from '@mui/material';
@@ -120,9 +121,14 @@ export default function SideNavAndHeader() {
         </ListItemButton>
 
 
-        <ListItemButton href="/export-data" component="a"  key="export_data" selected={isSelected("/export-data")}>
-          <ListItemIcon className={classes.listItemIcon}><SaveAltIcon color={isSelected("/export-data") ? "primary" : "inherit"}/> </ListItemIcon>
-          <ListItemText primaryTypographyProps={{color: isSelected("/export-data") ? "primary" : "rgba(0, 0, 0, 0.87)"}} primary="Export data" />
+        <ListItemButton  href="/analysis"  component="a" key="analysis" selected={isSelected("/analysis")}>
+          <ListItemIcon className={classes.listItemIcon}> <InsertChartOutlinedIcon color={isSelected("/analysis") ? "primary" : "inherit"}/> </ListItemIcon>
+          <ListItemText primaryTypographyProps={{color: isSelected("/analysis") ? "primary" : "rgba(0, 0, 0, 0.87)"}} primary="Analysis" />
+        </ListItemButton>
+
+        <ListItemButton  href="/calibrations"  component="a" key="calibrations" selected={isSelected("/calibrations")} disabled={true}>
+          <ListItemIcon className={classes.listItemIcon}> <TuneIcon color={isSelected("/calibrations") ? "primary" : "inherit"}/> </ListItemIcon>
+          <ListItemText primaryTypographyProps={{color: isSelected("/calibrations") ? "primary" : "rgba(0, 0, 0, 0.87)"}} primary="Calibrations" />
         </ListItemButton>
 
         <ListItemButton  href="/config"  component="a" key="config" selected={isSelected("/config")}>
@@ -130,9 +136,9 @@ export default function SideNavAndHeader() {
           <ListItemText primaryTypographyProps={{color: isSelected("/config") ? "primary" : "rgba(0, 0, 0, 0.87)"}} primary="Configuration" />
         </ListItemButton>
 
-        <ListItemButton  href="/analysis"  component="a" key="analysis" selected={isSelected("/analysis")}>
-          <ListItemIcon className={classes.listItemIcon}> <InsertChartOutlinedIcon color={isSelected("/analysis") ? "primary" : "inherit"}/> </ListItemIcon>
-          <ListItemText primaryTypographyProps={{color: isSelected("/analysis") ? "primary" : "rgba(0, 0, 0, 0.87)"}} primary="Analysis" />
+        <ListItemButton href="/export-data" component="a"  key="export_data" selected={isSelected("/export-data")}>
+          <ListItemIcon className={classes.listItemIcon}><SaveAltIcon color={isSelected("/export-data") ? "primary" : "inherit"}/> </ListItemIcon>
+          <ListItemText primaryTypographyProps={{color: isSelected("/export-data") ? "primary" : "rgba(0, 0, 0, 0.87)"}} primary="Export data" />
         </ListItemButton>
 
         <Divider className={classes.divider} />

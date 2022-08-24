@@ -1,6 +1,6 @@
 ---
-name: stirring calibration
+display_name: stirring calibration
 job_name: stirring_calibration
 display: false
 source: app
-editable_settings: []
+published_settings: []

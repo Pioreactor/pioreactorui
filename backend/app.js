@@ -295,6 +295,7 @@ app.get('/time_series/temperature_readings/:experiment', function (req, res) {
 })
 
 
+
 app.get('/time_series/od_readings_filtered/:experiment', function (req, res) {
   const experiment = req.params.experiment
   const queryObject = url.parse(req.url, true).query; // assume that all query params are optional args for the job
@@ -383,6 +384,31 @@ app.get("/recent_media_rates", function (req, res) {
   }
   fetch()
 })
+
+
+//////////////// calibrations //////////////
+
+
+app.get('/calibrations/:unit/:type', function (req, res) {
+  type = req.params.type
+  pioreactor_unit = req.params.unit
+
+  db.query(
+    "SELECT * FROM calibrations WHERE type=:type AND pioreactor_unit=:pioreactor_unit;",
+    {type: type, pioreactor_unit: pioreactor_unit},
+    {results: String},
+    function (err, rows) {
+      if (err){
+        publishToErrorLog(err)
+
+        res.sendStatus(500)
+      } else {
+        res.send(rows[0]['results'])
+      }
+    })
+})
+
+
 
 
 //////////////// plugins //////////////////

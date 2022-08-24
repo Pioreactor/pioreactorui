@@ -1,10 +1,10 @@
 ---
-name: Stirring
+display_name: Stirring
 job_name: stirring
 display: true
 source: app
 description: Start, stop or pause the stirring on the Pioreactor. Stirring is needed for homogenous mixing.
-editable_settings:
+published_settings:
   - key: target_rpm
     unit: RPM
     label: Target stir RPM
