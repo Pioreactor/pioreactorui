@@ -211,7 +211,7 @@ function ListInstalledPlugins({installedPlugins}){
               </Avatar>
             </ListItemAvatar>
             <ListItemText
-              primary={`${plugin.name} (${(plugin.version === "Unknown")  ? "" : plugin.version})`}
+              primary={`${plugin.name} ${(plugin.version === "Unknown")  ? "" : "(" + plugin.version + ")"}`}
               secondary={plugin.description}
             />
             <ListItemSecondaryAction sx={{display: {xs: 'contents', md: 'block'}}}>
@@ -283,14 +283,16 @@ function PluginContainer(){
       <PageHeader/>
       <Card className={classes.root}>
         <CardContent className={classes.cardContent}>
-          <p> Install, manage, and discover new Pioreactor plugins created by the community. These plugins can provide new functionalities for your Pioreactor (additional hardware may be necessary), or new automations to control dosing, temperature and LED operations.</p>
+          <p> Discover, install, and manage Pioreactor plugins created by the community. These plugins can provide new functionalities for your Pioreactor (additional hardware may be necessary), or new automations to control dosing, temperature and LED tasks.</p>
 
-         <Typography variant="h6" component="h3">
-          Installed plugins
-         </Typography>
-          <ListInstalledPlugins installedPlugins={installedPlugins}/>
-
-
+          {installedPlugins.length > 0 && (
+         <React.Fragment>
+           <Typography variant="h6" component="h3">
+            Installed plugins
+           </Typography>
+           <ListInstalledPlugins installedPlugins={installedPlugins}/>
+          </React.Fragment>
+          )}
          <Typography variant="h6" component="h3">
           Available plugins from the community
          </Typography>

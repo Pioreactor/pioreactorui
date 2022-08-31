@@ -101,12 +101,18 @@ app.get('/pioreactors', function(req, res) {
     res.sendFile(path.join(__dirname, 'build', 'index.html'));
 })
 
+// not active
 app.get('/pioreactors/:unit', function(req, res) {
     app.use("/", expressStaticGzip(path.join(__dirname, 'build')));
     res.sendFile(path.join(__dirname, 'build', 'index.html'));
 })
 
 app.get('/updates', function(req, res) {
+  app.use("/", expressStaticGzip(path.join(__dirname, 'build')));
+  res.sendFile(path.join(__dirname, 'build', 'index.html'));
+})
+
+app.get('/calibrations', function(req, res) {
   app.use("/", expressStaticGzip(path.join(__dirname, 'build')));
   res.sendFile(path.join(__dirname, 'build', 'index.html'));
 })
@@ -387,6 +393,7 @@ app.get("/recent_media_rates", function (req, res) {
 
 
 //////////////// calibrations //////////////
+
 
 
 app.get('/calibrations/:unit/:type', function (req, res) {

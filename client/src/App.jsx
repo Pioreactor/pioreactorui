@@ -12,6 +12,7 @@ import ExportData from "./ExportData";
 import Pioreactors from "./Pioreactors";
 import PioreactorUnit from "./PioreactorUnit";
 import StartNewExperiment from "./StartNewExperiment";
+import Calibrations from "./Calibrations";
 import EditConfig from "./EditConfig";
 import Updates from "./Updates";
 import Plugins from "./Plugins";
@@ -118,6 +119,9 @@ function MainSite() {
                 </Route>
                 <Route path="/feedback">
                   <Feedback config={config} title="Pioreactor ~ Feedback"/>
+                </Route>
+                <Route path="/calibrations">
+                  <Calibrations config={config} title="Pioreactor ~ Calibrations"/>
                 </Route>
                 <Route path="/">
                   <ExperimentOverview config={config} title="Pioreactor ~ Pioreactor"/>

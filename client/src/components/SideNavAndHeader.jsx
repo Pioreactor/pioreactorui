@@ -126,7 +126,7 @@ export default function SideNavAndHeader() {
           <ListItemText primaryTypographyProps={{color: isSelected("/analysis") ? "primary" : "rgba(0, 0, 0, 0.87)"}} primary="Analysis" />
         </ListItemButton>
 
-        <ListItemButton  href="/calibrations"  component="a" key="calibrations" selected={isSelected("/calibrations")} disabled={true}>
+        <ListItemButton  href="/calibrations"  component="a" key="calibrations" selected={isSelected("/calibrations")} >
           <ListItemIcon className={classes.listItemIcon}> <TuneIcon color={isSelected("/calibrations") ? "primary" : "inherit"}/> </ListItemIcon>
           <ListItemText primaryTypographyProps={{color: isSelected("/calibrations") ? "primary" : "rgba(0, 0, 0, 0.87)"}} primary="Calibrations" />
         </ListItemButton>
