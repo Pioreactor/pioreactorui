@@ -14,11 +14,7 @@ import TimelapseIcon from '@mui/icons-material/Timelapse';
 import GetAppIcon from '@mui/icons-material/GetApp';
 import ClearIcon from '@mui/icons-material/Clear';
 import AddIcon from '@mui/icons-material/Add';
-import DialogTitle from '@mui/material/DialogTitle';
-import Dialog from '@mui/material/Dialog';
-import DialogContent from '@mui/material/DialogContent';
-import DialogActions from '@mui/material/DialogActions';
-import DialogContentText from '@mui/material/DialogContentText';
+import { useConfirm } from 'material-ui-confirm';
 
 
 
@@ -126,91 +122,54 @@ class EditableDescription extends React.Component {
 };
 
 
-function ButtonConfirmNewExperimentDialog() {
+const ButtonNewExperiment = () => {
   const classes = useStyles();
-  const [open, setOpen] = React.useState(false);
+  const confirm = useConfirm();
 
-  const handleClickOpen = () => {
-    setOpen(true);
-  };
+  const handleClick = () => {
+    confirm({
+      description: 'Starting a new experiment will stop data collection for the current experiment. Do you wish to proceed?',
+      title: "Starting a new experiment",
+      confirmationText: "Confirm",
+      confirmationButtonProps: {color: "primary"},
+      cancellationButtonProps: {color: "secondary"},
 
-  const handleClose = () => {
-    setOpen(false);
+      }).then(() =>
+        fetch("/start-new-experiment")
+    )
   };
 
   return (
     <React.Fragment>
-      <Button style={{textTransform: 'none', float: "right"}} color="primary" onClick={handleClickOpen}>
+      <Button style={{textTransform: 'none', float: "right"}} color="primary" onClick={handleClick}>
         <AddIcon fontSize="15" classes={{root: classes.textIcon}}/> New experiment
       </Button>
-      <Dialog
-        open={open}
-        onClose={handleClose}
-        aria-labelledby="alert-dialog-title"
-        aria-describedby="alert-dialog-description"
-      >
-        <DialogTitle id="alert-dialog-title">Starting a new experiment</DialogTitle>
-        <DialogContent>
-          <DialogContentText id="alert-dialog-description">
-            Starting a new experiment will stop data collection for the current experiment. Do you wish to proceed?
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button href="/start-new-experiment" color="primary">
-            Confirm
-          </Button>
-          <Button onClick={handleClose} color="secondary" autoFocus>
-            Cancel
-          </Button>
-        </DialogActions>
-      </Dialog>
     </React.Fragment>
   );
 }
 
-function ButtonConfirmStopProcessDialog() {
+const ButtonEndExperiment = () =>{
   const classes = useStyles();
-  const [open, setOpen] = React.useState(false);
+  const confirm = useConfirm();
 
-  const handleClickOpen = () => {
-    setOpen(true);
-  };
+  const handleClick = () => {
+    confirm({
+      description: 'This will halt all activities (stirring, dosing, optical density reading, etc.) in all Pioreactor units. You can manually start them again later. Do you wish to end the experiment?',
+      title: "End experiment?",
+      confirmationText: "Confirm",
+      confirmationButtonProps: {color: "primary"},
+      cancellationButtonProps: {color: "secondary"},
 
-  const onConfirm = () => {
-    fetch("/stop_all", {method: "POST"})
-    handleClose()
-  }
-
-  const handleClose = () => {
-    setOpen(false);
+      }).then(() =>
+        fetch("/stop_all", {method: "POST"})
+    )
   };
 
   return (
     <React.Fragment>
-      <Button style={{textTransform: 'none', float: "right"}} color="primary" onClick={handleClickOpen}>
+      <Button style={{textTransform: 'none', float: "right"}} color="primary" onClick={handleClick}>
         <ClearIcon fontSize="15" classes={{root: classes.textIcon}}/> End experiment
       </Button>
-      <Dialog
-        open={open}
-        onClose={handleClose}
-        aria-labelledby="alert-dialog-title"
-        aria-describedby="alert-dialog-description"
-      >
-        <DialogTitle id="alert-dialog-title">{"End experiment?"}</DialogTitle>
-        <DialogContent>
-          <DialogContentText id="alert-dialog-description">
-            This will halt all activies (stirring, dosing, optical density reading, etc.) in all Pioreactor units. You can manually start them again later. Do you wish to end the experiment?
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={onConfirm} color="primary">
-            Confirm
-          </Button>
-          <Button onClick={handleClose} color="secondary" autoFocus>
-            Cancel
-          </Button>
-        </DialogActions>
-      </Dialog>
     </React.Fragment>
   );
 }
@@ -231,8 +190,8 @@ function ExperimentSummary(props){
             <Box fontWeight="fontWeightBold">{experiment}</Box>
           </Typography>
           <div className={classes.headerButtons}>
-            <ButtonConfirmNewExperimentDialog/>
-            <ButtonConfirmStopProcessDialog/>
+            <ButtonNewExperiment/>
+            <ButtonEndExperiment/>
             <Button href="/export-data" style={{textTransform: 'none', marginRight: "0px", float: "right"}} color="primary">
               <GetAppIcon fontSize="15" classes={{root: classes.textIcon}}/> Export experiment data
             </Button>

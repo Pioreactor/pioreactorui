@@ -98,7 +98,6 @@ function ListAvailablePlugins({alreadyInstalledPluginsNames}){
           window.location.reload();
         } else {
           setSnackbarMsg("Error occurred. See logs.")
-          throw new Error('Installation went wrong');
         }
       })
   }

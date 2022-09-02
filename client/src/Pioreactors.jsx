@@ -14,8 +14,6 @@ import {Typography} from '@mui/material';
 import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
-import DialogActions from '@mui/material/DialogActions';
-import DialogContentText from '@mui/material/DialogContentText';
 import Box from '@mui/material/Box';
 import Divider from '@mui/material/Divider';
 import CircularProgress from '@mui/material/CircularProgress';
@@ -44,6 +42,7 @@ import ListItem from '@mui/material/ListItem';
 import ListSubheader from '@mui/material/ListSubheader';
 import IndeterminateCheckBoxOutlinedIcon from '@mui/icons-material/IndeterminateCheckBoxOutlined';
 import Switch from '@mui/material/Switch';
+import { useConfirm } from 'material-ui-confirm';
 
 import ChangeAutomationsDialog from "./components/ChangeAutomationsDialog"
 import ActionDosingForm from "./components/ActionDosingForm"
@@ -316,50 +315,27 @@ function UnitSettingDisplay(props) {
 
 
 
-function ButtonConfirmStopProcessDialog() {
+function ButtonStopProcess() {
   const classes = useStyles();
-  const [open, setOpen] = useState(false);
+  const confirm = useConfirm();
 
-  const handleClickOpen = () => {
-    setOpen(true);
-  };
+  const handleClick = () => {
+    confirm({
+      description: 'This will halt all activities (stirring, dosing, optical density reading, etc.) in all Pioreactor units. You can manually start them again later. Do you wish to end the experiment?',
+      title: "End experiment?",
+      confirmationText: "Confirm",
+      confirmationButtonProps: {color: "primary"},
+      cancellationButtonProps: {color: "secondary"},
 
-  const onConfirm = () => {
-    fetch("/stop_all", {method: "POST"})
-    handleClose()
-  }
-
-  const handleClose = () => {
-    setOpen(false);
+      }).then(() =>
+        fetch("/stop_all", {method: "POST"})
+    )
   };
 
   return (
-    <React.Fragment>
-      <Button style={{textTransform: 'none', float: "right" }} color="secondary" onClick={handleClickOpen}>
-        <ClearIcon fontSize="15" classes={{root: classes.textIcon}}/> Stop all activity
-      </Button>
-      <Dialog
-        open={open}
-        onClose={handleClose}
-        aria-labelledby="alert-dialog-title"
-        aria-describedby="alert-dialog-description"
-      >
-        <DialogTitle id="alert-dialog-title">"Stop all Pioreactor activity?"</DialogTitle>
-        <DialogContent>
-          <DialogContentText id="alert-dialog-description">
-            This will stop all activies (stirring, dosing, optical density reading, etc.) in <b>all</b> Pioreactor units. Do you wish to stop all activities?
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={onConfirm} color="primary">
-            Confirm
-          </Button>
-          <Button onClick={handleClose} color="secondary" autoFocus>
-            Cancel
-          </Button>
-        </DialogActions>
-      </Dialog>
-    </React.Fragment>
+    <Button style={{textTransform: 'none', float: "right" }} color="secondary" onClick={handleClick}>
+      <ClearIcon fontSize="15" classes={{root: classes.textIcon}}/> Stop all activity
+    </Button>
   );
 }
 
@@ -517,7 +493,7 @@ function PioreactorHeader(props) {
           </Box>
         </Typography>
         <div className={classes.headerButtons}>
-          <ButtonConfirmStopProcessDialog/>
+          <ButtonStopProcess/>
           <AddNewPioreactor config={props.config}/>
           <SettingsActionsDialogAll config={props.config} experiment={props.experiment}/>
         </div>

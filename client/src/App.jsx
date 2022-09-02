@@ -10,7 +10,6 @@ import ErrorSnackbar from "./components/ErrorSnackbar";
 import ExperimentOverview from "./ExperimentOverview";
 import ExportData from "./ExportData";
 import Pioreactors from "./Pioreactors";
-import PioreactorUnit from "./PioreactorUnit";
 import StartNewExperiment from "./StartNewExperiment";
 import Calibrations from "./Calibrations";
 import EditConfig from "./EditConfig";
@@ -20,6 +19,8 @@ import Analysis from "./Analysis";
 import Feedback from "./Feedback";
 import SideNavAndHeader from "./components/SideNavAndHeader";
 import ErrorBoundary from "./components/ErrorBoundary";
+import { ConfirmProvider } from 'material-ui-confirm';
+
 
 import "@fontsource/roboto/300.css"
 import "@fontsource/roboto/400.css"
@@ -53,8 +54,10 @@ function App() {
     <React.StrictMode>
       <StyledEngineProvider injectFirst>
         <ThemeProvider theme={theme}>
-          <CssBaseline />
-          <MainSite />
+          <ConfirmProvider>
+            <CssBaseline />
+            <MainSite />
+          </ConfirmProvider>
         </ThemeProvider>
       </StyledEngineProvider>
     </React.StrictMode>
@@ -110,9 +113,6 @@ function MainSite() {
                 </Route>
                 <Route path="/pioreactors" exact>
                   <Pioreactors config={config} title="Pioreactor ~ Pioreactors"/>
-                </Route>
-                <Route path="/pioreactors/:unit">
-                  <PioreactorUnit config={config} title="Pioreactor ~ Unit"/>
                 </Route>
                 <Route path="/updates">
                   <Updates config={config} title="Pioreactor ~ Updates"/>

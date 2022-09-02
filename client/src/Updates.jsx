@@ -14,11 +14,8 @@ import UpdateIcon from '@mui/icons-material/Update';
 import Divider from '@mui/material/Divider';
 import SystemUpdateAltIcon from '@mui/icons-material/SystemUpdateAlt';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
-import Dialog from '@mui/material/Dialog';
-import DialogActions from '@mui/material/DialogActions';
-import DialogContent from '@mui/material/DialogContent';
-import DialogContentText from '@mui/material/DialogContentText';
-import DialogTitle from '@mui/material/DialogTitle';
+import { useConfirm } from 'material-ui-confirm';
+
 
 const useStyles = makeStyles((theme) => ({
   title: {
@@ -40,11 +37,10 @@ const useStyles = makeStyles((theme) => ({
 
 function ConfirmDialog() {
   const classes = useStyles();
-  const [open, setOpen] = React.useState(false);
+  const confirm = useConfirm();
   const [openSnackbar, setOpenSnackbar] = React.useState(false)
 
   const updateVersion = () => {
-    setOpen(false)
     setOpenSnackbar(true)
     fetch("/update_app", {method: "POST"})
     .then(res => {
@@ -55,40 +51,24 @@ function ConfirmDialog() {
     })
   }
 
-  const handleClickOpen = () => {
-    setOpen(true);
-  };
+  const handleClick = () => {
+    confirm({
+      description: 'Updating will not stop or change currently running activities or experiments.',
+      title: "Update to latest release?",
+      confirmationText: "Update now",
+      confirmationButtonProps: {color: "primary"},
+      cancellationButtonProps: {color: "secondary"},
 
-  const handleClose = () => {
-    setOpen(false);
+      }).then(() =>
+        updateVersion()
+    )
   };
 
   return (
     <React.Fragment>
-      <Button onClick={handleClickOpen} style={{textTransform: 'none', float: "right", marginRight: "0px"}} color="primary">
+      <Button onClick={handleClick} style={{textTransform: 'none', float: "right", marginRight: "0px"}} color="primary">
         <UpdateIcon fontSize="15" classes={{root: classes.textIcon}}/> Update to latest release
       </Button>
-      <Dialog
-        open={open}
-        onClose={handleClose}
-        aria-labelledby="alert-dialog-title"
-        aria-describedby="alert-dialog-description"
-      >
-        <DialogTitle id="alert-dialog-title">{"Confirm update to latest release"}</DialogTitle>
-        <DialogContent>
-          <DialogContentText id="alert-dialog-description">
-            Updating will not stop or change currently running activities or experiments.
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={updateVersion} color="primary" variant="contained">
-            Update now
-          </Button>
-          <Button onClick={handleClose} color="secondary" autoFocus>
-            Cancel
-          </Button>
-        </DialogActions>
-      </Dialog>
       <Snackbar
         anchorOrigin={{vertical: "bottom", horizontal: "center"}}
         open={openSnackbar}
