@@ -131,12 +131,9 @@ const ButtonNewExperiment = () => {
       description: 'Starting a new experiment will stop data collection for the current experiment. Do you wish to proceed?',
       title: "Starting a new experiment",
       confirmationText: "Confirm",
-      confirmationButtonProps: {color: "primary"},
+      confirmationButtonProps: {color: "primary", href: "/start-new-experiment"},
       cancellationButtonProps: {color: "secondary"},
-
-      }).then(() =>
-        fetch("/start-new-experiment")
-    )
+    })
   };
 
   return (
