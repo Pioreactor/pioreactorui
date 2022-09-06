@@ -30,25 +30,25 @@ const LOG_TOPIC = `pioreactor/${os.hostname()}/$experiment/logs/ui`
 
 
 ///////////// UTILS ////////////////////
-msgToJSON = (msg, level) => {
-  return JSON.stringify({message: msg.trim(), task: "UI", source: "ui", level: level, timestamp: new Date().toISOString() })
+msgToJSON = (msg, task, level) => {
+  return JSON.stringify({message: msg.trim(), task: task, source: 'ui', level: level, timestamp: new Date().toISOString() })
 }
 
-publishToLog = (msg, level="DEBUG") => {
+publishToLog = (msg, task, level="DEBUG") => {
   console.log(msg)
-  client.publish(LOG_TOPIC, msgToJSON(msg, level))
+  client.publish(LOG_TOPIC, msgToJSON(msg, task, level))
 }
 
-publishToErrorLog = (msg) => {
+publishToErrorLog = (msg, task) => {
   console.log(msg)
-  publishToLog(JSON.stringify(msg), "ERROR")
+  publishToLog(JSON.stringify(msg), task, "ERROR")
 }
 
 
 db.on('error', function (err) {
   // log any DB errors.
   // TODO: I don't think this is working...
-  publishToErrorLog(err.toString());
+  publishToErrorLog(err.toString(), 'db');
 });
 
 
@@ -125,11 +125,11 @@ app.get('/calibrations', function(req, res) {
 app.post('/stop_all', function (req, res) {
   execFile("pios", ["kill"].concat(["--all-jobs"]).concat(["-y"]), (error, stdout, stderr) => {
     if (error) {
-        publishToErrorLog(error)
+        publishToErrorLog(error, 'stop_all')
 
     }
     if (stderr) {
-        publishToLog(stderr)
+        publishToLog(stderr, 'stop_all')
 
     }
   })
@@ -152,14 +152,14 @@ app.post('/stop/:job/:unit', function (req, res) {
   else {
     execFile("pios", ["kill", job, "-y", "--units", unit], (error, stdout, stderr) => {
       if (error) {
-          publishToErrorLog(error)
+          publishToErrorLog(error, 'stop')
 
       }
       if (stderr) {
-          publishToLog(stderr)
+          publishToLog(stderr, 'stop')
 
       }
-      publishToLog(stdout)
+      publishToLog(stdout, 'stop')
 
     })
     res.sendStatus(200)
@@ -207,14 +207,14 @@ app.post('/reboot/:unit', function (req, res) {
 
   execFile("pios", ["reboot", "-y", "--units", unit], (error, stdout, stderr) => {
     if (error) {
-        publishToErrorLog(error)
+        publishToErrorLog(error, 'reboot')
 
     }
     if (stderr) {
-        publishToLog(stderr)
+        publishToLog(stderr, 'reboot')
 
     }
-    publishToLog(stdout)
+    publishToLog(stdout, 'reboot')
 
   })
   res.sendStatus(200)
@@ -249,7 +249,7 @@ app.get('/recent_logs', function (req, res) {
     {timestamp: String, is_error: Boolean, is_warning: Boolean, is_notice: Boolean, pioreactor_unit: String, message: String, task: String},
     function (err, rows) {
       if (err){
-        publishToErrorLog(err)
+        publishToErrorLog(err, 'recent_logs')
 
         res.sendStatus(500)
       } else {
@@ -270,7 +270,7 @@ app.get('/time_series/growth_rates/:experiment', function (req, res) {
     {results: String},
     function (err, rows) {
       if (err){
-        publishToErrorLog(err)
+        publishToErrorLog(err, 'growth_rates')
 
         res.sendStatus(500)
       } else {
@@ -291,7 +291,7 @@ app.get('/time_series/temperature_readings/:experiment', function (req, res) {
     {results: String},
     function (err, rows) {
       if (err){
-        publishToErrorLog(err)
+        publishToErrorLog(err, 'temperature_readings')
 
         res.sendStatus(500)
       } else {
@@ -314,7 +314,7 @@ app.get('/time_series/od_readings_filtered/:experiment', function (req, res) {
     {results: String},
     function (err, rows) {
       if (err){
-        publishToErrorLog(err)
+        publishToErrorLog(err, 'od_readings_filtered')
 
         res.sendStatus(500)
       } else {
@@ -336,7 +336,7 @@ app.get('/time_series/od_readings/:experiment', function (req, res) {
     {results: String},
     function (err, rows) {
       if (err){
-        publishToErrorLog(err)
+        publishToErrorLog(err, 'od_readings')
 
         res.sendStatus(500)
       } else {
@@ -355,7 +355,7 @@ app.get('/time_series/alt_media_fraction/:experiment', function (req, res) {
     {results: String},
     function (err, rows) {
       if (err){
-        publishToErrorLog(err)
+        publishToErrorLog(err, 'alt_media_fraction')
 
         res.sendStatus(500)
       } else {
@@ -373,7 +373,7 @@ app.get("/recent_media_rates", function (req, res) {
       {pioreactor_unit: String, mediaRate: Number, altMediaRate: Number},
       function(err, rows) {
         if (err){
-          publishToErrorLog(err)
+          publishToErrorLog(err, 'recent_media_rates')
 
           return setTimeout(fetch, 250)
         }
@@ -406,7 +406,7 @@ app.get('/calibrations/:unit/:type', function (req, res) {
     {results: String},
     function (err, rows) {
       if (err){
-        publishToErrorLog(err)
+        publishToErrorLog(err, 'calibrations')
 
         res.sendStatus(500)
       } else {
@@ -430,11 +430,11 @@ app.get('/get_installed_plugins', function(req, res) {
 
   execFile("pio", ["list-plugins", "--json"], (error, stdout, stderr) => {
       if (error) {
-        publishToErrorLog(error)
+        publishToErrorLog(error, 'get_installed_plugins')
         res.send([])
       }
       else if (stderr) {
-        publishToLog(stderr)
+        publishToLog(stderr, 'get_installed_plugins')
         res.send([]) // does this belong here?
       }
       else{
@@ -447,11 +447,11 @@ app.post('/install_plugin', function(req, res) {
 
   execFile("pios", ["install-plugin", req.body.plugin_name], (error, stdout, stderr) => {
       if (error) {
-        publishToErrorLog(error)
+        publishToErrorLog(error, 'install_plugin')
         res.sendStatus(500)
       }
       else if (stderr) {
-        publishToLog(stderr)
+        publishToLog(stderr, 'install_plugin')
         res.sendStatus(200)
       }
       else {
@@ -465,11 +465,11 @@ app.post('/uninstall_plugin', function(req, res) {
 
   execFile("pios", ["uninstall-plugin", req.body.plugin_name], (error, stdout, stderr) => {
       if (error) {
-        publishToErrorLog(error)
+        publishToErrorLog(error, 'uninstall_plugin')
         res.sendStatus(500)
       }
       else if (stderr) {
-        publishToLog(stderr)
+        publishToLog(stderr, 'uninstall_plugin')
         res.sendStatus(200)
       }
       else {
@@ -494,7 +494,7 @@ app.get("/contrib/automations/:type", function(req, res) {
     var jsonDesc = files.map(file => yaml.load(fs.readFileSync(path.join(automationPath, file))))
     res.json(jsonDesc)
   } catch (e) {
-    publishToErrorLog(e)
+    publishToErrorLog(e, 'contrib_automation')
 
     res.sendStatus(500)
   }
@@ -508,7 +508,7 @@ app.get("/contrib/jobs", function(req, res) {
     var jsonDesc = files.map(file => yaml.load(fs.readFileSync(path.join(automationPath, file))))
     res.json(jsonDesc)
   } catch (e) {
-    publishToErrorLog(e)
+    publishToErrorLog(e, 'contrib_jobs')
 
     res.sendStatus(500)
   }
@@ -523,7 +523,7 @@ app.post("/update_app", function (req, res) {
           res.sendStatus(200)
       }
       else{
-        publishToErrorLog(result.msg)
+        publishToErrorLog(result.msg, 'update_app')
 
         res.sendStatus(500)
       }
@@ -549,11 +549,11 @@ app.post('/export_datasets', function(req, res) {
 
     child.on('message', function(result) {
       if (result.result) {
-        publishToLog(result.msg)
+        publishToLog(result.msg, 'export_datasets')
         res.json({filename: result.filename})
       }
       else{
-        publishToErrorLog(result.msg)
+        publishToErrorLog(result.msg, 'export_datasets')
 
         res.sendStatus(500)
       }
@@ -568,7 +568,7 @@ app.get('/get_experiments', function (req, res) {
     ["experiment", "created_at", "description"],
     function (err, rows) {
       if (err){
-        publishToErrorLog(err)
+        publishToErrorLog(err, 'get_experiments')
 
         res.sendStatus(500)
       } else {
@@ -584,7 +584,7 @@ app.get('/get_latest_experiment', function (req, res) {
       {experiment: String, created_at: String, description: String, media_used: String, organism_used: String, delta_hours: Number},
       function (err, rows) {
         if (err) {
-          publishToErrorLog(err)
+          publishToErrorLog(err, 'get_latest_experiment')
 
           return setTimeout(fetch, 150)
         }
@@ -602,7 +602,7 @@ app.get('/get_current_unit_labels', function (req, res) {
       {pioreactor_unit: String, label: String},
       function (err, rows) {
         if (err) {
-          publishToErrorLog(err)
+          publishToErrorLog(err, 'get_current_unit_labels')
 
           return setTimeout(fetch, 500)
         }
@@ -644,7 +644,7 @@ app.get('/get_historical_organisms_used', function (req, res) {
       {key: String},
       function (err, rows) {
         if (err) {
-          publishToErrorLog(err)
+          publishToErrorLog(err, 'get_historical_organisms_used')
 
           res.send([])
         }
@@ -662,7 +662,7 @@ app.get('/get_historical_media_used', function (req, res) {
       {key: String},
       function (err, rows) {
         if (err) {
-          publishToErrorLog(err)
+          publishToErrorLog(err, 'get_historical_media_used')
           res.send([])
         }
         res.send(rows)
@@ -686,7 +686,7 @@ app.post("/create_experiment", function (req, res) {
           var insert = 'INSERT INTO experiments (created_at, experiment, description, media_used, organism_used) VALUES (?,?,?,?,?)'
           db.query(insert, [body.created_at, body.experiment, body.description, body.mediaUsed, body.organismUsed], function(err, rows){
             if (err){
-              publishToErrorLog(err)
+              publishToErrorLog(err, 'create_experiment')
               next(err)
               res.sendStatus(500)
             } else {
@@ -720,11 +720,11 @@ app.post("/add_new_pioreactor", function (req, res) {
     var child = cp.fork('./child_tasks/add_new_pioreactor');
     child.on('message', function(result) {
       if (result.result) {
-        publishToLog("Pioreactor added.")
+        publishToLog("Pioreactor added.", 'add_new_pioreactor')
         res.sendStatus(200)
       }
       else{
-        publishToErrorLog(result.msg)
+        publishToErrorLog(result.msg, 'add_new_pioreactor')
 
         res.status(500).json(result)
       }
@@ -759,12 +759,12 @@ app.post("/delete_config", function(req, res) {
 
   execFile("rm", [configPath], (error, stdout, stderr) => {
       if (error) {
-          publishToErrorLog(error)
+          publishToErrorLog(error, 'delete_config')
 
           res.sendStatus(500)
       }
       if (stderr) {
-          publishToLog(stderr)
+          publishToLog(stderr, 'delete_config')
 
       }
 
@@ -790,18 +790,18 @@ app.post("/save_new_config", function(req, res) {
   fs.writeFile(configPath, req.body.code, function (error) {
     // it's important we write to disk first, so `pio` picks up any new configs
     if (error) {
-      publishToErrorLog(error)
+      publishToErrorLog(error, 'save_new_config')
       res.sendStatus(500)
     }
     else {
       execFile("pios", ["sync-configs", "--units", units].concat(flags), (error, stdout, stderr) => {
           if (error) {
-            publishToErrorLog(error)
+            publishToErrorLog(error, 'save_new_config')
 
             res.sendStatus(500);
           }
           else if (stderr) {
-            publishToLog(stderr)
+            publishToLog(stderr, 'save_new_config')
 
             res.sendStatus(200);
           }
@@ -821,6 +821,6 @@ app.post("/save_new_config", function(req, res) {
 
 const PORT = process.env.PORT || 3000
 app.listen(PORT, () => {
-  publishToLog(`Listening on port ${PORT}`)
+  publishToLog(`Listening on port ${PORT}`, 'app')
 
 });
