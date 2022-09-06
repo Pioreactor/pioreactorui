@@ -121,15 +121,6 @@ export default function SideNavAndHeader() {
         </ListItemButton>
 
 
-        <ListItemButton  href="/analysis"  component="a" key="analysis" selected={isSelected("/analysis")}>
-          <ListItemIcon className={classes.listItemIcon}> <InsertChartOutlinedIcon color={isSelected("/analysis") ? "primary" : "inherit"}/> </ListItemIcon>
-          <ListItemText primaryTypographyProps={{color: isSelected("/analysis") ? "primary" : "rgba(0, 0, 0, 0.87)"}} primary="Analysis" />
-        </ListItemButton>
-
-        <ListItemButton  href="/calibrations"  component="a" key="calibrations" selected={isSelected("/calibrations")} >
-          <ListItemIcon className={classes.listItemIcon}> <TuneIcon color={isSelected("/calibrations") ? "primary" : "inherit"}/> </ListItemIcon>
-          <ListItemText primaryTypographyProps={{color: isSelected("/calibrations") ? "primary" : "rgba(0, 0, 0, 0.87)"}} primary="Calibrations" />
-        </ListItemButton>
 
         <ListItemButton  href="/config"  component="a" key="config" selected={isSelected("/config")}>
           <ListItemIcon className={classes.listItemIcon}> <SettingsOutlinedIcon color={isSelected("/config") ? "primary" : "inherit"}/> </ListItemIcon>
@@ -139,6 +130,16 @@ export default function SideNavAndHeader() {
         <ListItemButton href="/export-data" component="a"  key="export_data" selected={isSelected("/export-data")}>
           <ListItemIcon className={classes.listItemIcon}><SaveAltIcon color={isSelected("/export-data") ? "primary" : "inherit"}/> </ListItemIcon>
           <ListItemText primaryTypographyProps={{color: isSelected("/export-data") ? "primary" : "rgba(0, 0, 0, 0.87)"}} primary="Export data" />
+        </ListItemButton>
+
+        <ListItemButton  href="/analysis" key="analysis" selected={isSelected("/analysis")} disabled>
+          <ListItemIcon className={classes.listItemIcon}> <InsertChartOutlinedIcon color={isSelected("/analysis") ? "primary" : "inherit"}/> </ListItemIcon>
+          <ListItemText primaryTypographyProps={{color: isSelected("/analysis") ? "primary" : "rgba(0, 0, 0, 0.87)"}} primary="Analysis" />
+        </ListItemButton>
+
+        <ListItemButton  href="/calibrations"  key="calibrations" selected={isSelected("/calibrations")} disabled={true} >
+          <ListItemIcon className={classes.listItemIcon}> <TuneIcon color={isSelected("/calibrations") ? "primary" : "inherit"}/> </ListItemIcon>
+          <ListItemText primaryTypographyProps={{color: isSelected("/calibrations") ? "primary" : "rgba(0, 0, 0, 0.87)"}} primary="Calibrations" />
         </ListItemButton>
 
         <Divider className={classes.divider} />
