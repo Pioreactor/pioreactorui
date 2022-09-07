@@ -3,7 +3,7 @@ display_name: Dosing automation
 job_name: dosing_control
 display: true
 source: app
-description: Start a dosing automation (chemostat, fed-batch, etc.). Learn more about <a href="https://docs.pioreactor.com/user_guide/Automations/Dosing%20Automations">dosing automations</a>.
+description: Start a dosing automation (chemostat, fed-batch, etc.). Learn more about <a href="https://docs.pioreactor.com/user-guide/dosing-automations">dosing automations</a>.
 subtext: automation_name
 published_settings:
   - key: duration

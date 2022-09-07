@@ -387,7 +387,7 @@ function ExportDataContainer() {
 
               </Grid>
               <Grid item xs={12}>
-                <p style={{textAlign: "center", marginTop: "30px"}}><span role="img" aria-labelledby="Note">💡</span> Learn more about <a href="https://docs.pioreactor.com/user_guide/Exporting%20Data" target="_blank" rel="noopener noreferrer">data exporting</a>.</p>
+                <p style={{textAlign: "center", marginTop: "30px"}}><span role="img" aria-labelledby="Note">💡</span> Learn more about <a href="https://docs.pioreactor.com/user-guide/export-data" target="_blank" rel="noopener noreferrer">data exporting</a>.</p>
               </Grid>
             </Grid>
           </form>

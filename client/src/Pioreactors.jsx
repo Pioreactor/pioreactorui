@@ -1428,7 +1428,7 @@ function SettingsActionsDialog(props) {
                 {setting.description}
               </Typography>
 
-              {(setting.type == "boolean") && (
+              {(setting.type === "boolean") && (
                 <Switch
                   defaultChecked={setting.value}
                   onChange={setPioreactorJobAttrOnSwitch()}
@@ -1436,7 +1436,7 @@ function SettingsActionsDialog(props) {
                 />
               )}
 
-              {(setting.type != "boolean") && (
+              {(setting.type !== "boolean") && (
                 <TextField
                   size="small"
                   autoComplete="off"
@@ -1724,13 +1724,13 @@ function SettingsActionsDialogAll({config, experiment}) {
       var startAction = () => setOpenChangeTemperatureDialog(true)
     }
     else if (job.metadata.key === "dosing_control"){
-      var startAction = () => setOpenChangeDosingDialog(true)
+      startAction = () => setOpenChangeDosingDialog(true)
     }
     else if (job.metadata.key === "led_control"){
-      var startAction = () => setOpenChangeLEDDialog(true)
+      startAction = () => setOpenChangeLEDDialog(true)
     }
     else {
-      var startAction = startPioreactorJob(job)
+      startAction = startPioreactorJob(job)
     }
 
 

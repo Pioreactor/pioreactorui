@@ -101,7 +101,6 @@ function AssignLabels(props){
             }
         })
     ))
-    props.handleNext()
   }
   const onLabelChange = (unit) => (e) => setLabels({...labels, [unit]: e.target.value})
 
@@ -111,12 +110,10 @@ function AssignLabels(props){
 
       <Grid container spacing={1}>
 
-        <Grid item xs={1}/>
-        <Grid item xs={10}>
+        <Grid item xs={12}>
           <p> Assign labels to Pioreactors in your cluster. These labels are temporary, and will show up in charts, tables, and elsewhere in the interface. Labels can be changed later.</p>
           <Divider style={{marginBottom: "20px"}}/>
         </Grid>
-        <Grid item xs={1}/>
 
 
           {activeUnits.map((unit) => (
@@ -129,7 +126,7 @@ function AssignLabels(props){
                     <span style={{lineHeight: "40px"}}>{unit}</span>
                   </div>
                   <div>
-                    <TextField size="small" placeholder="(Optional)" onChange={onLabelChange(unit)} style={{width: "140px"}}/>
+                    <TextField size="small" placeholder="(Optional)" onChange={onLabelChange(unit)} style={{width: "140px", marginRight: "10px"}}/>
                     <FlashLEDButton client={client} disable={false} config={props.config} unit={unit}/>
                   </div>
                 </div>

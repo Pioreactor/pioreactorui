@@ -6,4 +6,4 @@ fields:
   - key: target_temperature
     default: 25
     unit: ℃
-    label: Target Temperature
+    label: Target temperature

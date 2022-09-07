@@ -43,7 +43,7 @@ const useStyles = makeStyles((theme) => ({
 const defaultAutomations = {
   temperature: "stable",
   dosing: "chemostat",
-  led: "silent"
+  led: "light_dark_cycle"
 }
 
 
@@ -194,7 +194,7 @@ function ChangeAutomationsDialog(props) {
       </DialogTitle>
       <DialogContent>
         <Typography variant="body2" component="p" gutterBottom>
-          <span style={{textTransform: "capitalize"}}>{automationTypeForDisplay}</span> automations control the {automationTypeForDisplay} in the Pioreactor's vial. The settings below can be changed later. Learn more about <a target="_blank" rel="noopener noreferrer" href={"https://docs.pioreactor.com/user-guide/" + automationTypeForDisplay + "-automations"}>{automationTypeForDisplay} automations</a>.
+          <span style={{textTransform: "capitalize"}}>{automationTypeForDisplay}</span> automations control the {automationTypeForDisplay} in the Pioreactor's vial. Learn more about <a target="_blank" rel="noopener noreferrer" href={"https://docs.pioreactor.com/user-guide/" + automationTypeForDisplay + "-automations"}>{automationTypeForDisplay} automations</a>.
         </Typography>
 
         <form>
@@ -205,7 +205,7 @@ function ChangeAutomationsDialog(props) {
               variant="standard"
               value={automationName}
               onChange={handleAlgoSelectionChange}
-              style={{maxWidth: "200px"}}
+              style={{maxWidth: "270px"}}
             >
               {Object.keys(automations).map((key) => <option id={key} value={key} key={"change-io" + key}>{automations[key].display_name}</option>)}
 

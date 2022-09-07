@@ -8,16 +8,13 @@ import Card from '@mui/material/Card';
 import CardContent from '@mui/material/Card';
 import {Typography} from '@mui/material';
 import Button from "@mui/material/Button";
-import Stepper from '@mui/material/Stepper';
-import Step from '@mui/material/Step';
-import StepLabel from '@mui/material/StepLabel';
 import TextField from '@mui/material/TextField';
 import Autocomplete, { createFilterOptions } from '@mui/material/Autocomplete';
 
 //import CleaningScript from "./components/CleaningScript"
 import AssignLabels from "./components/AssignLabels"
-import StartSensors from "./components/StartSensors"
-import StartCalculations from "./components/StartCalculations"
+//import StartSensors from "./components/StartSensors"
+//import StartCalculations from "./components/StartCalculations"
 
 
 const useStyles = makeStyles((theme) => ({
@@ -342,33 +339,13 @@ function StartNewExperimentContainer(props) {
     }
   };
 
-  const handleBack = () => {
-    setActiveStep((prevActiveStep) => prevActiveStep - 1);
-  };
-
-  const handleSkip = () => {
-    if (!isStepOptional(activeStep)) {
-      throw new Error("You can't skip a step that isn't optional.");
-    }
-
-    setActiveStep((prevActiveStep) => prevActiveStep + 1);
-    setSkipped((prevSkipped) => {
-      const newSkipped = new Set(prevSkipped.values());
-      newSkipped.add(activeStep);
-      return newSkipped;
-    });
-  };
-
-  const handleReset = () => {
-    setActiveStep(0);
-  };
 
   const steps = [
     {title: 'Experiment summary', content: <ExperimentSummaryForm config={props.config} handleNext={handleNext}/>, optional: false},
     //{title: 'Cleaning and preparation', content: <CleaningScript config={props.config}/>, optional: true},
     {title: 'Assign labels', content: <AssignLabels config={props.config} handleNext={handleNext} />,  optional: true},
-    {title: 'Start sensors', content: <StartSensors config={props.config}/>, optional: false},
-    {title: 'Start calculations', content: <StartCalculations config={props.config}/>, optional: false},
+    //{title: 'Start sensors', content: <StartSensors config={props.config}/>, optional: false},
+    //{title: 'Start calculations', content: <StartCalculations config={props.config}/>, optional: false},
   ];
 
   return (
@@ -377,60 +354,30 @@ function StartNewExperimentContainer(props) {
         <Typography variant="h5" component="h1">
           Start a new experiment
         </Typography>
-        <Stepper activeStep={activeStep}>
-          {steps.map((step, index) => {
-            const stepProps = {};
-            const labelProps = {};
-            if (step.optional) {
-              labelProps.optional = <Typography variant="caption">Optional</Typography>;
-            }
-            if (isStepSkipped(index)) {
-              stepProps.completed = false;
-            }
-            return (
-              <Step key={step.title} {...stepProps}>
-                <StepLabel {...labelProps}>{step.title}</StepLabel>
-              </Step>
-            );
-          })}
-        </Stepper>
         <div>
-          {activeStep === steps.length ? (
+          <div>
+            <div className={classes.instructions}>{getStepContent(activeStep)}</div>
             <div>
-              <Typography className={classes.instructions}>
-                All steps completed - you're finished
-              </Typography>
-              <Button onClick={handleReset} className={classes.button}>
-                Reset
-              </Button>
-            </div>
-          ) : (
-            <div>
-              <div className={classes.instructions}>{getStepContent(activeStep)}</div>
+            {(activeStep === steps.length - 1) && (
               <div>
-                <Button disabled={activeStep === 0} onClick={handleBack} className={classes.button}>
-                  Back
-                </Button>
-                {isStepOptional(activeStep) && (
-                  <Button
-                    variant="text"
-                    onClick={handleSkip}
-                    className={classes.button}
-                  >
-                    Skip
-                  </Button>
-                )}
-
                 <Button
                   variant="text"
-                  onClick={handleNext}
+                  href="/overview"
                   className={classes.button}
                 >
-                  {activeStep === steps.length - 1 ? 'Go to overview' : 'Next'}
+                Go to Overview
+                </Button>
+                <Button
+                  variant="text"
+                  href="/pioreactors"
+                  className={classes.button}
+                >
+                Go to Pioreactors
                 </Button>
               </div>
+              )}
             </div>
-          )}
+          </div>
         </div>
       </CardContent>
     </Card>
