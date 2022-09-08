@@ -22,6 +22,7 @@ import DashboardOutlinedIcon from '@mui/icons-material/DashboardOutlined';
 import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
 import InsertChartOutlinedIcon from '@mui/icons-material/InsertChartOutlined';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
+import Tooltip from '@mui/material/Tooltip';
 
 const drawerWidth = 212;
 
@@ -134,12 +135,16 @@ export default function SideNavAndHeader() {
 
         <ListItemButton  href="/analysis" key="analysis" selected={isSelected("/analysis")} disabled>
           <ListItemIcon className={classes.listItemIcon}> <InsertChartOutlinedIcon color={isSelected("/analysis") ? "primary" : "inherit"}/> </ListItemIcon>
-          <ListItemText primaryTypographyProps={{color: isSelected("/analysis") ? "primary" : "rgba(0, 0, 0, 0.87)"}} primary="Analysis" />
+          <Tooltip title="Coming soon" placement="bottom-end">
+            <ListItemText primaryTypographyProps={{color: isSelected("/analysis") ? "primary" : "rgba(0, 0, 0, 0.87)"}} primary="Analysis" />
+          </Tooltip>
         </ListItemButton>
 
         <ListItemButton  href="/calibrations"  key="calibrations" selected={isSelected("/calibrations")} disabled={true} >
           <ListItemIcon className={classes.listItemIcon}> <TuneIcon color={isSelected("/calibrations") ? "primary" : "inherit"}/> </ListItemIcon>
-          <ListItemText primaryTypographyProps={{color: isSelected("/calibrations") ? "primary" : "rgba(0, 0, 0, 0.87)"}} primary="Calibrations" />
+          <Tooltip title="Coming soon" placement="bottom-end">
+            <ListItemText primaryTypographyProps={{color: isSelected("/calibrations") ? "primary" : "rgba(0, 0, 0, 0.87)"}} primary="Calibrations" />
+          </Tooltip>
         </ListItemButton>
 
         <Divider className={classes.divider} />

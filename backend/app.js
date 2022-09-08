@@ -532,16 +532,27 @@ app.post("/update_app", function (req, res) {
 })
 
 app.get('/get_app_version', function(req, res) {
-  // this is too slow:
-  execFile("pio", ["version"], (error, stdout, stderr) => {
-      if (error) {
 
+  execFile("python", ["-c", 'import pioreactor; print(pioreactor.__version__)'], (error, stdout, stderr) => {
+      if (error) {
+        console.log(error)
       }
       if (stderr) {
-
+        console.log(stderr)
       }
       res.send(stdout.trim())
   })
+
+  //// this is too slow:
+  //execFile("pio", ["version"], (error, stdout, stderr) => {
+  //    if (error) {
+
+  //    }
+  //    if (stderr) {
+
+  //    }
+  //    res.send(stdout.trim())
+  //})
 })
 
 app.post('/export_datasets', function(req, res) {
