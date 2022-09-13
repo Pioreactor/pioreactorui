@@ -1,5 +1,6 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, Response
 import sqlite3
+import subprocess 
 
 ## app.js defined constants and variables here with require? 
 # require() in nodejs -> loads modules, same as python import 
@@ -100,22 +101,55 @@ def calibrations():
 @app.route('/stop-all', methods = ['POST'])
 def stop_all():
     '''Kills all jobs'''
-    return 
+    result = subprocess.run(["pios", "kill", "--all-jobs", "-y"], capture_output=True)
+    
+    if result.returncode == 0: 
+        return Response(200)
+    
+    else: 
+        print(result.stdout) 
+        print(result.stderr) 
+        return Response(500)
     
 @app.route('/stop/<job>/<unit>', methods = ['POST'])
-def stop_job_on_unit():
+def stop_job_on_unit(job, unit):
     '''Kills specified job on unit'''
-    return 
+    result = subprocess.run(["pios", "kill", job, "-y", "--units", unit], capture_output=True)
     
+    if result.returncode == 0: 
+        return Response(200)
+    
+    else: 
+        print(result.stdout) 
+        print(result.stderr) 
+        return Response(500)
+
 @app.route('/run/<job>/<unit>', methods = ['POST'])
 def run_job_on_unit():
     '''Runs specified job on unit'''
-    return 
+    result = subprocess.run(["pios", "run", job, "-y", "--units", unit], capture_output=True)
+    
+    if result.returncode == 0: 
+        return Response(200)
+    
+    else: 
+        print(result.stdout) 
+        print(result.stderr) 
+        return Response(500) 
     
 @app.route('/reboot/<unit>', methods = ['POST'])
-def reboot_unit():
-    '''Reboots unit'''
-    return 
+def reboot_unit(unit):
+    '''Reboots unit''' #should return a 0 
+    result = subprocess.run(["pios", "reboot", "-y", "--units", unit], capture_output=True)
+    
+    if result.returncode == 0:
+        return Response(200)
+    
+    #log an error, figure out later
+    else: 
+        print(result.stdout) #normal outputs 
+        print(result.stderr) #errors 
+        return Response(500)
 
     
 ## DATA FOR CARDS ON OVERVIEW 
@@ -236,15 +270,39 @@ def get_unit_calibrations(pioreactor_unit, calibration_type):
 
 @app.route('/get_installed_plugins', methods = ['GET'])
 def list_installed_plugins():
-    return
+    result = subprocess.run(["pio", "list-plugins", "--json"], capture_output=True)
+    
+    if result.returncode == 0: 
+        return Response(200)
+    
+    else: 
+        print(result.stdout) 
+        print(result.stderr) 
+        return Response(500)
     
 @app.route('/install_plugins', methods = ['POST'])
 def install_plugin():
-    return
+    result = subprocess.run(["pios", "install-plugin"], capture_output=True)
+    
+    if result.returncode == 0: 
+        return Response(200)
+    
+    else: 
+        print(result.stdout) 
+        print(result.stderr) 
+        return Response(500)
     
 @app.route('/uninstall_plugins', methods = ['POST'])
 def uninstall_plugin():
-    return
+    result = subprocess.run(["pios", "uninstall-plugin"], capture_output=True)
+    
+    if result.returncode == 0: 
+        return Response(200)
+    
+    else: 
+        print(result.stdout) 
+        print(result.stderr) 
+        return Response(500)
     
 
 ## MISC 
@@ -304,7 +362,18 @@ def get_historical_media_used():
     
 @app.route('/create_experiment', methods = ['POST'])
 def create_experiment():
-    return
+    
+    body = request.get_json()
+    
+    conn = get_db_connection()
+    try: 
+        conn.execute('INSERT INTO experiments (created_at, experiment, description, media_used, organism_used) VALUES (?,?,?,?,?)', (body['created_at'], body['experiment'], body['description'], body['media_used'], body['organism_used']))
+        return Response(200)
+    
+    except sqlite3.IntegrityError: 
+        #publish to mqtt
+        return Response(400)
+        
     
 @app.route('/update_experiment_desc', methods = ['POST'])
 def update_experiment_description():
