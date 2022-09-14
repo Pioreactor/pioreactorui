@@ -42,7 +42,7 @@ function ConfirmDialog() {
 
   const updateVersion = () => {
     setOpenSnackbar(true)
-    fetch("/update_app", {method: "POST"})
+    fetch("/api/update_app", {method: "POST"})
     .then(res => {
       if (res.ok) {
         window.location.reload();
@@ -90,7 +90,7 @@ function PageHeader(props) {
 
   React.useEffect(() => {
     async function getCurrentAppVersion() {
-         await fetch("/get_app_version")
+         await fetch("/api/get_app_version")
         .then((response) => {
           return response.text();
         })

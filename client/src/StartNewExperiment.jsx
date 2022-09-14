@@ -140,7 +140,7 @@ function ExperimentSummaryForm(props) {
 
   React.useEffect(() => {
     function populateDropDowns() {
-      fetch("/get_historical_media_used")
+      fetch("/api/get_historical_media_used")
         .then((response) => {
             if (response.ok) {
               return response.json();
@@ -148,7 +148,7 @@ function ExperimentSummaryForm(props) {
           })
         .then(json => setHistoricalMediaUsed(json))
 
-      fetch("/get_historical_organisms_used")
+      fetch("/api/get_historical_organisms_used")
         .then((response) => {
             if (response.ok) {
               return response.json();
@@ -161,7 +161,7 @@ function ExperimentSummaryForm(props) {
 
 
   function populateFields(){
-    fetch("/get_latest_experiment")
+    fetch("/api/get_latest_experiment")
       .then((response) => {
         return response.json();
       })

@@ -50,7 +50,7 @@ class EditableCodeDiv extends React.Component {
   }
 
   getConfig(filename) {
-    fetch("/get_config/" + filename)
+    fetch("/api/get_config/" + filename)
       .then(response => {
         return response.text();
       })
@@ -60,7 +60,7 @@ class EditableCodeDiv extends React.Component {
   }
 
   getListOfConfigFiles(filename) {
-    fetch("/get_configs")
+    fetch("/api/get_configs")
       .then(response => {
         return response.json();
       })

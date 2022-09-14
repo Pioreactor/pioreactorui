@@ -40,7 +40,7 @@ function ExperimentSelection(props) {
 
   React.useEffect(() => {
     async function getData() {
-       await fetch("/get_experiments")
+       await fetch("/api/get_experiments")
       .then((response) => {
         return response.json();
       })

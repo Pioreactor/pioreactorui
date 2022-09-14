@@ -63,7 +63,7 @@ class LogTable extends React.Component {
   }
 
   async getData() {
-    await fetch("/recent_logs?" + new URLSearchParams({
+    await fetch("/api/recent_logs?" + new URLSearchParams({
         min_level: this.props.config.logging.ui_log_level
       }))
       .then(response => {

@@ -265,7 +265,7 @@ app.get('/time_series/growth_rates/:experiment', function (req, res) {
   const filterModN = queryObject['filter_mod_N'] || 100
 
   db.query(
-    "SELECT json_object('series', json_group_array(unit), 'data', json_group_array(json(data))) FROM (SELECT pioreactor_unit as unit, json_group_array(json_object('x', timestamp, 'y', round(rate, 5))) as data FROM growth_rates WHERE experiment=:experiment AND ((ROWID * 0.61803398875) - cast(ROWID * 0.61803398875 as int) < 1.0/:filterModN) GROUP BY 1);",
+    "SELECT json_object('series', json_group_array(unit), 'data', json_group_array(json(data))) as result FROM (SELECT pioreactor_unit as unit, json_group_array(json_object('x', timestamp, 'y', round(rate, 5))) as data FROM growth_rates WHERE experiment=:experiment AND ((ROWID * 0.61803398875) - cast(ROWID * 0.61803398875 as int) < 1.0/:filterModN) GROUP BY 1);",
     {experiment: experiment, filterModN: filterModN},
     {results: String},
     function (err, rows) {

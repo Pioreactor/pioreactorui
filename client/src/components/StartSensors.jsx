@@ -52,7 +52,7 @@ function StartStirring(props){
 
   const onClick = (e) => {
     setIsClicked(true)
-    fetch("/run/stirring/$broadcast", {
+    fetch("/api/run/stirring/$broadcast", {
         method: "POST"}
       ).then(res => {
       if (res.status === 200){
@@ -95,7 +95,7 @@ function StartODReading(props){
 
   const onClick = (e) => {
     setIsClicked(true)
-    fetch("/run/od_reading/$broadcast", {method: "POST"}).then(res => {
+    fetch("/api/run/od_reading/$broadcast", {method: "POST"}).then(res => {
       if (res.status === 200){
         setOpenSnackbar(true);
       }

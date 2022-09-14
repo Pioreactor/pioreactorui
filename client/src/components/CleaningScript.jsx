@@ -35,7 +35,7 @@ function CycleLiquid(props) {
   const [isClicked, setIsClicked] = React.useState(false)
 
   const onSubmit = () => {
-    fetch("/run/remove_waste/$broadcast", {
+    fetch("/api/run/remove_waste/$broadcast", {
         method: "POST",
         body: JSON.stringify({duration: 90, duty_cycle: 100}),
         headers: {
@@ -43,7 +43,7 @@ function CycleLiquid(props) {
           'Content-Type': 'application/json'
         }
     });
-    fetch("/run/add_media/$broadcast", {
+    fetch("/api/run/add_media/$broadcast", {
         method: "POST",
         body: JSON.stringify({duration: 50, duty_cycle: 55}),
         headers: {
@@ -51,7 +51,7 @@ function CycleLiquid(props) {
           'Content-Type': 'application/json'
         }
     });
-    fetch("/run/add_alt_media/$broadcast", {
+    fetch("/api/run/add_alt_media/$broadcast", {
         method: "POST",
         body: JSON.stringify({duration: 50, duty_cycle: 55}),
         headers: {
@@ -78,7 +78,7 @@ function MediaFlush(props) {
   const [isClicked, setIsClicked] = React.useState(false)
 
   const onSubmit = () => {
-    fetch("/run/remove_waste/$broadcast", {
+    fetch("/api/run/remove_waste/$broadcast", {
         method: "POST",
         body: JSON.stringify({duration: 90, duty_cycle: 100}),
         headers: {
@@ -87,7 +87,7 @@ function MediaFlush(props) {
         }
     })
     if (isAlt){
-      fetch("/run/add_alt_media/$broadcast", {
+      fetch("/api/run/add_alt_media/$broadcast", {
         method: "POST",
         body: JSON.stringify({duration: 50, duty_cycle: 66}),
         headers: {
@@ -96,7 +96,7 @@ function MediaFlush(props) {
         }
     })
     } else {
-      fetch("/run/add_media/$broadcast", {
+      fetch("/api/run/add_media/$broadcast", {
         method: "POST",
         body: JSON.stringify({duration: 50, duty_cycle: 55}),
         headers: {
@@ -123,7 +123,7 @@ function AddFinalVolumeOfMedia(props) {
 
 
   const onSubmit = () => {
-    fetch("/run/add_media/$broadcast", {
+    fetch("/api/run/add_media/$broadcast", {
         method: "POST",
         body: JSON.stringify({ml: 12}),
         headers: {
