@@ -550,5 +550,8 @@ def delete_config():
 def save_new_config():
     return
 
+@app.errorhandler(404)
+def not_found(e):
+    return app.send_static_file('index.html')
 
 ## START SERVER

@@ -70,7 +70,7 @@ function MainSite() {
   React.useEffect(() => {
 
     function getConfig() {
-      fetch("/get_config/config.ini")
+      fetch("/api/get_config/config.ini")
         .then((response) => {
             if (response.ok) {
               return response.text();

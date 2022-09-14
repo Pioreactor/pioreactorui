@@ -17,7 +17,7 @@ function Overview(props) {
   React.useEffect(() => {
     document.title = props.title;
     function getLatestExperiment() {
-        fetch("/get_latest_experiment")
+        fetch("/api/get_latest_experiment")
         .then((response) => {
           return response.json();
         })
@@ -26,7 +26,7 @@ function Overview(props) {
         });
       }
       function getRenameMap() {
-          fetch("/get_current_unit_labels")
+          fetch("/api/get_current_unit_labels")
           .then((response) => {
             return response.json();
           })
