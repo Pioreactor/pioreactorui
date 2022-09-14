@@ -80,7 +80,7 @@ def stop_all():
     result = subprocess.run(["pios", "kill", "--all-jobs", "-y"], capture_output=True)
 
     if result.returncode != 0:
-        publish_to_error_log(result.error, "stop_all")
+        publish_to_error_log(result.stdout, "stop_all")
         publish_to_error_log(result.stderr, "stop_all")
         return Response(500)
 
@@ -100,7 +100,7 @@ def stop_job_on_unit(job, unit):
         result = subprocess.run(["pios", "kill", job, "-y", "--units", unit], capture_output=True)
 
         if result.returncode != 0:
-            publish_to_error_log(result.error, "stop_all")
+            publish_to_error_log(result.stdout, "stop_all")
             publish_to_error_log(result.stderr, "stop_all")
             return Response(500)
 
@@ -126,7 +126,7 @@ def reboot_unit(unit):
     result = subprocess.run(["pios", "reboot", "-y", "--units", unit], capture_output=True)
 
     if result.returncode != 0:
-        publish_to_error_log(result.error, "reboot")
+        publish_to_error_log(result.stdout, "reboot")
         publish_to_error_log(result.stderr, "reboot")
         return Response(500)
 
@@ -350,7 +350,7 @@ def install_plugin():
     result = subprocess.run(["pios", "install-plugin", body["plugin_name"]], capture_output=True)
 
     if result.returncode != 0:
-        publish_to_error_log(result.error, "install_plugin")
+        publish_to_error_log(result.stdout, "install_plugin")
         publish_to_error_log(result.stderr, "install_plugin")
         return Response(500)
 
@@ -604,9 +604,13 @@ def get_list_all_configs():
     try:
         config_path = config["CONFIG_INI_FOLDER"]
 
-        files = glob.glob(config_path + "/*.ini")  # list of strings, where strings rep. paths to ini files
+        list_config_files = []
 
-        return files
+        for file in os.listdir(config_path):
+            if file.endswith(".ini"):
+                list_config_files.append(file)
+
+        return list_config_files
 
     except Exception as e:
         publish_to_error_log(e, "get_list_all_contrib")
@@ -615,7 +619,21 @@ def get_list_all_configs():
 
 @app.route("/api/delete_config", methods=["POST"])
 def delete_config():
-    return
+    """TODO: make this http DELETE"""
+
+    body = request.get_json()
+
+    config_path = os.path.join(config["CONFIG_INI_FOLDER"], body["filename"])  # where is this filename coming from?
+
+    result = subprocess.run(["rm", config_path], capture_output=True)
+
+    if result.returncode != 0:
+        publish_to_error_log(result.stdout, "delete_config")
+        publish_to_error_log(result.stderr, "delete_config")
+        return Response(400)
+
+    else:
+        return Response(200)
 
 
 @app.route("/api/save_new_config", methods=["POST"])
