@@ -548,7 +548,7 @@ def create_experiment():
     try:
         conn.execute(
             "INSERT INTO experiments (created_at, experiment, description, media_used, organism_used) VALUES (?,?,?,?,?)",
-            (body["created_at"], body["experiment"], body["description"], body["media_used"], body["organism_used"]),
+            (body["created_at"], body["experiment"], body.get("description"), body.get("media_used"), body.get("organism_used")),
         )
 
         client.publish("pioreactor/latest_experiment", body["experiment"], qos=2, retain=True)

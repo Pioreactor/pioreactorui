@@ -1,12 +1,20 @@
-# PioreactorUI
+# PioreactorUI backend
 
 
 ### Starting development
 
-run `npm run dev`in both the `client/` and `backend/` folder. Test by going to `localhost:3000` in a browser.
+`python3 -m flask run`. Test by going to `localhost:5000` in a browser.
 
-### Adding to the UI
+### Production
 
+This is behind a lighttp web server on the RPi. See [our lighttp config]().
+
+#### Deployment
+
+??
+
+
+### Contributions
 
 #### Adding an automation
 
