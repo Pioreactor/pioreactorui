@@ -62,7 +62,7 @@ function ChangeAutomationsDialog(props) {
 
   useEffect(() => {
     function fetchAutomations() {
-      fetch("/contrib/automations/" + automationType)
+      fetch("/api/contrib/automations/" + automationType)
         .then((response) => {
             if (response.ok) {
               return response.json();

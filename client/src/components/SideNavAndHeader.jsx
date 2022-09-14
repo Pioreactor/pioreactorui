@@ -70,7 +70,7 @@ export default function SideNavAndHeader() {
 
   React.useEffect(() => {
     async function getCurrentApp() {
-         await fetch("/get_app_version")
+         await fetch("/api/get_app_version")
         .then((response) => {
           return response.text();
         })

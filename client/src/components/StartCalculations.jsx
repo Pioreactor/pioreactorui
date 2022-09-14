@@ -16,7 +16,7 @@ function StartGrowthRate(props){
   const [isClicked, setIsClicked] = React.useState(false);
 
   const onClick = (e) => {
-    fetch("/run/growth_rate_calculating/$broadcast", {method: "POST"}).then(r => {
+    fetch("/api/run/growth_rate_calculating/$broadcast", {method: "POST"}).then(r => {
       setSnackbarMessage("Growth rate calculating starting")
       setOpenSnackbar(true)
       setIsClicked(true)
@@ -59,7 +59,7 @@ function StartCalculations(props){
 
   React.useEffect(() => {
     async function getData() {
-         await fetch("/get_latest_experiment")
+         await fetch("/api/get_latest_experiment")
         .then((response) => {
           return response.json();
         })
