@@ -1,0 +1,33 @@
+---
+display_name: Dosing automation
+job_name: dosing_control
+display: true
+source: app
+description: Start a dosing automation (chemostat, fed-batch, etc.). Learn more about <a href="https://docs.pioreactor.com/user-guide/dosing-automations">dosing automations</a>.
+subtext: automation_name
+published_settings:
+  - key: duration
+    unit: min
+    label: Time between dosing
+    type: numeric
+    default: null
+    display: true
+    description: Change how long to wait between dilutions. Typically between 0.5 and 60 minutes. Changing may immediately trigger a dosing event.
+  - key: volume
+    unit: mL
+    label: Volume / dosing
+    type: numeric
+    default: null
+    display: true
+    description: Change the volume per dilution. Typical values are between 0.0mL and 2.0mL.
+  - key: target_od
+    unit: AU
+    label: Target OD
+    type: numeric
+    default: null
+    display: true
+    description: Change the target optical density. Typical values are between 1.0 and 2.5 (arbitrary units)
+  - key: automation_name
+    type: text
+    display: false
+    default: ""

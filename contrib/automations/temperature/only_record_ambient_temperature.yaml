@@ -1,0 +1,5 @@
+---
+display_name: Only record ambient temperature
+automation_name: only_record_ambient_temperature
+description: Apply no heating, only record the ambient temperature.
+fields: []
