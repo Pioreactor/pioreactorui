@@ -18,17 +18,15 @@ from flask import jsonify
 from flask import request
 from flask import Response
 
+import tasks as tasks
 
-## app.js defined constants and variables here with require?
-# require() in nodejs -> loads modules, same as python import
 
+config = dotenv_values(".env")  # a dictionary
 
 app = Flask(__name__)
 
 
 ## CONNECT TO MQTT server / broker
-
-
 client = mqtt.Client()
 client.connect("localhost")
 client.loop_start()
@@ -36,7 +34,6 @@ LOG_TOPIC = f"pioreactor/{socket.gethostname()}/$experiment/logs/ui"
 
 ## UTILS
 
-config = dotenv_values(".env")  # a dictionary
 
 
 def msg_to_JSON(msg, task, level):
@@ -577,7 +574,11 @@ def update_experiment_description():
 
 @app.route("/api/add_new_pioreactor", methods=["POST"])
 def add_new_pioreactor():
-    return
+
+    new_name = request.get_json()['newPioreactorName']
+    tasks.add_new_pioreactor(new_name)
+
+    return Response(200)
 
 
 ## CONFIG CONTROL
