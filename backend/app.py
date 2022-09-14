@@ -376,8 +376,6 @@ def get_automation_contrib(automation_type):
     try:
         automation_path = os.path.join(config["CONTRIB_FOLDER"], "automations", automation_type)
 
-        print(automation_path)
-
         files = glob.glob(automation_path + "/*.y[a]ml")  # list of strings, where strings rep. paths to  yaml files
 
         automations = []  # list of dict
@@ -575,13 +573,32 @@ def add_new_pioreactor():
 
 
 @app.route("/api/get_config/<filename>", methods=["GET"])
-def get_config_of_file():
-    return
+def get_config_of_file(filename):
+
+    try:
+        specific_config_path = os.path.join(config["CONFIG_INI_FOLDER"], filename)
+
+        with open(specific_config_path) as file_stream:
+            return file_stream.read()
+
+    except Exception as e:
+        publish_to_error_log(str(e), "get_config_of_file")
+        return Response(400)
 
 
 @app.route("/api/get_configs", methods=["GET"])
 def get_list_all_configs():
-    return
+    """get a list of all config.ini files in the .pioreactor folder"""
+    try:
+        config_path = config["CONFIG_INI_FOLDER"]
+
+        files = glob.glob(config_path + "/*.ini")  # list of strings, where strings rep. paths to ini files
+
+        return files
+
+    except Exception as e:
+        publish_to_error_log(e, "get_list_all_contrib")
+        return Response(400)
 
 
 @app.route("/api/delete_config", methods=["POST"])
