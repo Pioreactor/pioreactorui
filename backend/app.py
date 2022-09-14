@@ -18,16 +18,11 @@ from flask import jsonify
 from flask import request
 from flask import Response
 
-# test
-# /api
-
-# pre commit config to this directory
-
 
 ## app.js defined constants and variables here with require?
 # require() in nodejs -> loads modules, same as python import
 
-app = Flask(__name__, static_folder='build/static', static_url_path="")
+app = Flask(__name__, static_folder="build/static", static_url_path="")
 
 
 ## CONNECT TO MQTT server / broker
@@ -61,8 +56,7 @@ def publish_to_log(msg, task, level="DEBUG"):
 
 
 def publish_to_error_log(msg, task):
-    print(msg)
-    client.publish(json.dumps(msg), task, "ERROR")
+    publish_to_log(json.dumps(msg), task, "ERROR")
 
 
 def dict_factory(cursor, row):
@@ -381,6 +375,8 @@ def get_automation_contrib(automation_type):
     try:
         automation_path = os.path.join(config["CONTRIB_FOLDER"], "automations", automation_type)
 
+        print(automation_path)
+
         files = glob.glob(automation_path + "/*.y[a]ml")  # list of strings, where strings rep. paths to  yaml files
 
         automations = []  # list of dict
@@ -394,7 +390,7 @@ def get_automation_contrib(automation_type):
         return jsonify(automations)
 
     except Exception as e:
-        publish_to_error_log(e, "get_automation_contrib")
+        publish_to_error_log(str(e), "get_automation_contrib")
         return Response(400)
 
 
@@ -591,8 +587,10 @@ def delete_config():
 def save_new_config():
     return
 
+
 @app.errorhandler(404)
 def not_found(e):
-    return app.send_static_file('index.html')
+    return app.send_static_file("index.html")
+
 
 ## START SERVER
