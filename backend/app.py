@@ -598,6 +598,9 @@ def save_new_config():
 
 @app.errorhandler(404)
 def not_found(e):
-    return app.send_static_file('index.html')
+    try:
+        return app.send_static_file('index.html')
+    except:
+        return 'Not found! Missing index.html?', 404
 
 ## START SERVER
