@@ -328,7 +328,7 @@ function ButtonStopProcess() {
       cancellationButtonProps: {color: "secondary"},
 
       }).then(() =>
-        fetch("/stop_all", {method: "POST"})
+        fetch("/api/stop_all", {method: "POST"})
     )
   };
 
@@ -559,7 +559,7 @@ function CalibrateDialog(props) {
 
   function startPioreactorJob(job){
     return function() {
-      fetch("/run/" + job + "/" + props.unit, {method: "POST"})
+      fetch("/api/run/" + job + "/" + props.unit, {method: "POST"})
     }
   }
 
@@ -713,7 +713,7 @@ function SelfTestDialog(props) {
 
   function startPioreactorJob(job){
     return function() {
-      fetch("/run/" + job + "/" + props.unit, {method: "POST"})
+      fetch("/api/run/" + job + "/" + props.unit, {method: "POST"})
     }
   }
 
@@ -938,21 +938,21 @@ function SettingsActionsDialog(props) {
 
   function startPioreactorJob(job){
     return function() {
-      fetch("/run/" + job + "/" + props.unit, {method: "POST"})
+      fetch("/api/run/" + job + "/" + props.unit, {method: "POST"})
     }
   }
 
   function rebootRaspberryPi(){
     return function() {
       setRebooting(true)
-      fetch("/reboot/" + props.unit, {method: "POST"})
+      fetch("/api/reboot/" + props.unit, {method: "POST"})
     }
   }
 
   function stopPioreactorJob(job){
     return function() {
       setPioreactorJobAttr(`${job}/$state`, "disconnected")
-      //fetch("/stop/" + job + "/" + props.unit, {method: "POST"}).then(res => {})
+      //fetch("/api/stop/" + job + "/" + props.unit, {method: "POST"}).then(res => {})
     }
   }
 
@@ -979,7 +979,7 @@ function SettingsActionsDialog(props) {
     return function(e) {
       if ((e.key === "Enter") && (e.target.value)) {
         setPioreactorJobAttr(e.target.id, e.target.value);
-        setSnackbarMessage(`Updating to ${e.target.value} ${ !measurementUnit ? measurementUnit  : ''}.`)
+        setSnackbarMessage(`Updating to ${e.target.value}${ !measurementUnit ? '.' : ' ' + measurementUnit + '.' }`)
         setSnackbarOpen(true)
       }
     }
@@ -1581,7 +1581,7 @@ function SettingsActionsDialogAll({config, experiment}) {
 
   useEffect(() => {
     function fetchContribBackgroundJobs() {
-      fetch("/contrib/jobs")
+      fetch("/api/contrib/jobs")
         .then((response) => {
             if (response.ok) {
               return response.json();
@@ -1668,7 +1668,7 @@ function SettingsActionsDialogAll({config, experiment}) {
     return function() {
       setSnackbarMessage(`Starting ${job.metadata.display_name.toLowerCase()} on all active Pioreactors`)
       setSnackbarOpen(true)
-      fetch("/run/" + job.metadata.key + "/" + unit, {method: "POST"})
+      fetch("/api/run/" + job.metadata.key + "/" + unit, {method: "POST"})
     }
   }
 
@@ -2042,7 +2042,7 @@ function ActiveUnits(props){
     React.useEffect(() => {
 
       function getRelabelMap() {
-          fetch("/get_current_unit_labels")
+          fetch("/api/get_current_unit_labels")
           .then((response) => {
             return response.json();
           })
@@ -2152,7 +2152,7 @@ function PioreactorCard(props){
 
   useEffect(() => {
     function fetchContribBackgroundJobs() {
-      fetch("/contrib/jobs")
+      fetch("/api/contrib/jobs")
         .then((response) => {
             if (response.ok) {
               return response.json();
@@ -2447,7 +2447,7 @@ function Pioreactors({title, config}) {
       document.title = title;
 
       function getLatestExperiment() {
-          fetch("/get_latest_experiment")
+          fetch("/api/get_latest_experiment")
           .then((response) => {
             return response.json();
           })

@@ -14,7 +14,7 @@ function TactileButtonNotification(props) {
   React.useEffect(() => {
 
     function getRelabelMap() {
-        fetch("/get_current_unit_labels")
+        fetch("/api/get_current_unit_labels")
         .then((response) => {
           return response.json();
         })

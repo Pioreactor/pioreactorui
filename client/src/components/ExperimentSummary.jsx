@@ -158,7 +158,7 @@ const ButtonEndExperiment = () =>{
       cancellationButtonProps: {color: "secondary"},
 
       }).then(() =>
-        fetch("/stop_all", {method: "POST"})
+        fetch("/api/stop_all", {method: "POST"})
     )
   };
 

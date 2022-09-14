@@ -1,10 +1,11 @@
-from flask import Flask, request, jsonify
+import subprocess
+from flask import Flask, request, jsonify, send_from_directory, redirect, Response
 import sqlite3
 
 ## app.js defined constants and variables here with require? 
 # require() in nodejs -> loads modules, same as python import 
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder='build/static', static_url_path="")
 
 ## CONNECT TO MQTT? 
 # var client  = mqtt.connect('mqtt://localhost:1883')
@@ -19,7 +20,7 @@ def dict_factory(cursor, row):
 
 def get_db_connection():
     if app.debug:
-        conn = sqlite3.connect('test.sqlite')
+        conn = sqlite3.connect('pioreactor.sqlite')
     else:
         conn = sqlite3.connect('/home/pioreactor/.pioreactor/storage/pioreactor.sqlite')
     conn.row_factory = dict_factory
@@ -37,63 +38,48 @@ def redirect_to_overview():
 @app.route('/overview', methods = ['GET'])
 def overview():
     '''Displays experiment information'''
-    return 
+    return send_from_directory("build/", 'index.html')
     
 @app.route('/export-data', methods = ['GET'])
 def export_data():
     '''Access old experiment data, available for export'''
-    return render_template('index.html')
+    return send_from_directory("build/", 'index.html')
     
 @app.route('/start-new-experiment', methods = ['GET'])
 def start_new_experiment():
     '''Create a new experiment.'''
-    return 
+    return send_from_directory("build/", 'index.html')
     
 @app.route('/plugins', methods = ['GET'])
 def plugins():
     '''Shows list of community plugins, available for installation.'''
-    return 
+    return send_from_directory("build/", 'index.html')
     
 @app.route('/analysis', methods = ['GET'])
 def analysis():
     '''Displays data of previous experiments.'''
-    return 
+    return send_from_directory("build/", 'index.html')
     
 @app.route('/feedback', methods = ['GET'])
 def feedback():
     '''Submit feedback.'''
-    if request.method == "POST":
-        body = request.get_json()
-        
-        # 1. check if all required fields are filled (email, what went wrong)
-        
-        # 2. are we posting to database or just sending an email lol 
-        
-    return 
+    return send_from_directory("build/", 'index.html')
     
 @app.route('/config', methods = ['GET'])
 def config():
-    return 
+    return send_from_directory("build/", 'index.html')
     
 @app.route('/pioreactors', methods = ['GET'])
 def pioreactors():
-    return 
+    return send_from_directory("build/", 'index.html')
 
-
-## not active
-
-
-@app.route('/pioreactors/<unit>', methods = ['GET'])
-def pioreactors_unit():
-    return 
-    
 @app.route('/updates', methods = ['GET'])
 def updates():
-    return 
+    return send_from_directory("build/", 'index.html')
     
 @app.route('/calibrations', methods = ['GET'])
 def calibrations():
-    return 
+    return send_from_directory("build/", 'index.html')
     
 ## PIOREACTOR CONTROL
 
@@ -113,9 +99,17 @@ def run_job_on_unit():
     return 
     
 @app.route('/reboot/<unit>', methods = ['POST'])
-def reboot_unit():
+def reboot_unit(unit):
     '''Reboots unit'''
-    return 
+
+    result = subprocess.run(["pios", "reboot", "-y", "--units", unit], capture_output=True)
+
+    if result.returncode == 0:
+        return Response(200)
+    else:
+        print(result.stdout)
+        print(result.stderr)
+        return Response(500)
 
     
 ## DATA FOR CARDS ON OVERVIEW 
