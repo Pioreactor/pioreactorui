@@ -16,7 +16,10 @@ from dotenv import dotenv_values
 from flask import Flask
 from flask import jsonify
 from flask import request
+from flask import make_response
 from flask import Response
+from flask import g
+
 
 import tasks as tasks
 
@@ -32,10 +35,9 @@ client.connect("localhost")
 client.loop_start()
 LOG_TOPIC = f"pioreactor/{socket.gethostname()}/$experiment/logs/ui"
 
+
+
 ## UTILS
-
-
-
 def msg_to_JSON(msg, task, level):
     return json.dumps(
         {
@@ -57,18 +59,30 @@ def publish_to_error_log(msg, task):
     publish_to_log(json.dumps(msg), task, "ERROR")
 
 
-def dict_factory(cursor, row):
-    col_names = [col[0] for col in cursor.description]
-    return {key: value for key, value in zip(col_names, row)}
+def _make_dicts(cursor, row):
+    return dict((cursor.description[idx][0], value)
+                for idx, value in enumerate(row))
 
+def _get_db_connection():
+    db = getattr(g, '_database', None)
+    if db is None:
+        db = g._database = sqlite3.connect(config['DB_LOCATION'])
+        db.row_factory = _make_dicts
 
-def get_db_connection():
-    if app.debug:
-        conn = sqlite3.connect("pioreactor.sqlite")
-    else:
-        conn = sqlite3.connect("/home/pioreactor/.pioreactor/storage/pioreactor.sqlite")
-    conn.row_factory = dict_factory
-    return conn
+    return db
+
+def query_db(query, args=(), one=False):
+    cur = _get_db_connection().execute(query, args)
+    rv = cur.fetchall()
+    cur.close()
+    return (rv[0] if rv else None) if one else rv
+
+def insert_into_db(query, args=()):
+    con = _get_db_connection()
+    cur = con.cursor()
+    cur.execute(query, args)
+    con.commit()
+    return
 
 
 ## PIOREACTOR CONTROL
@@ -156,16 +170,12 @@ def recent_logs():
     else:
         level_string = '(level == "ERROR" or level == "NOTICE" or level == "INFO" or level == "WARNING")'
 
-    conn = get_db_connection()
-
     try:
-        recent_logs = conn.execute(
+        recent_logs = query_db(
             f"SELECT l.timestamp, level=='ERROR'as is_error, level=='WARNING' as is_warning, level=='NOTICE' as is_notice, l.pioreactor_unit, message, task FROM logs AS l LEFT JOIN latest_experiment AS le ON (le.experiment = l.experiment OR l.experiment=?) WHERE {level_string} AND l.timestamp >= MAX(strftime('%Y-%m-%dT%H:%M:%S', datetime('now', '-24 hours')), le.created_at) ORDER BY l.timestamp DESC LIMIT 50;",
-            ("'$experiment'",),
-        ).fetchall()
-
+            ("'$experiment'",))
     except Exception as e:
-        publish_to_error_log(e, "recent_logs")
+        publish_to_error_log(str(e), "recent_logs")
         return Response(500)
 
     return jsonify(recent_logs)
@@ -177,16 +187,13 @@ def growth_rates(experiment):
     args = request.args
     filter_mod_n = args.get("filter_mod_n", 100)
 
-    conn = get_db_connection()
-
     try:
-        growth_rates = conn.execute(
+        growth_rates = query_db(
             "SELECT json_object('series', json_group_array(unit), 'data', json_group_array(json(data))) as result FROM (SELECT pioreactor_unit as unit, json_group_array(json_object('x', timestamp, 'y', round(rate, 5))) as data FROM growth_rates WHERE experiment=? AND ((ROWID * 0.61803398875) - cast(ROWID * 0.61803398875 as int) < 1.0/?) GROUP BY 1);",
-            (experiment, filter_mod_n),
-        ).fetchone()
+            (experiment, filter_mod_n), one=True)
 
     except Exception as e:
-        publish_to_error_log(e, "growth_rates")
+        publish_to_error_log(str(e), "growth_rates")
         return Response(400)
 
     return growth_rates["result"]
@@ -198,16 +205,13 @@ def temperature_readings(experiment):
     args = request.args
     filter_mod_n = args.get("filter_mod_n", 100)
 
-    conn = get_db_connection()
-
     try:
-        temperature_readings = conn.execute(
+        temperature_readings = query_db(
             "SELECT json_object('series', json_group_array(unit), 'data', json_group_array(json(data))) as result FROM (SELECT pioreactor_unit as unit, json_group_array(json_object('x', timestamp, 'y', round(temperature_c, 2))) as data FROM temperature_readings WHERE experiment=? AND ((ROWID * 0.61803398875) - cast(ROWID * 0.61803398875 as int) < 1.0/?) GROUP BY 1);",
-            (experiment, filter_mod_n),
-        ).fetchone()
+            (experiment, filter_mod_n), one=True)
 
     except Exception as e:
-        publish_to_error_log(e, "temperature_readings")
+        publish_to_error_log(str(e), "temperature_readings")
         return Response(400)
 
     return temperature_readings["result"]
@@ -220,16 +224,13 @@ def od_readings_filtered(experiment):
     filter_mod_n = args.get("filter_mod_n", 100)
     lookback = float(args.get("lookback", 4))
 
-    conn = get_db_connection()
-
     try:
-        filtered_od_readings = conn.execute(
+        filtered_od_readings = query_db(
             "SELECT json_object('series', json_group_array(unit), 'data', json_group_array(json(data))) as result FROM (SELECT pioreactor_unit as unit, json_group_array(json_object('x', timestamp, 'y', round(normalized_od_reading, 7))) as data FROM od_readings_filtered WHERE experiment=? AND ((ROWID * 0.61803398875) - cast(ROWID * 0.61803398875 as int) < 1.0/?) AND timestamp > strftime('%Y-%m-%dT%H:%M:%S', datetime('now',?)) GROUP BY 1);",
-            (experiment, filter_mod_n, f"-{lookback} hours"),
-        ).fetchone()
+            (experiment, filter_mod_n, f"-{lookback} hours"), one=True)
 
     except Exception as e:
-        publish_to_error_log(e, "od_readings_filtered")
+        publish_to_error_log(str(e), "od_readings_filtered")
         return Response(400)
 
     return filtered_od_readings["result"]
@@ -242,16 +243,13 @@ def od_readings(experiment):
     filter_mod_n = args.get("filter_mod_n", 100)
     lookback = float(args.get("lookback", 4))
 
-    conn = get_db_connection()
-
     try:
-        raw_od_readings = conn.execute(
+        raw_od_readings = query_db(
             "SELECT json_object('series', json_group_array(unit), 'data', json_group_array(json(data))) as result FROM (SELECT pioreactor_unit || '-' || channel as unit, json_group_array(json_object('x', timestamp, 'y', round(od_reading, 7))) as data FROM od_readings WHERE experiment=? AND ((ROWID * 0.61803398875) - cast(ROWID * 0.61803398875 as int) < 1.0/?) and timestamp > strftime('%Y-%m-%dT%H:%M:%S', datetime('now', ?)) GROUP BY 1);",
-            (experiment, filter_mod_n, f"-{lookback} hours"),
-        ).fetchone()
+            (experiment, filter_mod_n, f"-{lookback} hours"), one=True)
 
     except Exception as e:
-        publish_to_error_log(e, "od_readings")
+        publish_to_error_log(str(e), "od_readings")
         return Response(400)
 
     return raw_od_readings["result"]
@@ -261,16 +259,13 @@ def od_readings(experiment):
 def alt_media_fraction(experiment):
     """unsure..."""
 
-    conn = get_db_connection()
-
     try:
-        alt_media_fraction_ = conn.execute(
+        alt_media_fraction_ = query_db(
             "SELECT json_object('series', json_group_array(unit), 'data', json_group_array(json(data))) as result FROM (SELECT pioreactor_unit as unit, json_group_array(json_object('x', timestamp, 'y', round(alt_media_fraction, 7))) as data FROM alt_media_fractions WHERE experiment=? GROUP BY 1);",
-            (experiment,),
-        ).fetchone()
+            (experiment,), one=True)
 
     except Exception as e:
-        publish_to_error_log(e, "alt_media_fractions")
+        publish_to_error_log(str(e), "alt_media_fractions")
         return Response(400)
 
     return alt_media_fraction_["result"]
@@ -282,13 +277,11 @@ def recent_media_rates():
     ## this one confusing
     hours = 3
 
-    conn = get_db_connection()
-
     try:
-        rows = conn.execute(
+        rows = query_db(
             "SELECT d.pioreactor_unit, SUM(CASE WHEN event='add_media' THEN volume_change_ml ELSE 0 END) / ? AS media_rate, SUM(CASE WHEN event='add_alt_media' THEN volume_change_ml ELSE 0 END) / ? AS alt_media_rate FROM dosing_events AS d JOIN latest_experiment USING (experiment) WHERE datetime(d.timestamp) >= datetime('now', '-? hours') AND event IN ('add_alt_media', 'add_media') AND source_of_event LIKE 'dosing_automation%' GROUP BY d.pioreactor_unit;",
             (hours, hours),
-        ).fetchall()
+        )
 
         json_result = {}
         aggregate = {"altMediaRate": 0.0, "mediaRate": 0.0}
@@ -300,7 +293,7 @@ def recent_media_rates():
         json_result["all"] = aggregate
         return jsonify(json_result)
     except Exception as e:
-        publish_to_error_log(e, "recent_media_rates")
+        publish_to_error_log(str(e), "recent_media_rates")
         return Response(400)
 
 
@@ -311,15 +304,13 @@ def recent_media_rates():
 @app.route("/api/calibrations/<pioreactor_unit>/<calibration_type>", methods=["GET"])
 def get_unit_calibrations(pioreactor_unit, calibration_type):
 
-    conn = get_db_connection()
-
     try:
-        unit_calibration = conn.execute(
+        unit_calibration = query_db(
             "SELECT * FROM calibrations WHERE type=? AND pioreactor_unit=?", (calibration_type, pioreactor_unit)
-        ).fetchall()
+        )
 
     except Exception as e:
-        publish_to_error_log(e, "get_unit_calibrations")
+        publish_to_error_log(str(e), "get_unit_calibrations")
         return Response(400)
 
     return jsonify(unit_calibration)
@@ -416,13 +407,14 @@ def get_job_contrib():
         return jsonify(jobs)
 
     except Exception as e:
-        publish_to_error_log(e, "get_job_contrib")
+        publish_to_error_log(str(e), "get_job_contrib")
         return Response(400)
 
 
 @app.route("/api/update_app", methods=["POST"])
 def update_app():
-    return
+    tasks.update_app()
+    return 200
 
 
 @app.route("/api/get_app_version", methods=["GET"])
@@ -442,14 +434,13 @@ def export_datasets():
 
 @app.route("/api/get_experiments", methods=["GET"])
 def get_experiments():
-    conn = get_db_connection()
     try:
-        experiments = conn.execute(
+        experiments = query_db(
             "SELECT experiment, created_at, description FROM experiments ORDER BY created_at DESC;"
-        ).fetchall()
+        )
 
     except Exception as e:
-        publish_to_error_log(e, "get_experiments")
+        publish_to_error_log(str(e), "get_experiments")
         return Response(400)
 
     return jsonify(experiments)
@@ -457,14 +448,13 @@ def get_experiments():
 
 @app.route("/api/get_latest_experiment", methods=["GET"])
 def get_latest_experiment():
-    conn = get_db_connection()
     try:
-        latest_experiment = conn.execute(
+        latest_experiment = query_db(
             "SELECT experiment, created_at, description, media_used, organism_used, delta_hours FROM latest_experiment"
-        ).fetchone()
+        , one=True)
 
     except Exception as e:
-        publish_to_error_log(e, "get_latest_experiment")
+        publish_to_error_log(str(e), "get_latest_experiment")
         return Response(400)
 
     return jsonify(latest_experiment)
@@ -472,18 +462,17 @@ def get_latest_experiment():
 
 @app.route("/api/get_current_unit_labels", methods=["GET"])
 def get_current_unit_labels():
-    conn = get_db_connection()
     try:
-        current_unit_labels = conn.execute(
+        current_unit_labels = query_db(
             "SELECT r.pioreactor_unit as unit, r.label FROM pioreactor_unit_labels AS r JOIN latest_experiment USING (experiment);"
-        ).fetchall()
+        )
 
         keyed_by_unit = {d['unit']: d['label'] for d in current_unit_labels}
 
         return jsonify(keyed_by_unit)
 
     except Exception as e:
-        publish_to_error_log(e, "get_current_unit_labels")
+        publish_to_error_log(str(e), "get_current_unit_labels")
         return Response(400)
 
 
@@ -496,36 +485,34 @@ def update_current_unit_labels():
     unit = body["unit"]
     label = body["label"]
 
-    conn = get_db_connection()
-
-    latest_experiment_dict = conn.execute("SELECT experiment FROM latest_experiment").fetchone()
+    latest_experiment_dict = query_db("SELECT experiment FROM latest_experiment", one=True)
 
     latest_experiment = latest_experiment_dict["experiment"]
 
     try:
-        conn.execute(
-            "INSERT OR REPLACE INTO pioreactor_unit_labels (label, experiment, pioreactor_unit, created_at) VALUES ((?), (?), (?), strftime('%Y-%m-%dT%H:%M:%S', datetime('now')) ) ON CONFLICT(experiment, pioreactor_unit) DO UPDATE SET label=excluded.label, created_at=strftime('%Y-%m-%dT%H:%M:%S', datetime('now'))"
+        insert_into_db(
+            "INSERT OR REPLACE INTO pioreactor_unit_labels (label, experiment, pioreactor_unit, created_at) VALUES ((?), (?), (?), strftime('%Y-%m-%dT%H:%M:%S', datetime('now')) ) ON CONFLICT(experiment, pioreactor_unit) DO UPDATE SET label=excluded.label, created_at=strftime('%Y-%m-%dT%H:%M:%S', datetime('now'))",
+            (label, latest_experiment, unit)
         )
 
     except Exception as e:
-        publish_to_error_log(e, "update_current_unit_labels")
+        publish_to_error_log(str(e), "update_current_unit_labels")
         return Response(400)
 
-    client.publish(f"pioreactor/{unit}/{latest_experiment}/unit_label", label, retain=True)
+    # client.publish(f"pioreactor/{unit}/{latest_experiment}/unit_label", label, retain=True)
 
     return Response(200)
 
 
 @app.route("/api/get_historical_organisms_used", methods=["GET"])
 def get_historical_organisms_used():
-    conn = get_db_connection()
     try:
-        historical_organisms = conn.execute(
+        historical_organisms = query_db(
             'SELECT DISTINCT organism_used as key FROM experiments WHERE NOT (organism_used IS NULL OR organism_used == "") ORDER BY created_at DESC;'
-        ).fetchall()
+        )
 
     except Exception as e:
-        publish_to_error_log(e, "get_historical_organisms_used_used")
+        publish_to_error_log(str(e), "get_historical_organisms_used_used")
         return Response(400)
 
     return jsonify(historical_organisms)
@@ -533,14 +520,13 @@ def get_historical_organisms_used():
 
 @app.route("/api/get_historical_media_used", methods=["GET"])
 def get_historical_media_used():
-    conn = get_db_connection()
     try:
-        historical_media = conn.execute(
+        historical_media = query_db(
             'SELECT DISTINCT media_used as key FROM experiments WHERE NOT (media_used IS NULL OR media_used == "") ORDER BY created_at DESC;'
-        ).fetchall()
+        )
 
     except Exception as e:
-        publish_to_error_log(e, "get_historical_organisms_used_used")
+        publish_to_error_log(str(e), "get_historical_organisms_used_used")
         return Response(400)
 
     return jsonify(historical_media)
@@ -551,10 +537,8 @@ def create_experiment():
 
     body = request.get_json()
 
-    conn = get_db_connection()
-
     try:
-        conn.execute(
+        insert_into_db(
             "INSERT INTO experiments (created_at, experiment, description, media_used, organism_used) VALUES (?,?,?,?,?)",
             (body["created_at"], body["experiment"], body.get("description"), body.get("media_used"), body.get("organism_used")),
         )
@@ -563,7 +547,7 @@ def create_experiment():
         return Response(200)
 
     except sqlite3.IntegrityError as e:
-        publish_to_error_log(e, "create_experiment")
+        publish_to_error_log(str(e), "create_experiment")
         return Response(400)
 
 
@@ -576,9 +560,17 @@ def update_experiment_description():
 def add_new_pioreactor():
 
     new_name = request.get_json()['newPioreactorName']
-    tasks.add_new_pioreactor(new_name)
+    result = tasks.add_new_pioreactor(new_name)
 
-    return Response(200)
+    try:
+        status, msg = result(blocking=True, timeout=30)
+    except:
+        status, msg = False, "Timed out"
+
+    if status:
+        return Response(200)
+    else:
+        return {'msg': msg}, 500
 
 
 ## CONFIG CONTROL
@@ -613,7 +605,7 @@ def get_list_all_configs():
         return list_config_files
 
     except Exception as e:
-        publish_to_error_log(e, "get_list_all_contrib")
+        publish_to_error_log(str(e), "get_list_all_contrib")
         return Response(400)
 
 
@@ -648,5 +640,11 @@ def not_found(e):
     except Exception:
         return "Not found! Missing index.html?", 404
 
+
+@app.teardown_appcontext
+def close_connection(exception):
+    db = getattr(g, '_database', None)
+    if db is not None:
+        db.close()
 
 ## START SERVER
