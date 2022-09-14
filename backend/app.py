@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 from __future__ import annotations
 
+import glob
 import json
+import os
 import socket
 import sqlite3
 import subprocess
@@ -9,6 +11,8 @@ from datetime import datetime
 from datetime import timezone
 
 import paho.mqtt.client as mqtt
+import yaml  # type: ignore
+from dotenv import dotenv_values
 from flask import Flask
 from flask import jsonify
 from flask import request
@@ -35,6 +39,8 @@ client.loop_start()
 LOG_TOPIC = f"pioreactor/{socket.gethostname()}/$experiment/logs/ui"
 
 ## UTILS
+
+config = dotenv_values(".env")  # a dictionary
 
 
 def msg_to_JSON(msg, task, level):
@@ -369,14 +375,49 @@ def uninstall_plugin():
 ## MISC
 
 
-@app.route("/api/contrib/automations/<type>", methods=["GET"])
-def something_():
-    return
+@app.route("/api/contrib/automations/<automation_type>", methods=["GET"])
+def get_automation_contrib(automation_type):
+
+    try:
+        automation_path = os.path.join(config["CONTRIB_FOLDER"], "automations", automation_type)
+
+        files = glob.glob(automation_path + "/*.y[a]ml")  # list of strings, where strings rep. paths to  yaml files
+
+        automations = []  # list of dict
+
+        for file in files:
+            with open(file) as file_stream:
+                automations.append(
+                    yaml.safe_load(file_stream.read())
+                )  # read returns string, safe_load converts to python object == dict
+
+        return jsonify(automations)
+
+    except Exception as e:
+        publish_to_error_log(e, "get_automation_contrib")
+        return Response(400)
 
 
 @app.route("/api/contrib/jobs", methods=["GET"])
-def something__():
-    return
+def get_job_contrib():
+    try:
+        job_path = os.path.join(config["CONTRIB_FOLDER"], "jobs")
+
+        files = glob.glob(job_path + "/*.y[a]ml")  # list of strings, where strings rep. paths to  yaml files
+
+        jobs = []  # list of dict
+
+        for file in files:
+            with open(file) as file_stream:
+                jobs.append(
+                    yaml.safe_load(file_stream.read())
+                )  # read returns string, safe_load converts to python object == dict
+
+        return jsonify(jobs)
+
+    except Exception as e:
+        publish_to_error_log(e, "get_job_contrib")
+        return Response(400)
 
 
 @app.route("/api/update_app", methods=["POST"])
