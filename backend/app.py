@@ -1,18 +1,27 @@
-from flask import Flask, request, jsonify, Response
-import sqlite3
-import subprocess 
-import paho.mqtt.client as mqtt
-import logging
+# -*- coding: utf-8 -*-
+from __future__ import annotations
+
+import json
 import socket
-from datetime import datetime, timezone
+import sqlite3
+import subprocess
+from datetime import datetime
+from datetime import timezone
 
-# /api 
+import paho.mqtt.client as mqtt
+from flask import Flask
+from flask import jsonify
+from flask import request
+from flask import Response
 
-# pre commit config to this directory 
+# test
+# /api
+
+# pre commit config to this directory
 
 
-## app.js defined constants and variables here with require? 
-# require() in nodejs -> loads modules, same as python import 
+## app.js defined constants and variables here with require?
+# require() in nodejs -> loads modules, same as python import
 
 app = Flask(__name__)
 
@@ -21,32 +30,45 @@ app = Flask(__name__)
 
 
 client = mqtt.Client()
-client.connect('mqtt://localhost:1883')
+client.connect("mqtt://localhost:1883")
 client.loop_start()
-LOG_TOPIC = f'pioreactor/{socket.gethostname()}/$experiment/logs/ui'
+LOG_TOPIC = f"pioreactor/{socket.gethostname()}/$experiment/logs/ui"
 
 ## UTILS
 
+
 def msg_to_JSON(msg, task, level):
-    return json.dump({"message": msg.strip(), "task": task, "source": 'ui', "level": level, "timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")})
+    return json.dumps(
+        {
+            "message": msg.strip(),
+            "task": task,
+            "source": "ui",
+            "level": level,
+            "timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+        }
+    )
+
 
 def publish_to_log(msg, task, level="DEBUG"):
-    print(msg) 
+    print(msg)
     client.publish(LOG_TOPIC, msg_to_JSON(msg, task, level))
+
 
 def publish_to_error_log(msg, task):
     print(msg)
-    client.publish(json.dump(msg), task, "ERROR")
+    client.publish(json.dumps(msg), task, "ERROR")
+
 
 def dict_factory(cursor, row):
     col_names = [col[0] for col in cursor.description]
     return {key: value for key, value in zip(col_names, row)}
 
+
 def get_db_connection():
     if app.debug:
-        conn = sqlite3.connect('test.sqlite')
+        conn = sqlite3.connect("test.sqlite")
     else:
-        conn = sqlite3.connect('/home/pioreactor/.pioreactor/storage/pioreactor.sqlite')
+        conn = sqlite3.connect("/home/pioreactor/.pioreactor/storage/pioreactor.sqlite")
     conn.row_factory = dict_factory
     return conn
 
@@ -54,480 +76,552 @@ def get_db_connection():
 ## ROUTES
 
 
-@app.route('/', methods = ['GET'])
+@app.route("/", methods=["GET"])
 def redirect_to_overview():
     """Redirects to overview page."""
-    return redirect("/overview", code=301)
-    
-@app.route('/overview', methods = ['GET'])
+    return
+
+
+@app.route("/overview", methods=["GET"])
 def overview():
-    '''Displays experiment information'''
-    return 
-    
-@app.route('/export-data', methods = ['GET'])
+    """Displays experiment information"""
+    return
+
+
+@app.route("/export-data", methods=["GET"])
 def export_data():
-    '''Access old experiment data, available for export'''
-    return render_template('index.html')
-    
-@app.route('/start-new-experiment', methods = ['GET'])
+    """Access old experiment data, available for export"""
+    return
+
+
+@app.route("/start-new-experiment", methods=["GET"])
 def start_new_experiment():
-    '''Create a new experiment.'''
-    return 
-    
-@app.route('/plugins', methods = ['GET'])
+    """Create a new experiment."""
+    return
+
+
+@app.route("/plugins", methods=["GET"])
 def plugins():
-    '''Shows list of community plugins, available for installation.'''
-    return 
-    
-@app.route('/analysis', methods = ['GET'])
+    """Shows list of community plugins, available for installation."""
+    return
+
+
+@app.route("/analysis", methods=["GET"])
 def analysis():
-    '''Displays data of previous experiments.'''
-    return 
-    
-@app.route('/feedback', methods = ['GET'])
+    """Displays data of previous experiments."""
+    return
+
+
+@app.route("/feedback", methods=["GET"])
 def feedback():
-    '''Submit feedback.'''
-    if request.method == "POST":
-        body = request.get_json()
-        
-        # 1. check if all required fields are filled (email, what went wrong)
-        
-        # 2. are we posting to database or just sending an email lol 
-        
-    return 
-    
-@app.route('/config', methods = ['GET'])
+    """Submit feedback."""
+    return
+
+
+@app.route("/config", methods=["GET"])
 def config():
-    return 
-    
-@app.route('/pioreactors', methods = ['GET'])
+    return
+
+
+@app.route("/pioreactors", methods=["GET"])
 def pioreactors():
-    return 
+    return
 
 
 ## not active
 
 
-@app.route('/pioreactors/<unit>', methods = ['GET'])
+@app.route("/pioreactors/<unit>", methods=["GET"])
 def pioreactors_unit():
-    return 
-    
-@app.route('/updates', methods = ['GET'])
+    return
+
+
+@app.route("/updates", methods=["GET"])
 def updates():
-    return 
-    
-@app.route('/calibrations', methods = ['GET'])
+    return
+
+
+@app.route("/calibrations", methods=["GET"])
 def calibrations():
-    return 
-    
+    return
+
+
 ## PIOREACTOR CONTROL
 
-@app.route('/stop-all', methods = ['POST'])
+
+@app.route("/stop-all", methods=["POST"])
 def stop_all():
-    '''Kills all jobs'''
+    """Kills all jobs"""
     result = subprocess.run(["pios", "kill", "--all-jobs", "-y"], capture_output=True)
-    
-    if result.returncode != 0: 
-        publish_to_error_log(result.error, 'stop_all')
-        publish_to_error_log(result.stderr, 'stop_all') 
-        return Response(500)
-    
-    return Response(200)
-    
-@app.route('/stop/<job>/<unit>', methods = ['POST'])
-def stop_job_on_unit(job, unit):
-    '''Kills specified job on unit'''
-    
-    jobs_to_kill_over_MQTT = ["add_media", "add_alt_media", "remove_waste"]
-    
-    if job in jobs_to_kill_over_MQTT:
-    client.publish(f'pioreactor/{unit}/$experiment/{job}/$state/set', "disconnected", qos=2)
-    
-    if result.returncode != 0: 
-        publish_to_error_log(result.error, 'stop_all')
-        publish_to_error_log(result.stderr, 'stop_all') 
-        return Response(500)
 
-    return Response(200)
-
-
-@app.route('/run/<job>/<unit>', methods = ['POST'])
-def run_job_on_unit(job, unit):
-    '''Runs specified job on unit'''
-    
-    #client = connection to mqtt server
-    
-    json_string = request.data 
-    
-    client.publish(f'pioreactor/{unit}/$experiment/run/{job}', json_string, qos=2)
-    
-    return Response(200)
-    
-    
-@app.route('/reboot/<unit>', methods = ['POST'])
-def reboot_unit(unit):
-    '''Reboots unit''' #should return a 0 
-    result = subprocess.run(["pios", "reboot", "-y", "--units", unit], capture_output=True)
-    
     if result.returncode != 0:
-        publish_to_error_log(result.error, 'reboot')
-        publish_to_error_log(result.stderr, 'reboot')
+        publish_to_error_log(result.error, "stop_all")
+        publish_to_error_log(result.stderr, "stop_all")
         return Response(500)
-        
+
     return Response(200)
 
-    
-## DATA FOR CARDS ON OVERVIEW 
+
+@app.route("/stop/<job>/<unit>", methods=["POST"])
+def stop_job_on_unit(job, unit):
+    """Kills specified job on unit"""
+
+    jobs_to_kill_over_MQTT = ["add_media", "add_alt_media", "remove_waste"]
+
+    if job in jobs_to_kill_over_MQTT:
+        client.publish(f"pioreactor/{unit}/$experiment/{job}/$state/set", "disconnected", qos=2)
+
+    else:
+        result = subprocess.run(["pios", "kill", job, "-y", "--units", unit], capture_output=True)
+
+        if result.returncode != 0:
+            publish_to_error_log(result.error, "stop_all")
+            publish_to_error_log(result.stderr, "stop_all")
+            return Response(500)
+
+    return Response(200)
 
 
-@app.route('/recent_logs', methods = ['GET'])
+@app.route("/run/<job>/<unit>", methods=["POST"])
+def run_job_on_unit(job, unit):
+    """Runs specified job on unit"""
+
+    # client = connection to mqtt server
+
+    json_string = request.data
+
+    client.publish(f"pioreactor/{unit}/$experiment/run/{job}", json_string, qos=2)
+
+    return Response(200)
+
+
+@app.route("/reboot/<unit>", methods=["POST"])
+def reboot_unit(unit):
+    """Reboots unit"""  # should return a 0
+    result = subprocess.run(["pios", "reboot", "-y", "--units", unit], capture_output=True)
+
+    if result.returncode != 0:
+        publish_to_error_log(result.error, "reboot")
+        publish_to_error_log(result.stderr, "reboot")
+        return Response(500)
+
+    return Response(200)
+
+
+## DATA FOR CARDS ON OVERVIEW
+
+
+@app.route("/recent_logs", methods=["GET"])
 def recent_logs():
-    '''Shows event logs from all units'''
+    """Shows event logs from all units"""
     args = request.args
-    if "min_level" in args: 
+    if "min_level" in args:
         min_level = args["min_level"]
     else:
         min_level = "INFO"
-        
+
     if min_level == "DEBUG":
         level_string = '(level == "ERROR" or level == "WARNING" or level == "NOTICE" or level == "INFO" or level == "DEBUG")'
-    elif (min_level == "INFO"):
+    elif min_level == "INFO":
         level_string = '(level == "ERROR" or level == "NOTICE" or level == "INFO" or level == "WARNING")'
-    elif (min_level == "WARNING"):
+    elif min_level == "WARNING":
         level_string = '(level == "ERROR" or level == "WARNING")'
-    elif (min_level == "ERROR"):
+    elif min_level == "ERROR":
         level_string = '(level == "ERROR")'
     else:
         level_string = '(level == "ERROR" or level == "NOTICE" or level == "INFO" or level == "WARNING")'
-        
+
     conn = get_db_connection()
-    
-    try: 
-        recent_logs = conn.execute(f"SELECT l.timestamp, level=='ERROR'as is_error, level=='WARNING' as is_warning, level=='NOTICE' as is_notice, l.pioreactor_unit, message, task FROM logs AS l LEFT JOIN latest_experiment AS le ON (le.experiment = l.experiment OR l.experiment=?) WHERE {level_string} AND l.timestamp >= MAX(strftime('%Y-%m-%dT%H:%M:%S', datetime('now', '-24 hours')), le.created_at) ORDER BY l.timestamp DESC LIMIT 50;", ("'$experiment'",)).fetchall()
-    
+
+    try:
+        recent_logs = conn.execute(
+            f"SELECT l.timestamp, level=='ERROR'as is_error, level=='WARNING' as is_warning, level=='NOTICE' as is_notice, l.pioreactor_unit, message, task FROM logs AS l LEFT JOIN latest_experiment AS le ON (le.experiment = l.experiment OR l.experiment=?) WHERE {level_string} AND l.timestamp >= MAX(strftime('%Y-%m-%dT%H:%M:%S', datetime('now', '-24 hours')), le.created_at) ORDER BY l.timestamp DESC LIMIT 50;",
+            ("'$experiment'",),
+        ).fetchall()
+
     except Exception as e:
-        publish_to_error_log(e, 'recent_logs')
+        publish_to_error_log(e, "recent_logs")
         return Response(500)
-    
+
     return jsonify(recent_logs)
-    
-@app.route('/time_series/growth_rates/<experiment>', methods = ['GET'])
+
+
+@app.route("/time_series/growth_rates/<experiment>", methods=["GET"])
 def growth_rates(experiment):
-    '''Gets growth rates for all units'''
+    """Gets growth rates for all units"""
     args = request.args
     filter_mod_n = args.get("filter_mod_n", 100)
-    
+
     conn = get_db_connection()
-    
+
     try:
-        growth_rates = conn.execute("SELECT json_object('series', json_group_array(unit), 'data', json_group_array(json(data))) as result FROM (SELECT pioreactor_unit as unit, json_group_array(json_object('x', timestamp, 'y', round(rate, 5))) as data FROM growth_rates WHERE experiment=? AND ((ROWID * 0.61803398875) - cast(ROWID * 0.61803398875 as int) < 1.0/?) GROUP BY 1);", (experiment, filter_mod_n)).fetchone()
+        growth_rates = conn.execute(
+            "SELECT json_object('series', json_group_array(unit), 'data', json_group_array(json(data))) as result FROM (SELECT pioreactor_unit as unit, json_group_array(json_object('x', timestamp, 'y', round(rate, 5))) as data FROM growth_rates WHERE experiment=? AND ((ROWID * 0.61803398875) - cast(ROWID * 0.61803398875 as int) < 1.0/?) GROUP BY 1);",
+            (experiment, filter_mod_n),
+        ).fetchone()
 
     except Exception as e:
-        publish_to_error_log(e, 'growth_rates')
+        publish_to_error_log(e, "growth_rates")
         return Response(400)
 
-    return growth_rates['result']
-    
-@app.route('/time_series/temperature_readings/<experiment>', methods = ['GET'])
+    return growth_rates["result"]
+
+
+@app.route("/time_series/temperature_readings/<experiment>", methods=["GET"])
 def temperature_readings(experiment):
-    '''Gets temperature readings for all units'''
+    """Gets temperature readings for all units"""
     args = request.args
     filter_mod_n = args.get("filter_mod_n", 100)
-    
+
     conn = get_db_connection()
-    
+
     try:
-        temperature_readings = conn.execute("SELECT json_object('series', json_group_array(unit), 'data', json_group_array(json(data))) as result FROM (SELECT pioreactor_unit as unit, json_group_array(json_object('x', timestamp, 'y', round(temperature_c, 2))) as data FROM temperature_readings WHERE experiment=? AND ((ROWID * 0.61803398875) - cast(ROWID * 0.61803398875 as int) < 1.0/?) GROUP BY 1);", (experiment, filter_mod_n)).fetchone()
-        
+        temperature_readings = conn.execute(
+            "SELECT json_object('series', json_group_array(unit), 'data', json_group_array(json(data))) as result FROM (SELECT pioreactor_unit as unit, json_group_array(json_object('x', timestamp, 'y', round(temperature_c, 2))) as data FROM temperature_readings WHERE experiment=? AND ((ROWID * 0.61803398875) - cast(ROWID * 0.61803398875 as int) < 1.0/?) GROUP BY 1);",
+            (experiment, filter_mod_n),
+        ).fetchone()
+
     except Exception as e:
-        publish_to_error_log(e, 'temperature_readings')
+        publish_to_error_log(e, "temperature_readings")
         return Response(400)
 
-    return temperature_readings['result']
-    
-@app.route('/time_series/od_readings_filtered/<experiment>', methods = ['GET'])
+    return temperature_readings["result"]
+
+
+@app.route("/time_series/od_readings_filtered/<experiment>", methods=["GET"])
 def od_readings_filtered(experiment):
-    '''Gets normalized od for all units'''
+    """Gets normalized od for all units"""
     args = request.args
     filter_mod_n = args.get("filter_mod_n", 100)
     lookback = float(args.get("lookback", 4))
-    
+
     conn = get_db_connection()
-    
+
     try:
-        filtered_od_readings = conn.execute(f"SELECT json_object('series', json_group_array(unit), 'data', json_group_array(json(data))) as result FROM (SELECT pioreactor_unit as unit, json_group_array(json_object('x', timestamp, 'y', round(normalized_od_reading, 7))) as data FROM od_readings_filtered WHERE experiment=? AND ((ROWID * 0.61803398875) - cast(ROWID * 0.61803398875 as int) < 1.0/?) AND timestamp > strftime('%Y-%m-%dT%H:%M:%S', datetime('now',?)) GROUP BY 1);", (experiment, filter_mod_n, f"-{lookback} hours")).fetchone()
-        
+        filtered_od_readings = conn.execute(
+            "SELECT json_object('series', json_group_array(unit), 'data', json_group_array(json(data))) as result FROM (SELECT pioreactor_unit as unit, json_group_array(json_object('x', timestamp, 'y', round(normalized_od_reading, 7))) as data FROM od_readings_filtered WHERE experiment=? AND ((ROWID * 0.61803398875) - cast(ROWID * 0.61803398875 as int) < 1.0/?) AND timestamp > strftime('%Y-%m-%dT%H:%M:%S', datetime('now',?)) GROUP BY 1);",
+            (experiment, filter_mod_n, f"-{lookback} hours"),
+        ).fetchone()
+
     except Exception as e:
-        publish_to_error_log(e, 'od_readings_filtered')
+        publish_to_error_log(e, "od_readings_filtered")
         return Response(400)
-        
-    return filtered_od_readings['result']
-    
-@app.route('/time_series/od_readings/<experiment>', methods = ['GET'])
+
+    return filtered_od_readings["result"]
+
+
+@app.route("/time_series/od_readings/<experiment>", methods=["GET"])
 def od_readings(experiment):
-    '''Gets raw od for all units'''
+    """Gets raw od for all units"""
     args = request.args
     filter_mod_n = args.get("filter_mod_n", 100)
-    lookback = float(args.get("lookback", 4)) 
-    
+    lookback = float(args.get("lookback", 4))
+
     conn = get_db_connection()
-    
-    try: 
-        raw_od_readings = conn.execute("SELECT json_object('series', json_group_array(unit), 'data', json_group_array(json(data))) as result FROM (SELECT pioreactor_unit || '-' || channel as unit, json_group_array(json_object('x', timestamp, 'y', round(od_reading, 7))) as data FROM od_readings WHERE experiment=? AND ((ROWID * 0.61803398875) - cast(ROWID * 0.61803398875 as int) < 1.0/?) and timestamp > strftime('%Y-%m-%dT%H:%M:%S', datetime('now', ?)) GROUP BY 1);", (experiment, filter_mod_n, f"-{lookback} hours")).fetchone()
+
+    try:
+        raw_od_readings = conn.execute(
+            "SELECT json_object('series', json_group_array(unit), 'data', json_group_array(json(data))) as result FROM (SELECT pioreactor_unit || '-' || channel as unit, json_group_array(json_object('x', timestamp, 'y', round(od_reading, 7))) as data FROM od_readings WHERE experiment=? AND ((ROWID * 0.61803398875) - cast(ROWID * 0.61803398875 as int) < 1.0/?) and timestamp > strftime('%Y-%m-%dT%H:%M:%S', datetime('now', ?)) GROUP BY 1);",
+            (experiment, filter_mod_n, f"-{lookback} hours"),
+        ).fetchone()
 
     except Exception as e:
-        publish_to_error_log(e, 'od_readings')
+        publish_to_error_log(e, "od_readings")
         return Response(400)
 
-    return raw_od_readings['result']
-    
-@app.route('/time_series/alt_media_fraction/<experiment>', methods = ['GET'])
+    return raw_od_readings["result"]
+
+
+@app.route("/time_series/alt_media_fraction/<experiment>", methods=["GET"])
 def alt_media_fraction(experiment):
-    '''unsure...'''
-    
+    """unsure..."""
+
     conn = get_db_connection()
-    
+
     try:
-        alt_media_fraction_ = conn.execute("SELECT json_object('series', json_group_array(unit), 'data', json_group_array(json(data))) as result FROM (SELECT pioreactor_unit as unit, json_group_array(json_object('x', timestamp, 'y', round(alt_media_fraction, 7))) as data FROM alt_media_fractions WHERE experiment=? GROUP BY 1);", (experiment,)).fetchone()
+        alt_media_fraction_ = conn.execute(
+            "SELECT json_object('series', json_group_array(unit), 'data', json_group_array(json(data))) as result FROM (SELECT pioreactor_unit as unit, json_group_array(json_object('x', timestamp, 'y', round(alt_media_fraction, 7))) as data FROM alt_media_fractions WHERE experiment=? GROUP BY 1);",
+            (experiment,),
+        ).fetchone()
 
     except Exception as e:
-        publish_to_error_log(e, 'alt_media_fractions')
+        publish_to_error_log(e, "alt_media_fractions")
         return Response(400)
 
-    return alt_media_fraction_['result']
-    
-@app.route('/recent_media_rates', methods = ['GET'])
+    return alt_media_fraction_["result"]
+
+
+@app.route("/recent_media_rates", methods=["GET"])
 def recent_media_rates():
-    '''Shows amount of added media per unit'''
-    ## this one confusing 
-    hours = 3 
-    
+    """Shows amount of added media per unit"""
+    ## this one confusing
+    hours = 3
+
     conn = get_db_connection()
-    
+
     try:
-        recent_media_rate = conn.execute("SELECT d.pioreactor_unit, SUM(CASE WHEN event='add_media' THEN volume_change_ml ELSE 0 END) / ? AS media_rate, SUM(CASE WHEN event='add_alt_media' THEN volume_change_ml ELSE 0 END) / ? AS alt_media_rate FROM dosing_events AS d JOIN latest_experiment USING (experiment) WHERE datetime(d.timestamp) >= datetime('now', '-? hours') AND event IN ('add_alt_media', 'add_media') AND source_of_event LIKE 'dosing_automation%' GROUP BY d.pioreactor_unit;", (hours, hours)).fetchone()
+        recent_media_rate = conn.execute(
+            "SELECT d.pioreactor_unit, SUM(CASE WHEN event='add_media' THEN volume_change_ml ELSE 0 END) / ? AS media_rate, SUM(CASE WHEN event='add_alt_media' THEN volume_change_ml ELSE 0 END) / ? AS alt_media_rate FROM dosing_events AS d JOIN latest_experiment USING (experiment) WHERE datetime(d.timestamp) >= datetime('now', '-? hours') AND event IN ('add_alt_media', 'add_media') AND source_of_event LIKE 'dosing_automation%' GROUP BY d.pioreactor_unit;",
+            (hours, hours),
+        ).fetchone()
 
     except Exception as e:
-        publish_to_error_log(e, 'recent_media_rates')
+        publish_to_error_log(e, "recent_media_rates")
         return Response(400)
-    
-    return recent_media_rate['alt_media_rate']
+
+    return recent_media_rate["alt_media_rate"]
 
 
 ## CALIBRATIONS
 
 
-@app.route('/calibrations/<pioreactor_unit>/<calibration_type>', methods = ['GET'])
+@app.route("/calibrations/<pioreactor_unit>/<calibration_type>", methods=["GET"])
 def get_unit_calibrations(pioreactor_unit, calibration_type):
-    
+
     conn = get_db_connection()
-    
+
     try:
-        unit_calibration = conn.execute("SELECT * FROM calibrations WHERE type=? AND pioreactor_unit=?", (calibration_type, pioreactor_unit)).fetchall()
-        
+        unit_calibration = conn.execute(
+            "SELECT * FROM calibrations WHERE type=? AND pioreactor_unit=?", (calibration_type, pioreactor_unit)
+        ).fetchall()
+
     except Exception as e:
-        publish_to_error_log(e, 'get_unit_calibrations')
+        publish_to_error_log(e, "get_unit_calibrations")
         return Response(400)
-        
+
     return jsonify(unit_calibration)
-   
-   
+
+
 ## PLUGINS
 
 
-@app.route('/get_installed_plugins', methods = ['GET'])
+@app.route("/get_installed_plugins", methods=["GET"])
 def list_installed_plugins():
-    
+
     result = subprocess.run(["pio", "list-plugins", "--json"], capture_output=True)
-    
+
     if result.returncode != 0:
-        publish_to_error_log(result.stdout, 'get_installed_plugins')
-        publish_to_error_log(result.stderr, 'get_installed_plugins')
+        publish_to_error_log(result.stdout, "get_installed_plugins")
+        publish_to_error_log(result.stderr, "get_installed_plugins")
         return Response(500)
-        
+
     else:
         return result.stdout
-        
-    
-@app.route('/install_plugins', methods = ['POST'])
+
+
+@app.route("/install_plugins", methods=["POST"])
 def install_plugin():
 
     body = request.get_json()
 
     result = subprocess.run(["pios", "install-plugin", body["plugin_name"]], capture_output=True)
-    
+
     if result.returncode != 0:
-        publish_to_error_log(result.error, 'install_plugin')
-        publish_to_error_log(result.stderr, 'install_plugin')
+        publish_to_error_log(result.error, "install_plugin")
+        publish_to_error_log(result.stderr, "install_plugin")
         return Response(500)
 
     return Response(200)
-    
-@app.route('/uninstall_plugins', methods = ['POST'])
+
+
+@app.route("/uninstall_plugins", methods=["POST"])
 def uninstall_plugin():
-    
-    body = request.get_json() #dictionary of data that the client sends 
-    
+
+    body = request.get_json()  # dictionary of data that the client sends
+
     result = subprocess.run(["pios", "uninstall-plugin", body["plugin_name"]], capture_output=True)
-    
+
     if result.returncode != 0:
-        publish_to_error_log(result.stdout, 'uninstall-plugin')
-        publish_to_error_log(result.stderr, 'uninstall_plugin')
+        publish_to_error_log(result.stdout, "uninstall-plugin")
+        publish_to_error_log(result.stderr, "uninstall_plugin")
         return Response(500)
-    
+
     return Response(200)
-        
-
-    
-
-## MISC 
 
 
-@app.route('/contrib/automations/<type>', methods = ['GET'])
+## MISC
+
+
+@app.route("/contrib/automations/<type>", methods=["GET"])
 def something_():
     return
-    
-@app.route('/contrib/jobs', methods = ['GET'])
+
+
+@app.route("/contrib/jobs", methods=["GET"])
 def something__():
     return
-    
-@app.route('/update_app', methods = ['POST'])
+
+
+@app.route("/update_app", methods=["POST"])
 def update_app():
     return
-    
-@app.route('/get_app_version', methods = ['GET'])
+
+
+@app.route("/get_app_version", methods=["GET"])
 def get_app_version():
     return
-    
-@app.route('/export_datasets', methods = ['POST'])
+
+
+@app.route("/export_datasets", methods=["POST"])
 def export_datasets():
     return
 
-@app.route('/get_experiments', methods = ['GET'])
+
+@app.route("/get_experiments", methods=["GET"])
 def get_experiments():
     conn = get_db_connection()
     try:
-        experiments = conn.execute('SELECT experiment, created_at, description FROM experiments ORDER BY created_at DESC;').fetchall()
+        experiments = conn.execute(
+            "SELECT experiment, created_at, description FROM experiments ORDER BY created_at DESC;"
+        ).fetchall()
 
     except Exception as e:
-        publish_to_error_log(e, 'get_experiments')
+        publish_to_error_log(e, "get_experiments")
         return Response(400)
-        
+
     return jsonify(experiments)
-    
-@app.route('/get_latest_experiment', methods = ['GET'])
+
+
+@app.route("/get_latest_experiment", methods=["GET"])
 def get_latest_experiment():
     conn = get_db_connection()
     try:
-        latest_experiment = conn.execute('SELECT experiment, created_at, description, media_used, organism_used, delta_hours FROM latest_experiment').fetchone()
-        
+        latest_experiment = conn.execute(
+            "SELECT experiment, created_at, description, media_used, organism_used, delta_hours FROM latest_experiment"
+        ).fetchone()
+
     except Exception as e:
-        publish_to_error_log(e, 'get_latest_experiment')
+        publish_to_error_log(e, "get_latest_experiment")
         return Response(400)
 
     return jsonify(latest_experiment)
-    
-@app.route('/get_current_unit_labels', methods = ['GET'])
+
+
+@app.route("/get_current_unit_labels", methods=["GET"])
 def get_current_unit_labels():
     conn = get_db_connection()
     try:
-        current_unit_labels = conn.execute('SELECT r.pioreactor_unit, r.label FROM pioreactor_unit_labels AS r JOIN latest_experiment USING (experiment);').fetchone()
-        
+        current_unit_labels = conn.execute(
+            "SELECT r.pioreactor_unit, r.label FROM pioreactor_unit_labels AS r JOIN latest_experiment USING (experiment);"
+        ).fetchone()
+
     except Exception as e:
-        publish_to_error_log(e, 'get_current_unit_labels')
+        publish_to_error_log(e, "get_current_unit_labels")
         return Response(400)
 
     return jsonify(current_unit_labels)
-    
-@app.route('/update_current_unit_labels', methods = ['POST'])
+
+
+@app.route("/update_current_unit_labels", methods=["POST"])
 def update_current_unit_labels():
 
     body = request.get_json()
-    
+
     unit = body["unit"]
     label = body["label"]
-    
+
     conn = get_db_connection()
+
+    latest_experiment_dict = conn.execute("SELECT experiment FROM latest_experiment").fetchone()
+
+    latest_experiment = latest_experiment_dict["experiment"]
+
     try:
-        update_unit_labels = conn.execute("INSERT OR REPLACE INTO pioreactor_unit_labels (label, experiment, pioreactor_unit, created_at) VALUES ((?), (?), (?), strftime('%Y-%m-%dT%H:%M:%S', datetime('now')) ) ON CONFLICT(experiment, pioreactor_unit) DO UPDATE SET label=excluded.label, created_at=strftime('%Y-%m-%dT%H:%M:%S', datetime('now'))")
-        
+        conn.execute(
+            "INSERT OR REPLACE INTO pioreactor_unit_labels (label, experiment, pioreactor_unit, created_at) VALUES ((?), (?), (?), strftime('%Y-%m-%dT%H:%M:%S', datetime('now')) ) ON CONFLICT(experiment, pioreactor_unit) DO UPDATE SET label=excluded.label, created_at=strftime('%Y-%m-%dT%H:%M:%S', datetime('now'))"
+        )
+
     except Exception as e:
-        publish_to_error_log(e, 'update_current_unit_labels')
+        publish_to_error_log(e, "update_current_unit_labels")
         return Response(400)
-    
-    client.publish(f'pioreactor/{unit}/{latest_experiment}/unit_label', label, (retain= True))
-    
+
+    client.publish(f"pioreactor/{unit}/{latest_experiment}/unit_label", label, retain=True)
+
     return Response(200)
-    
-@app.route('/get_historical_organisms_used', methods = ['GET'])
+
+
+@app.route("/get_historical_organisms_used", methods=["GET"])
 def get_historical_organisms_used():
     conn = get_db_connection()
     try:
-        historical_organisms = conn.execute('SELECT DISTINCT organism_used as key FROM experiments WHERE NOT (organism_used IS NULL OR organism_used == "") ORDER BY created_at DESC;').fetchall()
-        
+        historical_organisms = conn.execute(
+            'SELECT DISTINCT organism_used as key FROM experiments WHERE NOT (organism_used IS NULL OR organism_used == "") ORDER BY created_at DESC;'
+        ).fetchall()
+
     except Exception as e:
-        publish_to_error_log(e, 'get_historical_organisms_used_used')
+        publish_to_error_log(e, "get_historical_organisms_used_used")
         return Response(400)
-        
+
     return jsonify(historical_organisms)
-    
-@app.route('/get_historical_media_used', methods = ['GET'])
+
+
+@app.route("/get_historical_media_used", methods=["GET"])
 def get_historical_media_used():
     conn = get_db_connection()
     try:
-        historical_media = conn.execute('SELECT DISTINCT media_used as key FROM experiments WHERE NOT (media_used IS NULL OR media_used == "") ORDER BY created_at DESC;').fetchall()
-        
+        historical_media = conn.execute(
+            'SELECT DISTINCT media_used as key FROM experiments WHERE NOT (media_used IS NULL OR media_used == "") ORDER BY created_at DESC;'
+        ).fetchall()
+
     except Exception as e:
-        publish_to_error_log(e, 'get_historical_organisms_used_used')
+        publish_to_error_log(e, "get_historical_organisms_used_used")
         return Response(400)
-        
+
     return jsonify(historical_media)
-    
-@app.route('/create_experiment', methods = ['POST'])
+
+
+@app.route("/create_experiment", methods=["POST"])
 def create_experiment():
-    
+
     body = request.get_json()
-    
+
     conn = get_db_connection()
-    
-    try: 
-        conn.execute('INSERT INTO experiments (created_at, experiment, description, media_used, organism_used) VALUES (?,?,?,?,?)', (body['created_at'], body['experiment'], body['description'], body['media_used'], body['organism_used']))
-        
-        client.publish("pioreactor/latest_experiment", body["experiment"], (qos=2, retain=True))
+
+    try:
+        conn.execute(
+            "INSERT INTO experiments (created_at, experiment, description, media_used, organism_used) VALUES (?,?,?,?,?)",
+            (body["created_at"], body["experiment"], body["description"], body["media_used"], body["organism_used"]),
+        )
+
+        client.publish("pioreactor/latest_experiment", body["experiment"], qos=2, retain=True)
         return Response(200)
-    
-    except sqlite3.IntegrityError as e: 
-        publish_to_error_log(e, 'create_experiment')
+
+    except sqlite3.IntegrityError as e:
+        publish_to_error_log(e, "create_experiment")
         return Response(400)
-        
-    
-@app.route('/update_experiment_desc', methods = ['POST'])
+
+
+@app.route("/update_experiment_desc", methods=["POST"])
 def update_experiment_description():
     return
-    
-@app.route('/add_new_pioreactor', methods = ['POST'])
+
+
+@app.route("/add_new_pioreactor", methods=["POST"])
 def add_new_pioreactor():
     return
-    
+
 
 ## CONFIG CONTROL
 
 
-@app.route('/get_config/<filename>', methods = ['GET'])
+@app.route("/get_config/<filename>", methods=["GET"])
 def get_config_of_file():
     return
-    
-@app.route('/get_configs', methods = ['GET'])
+
+
+@app.route("/get_configs", methods=["GET"])
 def get_list_all_configs():
     return
-    
-@app.route('/delete_config', methods = ['POST'])
+
+
+@app.route("/delete_config", methods=["POST"])
 def delete_config():
     return
-    
-@app.route('/save_new_config', methods = ['POST'])
+
+
+@app.route("/save_new_config", methods=["POST"])
 def save_new_config():
     return
-    
-    
+
+
 ## START SERVER
