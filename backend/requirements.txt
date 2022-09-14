@@ -3,3 +3,4 @@ flup6
 python-dotenv
 pyyaml
 paho
+huey

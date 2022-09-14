@@ -337,15 +337,15 @@ def list_installed_plugins():
     result = subprocess.run(["pio", "list-plugins", "--json"], capture_output=True)
 
     if result.returncode != 0:
-        publish_to_error_log(result.stdout, "get_installed_plugins")
-        publish_to_error_log(result.stderr, "get_installed_plugins")
-        return Response(500)
+        publish_to_error_log(str(result.stdout), "get_installed_plugins")
+        publish_to_error_log(str(result.stderr), "get_installed_plugins")
+        return []
 
     else:
         return result.stdout
 
 
-@app.route("/api/install_plugins", methods=["POST"])
+@app.route("/api/install_plugin", methods=["POST"])
 def install_plugin():
 
     body = request.get_json()
@@ -360,7 +360,7 @@ def install_plugin():
     return Response(200)
 
 
-@app.route("/api/uninstall_plugins", methods=["POST"])
+@app.route("/api/uninstall_plugin", methods=["POST"])
 def uninstall_plugin():
 
     body = request.get_json()  # dictionary of data that the client sends
