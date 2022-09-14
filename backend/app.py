@@ -22,7 +22,8 @@ from flask import Response
 ## app.js defined constants and variables here with require?
 # require() in nodejs -> loads modules, same as python import
 
-app = Flask(__name__, static_folder="build/static", static_url_path="")
+
+app = Flask(__name__)
 
 
 ## CONNECT TO MQTT server / broker
@@ -66,7 +67,7 @@ def dict_factory(cursor, row):
 
 def get_db_connection():
     if app.debug:
-        conn = sqlite3.connect("test.sqlite")
+        conn = sqlite3.connect("pioreactor.sqlite")
     else:
         conn = sqlite3.connect("/home/pioreactor/.pioreactor/storage/pioreactor.sqlite")
     conn.row_factory = dict_factory
@@ -423,7 +424,12 @@ def update_app():
 
 @app.route("/api/get_app_version", methods=["GET"])
 def get_app_version():
-    return
+    result = subprocess.run(["python", "-c", "import pioreactor; print(pioreactor.__version__)"], capture_output=True)
+    if result.returncode != 0:
+        publish_to_error_log(result.stdout, "get_app_version")
+        publish_to_error_log(result.stderr, "get_app_version")
+        return Response(500)
+    return result.stdout.strip()
 
 
 @app.route("/api/export_datasets", methods=["POST"])
@@ -590,7 +596,10 @@ def save_new_config():
 
 @app.errorhandler(404)
 def not_found(e):
-    return app.send_static_file("index.html")
+    try:
+        return app.send_static_file("index.html")
+    except Exception:
+        return "Not found! Missing index.html?", 404
 
 
 ## START SERVER
