@@ -1,6 +1,6 @@
-flask
-flup6
-python-dotenv
-pyyaml
+flask==2.2.2
+flup6==1.1.1
+python-dotenv==0.21.0
+# pyyaml
 paho-mqtt==1.6.1
-huey
+huey==2.4.3

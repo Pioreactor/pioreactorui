@@ -1,11 +1,8 @@
 # -*- coding: utf-8 -*-
 from __future__ import annotations
-
 import subprocess
+from app import huey
 
-from huey import SqliteHuey
-
-huey = SqliteHuey()
 
 
 @huey.task()
