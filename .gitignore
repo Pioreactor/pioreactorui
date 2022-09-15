@@ -26,6 +26,7 @@ yarn-error.log*
 *.sqlite
 *.db-shm
 *.db-wal
+*.db
 
 # dbm
 *.pag
