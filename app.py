@@ -129,7 +129,7 @@ def run_job_on_unit(job, unit):
 
     # client = connection to mqtt server
 
-    json_string = request.data
+    json_string = request.body
 
     client.publish(f"pioreactor/{unit}/$experiment/run/{job}", json_string, qos=2)
 
