@@ -11,12 +11,13 @@ import paho.mqtt.client as mqtt
 from dotenv import dotenv_values
 from flask import Flask
 from flask import g
-
+from huey import SqliteHuey
 
 config = dotenv_values(".env")  # a dictionary
 
 app = Flask(__name__)
 
+huey = SqliteHuey(filename="/tmp/huey.db")
 
 ## CONNECT TO MQTT server / broker
 client = mqtt.Client()
@@ -74,3 +75,4 @@ def insert_into_db(insert_smt, args=()):
     con.commit()
     cur.close()
     return
+
