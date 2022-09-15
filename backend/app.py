@@ -67,7 +67,7 @@ def dict_factory(cursor, row):
 
 def get_db_connection():
     if app.debug:
-        conn = sqlite3.connect("pioreactor.sqlite")
+        conn = sqlite3.connect("test.sqlite")
     else:
         conn = sqlite3.connect("/home/pioreactor/.pioreactor/storage/pioreactor.sqlite")
     conn.row_factory = dict_factory
@@ -168,7 +168,7 @@ def recent_logs():
         ).fetchall()
 
     except Exception as e:
-        publish_to_error_log(e, "recent_logs")
+        publish_to_error_log(str(e), "recent_logs")
         return Response(500)
 
     return jsonify(recent_logs)
@@ -189,7 +189,7 @@ def growth_rates(experiment):
         ).fetchone()
 
     except Exception as e:
-        publish_to_error_log(e, "growth_rates")
+        publish_to_error_log(str(e), "growth_rates")
         return Response(400)
 
     return growth_rates["result"]
@@ -210,7 +210,7 @@ def temperature_readings(experiment):
         ).fetchone()
 
     except Exception as e:
-        publish_to_error_log(e, "temperature_readings")
+        publish_to_error_log(str(e), "temperature_readings")
         return Response(400)
 
     return temperature_readings["result"]
@@ -232,7 +232,7 @@ def od_readings_filtered(experiment):
         ).fetchone()
 
     except Exception as e:
-        publish_to_error_log(e, "od_readings_filtered")
+        publish_to_error_log(str(e), "od_readings_filtered")
         return Response(400)
 
     return filtered_od_readings["result"]
@@ -254,7 +254,7 @@ def od_readings(experiment):
         ).fetchone()
 
     except Exception as e:
-        publish_to_error_log(e, "od_readings")
+        publish_to_error_log(str(e), "od_readings")
         return Response(400)
 
     return raw_od_readings["result"]
@@ -262,7 +262,7 @@ def od_readings(experiment):
 
 @app.route("/api/time_series/alt_media_fraction/<experiment>", methods=["GET"])
 def alt_media_fraction(experiment):
-    """unsure..."""
+    """get fraction of alt media added to vial"""
 
     conn = get_db_connection()
 
@@ -273,7 +273,7 @@ def alt_media_fraction(experiment):
         ).fetchone()
 
     except Exception as e:
-        publish_to_error_log(e, "alt_media_fractions")
+        publish_to_error_log(str(e), "alt_media_fractions")
         return Response(400)
 
     return alt_media_fraction_["result"]
@@ -296,16 +296,16 @@ def recent_media_rates():
         json_result = {}
         aggregate = {"altMediaRate": 0.0, "mediaRate": 0.0}
         for row in rows:
-            json_result[row['pioreactor_unit']] = {"alt_media_rate": row['alt_media_rate'], "media_rate": row['media_rate']}
-            aggregate["media_rate"] = aggregate["media_rate"] + row['media_rate']
-            aggregate["alt_media_rate"] = aggregate["alt_media_rate"]+ row['alt_media_rate']
+            json_result[row["pioreactor_unit"]] = {"alt_media_rate": row["alt_media_rate"], "media_rate": row["media_rate"]}
+            aggregate["media_rate"] = aggregate["media_rate"] + row["media_rate"]
+            aggregate["alt_media_rate"] = aggregate["alt_media_rate"] + row["alt_media_rate"]
 
         json_result["all"] = aggregate
         return jsonify(json_result)
-    except Exception as e:
-        publish_to_error_log(e, "recent_media_rates")
-        return Response(400)
 
+    except Exception as e:
+        publish_to_error_log(str(e), "recent_media_rates")
+        return Response(400)
 
 
 ## CALIBRATIONS
@@ -322,7 +322,7 @@ def get_unit_calibrations(pioreactor_unit, calibration_type):
         ).fetchall()
 
     except Exception as e:
-        publish_to_error_log(e, "get_unit_calibrations")
+        publish_to_error_log(str(e), "get_unit_calibrations")
         return Response(400)
 
     return jsonify(unit_calibration)
@@ -380,7 +380,7 @@ def uninstall_plugin():
 
 @app.route("/api/contrib/automations/<automation_type>", methods=["GET"])
 def get_automation_contrib(automation_type):
-
+    """TODO: dosing doesn't do anything..."""
     try:
         automation_path = os.path.join(config["CONTRIB_FOLDER"], "automations", automation_type)
 
@@ -419,7 +419,7 @@ def get_job_contrib():
         return jsonify(jobs)
 
     except Exception as e:
-        publish_to_error_log(e, "get_job_contrib")
+        publish_to_error_log(str(e), "get_job_contrib")
         return Response(400)
 
 
@@ -452,7 +452,7 @@ def get_experiments():
         ).fetchall()
 
     except Exception as e:
-        publish_to_error_log(e, "get_experiments")
+        publish_to_error_log(str(e), "get_experiments")
         return Response(400)
 
     return jsonify(experiments)
@@ -467,7 +467,7 @@ def get_latest_experiment():
         ).fetchone()
 
     except Exception as e:
-        publish_to_error_log(e, "get_latest_experiment")
+        publish_to_error_log(str(e), "get_latest_experiment")
         return Response(400)
 
     return jsonify(latest_experiment)
@@ -481,14 +481,13 @@ def get_current_unit_labels():
             "SELECT r.pioreactor_unit as unit, r.label FROM pioreactor_unit_labels AS r JOIN latest_experiment USING (experiment);"
         ).fetchall()
 
-        keyed_by_unit = {d['unit']: d['label'] for d in current_unit_labels}
+        keyed_by_unit = {d["unit"]: d["label"] for d in current_unit_labels}
 
         return jsonify(keyed_by_unit)
 
     except Exception as e:
-        publish_to_error_log(e, "get_current_unit_labels")
+        publish_to_error_log(str(e), "get_current_unit_labels")
         return Response(400)
-
 
 
 @app.route("/api/update_current_unit_labels", methods=["POST"])
@@ -511,7 +510,7 @@ def update_current_unit_labels():
         )
 
     except Exception as e:
-        publish_to_error_log(e, "update_current_unit_labels")
+        publish_to_error_log(str(e), "update_current_unit_labels")
         return Response(400)
 
     client.publish(f"pioreactor/{unit}/{latest_experiment}/unit_label", label, retain=True)
@@ -528,7 +527,7 @@ def get_historical_organisms_used():
         ).fetchall()
 
     except Exception as e:
-        publish_to_error_log(e, "get_historical_organisms_used_used")
+        publish_to_error_log(str(e), "get_historical_organisms_used_used")
         return Response(400)
 
     return jsonify(historical_organisms)
@@ -543,7 +542,7 @@ def get_historical_media_used():
         ).fetchall()
 
     except Exception as e:
-        publish_to_error_log(e, "get_historical_organisms_used_used")
+        publish_to_error_log(str(e), "get_historical_organisms_used_used")
         return Response(400)
 
     return jsonify(historical_media)
@@ -566,7 +565,7 @@ def create_experiment():
         return Response(200)
 
     except sqlite3.IntegrityError as e:
-        publish_to_error_log(e, "create_experiment")
+        publish_to_error_log(str(e), "create_experiment")
         return Response(400)
 
 
@@ -577,6 +576,7 @@ def update_experiment_description():
 
 @app.route("/api/add_new_pioreactor", methods=["POST"])
 def add_new_pioreactor():
+
     return
 
 
@@ -585,7 +585,7 @@ def add_new_pioreactor():
 
 @app.route("/api/get_config/<filename>", methods=["GET"])
 def get_config_of_file(filename):
-
+    """get a specific config.ini file in the .pioractor folder"""
     try:
         specific_config_path = os.path.join(config["CONFIG_INI_FOLDER"], filename)
 
@@ -612,7 +612,7 @@ def get_list_all_configs():
         return list_config_files
 
     except Exception as e:
-        publish_to_error_log(e, "get_list_all_contrib")
+        publish_to_error_log(str(e), "get_list_all_contrib")
         return Response(400)
 
 
@@ -637,6 +637,7 @@ def delete_config():
 
 @app.route("/api/save_new_config", methods=["POST"])
 def save_new_config():
+    """if the config file is unit specific, we only need to run sync-config on that unit."""
     return
 
 
