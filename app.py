@@ -69,6 +69,14 @@ def _get_db_connection():
         db = g._database = sqlite3.connect(config['DB_LOCATION'])
         db.row_factory = _make_dicts
 
+def get_db_connection():
+    if app.debug:
+        conn = sqlite3.connect("test.sqlite")
+    else:
+        conn = sqlite3.connect("/home/pioreactor/.pioreactor/storage/pioreactor.sqlite")
+    conn.row_factory = dict_factory
+    return conn
+    
     return db
 
 def query_db(query, args=(), one=False):
@@ -84,7 +92,6 @@ def insert_into_db(insert_smt, args=()):
     con.commit()
     cur.close()
     return
-
 
 ## PIOREACTOR CONTROL
 
@@ -258,7 +265,7 @@ def od_readings(experiment):
 
 @app.route("/api/time_series/alt_media_fraction/<experiment>", methods=["GET"])
 def alt_media_fraction(experiment):
-    """unsure..."""
+    """get fraction of alt media added to vial"""
 
     try:
         alt_media_fraction_ = query_db(
@@ -287,16 +294,16 @@ def recent_media_rates():
         json_result = {}
         aggregate = {"altMediaRate": 0.0, "mediaRate": 0.0}
         for row in rows:
-            json_result[row['pioreactor_unit']] = {"alt_media_rate": row['alt_media_rate'], "media_rate": row['media_rate']}
-            aggregate["media_rate"] = aggregate["media_rate"] + row['media_rate']
-            aggregate["alt_media_rate"] = aggregate["alt_media_rate"]+ row['alt_media_rate']
+            json_result[row["pioreactor_unit"]] = {"alt_media_rate": row["alt_media_rate"], "media_rate": row["media_rate"]}
+            aggregate["media_rate"] = aggregate["media_rate"] + row["media_rate"]
+            aggregate["alt_media_rate"] = aggregate["alt_media_rate"] + row["alt_media_rate"]
 
         json_result["all"] = aggregate
         return jsonify(json_result)
+
     except Exception as e:
         publish_to_error_log(str(e), "recent_media_rates")
         return Response(400)
-
 
 
 ## CALIBRATIONS
@@ -369,7 +376,7 @@ def uninstall_plugin():
 
 @app.route("/api/contrib/automations/<automation_type>", methods=["GET"])
 def get_automation_contrib(automation_type):
-
+    """TODO: dosing doesn't do anything..."""
     try:
         automation_path = os.path.join(config["CONTRIB_FOLDER"], "automations", automation_type)
 
@@ -468,14 +475,13 @@ def get_current_unit_labels():
             "SELECT r.pioreactor_unit as unit, r.label FROM pioreactor_unit_labels AS r JOIN latest_experiment USING (experiment);"
         )
 
-        keyed_by_unit = {d['unit']: d['label'] for d in current_unit_labels}
+        keyed_by_unit = {d["unit"]: d["label"] for d in current_unit_labels}
 
         return jsonify(keyed_by_unit)
 
     except Exception as e:
         publish_to_error_log(str(e), "get_current_unit_labels")
         return Response(400)
-
 
 
 @app.route("/api/update_current_unit_labels", methods=["POST"])
@@ -574,13 +580,12 @@ def add_new_pioreactor():
         publish_to_error_log(msg, "add_new_pioreactor")
         return {'msg': msg}, 500
 
-
 ## CONFIG CONTROL
 
 
 @app.route("/api/get_config/<filename>", methods=["GET"])
 def get_config_of_file(filename):
-
+    """get a specific config.ini file in the .pioractor folder"""
     try:
         specific_config_path = os.path.join(config["CONFIG_INI_FOLDER"], filename)
 
@@ -632,6 +637,7 @@ def delete_config():
 
 @app.route("/api/save_new_config", methods=["POST"])
 def save_new_config():
+    """if the config file is unit specific, we only need to run sync-config on that unit."""
     return
 
 
