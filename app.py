@@ -4,6 +4,7 @@ from __future__ import annotations
 import glob
 import json
 import os
+import re
 import socket
 import sqlite3
 import subprocess
@@ -584,7 +585,17 @@ def create_experiment():
 
 @app.route("/api/update_experiment_desc", methods=["POST"])
 def update_experiment_description():
-    return
+    body = request.get_json()
+    try:
+        insert_into_db(
+            "UPDATE experiments SET description = (?) WHERE experiment=(?)",
+            (body["description"], body["experiment"]),
+        )
+        return Response(200)
+
+    except Exception as e:
+        publish_to_error_log(str(e), "update_experiment_desc")
+        return Response(500)
 
 
 @app.route("/api/add_new_pioreactor", methods=["POST"])
@@ -665,7 +676,38 @@ def delete_config():
 @app.route("/api/save_new_config", methods=["POST"])
 def save_new_config():
     """if the config file is unit specific, we only need to run sync-config on that unit."""
-    return
+
+    body = request.get_json()
+
+    regex = re.compile(r"/config_?(.*)?\.ini/")
+    filename = body["filename"]
+
+    if regex.match(filename)[1] != "":
+        units = regex.match(filename)[1]
+        flags = ["--specific"]
+
+    else:
+        units = "$broadcast"
+        flags = ["--shared"]
+
+    try:
+        config_path = os.path.join(config["CONFIG_INI_FOLDER"], body["filename"])
+
+        with open(config_path, "w") as f:
+            f.write(body["code"])
+
+    except Exception as e:
+        publish_to_error_log(str(e), "save_new_config")
+        return Response(500)
+
+    result = subprocess.run(["pios", "sync-configs", "--units", units] + flags, capture_output=True)
+
+    if result.returncode != 0:
+        publish_to_error_log(result.stdout, "save_new_config")
+        publish_to_error_log(result.stderr, "save_new_config")
+        return Response(500)
+
+    return Response(200)
 
 
 @app.errorhandler(404)
