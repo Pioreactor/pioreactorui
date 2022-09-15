@@ -12,13 +12,14 @@ from datetime import datetime
 from datetime import timezone
 
 import paho.mqtt.client as mqtt
-import yaml  # type: ignore
 from dotenv import dotenv_values
 from flask import Flask
 from flask import g
 from flask import jsonify
 from flask import request
 from flask import Response
+from yaml import CLoader as Loader  # type: ignore
+from yaml import load as yaml_load  # type: ignore
 
 import tasks as tasks
 
@@ -399,9 +400,9 @@ def get_automation_contrib(automation_type):
         automations = []  # list of dict
 
         for file in files:
-            with open(file) as file_stream:
+            with open(file, "rb") as file_stream:
                 automations.append(
-                    yaml.safe_load(file_stream.read())
+                    yaml_load(file_stream.read(), Loader=Loader)
                 )  # read returns string, safe_load converts to python object == dict
 
         return jsonify(automations)
@@ -423,9 +424,9 @@ def get_job_contrib():
         jobs = []  # list of dict
 
         for file in files:
-            with open(file) as file_stream:
+            with open(file, "rb") as file_stream:
                 jobs.append(
-                    yaml.safe_load(file_stream.read())
+                    yaml_load(file_stream.read(), Loader=Loader)
                 )  # read returns string, safe_load converts to python object == dict
 
         return jsonify(jobs)
