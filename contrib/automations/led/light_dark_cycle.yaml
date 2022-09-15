@@ -1,0 +1,22 @@
+---
+display_name: Light/Dark Cycle
+automation_name: light_dark_cycle
+description: Use LED channels B & C as light sources that turn off periodically, simularing a light and dark environment.
+fields:
+  - key: duration
+    default: 60
+    unit: min
+    label: Duration between checks
+    disabled: True
+  - key: light_intensity
+    default: 50
+    unit: "%"
+    label: Light intensity
+  - key: light_duration_hours
+    unit: h
+    label: Light duration
+    default: 16
+  - key: dark_duration_hours
+    unit: h
+    label: Dark duration
+    default: 8
