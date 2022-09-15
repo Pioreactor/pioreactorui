@@ -69,7 +69,6 @@ def _get_db_connection():
         db = g._database = sqlite3.connect(config['DB_LOCATION'])
         db.row_factory = _make_dicts
 
-<<<<<<< HEAD:backend/app.py
 def get_db_connection():
     if app.debug:
         conn = sqlite3.connect("test.sqlite")
@@ -77,7 +76,7 @@ def get_db_connection():
         conn = sqlite3.connect("/home/pioreactor/.pioreactor/storage/pioreactor.sqlite")
     conn.row_factory = dict_factory
     return conn
-=======
+    
     return db
 
 def query_db(query, args=(), one=False):
@@ -92,8 +91,6 @@ def insert_into_db(query, args=()):
     cur.execute(query, args)
     con.commit()
     return
->>>>>>> a11cdc9131d1b0cd012ae172f5a64477f997fece:app.py
-
 
 ## PIOREACTOR CONTROL
 
@@ -302,12 +299,6 @@ def recent_media_rates():
 
         json_result["all"] = aggregate
         return jsonify(json_result)
-<<<<<<< HEAD:backend/app.py
-=======
-    except Exception as e:
-        publish_to_error_log(str(e), "recent_media_rates")
-        return Response(400)
->>>>>>> a11cdc9131d1b0cd012ae172f5a64477f997fece:app.py
 
     except Exception as e:
         publish_to_error_log(str(e), "recent_media_rates")
@@ -574,9 +565,6 @@ def update_experiment_description():
 @app.route("/api/add_new_pioreactor", methods=["POST"])
 def add_new_pioreactor():
 
-<<<<<<< HEAD:backend/app.py
-    return
-=======
     new_name = request.get_json()['newPioreactorName']
     result = tasks.add_new_pioreactor(new_name)
 
@@ -589,8 +577,6 @@ def add_new_pioreactor():
         return Response(200)
     else:
         return {'msg': msg}, 500
->>>>>>> a11cdc9131d1b0cd012ae172f5a64477f997fece:app.py
-
 
 ## CONFIG CONTROL
 
