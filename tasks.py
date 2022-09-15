@@ -1,7 +1,12 @@
+# -*- coding: utf-8 -*-
+from __future__ import annotations
+
 import subprocess
+
 from huey import SqliteHuey
 
-huey = SqliteHuey("/tmp/test.db") # TODO: put into .env
+huey = SqliteHuey("/tmp/test.db")  # TODO: put into .env
+
 
 @huey.task()
 def add_new_pioreactor(new_pioreactor_name) -> tuple[bool, str]:
@@ -15,18 +20,9 @@ def add_new_pioreactor(new_pioreactor_name) -> tuple[bool, str]:
 
 
 @huey.task()
-def update_app(new_pioreactor_name) -> tuple[bool, str]:
-    print(f"Updating apps")
+def update_app(new_pioreactor_name) -> bool:
+    print("Updating apps")
     subprocess.run(["pio", "update", "--app"])
     subprocess.run(["pios", "update"])
     subprocess.run(["pio", "update", "--ui"])
     return True
-
-
-
-
-
-
-    
-
-

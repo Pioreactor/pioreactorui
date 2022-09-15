@@ -14,12 +14,10 @@ import paho.mqtt.client as mqtt
 import yaml  # type: ignore
 from dotenv import dotenv_values
 from flask import Flask
+from flask import g
 from flask import jsonify
 from flask import request
-from flask import make_response
 from flask import Response
-from flask import g
-
 
 import tasks as tasks
 
@@ -34,7 +32,6 @@ client = mqtt.Client()
 client.connect("localhost")
 client.loop_start()
 LOG_TOPIC = f"pioreactor/{socket.gethostname()}/$experiment/logs/ui"
-
 
 
 ## UTILS
@@ -60,24 +57,17 @@ def publish_to_error_log(msg, task):
 
 
 def _make_dicts(cursor, row):
-    return dict((cursor.description[idx][0], value)
-                for idx, value in enumerate(row))
+    return dict((cursor.description[idx][0], value) for idx, value in enumerate(row))
+
 
 def _get_db_connection():
-    db = getattr(g, '_database', None)
+    db = getattr(g, "_database", None)
     if db is None:
-        db = g._database = sqlite3.connect(config['DB_LOCATION'])
+        db = g._database = sqlite3.connect(config["DB_LOCATION"])
         db.row_factory = _make_dicts
 
-def get_db_connection():
-    if app.debug:
-        conn = sqlite3.connect("test.sqlite")
-    else:
-        conn = sqlite3.connect("/home/pioreactor/.pioreactor/storage/pioreactor.sqlite")
-    conn.row_factory = dict_factory
-    return conn
-    
     return db
+
 
 def query_db(query, args=(), one=False):
     cur = _get_db_connection().execute(query, args)
@@ -85,12 +75,14 @@ def query_db(query, args=(), one=False):
     cur.close()
     return (rv[0] if rv else None) if one else rv
 
+
 def insert_into_db(query, args=()):
     con = _get_db_connection()
     cur = con.cursor()
     cur.execute(query, args)
     con.commit()
     return
+
 
 ## PIOREACTOR CONTROL
 
@@ -169,18 +161,23 @@ def recent_logs():
     if min_level == "DEBUG":
         level_string = '(level == "ERROR" or level == "WARNING" or level == "NOTICE" or level == "INFO" or level == "DEBUG")'
     elif min_level == "INFO":
-        level_string = '(level == "ERROR" or level == "NOTICE" or level == "INFO" or level == "WARNING")'
+        level_string = (
+            '(level == "ERROR" or level == "NOTICE" or level == "INFO" or level == "WARNING")'
+        )
     elif min_level == "WARNING":
         level_string = '(level == "ERROR" or level == "WARNING")'
     elif min_level == "ERROR":
         level_string = '(level == "ERROR")'
     else:
-        level_string = '(level == "ERROR" or level == "NOTICE" or level == "INFO" or level == "WARNING")'
+        level_string = (
+            '(level == "ERROR" or level == "NOTICE" or level == "INFO" or level == "WARNING")'
+        )
 
     try:
         recent_logs = query_db(
             f"SELECT l.timestamp, level=='ERROR'as is_error, level=='WARNING' as is_warning, level=='NOTICE' as is_notice, l.pioreactor_unit, message, task FROM logs AS l LEFT JOIN latest_experiment AS le ON (le.experiment = l.experiment OR l.experiment=?) WHERE {level_string} AND l.timestamp >= MAX(strftime('%Y-%m-%dT%H:%M:%S', datetime('now', '-24 hours')), le.created_at) ORDER BY l.timestamp DESC LIMIT 50;",
-            ("'$experiment'",))
+            ("'$experiment'",),
+        )
     except Exception as e:
         publish_to_error_log(str(e), "recent_logs")
         return Response(500)
@@ -197,7 +194,9 @@ def growth_rates(experiment):
     try:
         growth_rates = query_db(
             "SELECT json_object('series', json_group_array(unit), 'data', json_group_array(json(data))) as result FROM (SELECT pioreactor_unit as unit, json_group_array(json_object('x', timestamp, 'y', round(rate, 5))) as data FROM growth_rates WHERE experiment=? AND ((ROWID * 0.61803398875) - cast(ROWID * 0.61803398875 as int) < 1.0/?) GROUP BY 1);",
-            (experiment, filter_mod_n), one=True)
+            (experiment, filter_mod_n),
+            one=True,
+        )
 
     except Exception as e:
         publish_to_error_log(str(e), "growth_rates")
@@ -215,7 +214,9 @@ def temperature_readings(experiment):
     try:
         temperature_readings = query_db(
             "SELECT json_object('series', json_group_array(unit), 'data', json_group_array(json(data))) as result FROM (SELECT pioreactor_unit as unit, json_group_array(json_object('x', timestamp, 'y', round(temperature_c, 2))) as data FROM temperature_readings WHERE experiment=? AND ((ROWID * 0.61803398875) - cast(ROWID * 0.61803398875 as int) < 1.0/?) GROUP BY 1);",
-            (experiment, filter_mod_n), one=True)
+            (experiment, filter_mod_n),
+            one=True,
+        )
 
     except Exception as e:
         publish_to_error_log(str(e), "temperature_readings")
@@ -234,7 +235,9 @@ def od_readings_filtered(experiment):
     try:
         filtered_od_readings = query_db(
             "SELECT json_object('series', json_group_array(unit), 'data', json_group_array(json(data))) as result FROM (SELECT pioreactor_unit as unit, json_group_array(json_object('x', timestamp, 'y', round(normalized_od_reading, 7))) as data FROM od_readings_filtered WHERE experiment=? AND ((ROWID * 0.61803398875) - cast(ROWID * 0.61803398875 as int) < 1.0/?) AND timestamp > strftime('%Y-%m-%dT%H:%M:%S', datetime('now',?)) GROUP BY 1);",
-            (experiment, filter_mod_n, f"-{lookback} hours"), one=True)
+            (experiment, filter_mod_n, f"-{lookback} hours"),
+            one=True,
+        )
 
     except Exception as e:
         publish_to_error_log(str(e), "od_readings_filtered")
@@ -253,7 +256,9 @@ def od_readings(experiment):
     try:
         raw_od_readings = query_db(
             "SELECT json_object('series', json_group_array(unit), 'data', json_group_array(json(data))) as result FROM (SELECT pioreactor_unit || '-' || channel as unit, json_group_array(json_object('x', timestamp, 'y', round(od_reading, 7))) as data FROM od_readings WHERE experiment=? AND ((ROWID * 0.61803398875) - cast(ROWID * 0.61803398875 as int) < 1.0/?) and timestamp > strftime('%Y-%m-%dT%H:%M:%S', datetime('now', ?)) GROUP BY 1);",
-            (experiment, filter_mod_n, f"-{lookback} hours"), one=True)
+            (experiment, filter_mod_n, f"-{lookback} hours"),
+            one=True,
+        )
 
     except Exception as e:
         publish_to_error_log(str(e), "od_readings")
@@ -269,7 +274,9 @@ def alt_media_fraction(experiment):
     try:
         alt_media_fraction_ = query_db(
             "SELECT json_object('series', json_group_array(unit), 'data', json_group_array(json(data))) as result FROM (SELECT pioreactor_unit as unit, json_group_array(json_object('x', timestamp, 'y', round(alt_media_fraction, 7))) as data FROM alt_media_fractions WHERE experiment=? GROUP BY 1);",
-            (experiment,), one=True)
+            (experiment,),
+            one=True,
+        )
 
     except Exception as e:
         publish_to_error_log(str(e), "alt_media_fractions")
@@ -293,7 +300,10 @@ def recent_media_rates():
         json_result = {}
         aggregate = {"altMediaRate": 0.0, "mediaRate": 0.0}
         for row in rows:
-            json_result[row["pioreactor_unit"]] = {"alt_media_rate": row["alt_media_rate"], "media_rate": row["media_rate"]}
+            json_result[row["pioreactor_unit"]] = {
+                "alt_media_rate": row["alt_media_rate"],
+                "media_rate": row["media_rate"],
+            }
             aggregate["media_rate"] = aggregate["media_rate"] + row["media_rate"]
             aggregate["alt_media_rate"] = aggregate["alt_media_rate"] + row["alt_media_rate"]
 
@@ -313,7 +323,8 @@ def get_unit_calibrations(pioreactor_unit, calibration_type):
 
     try:
         unit_calibration = query_db(
-            "SELECT * FROM calibrations WHERE type=? AND pioreactor_unit=?", (calibration_type, pioreactor_unit)
+            "SELECT * FROM calibrations WHERE type=? AND pioreactor_unit=?",
+            (calibration_type, pioreactor_unit),
         )
 
     except Exception as e:
@@ -379,7 +390,9 @@ def get_automation_contrib(automation_type):
     try:
         automation_path = os.path.join(config["CONTRIB_FOLDER"], "automations", automation_type)
 
-        files = glob.glob(automation_path + "/*.y[a]ml")  # list of strings, where strings rep. paths to  yaml files
+        files = glob.glob(
+            automation_path + "/*.y[a]ml"
+        )  # list of strings, where strings rep. paths to  yaml files
 
         automations = []  # list of dict
 
@@ -401,7 +414,9 @@ def get_job_contrib():
     try:
         job_path = os.path.join(config["CONTRIB_FOLDER"], "jobs")
 
-        files = glob.glob(job_path + "/*.y[a]ml")  # list of strings, where strings rep. paths to  yaml files
+        files = glob.glob(
+            job_path + "/*.y[a]ml"
+        )  # list of strings, where strings rep. paths to  yaml files
 
         jobs = []  # list of dict
 
@@ -426,7 +441,9 @@ def update_app():
 
 @app.route("/api/get_app_version", methods=["GET"])
 def get_app_version():
-    result = subprocess.run(["python", "-c", "import pioreactor; print(pioreactor.__version__)"], capture_output=True)
+    result = subprocess.run(
+        ["python", "-c", "import pioreactor; print(pioreactor.__version__)"], capture_output=True
+    )
     if result.returncode != 0:
         publish_to_error_log(result.stdout, "get_app_version")
         publish_to_error_log(result.stderr, "get_app_version")
@@ -457,8 +474,9 @@ def get_experiments():
 def get_latest_experiment():
     try:
         latest_experiment = query_db(
-            "SELECT experiment, created_at, description, media_used, organism_used, delta_hours FROM latest_experiment"
-        , one=True)
+            "SELECT experiment, created_at, description, media_used, organism_used, delta_hours FROM latest_experiment",
+            one=True,
+        )
 
     except Exception as e:
         publish_to_error_log(str(e), "get_latest_experiment")
@@ -498,7 +516,7 @@ def update_current_unit_labels():
     try:
         insert_into_db(
             "INSERT OR REPLACE INTO pioreactor_unit_labels (label, experiment, pioreactor_unit, created_at) VALUES ((?), (?), (?), strftime('%Y-%m-%dT%H:%M:%S', datetime('now')) ) ON CONFLICT(experiment, pioreactor_unit) DO UPDATE SET label=excluded.label, created_at=strftime('%Y-%m-%dT%H:%M:%S', datetime('now'))",
-            (label, latest_experiment, unit)
+            (label, latest_experiment, unit),
         )
 
     except Exception as e:
@@ -546,7 +564,13 @@ def create_experiment():
     try:
         insert_into_db(
             "INSERT INTO experiments (created_at, experiment, description, media_used, organism_used) VALUES (?,?,?,?,?)",
-            (body["created_at"], body["experiment"], body.get("description"), body.get("media_used"), body.get("organism_used")),
+            (
+                body["created_at"],
+                body["experiment"],
+                body.get("description"),
+                body.get("media_used"),
+                body.get("organism_used"),
+            ),
         )
 
         client.publish("pioreactor/latest_experiment", body["experiment"], qos=2, retain=True)
@@ -565,18 +589,19 @@ def update_experiment_description():
 @app.route("/api/add_new_pioreactor", methods=["POST"])
 def add_new_pioreactor():
 
-    new_name = request.get_json()['newPioreactorName']
+    new_name = request.get_json()["newPioreactorName"]
     result = tasks.add_new_pioreactor(new_name)
 
     try:
         status, msg = result(blocking=True, timeout=30)
-    except:
+    except Exception:
         status, msg = False, "Timed out"
 
     if status:
         return Response(200)
     else:
-        return {'msg': msg}, 500
+        return {"msg": msg}, 500
+
 
 ## CONFIG CONTROL
 
@@ -620,7 +645,9 @@ def delete_config():
 
     body = request.get_json()
 
-    config_path = os.path.join(config["CONFIG_INI_FOLDER"], body["filename"])  # where is this filename coming from?
+    config_path = os.path.join(
+        config["CONFIG_INI_FOLDER"], body["filename"]
+    )  # where is this filename coming from?
 
     result = subprocess.run(["rm", config_path], capture_output=True)
 
@@ -649,8 +676,9 @@ def not_found(e):
 
 @app.teardown_appcontext
 def close_connection(exception):
-    db = getattr(g, '_database', None)
+    db = getattr(g, "_database", None)
     if db is not None:
         db.close()
+
 
 ## START SERVER
