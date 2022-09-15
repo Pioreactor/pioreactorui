@@ -19,6 +19,7 @@ from flask import g
 from flask import jsonify
 from flask import request
 from flask import Response
+
 import tasks as tasks
 
 
@@ -391,8 +392,8 @@ def get_automation_contrib(automation_type):
     try:
         automation_path = os.path.join(config["CONTRIB_FOLDER"], "automations", automation_type)
 
-        files = glob.glob(
-            automation_path + "/*.y[a]ml"
+        files = sorted(
+            glob.glob(automation_path + "/*.y[a]ml")
         )  # list of strings, where strings rep. paths to  yaml files
 
         automations = []  # list of dict
@@ -415,8 +416,8 @@ def get_job_contrib():
     try:
         job_path = os.path.join(config["CONTRIB_FOLDER"], "jobs")
 
-        files = glob.glob(
-            job_path + "/*.y[a]ml"
+        files = sorted(
+            glob.glob(job_path + "/*.y[a]ml")
         )  # list of strings, where strings rep. paths to  yaml files
 
         jobs = []  # list of dict
