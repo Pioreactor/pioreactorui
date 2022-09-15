@@ -21,6 +21,7 @@ from app import config
 from app import insert_into_db
 from app import publish_to_error_log
 from app import query_db
+from app import logger
 
 ## PIOREACTOR CONTROL
 
@@ -541,8 +542,14 @@ def update_experiment_description():
 @app.route("/api/add_new_pioreactor", methods=["POST"])
 def add_new_pioreactor():
 
+
     new_name = request.get_json()["newPioreactorName"]
-    result = tasks.add_new_pioreactor(new_name)
+    try:
+        result = tasks.add_new_pioreactor(new_name)
+    except Exception as e:
+        print(e)
+        logger.error(str(e))
+        return {"msg": e}, Response(status=500)
 
     try:
         status, msg = result(blocking=True, timeout=30)
@@ -553,7 +560,7 @@ def add_new_pioreactor():
         return Response(status=200)
     else:
         publish_to_error_log(msg, "add_new_pioreactor")
-        return Response({"msg": msg}, status=504)
+        return {"msg": msg}, 500
 
 
 ## CONFIG CONTROL

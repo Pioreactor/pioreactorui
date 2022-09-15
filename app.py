@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import annotations
 
+import logging
 import json
 import socket
 import sqlite3
@@ -13,17 +14,27 @@ from flask import Flask
 from flask import g
 from huey import SqliteHuey
 
+logger = logging.getLogger(__name__) # grabs underlying WSGI logger
+file_handler = logging.FileHandler('test.log') # creates handler for the log file
+logger.addHandler(file_handler) # adds handler to the werkzeug WSGI logger
+logger.setLevel(logging.DEBUG)
+
+logger.debug("Starting server")
+logger.debug("Load .env")
 config = dotenv_values(".env")  # a dictionary
 
 app = Flask(__name__)
 
+logger.debug("Starting Huey")
 huey = SqliteHuey(filename="/tmp/huey.db")
 
 ## CONNECT TO MQTT server / broker
+logger.debug("Starting MQTT")
 client = mqtt.Client()
 client.connect("localhost")
 client.loop_start()
 LOG_TOPIC = f"pioreactor/{socket.gethostname()}/$experiment/logs/ui"
+
 
 
 ## UTILS
