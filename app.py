@@ -12,7 +12,8 @@ from datetime import datetime
 from datetime import timezone
 
 import paho.mqtt.client as mqtt
-import yaml  # type: ignore
+from yaml import load as yaml_load
+from yaml import CLoader as Loader
 from dotenv import dotenv_values
 from flask import Flask
 from flask import g
@@ -391,16 +392,16 @@ def get_automation_contrib(automation_type):
     try:
         automation_path = os.path.join(config["CONTRIB_FOLDER"], "automations", automation_type)
 
-        files = glob.glob(
+        files = glob.iglob(
             automation_path + "/*.y[a]ml"
         )  # list of strings, where strings rep. paths to  yaml files
 
         automations = []  # list of dict
 
         for file in files:
-            with open(file) as file_stream:
+            with open(file, 'rb') as file_stream:
                 automations.append(
-                    yaml.safe_load(file_stream.read())
+                    yaml_load(file_stream.read(), Loader=Loader)
                 )  # read returns string, safe_load converts to python object == dict
 
         return jsonify(automations)
@@ -415,16 +416,16 @@ def get_job_contrib():
     try:
         job_path = os.path.join(config["CONTRIB_FOLDER"], "jobs")
 
-        files = glob.glob(
+        files = glob.iglob(
             job_path + "/*.y[a]ml"
         )  # list of strings, where strings rep. paths to  yaml files
 
         jobs = []  # list of dict
 
         for file in files:
-            with open(file) as file_stream:
+            with open(file, 'rb') as file_stream:
                 jobs.append(
-                    yaml.safe_load(file_stream.read())
+                    yaml_load(file_stream.read(), Loader=Loader)
                 )  # read returns string, safe_load converts to python object == dict
 
         return jsonify(jobs)
