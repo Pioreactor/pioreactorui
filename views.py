@@ -549,7 +549,7 @@ def add_new_pioreactor():
     except Exception as e:
         print(e)
         logger.error(str(e))
-        return {"msg": e}, Response(status=500)
+        return {"msg": str(e)}, Response(status=500)
 
     try:
         status, msg = result(blocking=True, timeout=30)
