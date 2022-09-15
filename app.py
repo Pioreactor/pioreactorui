@@ -18,7 +18,6 @@ from flask import g
 from flask import jsonify
 from flask import request
 from flask import Response
-
 import tasks as tasks
 
 
@@ -88,7 +87,7 @@ def insert_into_db(insert_smt, args=()):
 ## PIOREACTOR CONTROL
 
 
-@app.route("/api/stop-all", methods=["POST"])
+@app.route("/api/stop_all", methods=["POST"])
 def stop_all():
     """Kills all jobs"""
     result = subprocess.run(["pios", "kill", "--all-jobs", "-y"], capture_output=True)
@@ -96,9 +95,9 @@ def stop_all():
     if result.returncode != 0:
         publish_to_error_log(result.stdout, "stop_all")
         publish_to_error_log(result.stderr, "stop_all")
-        return Response(500)
+        return Response(status=500)
 
-    return Response(200)
+    return Response(status=200)
 
 
 @app.route("/api/stop/<job>/<unit>", methods=["POST"])
@@ -116,9 +115,9 @@ def stop_job_on_unit(job, unit):
         if result.returncode != 0:
             publish_to_error_log(result.stdout, "stop_all")
             publish_to_error_log(result.stderr, "stop_all")
-            return Response(500)
+            return Response(status=500)
 
-    return Response(200)
+    return Response(status=200)
 
 
 @app.route("/api/run/<job>/<unit>", methods=["POST"])
@@ -131,7 +130,7 @@ def run_job_on_unit(job, unit):
 
     client.publish(f"pioreactor/{unit}/$experiment/run/{job}", json_string, qos=2)
 
-    return Response(200)
+    return Response(status=200)
 
 
 @app.route("/api/reboot/<unit>", methods=["POST"])
@@ -142,9 +141,9 @@ def reboot_unit(unit):
     if result.returncode != 0:
         publish_to_error_log(result.stdout, "reboot")
         publish_to_error_log(result.stderr, "reboot")
-        return Response(500)
+        return Response(status=500)
 
-    return Response(200)
+    return Response(status=200)
 
 
 ## DATA FOR CARDS ON OVERVIEW
@@ -181,7 +180,7 @@ def recent_logs():
         )
     except Exception as e:
         publish_to_error_log(str(e), "recent_logs")
-        return Response(500)
+        return Response(status=500)
 
     return jsonify(recent_logs)
 
@@ -201,7 +200,7 @@ def growth_rates(experiment):
 
     except Exception as e:
         publish_to_error_log(str(e), "growth_rates")
-        return Response(400)
+        return Response(status=400)
 
     return growth_rates["result"]
 
@@ -221,7 +220,7 @@ def temperature_readings(experiment):
 
     except Exception as e:
         publish_to_error_log(str(e), "temperature_readings")
-        return Response(400)
+        return Response(status=400)
 
     return temperature_readings["result"]
 
@@ -242,7 +241,7 @@ def od_readings_filtered(experiment):
 
     except Exception as e:
         publish_to_error_log(str(e), "od_readings_filtered")
-        return Response(400)
+        return Response(status=400)
 
     return filtered_od_readings["result"]
 
@@ -263,7 +262,7 @@ def od_readings(experiment):
 
     except Exception as e:
         publish_to_error_log(str(e), "od_readings")
-        return Response(400)
+        return Response(status=400)
 
     return raw_od_readings["result"]
 
@@ -281,7 +280,7 @@ def alt_media_fraction(experiment):
 
     except Exception as e:
         publish_to_error_log(str(e), "alt_media_fractions")
-        return Response(400)
+        return Response(status=400)
 
     return alt_media_fraction_["result"]
 
@@ -313,7 +312,7 @@ def recent_media_rates():
 
     except Exception as e:
         publish_to_error_log(str(e), "recent_media_rates")
-        return Response(400)
+        return Response(status=400)
 
 
 ## CALIBRATIONS
@@ -330,7 +329,7 @@ def get_unit_calibrations(pioreactor_unit, calibration_type):
 
     except Exception as e:
         publish_to_error_log(str(e), "get_unit_calibrations")
-        return Response(400)
+        return Response(status=400)
 
     return jsonify(unit_calibration)
 
@@ -362,9 +361,9 @@ def install_plugin():
     if result.returncode != 0:
         publish_to_error_log(result.stdout, "install_plugin")
         publish_to_error_log(result.stderr, "install_plugin")
-        return Response(500)
+        return Response(status=500)
 
-    return Response(200)
+    return Response(status=200)
 
 
 @app.route("/api/uninstall_plugin", methods=["POST"])
@@ -377,9 +376,9 @@ def uninstall_plugin():
     if result.returncode != 0:
         publish_to_error_log(result.stdout, "uninstall-plugin")
         publish_to_error_log(result.stderr, "uninstall_plugin")
-        return Response(500)
+        return Response(status=500)
 
-    return Response(200)
+    return Response(status=200)
 
 
 ## MISC
@@ -407,7 +406,7 @@ def get_automation_contrib(automation_type):
 
     except Exception as e:
         publish_to_error_log(str(e), "get_automation_contrib")
-        return Response(400)
+        return Response(status=400)
 
 
 @app.route("/api/contrib/jobs", methods=["GET"])
@@ -431,7 +430,7 @@ def get_job_contrib():
 
     except Exception as e:
         publish_to_error_log(str(e), "get_job_contrib")
-        return Response(400)
+        return Response(status=400)
 
 
 @app.route("/api/update_app", methods=["POST"])
@@ -448,7 +447,7 @@ def get_app_version():
     if result.returncode != 0:
         publish_to_error_log(result.stdout, "get_app_version")
         publish_to_error_log(result.stderr, "get_app_version")
-        return Response(500)
+        return Response(status=500)
     return result.stdout.strip()
 
 
@@ -466,7 +465,7 @@ def get_experiments():
 
     except Exception as e:
         publish_to_error_log(str(e), "get_experiments")
-        return Response(400)
+        return Response(status=400)
 
     return jsonify(experiments)
 
@@ -481,7 +480,7 @@ def get_latest_experiment():
 
     except Exception as e:
         publish_to_error_log(str(e), "get_latest_experiment")
-        return Response(400)
+        return Response(status=400)
 
     return jsonify(latest_experiment)
 
@@ -499,7 +498,7 @@ def get_current_unit_labels():
 
     except Exception as e:
         publish_to_error_log(str(e), "get_current_unit_labels")
-        return Response(400)
+        return Response(status=400)
 
 
 @app.route("/api/update_current_unit_labels", methods=["POST"])
@@ -522,11 +521,11 @@ def update_current_unit_labels():
 
     except Exception as e:
         publish_to_error_log(str(e), "update_current_unit_labels")
-        return Response(400)
+        return Response(status=400)
 
     # client.publish(f"pioreactor/{unit}/{latest_experiment}/unit_label", label, retain=True)
 
-    return Response(200)
+    return Response(status=200)
 
 
 @app.route("/api/get_historical_organisms_used", methods=["GET"])
@@ -538,7 +537,7 @@ def get_historical_organisms_used():
 
     except Exception as e:
         publish_to_error_log(str(e), "get_historical_organisms_used_used")
-        return Response(400)
+        return Response(status=400)
 
     return jsonify(historical_organisms)
 
@@ -552,7 +551,7 @@ def get_historical_media_used():
 
     except Exception as e:
         publish_to_error_log(str(e), "get_historical_organisms_used_used")
-        return Response(400)
+        return Response(status=400)
 
     return jsonify(historical_media)
 
@@ -575,11 +574,15 @@ def create_experiment():
         )
 
         client.publish("pioreactor/latest_experiment", body["experiment"], qos=2, retain=True)
-        return Response(200)
+        return Response(status=200)
 
     except sqlite3.IntegrityError as e:
         publish_to_error_log(str(e), "create_experiment")
-        return Response(400)
+        return Response(status=400)
+    except Exception as e:
+        print(e)
+        publish_to_error_log(str(e), "create_experiment")
+        return Response(status=400)
 
 
 @app.route("/api/update_experiment_desc", methods=["POST"])
@@ -599,7 +602,7 @@ def add_new_pioreactor():
         status, msg = False, "Timed out"
 
     if status:
-        return Response(200)
+        return Response(status=200)
     else:
         publish_to_error_log(msg, "add_new_pioreactor")
         return {"msg": msg}, 500
@@ -619,7 +622,7 @@ def get_config_of_file(filename):
 
     except Exception as e:
         publish_to_error_log(str(e), "get_config_of_file")
-        return Response(400)
+        return Response(status=400)
 
 
 @app.route("/api/get_configs", methods=["GET"])
@@ -638,7 +641,7 @@ def get_list_all_configs():
 
     except Exception as e:
         publish_to_error_log(str(e), "get_list_all_contrib")
-        return Response(400)
+        return Response(status=400)
 
 
 @app.route("/api/delete_config", methods=["POST"])
@@ -656,10 +659,10 @@ def delete_config():
     if result.returncode != 0:
         publish_to_error_log(result.stdout, "delete_config")
         publish_to_error_log(result.stderr, "delete_config")
-        return Response(400)
+        return Response(status=400)
 
     else:
-        return Response(200)
+        return Response(status=200)
 
 
 @app.route("/api/save_new_config", methods=["POST"])
