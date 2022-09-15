@@ -19,7 +19,9 @@ file_handler = logging.FileHandler('test.log') # creates handler for the log fil
 logger.addHandler(file_handler) # adds handler to the werkzeug WSGI logger
 logger.setLevel(logging.DEBUG)
 
-logger.debug("Starting server")
+logger.debug("Starting...")
+
+
 logger.debug("Load .env")
 config = dotenv_values(".env")  # a dictionary
 
@@ -56,6 +58,7 @@ def publish_to_log(msg, task, level="DEBUG"):
 
 
 def publish_to_error_log(msg, task):
+    logger.error(msg)
     publish_to_log(json.dumps(msg), task, "ERROR")
 
 
