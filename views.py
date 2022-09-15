@@ -553,7 +553,7 @@ def add_new_pioreactor():
         return Response(status=200)
     else:
         publish_to_error_log(msg, "add_new_pioreactor")
-        return {"msg": msg}, 500
+        return Response({"msg": msg}, status=504)
 
 
 ## CONFIG CONTROL
