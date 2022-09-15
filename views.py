@@ -531,11 +531,11 @@ def update_experiment_description():
             "UPDATE experiments SET description = (?) WHERE experiment=(?)",
             (body["description"], body["experiment"]),
         )
-        return Response(200)
+        return Response(status=200)
 
     except Exception as e:
         publish_to_error_log(str(e), "update_experiment_desc")
-        return Response(500)
+        return Response(status=500)
 
 
 @app.route("/api/add_new_pioreactor", methods=["POST"])
@@ -561,7 +561,7 @@ def add_new_pioreactor():
 
 @app.route("/api/get_config/<filename>", methods=["GET"])
 def get_config_of_file(filename):
-    """get a specific config.ini file in the .pioractor folder"""
+    """get a specific config.ini file in the .pioreactor folder"""
     try:
         specific_config_path = os.path.join(config["CONFIG_INI_FOLDER"], filename)
 
@@ -638,16 +638,16 @@ def save_new_config():
 
     except Exception as e:
         publish_to_error_log(str(e), "save_new_config")
-        return Response(500)
+        return Response(status=500)
 
     result = subprocess.run(["pios", "sync-configs", "--units", units] + flags, capture_output=True)
 
     if result.returncode != 0:
         publish_to_error_log(result.stdout, "save_new_config")
         publish_to_error_log(result.stderr, "save_new_config")
-        return Response(500)
+        return Response(status=500)
 
-    return Response(200)
+    return Response(status=200)
 
 
 @app.errorhandler(404)
