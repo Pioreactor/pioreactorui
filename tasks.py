@@ -5,7 +5,7 @@ import subprocess
 
 from huey import SqliteHuey
 
-huey = SqliteHuey("/tmp/test.db")  # TODO: put into .env
+huey = SqliteHuey()
 
 
 @huey.task()
