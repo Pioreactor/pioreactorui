@@ -77,11 +77,12 @@ def query_db(query, args=(), one=False):
     cur.close()
     return (rv[0] if rv else None) if one else rv
 
-def insert_into_db(query, args=()):
+def insert_into_db(insert_smt, args=()):
     con = _get_db_connection()
     cur = con.cursor()
-    cur.execute(query, args)
+    cur.execute(insert_smt, args)
     con.commit()
+    cur.close()
     return
 
 
@@ -570,6 +571,7 @@ def add_new_pioreactor():
     if status:
         return Response(200)
     else:
+        publish_to_error_log(msg, "add_new_pioreactor")
         return {'msg': msg}, 500
 
 
