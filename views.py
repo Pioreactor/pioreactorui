@@ -548,8 +548,8 @@ def add_new_pioreactor():
         result = tasks.add_new_pioreactor(new_name)
     except Exception as e:
         print(e)
-        logger.error(str(e))
-        return {"msg": str(e)}, Response(status=500)
+        logger.debug(e, exc_info=True)
+        return {"msg": str(e)}, 500
 
     try:
         status, msg = result(blocking=True, timeout=30)
