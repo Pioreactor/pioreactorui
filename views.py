@@ -605,14 +605,17 @@ def save_new_config():
         units = "$broadcast"
         flags = ["--shared"]
 
+    config_path = os.path.join(config["CONFIG_INI_FOLDER"], body["filename"])
+
+    result = background_tasks.write_config(config_path, body["code"])
+
     try:
-        config_path = os.path.join(config["CONFIG_INI_FOLDER"], body["filename"])
+        status, msg = result(blocking=True, timeout=10)
+    except Exception:
+        status, msg = False, "Timed out"
 
-        with open(config_path, "w") as f:
-            f.write(body["code"])
-
-    except Exception as e:
-        publish_to_error_log(str(e), "save_new_config")
+    if not status:
+        publish_to_error_log(msg, "save_new_config")
         return Response(status=500)
 
     result = background_tasks.pios("sync-configs", "--units", units, flags)
@@ -623,7 +626,6 @@ def save_new_config():
         status, msg = False, "Timed out."
 
     if not status:
-        publish_to_error_log(msg, "save_new_config")
         publish_to_error_log(msg, "save_new_config")
         return Response(status=500)
 

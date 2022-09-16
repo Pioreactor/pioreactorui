@@ -50,3 +50,13 @@ def pios(*args) -> tuple[bool, str]:
         return False, result.stderr
     else:
         return True, result.stderr
+
+
+@huey.task()
+def write_config(config_path, text) -> tuple[bool, str]:
+    try:
+        with open(config_path, "w") as f:
+            f.write(text)
+        return (True, "")
+    except Exception as e:
+        return False, str(e)
