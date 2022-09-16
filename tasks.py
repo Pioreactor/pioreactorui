@@ -1,16 +1,18 @@
 # -*- coding: utf-8 -*-
 from __future__ import annotations
 
+import logging
 import subprocess
 
 from huey import SqliteHuey
 
 huey = SqliteHuey(filename="huey.db")
+logger = logging.getLogger("huey.consumer")
 
 
 @huey.task()
 def add_new_pioreactor(new_pioreactor_name) -> tuple[bool, str]:
-    print(f"Adding new pioreactor {new_pioreactor_name}")
+    logger.info(f"Adding new pioreactor {new_pioreactor_name}")
     result = subprocess.run(
         ["pio", "add-pioreactor", new_pioreactor_name], capture_output=True, text=True
     )
@@ -22,8 +24,8 @@ def add_new_pioreactor(new_pioreactor_name) -> tuple[bool, str]:
 
 
 @huey.task()
-def update_app(new_pioreactor_name) -> bool:
-    print("Updating apps")
+def update_app() -> bool:
+    logger.info("Updating apps")
     subprocess.run(["pio", "update", "--app"])
     subprocess.run(["pios", "update"])
     subprocess.run(["pio", "update", "--ui"])
@@ -33,8 +35,8 @@ def update_app(new_pioreactor_name) -> bool:
 @huey.task()
 def pio(*args) -> tuple[bool, str]:
     result = subprocess.run(("pio",) + args, capture_output=True, text=True)
-    print(result.stdout)
-    print(result.stderr)
+    logger.info(result.stdout)
+    logger.info(result.stderr)
     if result.returncode != 0:
         return False, result.stderr
     else:
@@ -44,8 +46,8 @@ def pio(*args) -> tuple[bool, str]:
 @huey.task()
 def pios(*args) -> tuple[bool, str]:
     result = subprocess.run(("pios",) + args, capture_output=True, text=True)
-    print(result.stdout)
-    print(result.stderr)
+    logger.info(result.stdout)
+    logger.info(result.stderr)
     if result.returncode != 0:
         return False, result.stderr
     else:
