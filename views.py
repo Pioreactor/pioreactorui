@@ -50,11 +50,7 @@ def stop_job_on_unit(job, unit):
 def run_job_on_unit(job, unit):
     """Runs specified job on unit"""
 
-    # client = connection to mqtt server
-
-    json_string = request.body
-
-    client.publish(f"pioreactor/{unit}/$experiment/run/{job}", json_string, qos=2)
+    client.publish(f"pioreactor/{unit}/$experiment/run/{job}", request.get_data(), qos=2)
 
     return Response(status=200)
 
