@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 from __future__ import annotations
 
-import logging
 import json
+import logging
 import socket
 import sqlite3
 from datetime import datetime
@@ -17,13 +17,13 @@ config = dotenv_values(".env")  # a dictionary
 
 # set up logging
 logger = logging.getLogger(__name__)
-file_handler = logging.FileHandler(config['UI_LOG_LOCATION'])
+file_handler = logging.FileHandler(config["UI_LOG_LOCATION"])
 logger.addHandler(file_handler)
 logger.setLevel(logging.DEBUG)
 logger.debug("Starting PioreactorUI...")
 
 
-logger.debug(f".env={config}")
+logger.debug(f".env={dict(config)}")
 
 app = Flask(__name__)
 
@@ -85,9 +85,11 @@ def insert_into_db(insert_smt, args=()):
         cur.execute(insert_smt, args)
         con.commit()
     except Exception as e:
-        con.rollback() # TODO: test
+        con.rollback()  # TODO: test
         raise e
     finally:
         cur.close()
     return
 
+
+logger.debug("Finished initializing.")
