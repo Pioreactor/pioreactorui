@@ -594,10 +594,10 @@ def save_new_config():
 
     body = request.get_json()
 
-    regex = re.compile(r"/config_?(.*)?\.ini/")
+    regex = re.compile(r"config_?(.*)?\.ini")
     filename = body["filename"]
 
-    if regex.match(filename)[1] != "":
+    if regex.match(filename) is not None:
         units = regex.match(filename)[1]
         flags = ["--specific"]
 
