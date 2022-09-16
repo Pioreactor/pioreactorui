@@ -1,14 +1,19 @@
 # -*- coding: utf-8 -*-
 from __future__ import annotations
+
 import subprocess
+
 from huey import SqliteHuey
 
-huey = SqliteHuey(filename="/tmp/huey.db")
+huey = SqliteHuey(filename="huey.db")
+
 
 @huey.task()
 def add_new_pioreactor(new_pioreactor_name) -> tuple[bool, str]:
     print(f"Adding new pioreactor {new_pioreactor_name}")
-    result = subprocess.run(["pio", "add-pioreactor", new_pioreactor_name], capture_output=True, text=True)
+    result = subprocess.run(
+        ["pio", "add-pioreactor", new_pioreactor_name], capture_output=True, text=True
+    )
 
     if result.returncode != 0:
         return False, str(result.stderr)
@@ -45,4 +50,3 @@ def pios(*args) -> tuple[bool, str]:
         return False, result.stderr
     else:
         return True, result.stderr
-
