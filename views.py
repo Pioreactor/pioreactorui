@@ -105,7 +105,7 @@ def recent_logs():
 def growth_rates(experiment):
     """Gets growth rates for all units"""
     args = request.args
-    filter_mod_n = args.get("filter_mod_n", 100)
+    filter_mod_n = float(args.get("filter_mod_N", 100.0))
 
     try:
         growth_rates = query_db(
@@ -125,7 +125,7 @@ def growth_rates(experiment):
 def temperature_readings(experiment):
     """Gets temperature readings for all units"""
     args = request.args
-    filter_mod_n = args.get("filter_mod_n", 100)
+    filter_mod_n = float(args.get("filter_mod_N", 100.0))
 
     try:
         temperature_readings = query_db(
@@ -145,8 +145,8 @@ def temperature_readings(experiment):
 def od_readings_filtered(experiment):
     """Gets normalized od for all units"""
     args = request.args
-    filter_mod_n = args.get("filter_mod_n", 100)
-    lookback = float(args.get("lookback", 4))
+    filter_mod_n = float(args.get("filter_mod_N", 100.0))
+    lookback = float(args.get("lookback", 4.0))
 
     try:
         filtered_od_readings = query_db(
@@ -166,7 +166,7 @@ def od_readings_filtered(experiment):
 def od_readings(experiment):
     """Gets raw od for all units"""
     args = request.args
-    filter_mod_n = float(args.get("filter_mod_n", 100.0))
+    filter_mod_n = float(args.get("filter_mod_N", 100.0))
     lookback = float(args.get("lookback", 4.0))
 
     try:
