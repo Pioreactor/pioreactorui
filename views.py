@@ -166,8 +166,8 @@ def od_readings_filtered(experiment):
 def od_readings(experiment):
     """Gets raw od for all units"""
     args = request.args
-    filter_mod_n = args.get("filter_mod_n", 100)
-    lookback = float(args.get("lookback", 4))
+    filter_mod_n = float(args.get("filter_mod_n", 100.0))
+    lookback = float(args.get("lookback", 4.0))
 
     try:
         raw_od_readings = query_db(
@@ -176,9 +176,9 @@ def od_readings(experiment):
                 FROM (
                     SELECT pioreactor_unit || '-' || channel as unit, json_group_array(json_object('x', timestamp, 'y', round(od_reading, 7))) as data
                     FROM od_readings
-                    WHERE experiment='?' AND
+                    WHERE experiment=? AND
                     ((ROWID * 0.61803398875) - cast(ROWID * 0.61803398875 as int) < 1.0/?) AND
-                    timestamp > strftime('%Y-%m-%dT%H:%M:%S', datetime('now', '?'))
+                    timestamp > strftime('%Y-%m-%dT%H:%M:%S', datetime('now', ?))
                     GROUP BY 1
                     );
             """,
