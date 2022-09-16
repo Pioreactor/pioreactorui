@@ -597,7 +597,7 @@ def save_new_config():
     regex = re.compile(r"config_?(.*)?\.ini")
     filename = body["filename"]
 
-    if regex.match(filename) is not None:
+    if regex.match(filename)[1] != "":
         units = regex.match(filename)[1]
         flags = "--specific"
 
