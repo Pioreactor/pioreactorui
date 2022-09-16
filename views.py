@@ -171,7 +171,17 @@ def od_readings(experiment):
 
     try:
         raw_od_readings = query_db(
-            "SELECT json_object('series', json_group_array(unit), 'data', json_group_array(json(data))) as result FROM (SELECT pioreactor_unit || '-' || channel as unit, json_group_array(json_object('x', timestamp, 'y', round(od_reading, 7))) as data FROM od_readings WHERE experiment=? AND ((ROWID * 0.61803398875) - cast(ROWID * 0.61803398875 as int) < 1.0/?) and timestamp > strftime('%Y-%m-%dT%H:%M:%S', datetime('now', ?)) GROUP BY 1);",
+            """SELECT
+                    json_object('series', json_group_array(unit), 'data', json_group_array(json(data))) as result
+                FROM (
+                    SELECT pioreactor_unit || '-' || channel as unit, json_group_array(json_object('x', timestamp, 'y', round(od_reading, 7))) as data
+                    FROM od_readings
+                    WHERE experiment='?' AND
+                    ((ROWID * 0.61803398875) - cast(ROWID * 0.61803398875 as int) < 1.0/?) AND
+                    timestamp > strftime('%Y-%m-%dT%H:%M:%S', datetime('now', '?'))
+                    GROUP BY 1
+                    );
+            """,
             (experiment, filter_mod_n, f"-{lookback} hours"),
             one=True,
         )
