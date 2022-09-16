@@ -38,7 +38,7 @@ def pio(*args) -> tuple[bool, str]:
     if result.returncode != 0:
         return False, result.stderr
     else:
-        return True, result.stderr
+        return True, result.stdout
 
 
 @huey.task()
@@ -49,7 +49,7 @@ def pios(*args) -> tuple[bool, str]:
     if result.returncode != 0:
         return False, result.stderr
     else:
-        return True, result.stderr
+        return True, result.stdout
 
 
 @huey.task()
