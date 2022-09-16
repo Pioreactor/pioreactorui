@@ -6,6 +6,7 @@ import os
 import re
 import sqlite3
 import subprocess
+import json
 
 from flask import g
 from flask import jsonify
@@ -14,14 +15,13 @@ from flask import Response
 from yaml import CLoader as Loader  # type: ignore
 from yaml import load as yaml_load  # type: ignore
 
-import tasks
+import tasks as background_tasks
 from app import app
 from app import client
 from app import config
 from app import insert_into_db
 from app import publish_to_error_log
 from app import query_db
-from app import logger
 
 ## PIOREACTOR CONTROL
 
@@ -29,13 +29,7 @@ from app import logger
 @app.route("/api/stop_all", methods=["POST"])
 def stop_all():
     """Kills all jobs"""
-    result = subprocess.run(["pios", "kill", "--all-jobs", "-y"], capture_output=True)
-
-    if result.returncode != 0:
-        publish_to_error_log(result.stdout, "stop_all")
-        publish_to_error_log(result.stderr, "stop_all")
-        return Response(status=500)
-
+    background_tasks.pios("kill", "--all-jobs", "-y")
     return Response(status=200)
 
 
@@ -47,14 +41,8 @@ def stop_job_on_unit(job, unit):
 
     if job in jobs_to_kill_over_MQTT:
         client.publish(f"pioreactor/{unit}/$experiment/{job}/$state/set", "disconnected", qos=2)
-
     else:
-        result = subprocess.run(["pios", "kill", job, "-y", "--units", unit], capture_output=True)
-
-        if result.returncode != 0:
-            publish_to_error_log(result.stdout, "stop_all")
-            publish_to_error_log(result.stderr, "stop_all")
-            return Response(status=500)
+        background_tasks.pios("kill", "--all-jobs", "-y", "--units", unit)
 
     return Response(status=200)
 
@@ -75,13 +63,7 @@ def run_job_on_unit(job, unit):
 @app.route("/api/reboot/<unit>", methods=["POST"])
 def reboot_unit(unit):
     """Reboots unit"""  # should return a 0
-    result = subprocess.run(["pios", "reboot", "-y", "--units", unit], capture_output=True)
-
-    if result.returncode != 0:
-        publish_to_error_log(result.stdout, "reboot")
-        publish_to_error_log(result.stderr, "reboot")
-        return Response(status=500)
-
+    background_tasks.pios("reboot", "--all-jobs", "-y", "--units", unit)
     return Response(status=200)
 
 
@@ -279,45 +261,34 @@ def get_unit_calibrations(pioreactor_unit, calibration_type):
 @app.route("/api/get_installed_plugins", methods=["GET"])
 def list_installed_plugins():
 
-    result = subprocess.run(["pio", "list-plugins", "--json"], capture_output=True)
+    result = background_tasks.pio("list-plugins", "--json")
+    try:
+        status, msg = result(blocking=True, timeout=10)
+    except:
+        status, msg = False, "Timed out."
 
-    if result.returncode != 0:
-        publish_to_error_log(str(result.stdout), "get_installed_plugins")
-        publish_to_error_log(str(result.stderr), "get_installed_plugins")
-        return []
+    if not status:
+        publish_to_error_log(msg, "get_installed_plugins")
+        publish_to_error_log(msg, "get_installed_plugins")
+        return json.dumps([])
 
     else:
-        return result.stdout
+        return msg
 
 
 @app.route("/api/install_plugin", methods=["POST"])
 def install_plugin():
-
     body = request.get_json()
-
-    result = subprocess.run(["pios", "install-plugin", body["plugin_name"]], capture_output=True)
-
-    if result.returncode != 0:
-        publish_to_error_log(result.stdout, "install_plugin")
-        publish_to_error_log(result.stderr, "install_plugin")
-        return Response(status=500)
-
+    result = background_tasks.pios("install-plugin", body["plugin_name"])
     return Response(status=200)
 
 
 @app.route("/api/uninstall_plugin", methods=["POST"])
 def uninstall_plugin():
-
-    body = request.get_json()  # dictionary of data that the client sends
-
-    result = subprocess.run(["pios", "uninstall-plugin", body["plugin_name"]], capture_output=True)
-
-    if result.returncode != 0:
-        publish_to_error_log(result.stdout, "uninstall-plugin")
-        publish_to_error_log(result.stderr, "uninstall_plugin")
-        return Response(status=500)
-
+    body = request.get_json()
+    result = background_tasks.pios("uninstall-plugin", body["plugin_name"])
     return Response(status=200)
+
 
 
 ## MISC
@@ -374,14 +345,14 @@ def get_job_contrib():
 
 @app.route("/api/update_app", methods=["POST"])
 def update_app():
-    tasks.update_app()
+    background_tasks.update_app()
     return 200
 
 
 @app.route("/api/get_app_version", methods=["GET"])
 def get_app_version():
     result = subprocess.run(
-        ["python", "-c", "import pioreactor; print(pioreactor.__version__)"], capture_output=True
+        ["python", "-c", "import pioreactor; print(pioreactor.__version__)"], capture_output=True, text=True
     )
     if result.returncode != 0:
         publish_to_error_log(result.stdout, "get_app_version")
@@ -542,19 +513,17 @@ def update_experiment_description():
 @app.route("/api/add_new_pioreactor", methods=["POST"])
 def add_new_pioreactor():
 
-
     new_name = request.get_json()["newPioreactorName"]
     try:
-        result = tasks.add_new_pioreactor(new_name)
+        result = background_tasks.add_new_pioreactor(new_name)
     except Exception as e:
-        print(e)
-        logger.debug(e, exc_info=True)
+        publish_to_error_log(msg, "add_new_pioreactor")
         return {"msg": str(e)}, 500
 
     try:
-        status, msg = result(blocking=True, timeout=30)
+        status, msg = result(blocking=True, timeout=60)
     except Exception:
-        status, msg = False, "Timed out"
+        status, msg = False, "Timed out, see logs."
 
     if status:
         return Response(status=200)
@@ -602,14 +571,15 @@ def get_list_all_configs():
 @app.route("/api/delete_config", methods=["POST"])
 def delete_config():
     """TODO: make this http DELETE"""
+    # TODO: test this. I think they will be a permissions issue.
 
     body = request.get_json()
 
     config_path = os.path.join(
         config["CONFIG_INI_FOLDER"], body["filename"]
-    )  # where is this filename coming from?
+    )
 
-    result = subprocess.run(["rm", config_path], capture_output=True)
+    result = subprocess.run(["rm", config_path], capture_output=True, text=True)
 
     if result.returncode != 0:
         publish_to_error_log(result.stdout, "delete_config")
@@ -647,11 +617,16 @@ def save_new_config():
         publish_to_error_log(str(e), "save_new_config")
         return Response(status=500)
 
-    result = subprocess.run(["pios", "sync-configs", "--units", units] + flags, capture_output=True)
+    result = background_tasks.pios("sync-configs", "--units", units, flags)
 
-    if result.returncode != 0:
-        publish_to_error_log(result.stdout, "save_new_config")
-        publish_to_error_log(result.stderr, "save_new_config")
+    try:
+        status, msg = result(blocking=True, timeout=60)
+    except:
+        status, msg = False, "Timed out."
+
+    if not status:
+        publish_to_error_log(msg, "save_new_config")
+        publish_to_error_log(msg, "save_new_config")
         return Response(status=500)
 
     return Response(status=200)

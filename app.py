@@ -12,31 +12,27 @@ import paho.mqtt.client as mqtt
 from dotenv import dotenv_values
 from flask import Flask
 from flask import g
-from huey import SqliteHuey
 
-logger = logging.getLogger(__name__) # grabs underlying WSGI logger
-file_handler = logging.FileHandler('test.log') # creates handler for the log file
-logger.addHandler(file_handler) # adds handler to the werkzeug WSGI logger
-logger.setLevel(logging.DEBUG)
-
-logger.debug("Starting...")
-
-
-logger.debug("Load .env")
 config = dotenv_values(".env")  # a dictionary
+
+# set up logging
+logger = logging.getLogger(__name__)
+file_handler = logging.FileHandler(config['UI_LOG_LOCATION'])
+logger.addHandler(file_handler)
+logger.setLevel(logging.DEBUG)
+logger.debug("Starting PioreactorUI...")
+
+
+logger.debug(f".env={config}")
 
 app = Flask(__name__)
 
-logger.debug("Starting Huey")
-huey = SqliteHuey(filename="/tmp/huey.db")
-
-## CONNECT TO MQTT server / broker
-logger.debug("Starting MQTT")
+# connect to MQTT server
+logger.debug("Starting MQTT client")
 client = mqtt.Client()
 client.connect("localhost")
 client.loop_start()
 LOG_TOPIC = f"pioreactor/{socket.gethostname()}/$experiment/logs/ui"
-
 
 
 ## UTILS
@@ -53,12 +49,12 @@ def msg_to_JSON(msg, task, level):
 
 
 def publish_to_log(msg, task, level="DEBUG"):
-    print(msg)
     client.publish(LOG_TOPIC, msg_to_JSON(msg, task, level))
 
 
 def publish_to_error_log(msg, task):
-    logger.error(msg)
+    msg = str(msg)
+    logger.error(msg, exc_info=True)
     publish_to_log(json.dumps(msg), task, "ERROR")
 
 
@@ -85,8 +81,13 @@ def query_db(query, args=(), one=False):
 def insert_into_db(insert_smt, args=()):
     con = _get_db_connection()
     cur = con.cursor()
-    cur.execute(insert_smt, args)
-    con.commit()
-    cur.close()
+    try:
+        cur.execute(insert_smt, args)
+        con.commit()
+    except Exception as e:
+        con.rollback() # TODO: test
+        raise e
+    finally:
+        cur.close()
     return
 
