@@ -50,7 +50,7 @@ def stop_job_on_unit(job, unit):
 def run_job_on_unit(job, unit):
     """Runs specified job on unit"""
 
-    client.publish(f"pioreactor/{unit}/$experiment/run/{job}", request.get_data(), qos=2)
+    client.publish(f"pioreactor/{unit}/$experiment/run/{job}", request.get_data() or r"{}", qos=2)
 
     return Response(status=200)
 
