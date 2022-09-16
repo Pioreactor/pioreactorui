@@ -6,7 +6,6 @@ import os
 import re
 import sqlite3
 import subprocess
-import json
 
 from flask import g
 from flask import jsonify
@@ -264,13 +263,13 @@ def list_installed_plugins():
     result = background_tasks.pio("list-plugins", "--json")
     try:
         status, msg = result(blocking=True, timeout=10)
-    except:
+    except Exception:
         status, msg = False, "Timed out."
 
     if not status:
         publish_to_error_log(msg, "get_installed_plugins")
         publish_to_error_log(msg, "get_installed_plugins")
-        return json.dumps([])
+        return jsonify([])
 
     else:
         return msg
@@ -279,16 +278,15 @@ def list_installed_plugins():
 @app.route("/api/install_plugin", methods=["POST"])
 def install_plugin():
     body = request.get_json()
-    result = background_tasks.pios("install-plugin", body["plugin_name"])
+    background_tasks.pios("install-plugin", body["plugin_name"])
     return Response(status=200)
 
 
 @app.route("/api/uninstall_plugin", methods=["POST"])
 def uninstall_plugin():
     body = request.get_json()
-    result = background_tasks.pios("uninstall-plugin", body["plugin_name"])
+    background_tasks.pios("uninstall-plugin", body["plugin_name"])
     return Response(status=200)
-
 
 
 ## MISC
@@ -296,7 +294,7 @@ def uninstall_plugin():
 
 @app.route("/api/contrib/automations/<automation_type>", methods=["GET"])
 def get_automation_contrib(automation_type):
-    """TODO: dosing doesn't do anything..."""
+    # TODO: this _could_ _maybe_ be served by the webserver. After all, these are static assets.
     try:
         automation_path = os.path.join(config["CONTRIB_FOLDER"], "automations", automation_type)
 
@@ -321,6 +319,8 @@ def get_automation_contrib(automation_type):
 
 @app.route("/api/contrib/jobs", methods=["GET"])
 def get_job_contrib():
+    # TODO: this _could_ _maybe_ be served by the webserver. After all, these are static assets.
+
     try:
         job_path = os.path.join(config["CONTRIB_FOLDER"], "jobs")
 
@@ -352,7 +352,9 @@ def update_app():
 @app.route("/api/get_app_version", methods=["GET"])
 def get_app_version():
     result = subprocess.run(
-        ["python", "-c", "import pioreactor; print(pioreactor.__version__)"], capture_output=True, text=True
+        ["python", "-c", "import pioreactor; print(pioreactor.__version__)"],
+        capture_output=True,
+        text=True,
     )
     if result.returncode != 0:
         publish_to_error_log(result.stdout, "get_app_version")
@@ -517,7 +519,7 @@ def add_new_pioreactor():
     try:
         result = background_tasks.add_new_pioreactor(new_name)
     except Exception as e:
-        publish_to_error_log(msg, "add_new_pioreactor")
+        publish_to_error_log(str(e), "add_new_pioreactor")
         return {"msg": str(e)}, 500
 
     try:
@@ -550,7 +552,7 @@ def get_config_of_file(filename):
 
 
 @app.route("/api/get_configs", methods=["GET"])
-def get_list_all_configs():
+def get_configs():
     """get a list of all config.ini files in the .pioreactor folder"""
     try:
         config_path = config["CONFIG_INI_FOLDER"]
@@ -564,7 +566,7 @@ def get_list_all_configs():
         return list_config_files
 
     except Exception as e:
-        publish_to_error_log(str(e), "get_list_all_contrib")
+        publish_to_error_log(str(e), "get_configs")
         return Response(status=400)
 
 
@@ -575,9 +577,7 @@ def delete_config():
 
     body = request.get_json()
 
-    config_path = os.path.join(
-        config["CONFIG_INI_FOLDER"], body["filename"]
-    )
+    config_path = os.path.join(config["CONFIG_INI_FOLDER"], body["filename"])
 
     result = subprocess.run(["rm", config_path], capture_output=True, text=True)
 
@@ -621,7 +621,7 @@ def save_new_config():
 
     try:
         status, msg = result(blocking=True, timeout=60)
-    except:
+    except Exception:
         status, msg = False, "Timed out."
 
     if not status:
