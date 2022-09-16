@@ -560,10 +560,10 @@ def get_configs():
         list_config_files = []
 
         for file in os.listdir(config_path):
-            if file.endswith(".ini"):
+            if file.startswith("config") and file.endswith(".ini"):
                 list_config_files.append(file)
 
-        return list_config_files
+        return jsonify(list_config_files)
 
     except Exception as e:
         publish_to_error_log(str(e), "get_configs")
@@ -593,6 +593,8 @@ def delete_config():
 @app.route("/api/save_new_config", methods=["POST"])
 def save_new_config():
     """if the config file is unit specific, we only need to run sync-config on that unit."""
+
+    # TODO: test, this may have permissions issues
 
     body = request.get_json()
 
