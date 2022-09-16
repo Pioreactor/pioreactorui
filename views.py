@@ -599,11 +599,11 @@ def save_new_config():
 
     if regex.match(filename) is not None:
         units = regex.match(filename)[1]
-        flags = ["--specific"]
+        flags = "--specific"
 
     else:
         units = "$broadcast"
-        flags = ["--shared"]
+        flags = "--shared"
 
     config_path = os.path.join(config["CONFIG_INI_FOLDER"], body["filename"])
 
