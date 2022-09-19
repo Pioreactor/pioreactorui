@@ -428,7 +428,7 @@ def export_datasets():
         publish_to_error_log(msg, "export_datasets")
         return {"result": status, "filename": None, "msg": msg}, 500
 
-    return {"result": status, "filename": filename, "msg": msg}, status
+    return {"result": status, "filename": filename, "msg": msg}, 200
 
 
 @app.route("/api/get_experiments", methods=["GET"])
