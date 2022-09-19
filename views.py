@@ -422,13 +422,13 @@ def export_datasets():
     except HueyException:
         status, msg = False, "Timed out on export."
         publish_to_error_log(msg, "export_datasets")
-        return Response({"result": status, "filename": None, "msg": msg}, status=500)
+        return {"result": status, "filename": None, "msg": msg}, 500
 
     if not status:
         publish_to_error_log(msg, "export_datasets")
-        return Response({"result": status, "filename": None, "msg": msg}, status=500)
+        return {"result": status, "filename": None, "msg": msg}, 500
 
-    return Response({"result": status, "filename": filename, "msg": msg}, status=200)
+    return {"result": status, "filename": filename, "msg": msg}, status
 
 
 @app.route("/api/get_experiments", methods=["GET"])
