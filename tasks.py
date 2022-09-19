@@ -35,8 +35,6 @@ def update_app() -> bool:
 @huey.task()
 def pio(*args) -> tuple[bool, str]:
     result = subprocess.run(("pio",) + args, capture_output=True, text=True)
-    logger.info(result.stdout)
-    logger.info(result.stderr)
     if result.returncode != 0:
         return False, result.stderr
     else:
@@ -46,8 +44,6 @@ def pio(*args) -> tuple[bool, str]:
 @huey.task()
 def pios(*args) -> tuple[bool, str]:
     result = subprocess.run(("pios",) + args, capture_output=True, text=True)
-    logger.info(result.stdout)
-    logger.info(result.stderr)
     if result.returncode != 0:
         return False, result.stderr
     else:

@@ -275,7 +275,6 @@ def list_installed_plugins():
 
     if not status:
         publish_to_error_log(msg, "get_installed_plugins")
-        publish_to_error_log(msg, "get_installed_plugins")
         return jsonify([])
 
     else:
@@ -302,6 +301,11 @@ def uninstall_plugin():
 @app.route("/api/contrib/automations/<automation_type>", methods=["GET"])
 def get_automation_contrib(automation_type):
     # TODO: this _could_ _maybe_ be served by the webserver. After all, these are static assets.
+
+    # security to prevent possibly reading arbitrary file
+    if automation_type not in ["temperature", "dosing", "led"]:
+        return Response(400)
+
     try:
         automation_path = os.path.join(config["CONTRIB_FOLDER"], "automations", automation_type)
 
@@ -326,7 +330,7 @@ def get_automation_contrib(automation_type):
 
 @app.route("/api/contrib/jobs", methods=["GET"])
 def get_job_contrib():
-    # TODO: this _could_ _maybe_ be served by the webserver. After all, these are static assets.
+    # TODO: this _could_ _maybe_ be served by the webserver. After all, these are static assets. Yaml conversion to js can happen on the client side
 
     try:
         job_path = os.path.join(config["CONTRIB_FOLDER"], "jobs")
@@ -372,6 +376,7 @@ def get_app_version():
 
 @app.route("/api/export_datasets", methods=["POST"])
 def export_datasets():
+    # TODO
     return
 
 
@@ -531,7 +536,7 @@ def add_new_pioreactor():
 
     try:
         status, msg = result(blocking=True, timeout=60)
-    except Exception:
+    except HueyException:
         status, msg = False, "Timed out, see logs."
 
     if status:
@@ -545,8 +550,12 @@ def add_new_pioreactor():
 
 
 @app.route("/api/get_config/<filename>", methods=["GET"])
-def get_config_of_file(filename):
+def get_config(filename):
     """get a specific config.ini file in the .pioreactor folder"""
+
+    # security bit: strip out any paths that may be attached, ex: ../../../root/bad
+    filename = os.path.basename(filename)
+
     try:
         specific_config_path = os.path.join(config["CONFIG_INI_FOLDER"], filename)
 
@@ -601,25 +610,33 @@ def delete_config():
 def save_new_config():
     """if the config file is unit specific, we only need to run sync-config on that unit."""
 
-    # TODO: test, this may have permissions issues
+    # TODO: this is too slow. Can we chain together the background tasks so we aren't
+    # contantly waiting around??
 
     body = request.get_json()
+    filename, code = body["filename"], body["code"]
 
+    if not filename.endswith(".ini"):
+        return Response(status=400)
+
+    # security bit:
+    # users could have filename look like ../../../../root/bad.txt
+    # the below code will strip any paths.
+    filename = os.path.basename(filename)
+
+    # is the user editing a worker config or the global config?
     regex = re.compile(r"config_?(.*)?\.ini")
-    filename = body["filename"]
-
     if regex.match(filename)[1] != "":
         units = regex.match(filename)[1]
         flags = "--specific"
-
     else:
         units = "$broadcast"
         flags = "--shared"
 
-    # TODO: security risk here to save arbitrary file to OS.
-    config_path = os.path.join(config["CONFIG_INI_FOLDER"], body["filename"])
+    # General security risk here to save arbitrary file to OS.
+    config_path = os.path.join(config["CONFIG_INI_FOLDER"], filename)
 
-    result = background_tasks.write_config(config_path, body["code"])
+    result = background_tasks.write_config(config_path, code)
 
     try:
         status, msg_or_exception = result(blocking=True, timeout=10)
