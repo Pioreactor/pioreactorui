@@ -11,6 +11,7 @@ from flask import g
 from flask import jsonify
 from flask import request
 from flask import Response
+from huey.expections import HueyException
 from yaml import CLoader as Loader  # type: ignore
 from yaml import load as yaml_load  # type: ignore
 
@@ -269,7 +270,7 @@ def list_installed_plugins():
     result = background_tasks.pio("list-plugins", "--json")
     try:
         status, msg = result(blocking=True, timeout=10)
-    except Exception:
+    except HueyException:
         status, msg = False, "Timed out."
 
     if not status:
@@ -615,28 +616,31 @@ def save_new_config():
         units = "$broadcast"
         flags = "--shared"
 
+    # TODO: security risk here to save arbitrary file to OS.
     config_path = os.path.join(config["CONFIG_INI_FOLDER"], body["filename"])
 
     result = background_tasks.write_config(config_path, body["code"])
 
     try:
-        status, msg = result(blocking=True, timeout=10)
-    except Exception:
-        status, msg = False, "Timed out"
+        status, msg_or_exception = result(blocking=True, timeout=10)
+    except HueyException:
+        status, msg_or_exception = False, "write_config timed out"
+    else:
+        raise msg_or_exception
 
     if not status:
-        publish_to_error_log(msg, "save_new_config")
+        publish_to_error_log(msg_or_exception, "save_new_config")
         return Response(status=500)
 
     result = background_tasks.pios("sync-configs", "--units", units, flags)
 
     try:
-        status, msg = result(blocking=True, timeout=60)
-    except Exception:
-        status, msg = False, "Timed out."
+        status, msg_or_exception = result(blocking=True, timeout=60)
+    except HueyException:
+        status, msg_or_exception = False, "sync-configs timed out."
 
     if not status:
-        publish_to_error_log(msg, "save_new_config")
+        publish_to_error_log(msg_or_exception, "save_new_config")
         return Response(status=500)
 
     return Response(status=200)
