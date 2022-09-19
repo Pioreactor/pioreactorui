@@ -11,7 +11,7 @@ from flask import g
 from flask import jsonify
 from flask import request
 from flask import Response
-from huey.expections import HueyException
+from huey.exceptions import HueyException
 from yaml import CLoader as Loader  # type: ignore
 from yaml import load as yaml_load  # type: ignore
 
