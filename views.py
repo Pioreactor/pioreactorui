@@ -382,11 +382,14 @@ def export_datasets():
     body = request.get_json()
     logger.debug(f"{body=}")
 
-    cmd_tables = [
-        f" --tables {table_name}"
-        for (table_name, exporting) in body["datasetCheckbox"].items()
-        if exporting
-    ]
+    cmd_tables = sum(
+        [
+            ["--tables", table_name]
+            for (table_name, exporting) in body["datasetCheckbox"].items()
+            if exporting
+        ],
+        [],
+    )
     experiment_name = body["experimentSelection"]
     logger.debug(f"{experiment_name=}")
     logger.debug(f"{cmd_tables=}")

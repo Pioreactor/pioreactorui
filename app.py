@@ -53,9 +53,11 @@ def publish_to_log(msg, task, level="DEBUG"):
 
 
 def publish_to_error_log(msg, task):
-    msg = str(msg)
-    logger.error(msg, exc_info=True)
-    publish_to_log(json.dumps(msg), task, "ERROR")
+    logger.error(msg)
+    try:
+        publish_to_log(json.dumps(msg), task, "ERROR")
+    except TypeError:
+        publish_to_log(str(msg), task, "ERROR")
 
 
 def _make_dicts(cursor, row):
