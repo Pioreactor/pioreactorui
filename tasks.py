@@ -3,11 +3,26 @@ from __future__ import annotations
 
 import logging
 import subprocess
+from logging import handlers
 
+from dotenv import dotenv_values
 from huey import SqliteHuey
 
 huey = SqliteHuey(filename="huey.db")
+config = dotenv_values(".env")  # a dictionary
+
 logger = logging.getLogger("huey.consumer")
+logger.setLevel(logging.DEBUG)
+
+file_handler = handlers.WatchedFileHandler(config["UI_LOG_LOCATION"])
+file_handler.setFormatter(
+    logging.Formatter(
+        "%(asctime)s [%(name)s] %(levelname)-2s %(message)s",
+        datefmt="%Y-%m-%dT%H:%M:%S%z",
+    )
+)
+logger.addHandler(file_handler)
+logger.debug("Starting Huey...")
 
 
 @huey.task()
@@ -34,6 +49,7 @@ def update_app() -> bool:
 
 @huey.task()
 def pio(*args) -> tuple[bool, str]:
+    logger.debug(f'Executing {("pio",) + args}')
     result = subprocess.run(("pio",) + args, capture_output=True, text=True)
     if result.returncode != 0:
         return False, result.stderr
@@ -43,6 +59,7 @@ def pio(*args) -> tuple[bool, str]:
 
 @huey.task()
 def pios(*args) -> tuple[bool, str]:
+    logger.debug(f'Executing {("pios",) + args}')
     result = subprocess.run(("pios",) + args, capture_output=True, text=True)
     if result.returncode != 0:
         return False, result.stderr

@@ -7,25 +7,34 @@ import socket
 import sqlite3
 from datetime import datetime
 from datetime import timezone
+from logging import handlers
 
 import paho.mqtt.client as mqtt
 from dotenv import dotenv_values
 from flask import Flask
 from flask import g
 
+NAME = "pioreactorui"
 config = dotenv_values(".env")  # a dictionary
 
 # set up logging
-logger = logging.getLogger(__name__)
-file_handler = logging.FileHandler(config["UI_LOG_LOCATION"])
-logger.addHandler(file_handler)
+logger = logging.getLogger(NAME)
 logger.setLevel(logging.DEBUG)
+
+file_handler = handlers.WatchedFileHandler(config["UI_LOG_LOCATION"])
+file_handler.setFormatter(
+    logging.Formatter(
+        "%(asctime)s [%(name)s] %(levelname)-2s %(message)s",
+        datefmt="%Y-%m-%dT%H:%M:%S%z",
+    )
+)
+logger.addHandler(file_handler)
 logger.debug("Starting PioreactorUI...")
 
 
 logger.debug(f".env={dict(config)}")
 
-app = Flask(__name__)
+app = Flask(NAME)
 
 # connect to MQTT server
 logger.debug("Starting MQTT client")
