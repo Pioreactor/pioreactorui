@@ -625,7 +625,7 @@ def save_new_config():
         status, msg_or_exception = result(blocking=True, timeout=10)
     except HueyException:
         status, msg_or_exception = False, "write_config timed out"
-    else:
+    except Exception:
         raise msg_or_exception
 
     if not status:
