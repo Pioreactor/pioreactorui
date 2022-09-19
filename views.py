@@ -379,8 +379,8 @@ def get_app_version():
 @app.route("/api/export_datasets", methods=["POST"])
 def export_datasets():
     # {"experimentSelection":"Demo experiment 10","datasetCheckbox":{"pioreactor_unit_activity_data":false,"growth_rates":true,"dosing_events":false,"led_events":false,"experiments":false,"od_readings":true,"od_readings_filtered":false,"logs":false,"alt_media_fraction":false,"dosing_automation_settings":false,"led_automation_settings":false,"temperature_automation_settings":false,"kalman_filter_outputs":false,"stirring_rates":false,"temperature_readings":false,"pioreactor_unit_labels":false,"led_automation_events":false,"dosing_automation_events":false,"temperature_automation_events":false}}
-
     body = request.get_json()
+    logger.debug(f"{body=}")
 
     cmd_tables = [
         f" --tables {table_name}"
