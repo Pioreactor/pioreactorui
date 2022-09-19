@@ -26,7 +26,7 @@ logger.info("Starting Huey...")
 
 
 @huey.task()
-def add_new_pioreactor(new_pioreactor_name) -> tuple[bool, str]:
+def add_new_pioreactor(new_pioreactor_name: str) -> tuple[bool, str]:
     logger.info(f"Adding new pioreactor {new_pioreactor_name}")
     result = subprocess.run(
         ["pio", "add-pioreactor", new_pioreactor_name], capture_output=True, text=True
@@ -61,6 +61,16 @@ def pio(*args) -> tuple[bool, str]:
 
 
 @huey.task()
+def rm(path) -> tuple[bool, str]:
+    logger.info(f"Deleting {path}.")
+    result = subprocess.run(["rm", path], capture_output=True, text=True)
+    if result.returncode != 0:
+        return False, result.stderr
+    else:
+        return True, result.stdout
+
+
+@huey.task()
 def pios(*args) -> tuple[bool, str]:
     logger.info(f'Executing `{" ".join(("pios",) + args)}`')
     result = subprocess.run(("pios",) + args, capture_output=True, text=True)
@@ -71,10 +81,11 @@ def pios(*args) -> tuple[bool, str]:
 
 
 @huey.task()
-def write_config(config_path, text) -> tuple[bool, str | Exception]:
+def write_config(config_path: str, text: str) -> tuple[bool, str]:
     try:
         with open(config_path, "w") as f:
             f.write(text)
         return (True, "")
     except Exception as e:
-        return (False, e)
+        logger.error(str(e))
+        return (False, str(e))

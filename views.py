@@ -35,7 +35,7 @@ def stop_all():
 
 
 @app.route("/api/stop/<job>/<unit>", methods=["POST"])
-def stop_job_on_unit(job, unit):
+def stop_job_on_unit(job: str, unit: str):
     """Kills specified job on unit"""
 
     jobs_to_kill_over_MQTT = ["add_media", "add_alt_media", "remove_waste"]
@@ -49,7 +49,7 @@ def stop_job_on_unit(job, unit):
 
 
 @app.route("/api/run/<job>/<unit>", methods=["POST"])
-def run_job_on_unit(job, unit):
+def run_job_on_unit(job: str, unit: str):
     """Runs specified job on unit"""
 
     client.publish(f"pioreactor/{unit}/$experiment/run/{job}", request.get_data() or r"{}", qos=2)
@@ -58,9 +58,9 @@ def run_job_on_unit(job, unit):
 
 
 @app.route("/api/reboot/<unit>", methods=["POST"])
-def reboot_unit(unit):
-    """Reboots unit"""  # should return a 0
-    background_tasks.pios("reboot", "--all-jobs", "-y", "--units", unit)
+def reboot_unit(unit: str):
+    """Reboots unit"""
+    background_tasks.pios("reboot", "-y", "--units", unit)
     return Response(status=200)
 
 
@@ -104,7 +104,7 @@ def recent_logs():
 
 
 @app.route("/api/time_series/growth_rates/<experiment>", methods=["GET"])
-def growth_rates(experiment):
+def growth_rates(experiment: str):
     """Gets growth rates for all units"""
     args = request.args
     filter_mod_n = float(args.get("filter_mod_N", 100.0))
@@ -124,7 +124,7 @@ def growth_rates(experiment):
 
 
 @app.route("/api/time_series/temperature_readings/<experiment>", methods=["GET"])
-def temperature_readings(experiment):
+def temperature_readings(experiment: str):
     """Gets temperature readings for all units"""
     args = request.args
     filter_mod_n = float(args.get("filter_mod_N", 100.0))
@@ -144,7 +144,7 @@ def temperature_readings(experiment):
 
 
 @app.route("/api/time_series/od_readings_filtered/<experiment>", methods=["GET"])
-def od_readings_filtered(experiment):
+def od_readings_filtered(experiment: str):
     """Gets normalized od for all units"""
     args = request.args
     filter_mod_n = float(args.get("filter_mod_N", 100.0))
@@ -165,7 +165,7 @@ def od_readings_filtered(experiment):
 
 
 @app.route("/api/time_series/od_readings/<experiment>", methods=["GET"])
-def od_readings(experiment):
+def od_readings(experiment: str):
     """Gets raw od for all units"""
     args = request.args
     filter_mod_n = float(args.get("filter_mod_N", 100.0))
@@ -196,7 +196,7 @@ def od_readings(experiment):
 
 
 @app.route("/api/time_series/alt_media_fraction/<experiment>", methods=["GET"])
-def alt_media_fraction(experiment):
+def alt_media_fraction(experiment: str):
     """get fraction of alt media added to vial"""
 
     try:
@@ -247,7 +247,7 @@ def recent_media_rates():
 
 
 @app.route("/api/calibrations/<pioreactor_unit>/<calibration_type>", methods=["GET"])
-def get_unit_calibrations(pioreactor_unit, calibration_type):
+def get_unit_calibrations(pioreactor_unit: str, calibration_type: str):
 
     try:
         unit_calibration = query_db(
@@ -300,7 +300,7 @@ def uninstall_plugin():
 
 
 @app.route("/api/contrib/automations/<automation_type>", methods=["GET"])
-def get_automation_contrib(automation_type):
+def get_automation_contrib(automation_type: str):
     # TODO: this _could_ _maybe_ be served by the webserver. After all, these are static assets.
 
     # security to prevent possibly reading arbitrary file
@@ -423,30 +423,30 @@ def export_datasets():
 @app.route("/api/get_experiments", methods=["GET"])
 def get_experiments():
     try:
-        experiments = query_db(
-            "SELECT experiment, created_at, description FROM experiments ORDER BY created_at DESC;"
+        return jsonify(
+            query_db(
+                "SELECT experiment, created_at, description FROM experiments ORDER BY created_at DESC;"
+            )
         )
 
     except Exception as e:
-        publish_to_error_log(str(e), "get_experiments")
+        publish_to_error_log(e, "get_experiments")
         return Response(status=400)
-
-    return jsonify(experiments)
 
 
 @app.route("/api/get_latest_experiment", methods=["GET"])
 def get_latest_experiment():
     try:
-        latest_experiment = query_db(
-            "SELECT experiment, created_at, description, media_used, organism_used, delta_hours FROM latest_experiment",
-            one=True,
+        return jsonify(
+            query_db(
+                "SELECT experiment, created_at, description, media_used, organism_used, delta_hours FROM latest_experiment",
+                one=True,
+            )
         )
 
     except Exception as e:
-        publish_to_error_log(str(e), "get_latest_experiment")
+        publish_to_error_log(e, "get_latest_experiment")
         return Response(status=400)
-
-    return jsonify(latest_experiment)
 
 
 @app.route("/api/get_current_unit_labels", methods=["GET"])
@@ -461,7 +461,7 @@ def get_current_unit_labels():
         return jsonify(keyed_by_unit)
 
     except Exception as e:
-        publish_to_error_log(str(e), "get_current_unit_labels")
+        publish_to_error_log(e, "get_current_unit_labels")
         return Response(status=400)
 
 
@@ -541,11 +541,10 @@ def create_experiment():
         return Response(status=200)
 
     except sqlite3.IntegrityError as e:
-        publish_to_error_log(str(e), "create_experiment")
+        publish_to_error_log(e, "create_experiment")
         return Response(status=400)
     except Exception as e:
-        print(e)
-        publish_to_error_log(str(e), "create_experiment")
+        publish_to_error_log(e, "create_experiment")
         return Response(status=400)
 
 
@@ -590,7 +589,7 @@ def add_new_pioreactor():
 
 
 @app.route("/api/get_config/<filename>", methods=["GET"])
-def get_config(filename):
+def get_config(filename: str):
     """get a specific config.ini file in the .pioreactor folder"""
 
     # security bit: strip out any paths that may be attached, ex: ../../../root/bad
@@ -629,21 +628,14 @@ def get_configs():
 @app.route("/api/delete_config", methods=["POST"])
 def delete_config():
     """TODO: make this http DELETE"""
-    # TODO: test this. I think they will be a permissions issue.
 
     body = request.get_json()
+    filename = os.path.basename(body["filename"])
 
-    config_path = os.path.join(config["CONFIG_INI_FOLDER"], body["filename"])
+    config_path = os.path.join(config["CONFIG_INI_FOLDER"], filename)
 
-    result = subprocess.run(["rm", config_path], capture_output=True, text=True)
-
-    if result.returncode != 0:
-        publish_to_error_log(result.stdout, "delete_config")
-        publish_to_error_log(result.stderr, "delete_config")
-        return Response(status=400)
-
-    else:
-        return Response(status=200)
+    background_tasks.rm(config_path)
+    return Response(status=200)
 
 
 @app.route("/api/save_new_config", methods=["POST"])
@@ -682,8 +674,6 @@ def save_new_config():
         status, msg_or_exception = result(blocking=True, timeout=10)
     except HueyException:
         status, msg_or_exception = False, "write_config timed out"
-    except Exception:
-        raise msg_or_exception
 
     if not status:
         publish_to_error_log(msg_or_exception, "save_new_config")
