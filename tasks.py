@@ -40,16 +40,19 @@ def add_new_pioreactor(new_pioreactor_name) -> tuple[bool, str]:
 
 @huey.task()
 def update_app() -> bool:
-    logger.info("Updating apps")
-    subprocess.run(["pio", "update", "--app"])
-    subprocess.run(["pios", "update"])
-    subprocess.run(["pio", "update", "--ui"])
+    logger.info("Updating app")
+    update_app_on_leader = ["pio", "update", "--app"]
+    update_app_across_all_workers = ["pios", "update"]
+    update_ui_on_leader = ["pio", "update", "--ui"]
+    subprocess.run(
+        update_app_on_leader + ["&&"] + update_app_across_all_workers + ["&&"] + update_ui_on_leader
+    )
     return True
 
 
 @huey.task()
 def pio(*args) -> tuple[bool, str]:
-    logger.info(f'Executing {("pio",) + args}')
+    logger.info(f'Executing `{" ".join(("pio",) + args)}`')
     result = subprocess.run(("pio",) + args, capture_output=True, text=True)
     if result.returncode != 0:
         return False, result.stderr
@@ -59,7 +62,7 @@ def pio(*args) -> tuple[bool, str]:
 
 @huey.task()
 def pios(*args) -> tuple[bool, str]:
-    logger.info(f'Executing {("pios",) + args}')
+    logger.info(f'Executing `{" ".join(("pios",) + args)}`')
     result = subprocess.run(("pios",) + args, capture_output=True, text=True)
     if result.returncode != 0:
         return False, result.stderr
