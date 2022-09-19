@@ -6,6 +6,7 @@ import os
 import re
 import sqlite3
 import subprocess
+from datetime import datetime
 
 from flask import g
 from flask import jsonify
@@ -20,6 +21,7 @@ from app import app
 from app import client
 from app import config
 from app import insert_into_db
+from app import logger
 from app import publish_to_error_log
 from app import query_db
 
@@ -304,7 +306,7 @@ def get_automation_contrib(automation_type):
 
     # security to prevent possibly reading arbitrary file
     if automation_type not in ["temperature", "dosing", "led"]:
-        return Response(400)
+        return Response(status=400)
 
     try:
         automation_path = os.path.join(config["CONTRIB_FOLDER"], "automations", automation_type)
@@ -376,8 +378,54 @@ def get_app_version():
 
 @app.route("/api/export_datasets", methods=["POST"])
 def export_datasets():
-    # TODO
-    return
+    # {"experimentSelection":"Demo experiment 10","datasetCheckbox":{"pioreactor_unit_activity_data":false,"growth_rates":true,"dosing_events":false,"led_events":false,"experiments":false,"od_readings":true,"od_readings_filtered":false,"logs":false,"alt_media_fraction":false,"dosing_automation_settings":false,"led_automation_settings":false,"temperature_automation_settings":false,"kalman_filter_outputs":false,"stirring_rates":false,"temperature_readings":false,"pioreactor_unit_labels":false,"led_automation_events":false,"dosing_automation_events":false,"temperature_automation_events":false}}
+
+    body = request.get_json()
+
+    cmd_tables = [
+        f" --tables {table_name}"
+        for (table_name, exporting) in body["datasetCheckbox"].items()
+        if exporting
+    ]
+    experiment_name = body["experimentSelection"]
+    logger.debug(f"{experiment_name=}")
+    logger.debug(f"{cmd_tables=}")
+
+    timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+    if experiment_name == "<All experiments>":
+        experiment_options = []
+        filename = f"export_{timestamp}.zip"
+    else:
+        experiment_options = ["--experiment", experiment_name.replace(" ", r"\ ")]
+        filename = f"export_{experiment_name.replace(' ', '_')}_{timestamp}.zip"  # TODO: replace more strings...
+
+    logger.debug(f"{timestamp=}")
+    logger.debug(f"{filename=}")
+    logger.debug(f"{experiment_options=}")
+
+    filename_with_path = os.path.join("/var/www/pioreactorui/static/exports/", filename)
+    logger.debug(f"{filename_with_path=}")
+
+    result = background_tasks.pio(
+        "run",
+        "export_experiment_data",
+        "--output",
+        filename_with_path,
+        *cmd_tables,
+        *experiment_options,
+    )
+    try:
+        status, msg = result(blocking=True, timeout=5 * 60)
+    except HueyException:
+        status, msg = False, "Timed out on export."
+        publish_to_error_log(msg, "export_datasets")
+        return Response({"result": status, "filename": None, "msg": msg}, status=500)
+
+    if not status:
+        publish_to_error_log(msg, "export_datasets")
+        return Response({"result": status, "filename": None, "msg": msg}, status=500)
+
+    return Response({"result": status, "filename": filename, "msg": msg}, status=200)
 
 
 @app.route("/api/get_experiments", methods=["GET"])
