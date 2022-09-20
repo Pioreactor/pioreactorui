@@ -396,7 +396,13 @@ def export_datasets():
         filename = f"export_{timestamp}.zip"
     else:
         experiment_options = ["--experiment", experiment_name.replace(" ", r"\ ")]
-        filename = f"export_{experiment_name.replace(' ', '_')}_{timestamp}.zip"  # TODO: replace more strings...
+
+        _experiment_name = experiment_name
+        chars = "\\`*_{}[]()>#+-.!$"
+        for c in chars:
+            _experiment_name = _experiment_name.replace(c, "_")
+
+        filename = f"export_{_experiment_name}_{timestamp}.zip"
 
     filename_with_path = os.path.join("/var/www/pioreactorui/static/exports/", filename)
     result = background_tasks.pio(
