@@ -24,6 +24,7 @@ from app import insert_into_db
 from app import publish_to_error_log
 from app import query_db
 
+
 ## PIOREACTOR CONTROL
 
 
@@ -31,7 +32,7 @@ from app import query_db
 def stop_all():
     """Kills all jobs"""
     background_tasks.pios("kill", "--all-jobs", "-y")
-    return Response(status=200)
+    return Response(status=204)
 
 
 @app.route("/api/stop/<job>/<unit>", methods=["POST"])
@@ -45,7 +46,7 @@ def stop_job_on_unit(job: str, unit: str):
     else:
         background_tasks.pios("kill", "--all-jobs", "-y", "--units", unit)
 
-    return Response(status=200)
+    return Response(status=204)
 
 
 @app.route("/api/run/<job>/<unit>", methods=["POST"])
@@ -54,14 +55,14 @@ def run_job_on_unit(job: str, unit: str):
 
     client.publish(f"pioreactor/{unit}/$experiment/run/{job}", request.get_data() or r"{}", qos=2)
 
-    return Response(status=200)
+    return Response(status=204)
 
 
 @app.route("/api/reboot/<unit>", methods=["POST"])
 def reboot_unit(unit: str):
     """Reboots unit"""
     background_tasks.pios("reboot", "-y", "--units", unit)
-    return Response(status=200)
+    return Response(status=204)
 
 
 ## DATA FOR CARDS ON OVERVIEW
@@ -293,7 +294,7 @@ def install_plugin():
 def uninstall_plugin():
     body = request.get_json()
     background_tasks.pios("uninstall-plugin", body["plugin_name"])
-    return Response(status=200)
+    return Response(status=204)
 
 
 ## MISC
@@ -489,7 +490,7 @@ def update_current_unit_labels():
 
     # client.publish(f"pioreactor/{unit}/{latest_experiment}/unit_label", label, retain=True)
 
-    return Response(status=200)
+    return Response(status=204)
 
 
 @app.route("/api/get_historical_organisms_used", methods=["GET"])
@@ -556,7 +557,7 @@ def update_experiment_description():
             "UPDATE experiments SET description = (?) WHERE experiment=(?)",
             (body["description"], body["experiment"]),
         )
-        return Response(status=200)
+        return Response(status=204)
 
     except Exception as e:
         publish_to_error_log(str(e), "update_experiment_desc")
@@ -579,7 +580,7 @@ def add_new_pioreactor():
         status, msg = False, "Timed out, see logs."
 
     if status:
-        return Response(status=200)
+        return Response(status=204)
     else:
         publish_to_error_log(msg, "add_new_pioreactor")
         return {"msg": msg}, 500
@@ -627,7 +628,7 @@ def get_configs():
 
 @app.route("/api/delete_config", methods=["POST"])
 def delete_config():
-    """TODO: make this http DELETE"""
+    """TODO: should this http be DELETE?"""
 
     body = request.get_json()
     filename = os.path.basename(body["filename"])
@@ -635,7 +636,7 @@ def delete_config():
     config_path = os.path.join(config["CONFIG_INI_FOLDER"], filename)
 
     background_tasks.rm(config_path)
-    return Response(status=200)
+    return Response(status=204)
 
 
 @app.route("/api/save_new_config", methods=["POST"])
@@ -690,7 +691,7 @@ def save_new_config():
         publish_to_error_log(msg_or_exception, "save_new_config")
         return Response(status=500)
 
-    return Response(status=200)
+    return Response(status=204)
 
 
 @app.errorhandler(404)
