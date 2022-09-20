@@ -287,7 +287,7 @@ def list_installed_plugins():
 def install_plugin():
     body = request.get_json()
     background_tasks.pios("install-plugin", body["plugin_name"])
-    return Response(status=200)
+    return Response(status=204)
 
 
 @app.route("/api/uninstall_plugin", methods=["POST"])
