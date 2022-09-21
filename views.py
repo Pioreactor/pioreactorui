@@ -19,7 +19,7 @@ from yaml import load as yaml_load  # type: ignore
 import tasks as background_tasks
 from app import app
 from app import client
-from app import config
+from app import env
 from app import insert_into_db
 from app import publish_to_error_log
 from app import query_db
@@ -95,7 +95,7 @@ def recent_logs():
     try:
         recent_logs = query_db(
             f"SELECT l.timestamp, level=='ERROR'as is_error, level=='WARNING' as is_warning, level=='NOTICE' as is_notice, l.pioreactor_unit, message, task FROM logs AS l LEFT JOIN latest_experiment AS le ON (le.experiment = l.experiment OR l.experiment=?) WHERE {level_string} AND l.timestamp >= MAX(strftime('%Y-%m-%dT%H:%M:%S', datetime('now', '-24 hours')), le.created_at) ORDER BY l.timestamp DESC LIMIT 50;",
-            ("'$experiment'",),
+            ("$experiment",),
         )
     except Exception as e:
         publish_to_error_log(str(e), "recent_logs")
@@ -309,7 +309,7 @@ def get_automation_contrib(automation_type: str):
         return Response(status=400)
 
     try:
-        automation_path = os.path.join(config["CONTRIB_FOLDER"], "automations", automation_type)
+        automation_path = os.path.join(env["CONTRIB_FOLDER"], "automations", automation_type)
 
         files = sorted(
             glob.glob(automation_path + "/*.y[a]ml")
@@ -335,7 +335,7 @@ def get_job_contrib():
     # TODO: this _could_ _maybe_ be served by the webserver. After all, these are static assets. Yaml conversion to js can happen on the client side
 
     try:
-        job_path = os.path.join(config["CONTRIB_FOLDER"], "jobs")
+        job_path = os.path.join(env["CONTRIB_FOLDER"], "jobs")
 
         files = sorted(
             glob.glob(job_path + "/*.y[a]ml")
@@ -603,7 +603,7 @@ def get_config(filename: str):
     filename = os.path.basename(filename)
 
     try:
-        specific_config_path = os.path.join(config["CONFIG_INI_FOLDER"], filename)
+        specific_config_path = os.path.join(env["CONFIG_INI_FOLDER"], filename)
 
         with open(specific_config_path) as file_stream:
             return file_stream.read()
@@ -617,7 +617,7 @@ def get_config(filename: str):
 def get_configs():
     """get a list of all config.ini files in the .pioreactor folder"""
     try:
-        config_path = config["CONFIG_INI_FOLDER"]
+        config_path = env["CONFIG_INI_FOLDER"]
 
         list_config_files = []
 
@@ -639,7 +639,7 @@ def delete_config():
     body = request.get_json()
     filename = os.path.basename(body["filename"])
 
-    config_path = os.path.join(config["CONFIG_INI_FOLDER"], filename)
+    config_path = os.path.join(env["CONFIG_INI_FOLDER"], filename)
 
     background_tasks.rm(config_path)
     return Response(status=204)
@@ -673,20 +673,9 @@ def save_new_config():
         flags = "--shared"
 
     # General security risk here to save arbitrary file to OS.
-    config_path = os.path.join(config["CONFIG_INI_FOLDER"], filename)
+    config_path = os.path.join(env["CONFIG_INI_FOLDER"], filename)
 
-    result = background_tasks.write_config(config_path, code)
-
-    try:
-        status, msg_or_exception = result(blocking=True, timeout=10)
-    except HueyException:
-        status, msg_or_exception = False, "write_config timed out"
-
-    if not status:
-        publish_to_error_log(msg_or_exception, "save_new_config")
-        return Response(status=500)
-
-    result = background_tasks.pios("sync-configs", "--units", units, flags)
+    result = background_tasks.write_config_and_sync(config_path, code, units, flags)
 
     try:
         status, msg_or_exception = result(blocking=True, timeout=60)

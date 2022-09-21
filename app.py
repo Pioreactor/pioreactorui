@@ -15,13 +15,13 @@ from flask import Flask
 from flask import g
 
 NAME = "pioreactorui"
-config = dotenv_values(".env")  # a dictionary
+env = dotenv_values(".env")  # a dictionary
 
 # set up logging
 logger = logging.getLogger(NAME)
 logger.setLevel(logging.DEBUG)
 
-file_handler = handlers.WatchedFileHandler(config["UI_LOG_LOCATION"])
+file_handler = handlers.WatchedFileHandler(env["UI_LOG_LOCATION"])
 file_handler.setFormatter(
     logging.Formatter(
         "%(asctime)s [%(name)s] %(levelname)-2s %(message)s",
@@ -32,7 +32,7 @@ logger.addHandler(file_handler)
 logger.debug("Starting PioreactorUI...")
 
 
-logger.debug(f".env={dict(config)}")
+logger.debug(f".env={dict(env)}")
 
 app = Flask(NAME)
 
@@ -76,7 +76,7 @@ def _make_dicts(cursor, row):
 def _get_db_connection():
     db = getattr(g, "_database", None)
     if db is None:
-        db = g._database = sqlite3.connect(config["DB_LOCATION"])
+        db = g._database = sqlite3.connect(env["DB_LOCATION"])
         db.row_factory = _make_dicts
 
     return db

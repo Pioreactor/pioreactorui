@@ -9,12 +9,12 @@ from dotenv import dotenv_values
 from huey import SqliteHuey
 
 huey = SqliteHuey(filename="huey.db")
-config = dotenv_values(".env")  # a dictionary
+env = dotenv_values(".env")
 
 logger = logging.getLogger("huey.consumer")
 logger.setLevel(logging.INFO)
 
-file_handler = handlers.WatchedFileHandler(config["UI_LOG_LOCATION"])
+file_handler = handlers.WatchedFileHandler(env["UI_LOG_LOCATION"])
 file_handler.setFormatter(
     logging.Formatter(
         "%(asctime)s [%(name)s] %(levelname)-2s %(message)s",
@@ -81,11 +81,19 @@ def pios(*args) -> tuple[bool, str]:
 
 
 @huey.task()
-def write_config(config_path: str, text: str) -> tuple[bool, str]:
+def write_config_and_sync(config_path: str, text: str, units: str, flags: str) -> tuple[bool, str]:
     try:
         with open(config_path, "w") as f:
             f.write(text)
+
+        result = subprocess.run(
+            ("pios", "sync-configs", "--units", units, flags), capture_output=True, text=True
+        )
+        if result.returncode != 0:
+            raise Exception(result.stderr)
+
         return (True, "")
+
     except Exception as e:
         logger.error(str(e))
         return (False, str(e))
