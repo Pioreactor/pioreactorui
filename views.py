@@ -395,7 +395,7 @@ def export_datasets():
         experiment_options = []
         filename = f"export_{timestamp}.zip"
     else:
-        experiment_options = ["--experiment", experiment_name.replace(" ", r"\ ")]
+        experiment_options = ["--experiment", f'"{experiment_name}']
 
         _experiment_name = experiment_name
         chars = "\\`*_{}[]()>#+-.!$"
