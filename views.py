@@ -247,8 +247,23 @@ def recent_media_rates():
 ## CALIBRATIONS
 
 
+@app.route("/api/get_calibration_types", methods=["GET"])
+def get_calibration_types():
+
+    try:
+        types = query_db(
+            "SELECT DISTINCT type FROM calibrations",
+        )
+
+    except Exception as e:
+        publish_to_error_log(str(e), "get_calibration_types")
+        return Response(status=400)
+
+    return jsonify(types)
+
+
 @app.route("/api/calibrations/<pioreactor_unit>/<calibration_type>", methods=["GET"])
-def get_unit_calibrations(pioreactor_unit: str, calibration_type: str):
+def get_unit_calibrations_of_type(pioreactor_unit: str, calibration_type: str):
 
     try:
         unit_calibration = query_db(
@@ -257,7 +272,7 @@ def get_unit_calibrations(pioreactor_unit: str, calibration_type: str):
         )
 
     except Exception as e:
-        publish_to_error_log(str(e), "get_unit_calibrations")
+        publish_to_error_log(str(e), "get_unit_calibrations_of_type")
         return Response(status=400)
 
     return jsonify(unit_calibration)
