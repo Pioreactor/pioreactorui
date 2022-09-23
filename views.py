@@ -704,6 +704,24 @@ def save_new_config():
     return Response(status=204)
 
 
+@app.route("/api/get_historical_configs/<filename>", methods=["GET"])
+def get_historical_config_for(filename: str):
+    try:
+        configs_for_filename = query_db(
+            "SELECT filename, timestamp, data FROM config_files_histories WHERE filename=? ORDER BY timestamp DESC",
+            (filename,),
+        )
+
+    except Exception as e:
+        publish_to_error_log(str(e), "get_historical_config_for")
+        return Response(status=400)
+
+    return jsonify(configs_for_filename)
+
+
+### FLASK META VIEWS
+
+
 @app.errorhandler(404)
 def not_found(e):
     try:
