@@ -2,12 +2,11 @@
 from __future__ import annotations
 
 import configparser
-import glob
-import os
 import re
 import sqlite3
 import subprocess
 from datetime import datetime
+from pathlib import Path
 
 from flask import g
 from flask import jsonify
@@ -325,22 +324,9 @@ def get_automation_contrib(automation_type: str):
         return Response(status=400)
 
     try:
-        automation_path = os.path.join(env["CONTRIB_FOLDER"], "automations", automation_type)
-
-        files = sorted(
-            glob.glob(automation_path + "/*.y[a]ml")
-        )  # list of strings, where strings rep. paths to  yaml files
-
-        automations = []  # list of dict
-
-        for file in files:
-            with open(file, "rb") as file_stream:
-                automations.append(
-                    yaml_load(file_stream.read(), Loader=Loader)
-                )  # read returns string, safe_load converts to python object == dict
-
-        return jsonify(automations)
-
+        automation_path = Path(env["CONTRIB_FOLDER"]) / "automations" / automation_type
+        files = sorted(automation_path.glob("*.y[a]ml"))
+        return jsonify([yaml_load(file.read_bytes(), Loader=Loader) for file in files])
     except Exception as e:
         publish_to_error_log(str(e), "get_automation_contrib")
         return Response(status=400)
@@ -351,22 +337,9 @@ def get_job_contrib():
     # TODO: this _could_ _maybe_ be served by the webserver. After all, these are static assets. Yaml conversion to js can happen on the client side
 
     try:
-        job_path = os.path.join(env["CONTRIB_FOLDER"], "jobs")
-
-        files = sorted(
-            glob.glob(job_path + "/*.y[a]ml")
-        )  # list of strings, where strings rep. paths to  yaml files
-
-        jobs = []  # list of dict
-
-        for file in files:
-            with open(file, "rb") as file_stream:
-                jobs.append(
-                    yaml_load(file_stream.read(), Loader=Loader)
-                )  # read returns string, safe_load converts to python object == dict
-
-        return jsonify(jobs)
-
+        job_path = Path(env["CONTRIB_FOLDER"]) / "jobs"
+        files = sorted(job_path.glob("*.y[a]ml"))
+        return jsonify([yaml_load(file.read_bytes(), Loader=Loader) for file in files])
     except Exception as e:
         publish_to_error_log(str(e), "get_job_contrib")
         return Response(status=400)
@@ -420,7 +393,7 @@ def export_datasets():
 
         filename = f"export_{_experiment_name}_{timestamp}.zip"
 
-    filename_with_path = os.path.join("/var/www/pioreactorui/static/exports/", filename)
+    filename_with_path = Path("/var/www/pioreactorui/static/exports") / filename
     result = background_tasks.pio(
         "run",
         "export_experiment_data",
@@ -560,7 +533,17 @@ def create_experiment():
             ),
         )
 
-        client.publish("pioreactor/latest_experiment", body["experiment"], qos=2, retain=True)
+        # we want to make sure that this is published to MQTT
+        msg = client.publish(
+            "pioreactor/latest_experiment/experiment", body["experiment"], qos=2, retain=True
+        )
+        while msg.wait_for_publish(timeout=60):
+            pass
+        assert msg.is_published()
+        client.publish(
+            "pioreactor/latest_experiment/created_at", body["created_at"], qos=2, retain=True
+        )
+
         return Response(status=200)
 
     except sqlite3.IntegrityError as e:
@@ -616,13 +599,11 @@ def get_config(filename: str):
     """get a specific config.ini file in the .pioreactor folder"""
 
     # security bit: strip out any paths that may be attached, ex: ../../../root/bad
-    filename = os.path.basename(filename)
+    filename = Path(filename).name
 
     try:
-        specific_config_path = os.path.join(env["CONFIG_INI_FOLDER"], filename)
-
-        with open(specific_config_path) as file_stream:
-            return file_stream.read()
+        specific_config_path = Path(env["CONFIG_INI_FOLDER"]) / filename
+        return specific_config_path.read_text()
 
     except Exception as e:
         publish_to_error_log(str(e), "get_config_of_file")
@@ -633,15 +614,8 @@ def get_config(filename: str):
 def get_configs():
     """get a list of all config.ini files in the .pioreactor folder"""
     try:
-        config_path = env["CONFIG_INI_FOLDER"]
-
-        list_config_files = []
-
-        for file in os.listdir(config_path):
-            if file.startswith("config") and file.endswith(".ini"):
-                list_config_files.append(file)
-
-        return jsonify(list_config_files)
+        config_path = Path(env["CONFIG_INI_FOLDER"])
+        return jsonify([file.name for file in config_path.glob("config*.ini")])
 
     except Exception as e:
         publish_to_error_log(str(e), "get_configs")
@@ -653,9 +627,8 @@ def delete_config():
     """TODO: should this http be DELETE?"""
 
     body = request.get_json()
-    filename = os.path.basename(body["filename"])
-
-    config_path = os.path.join(env["CONFIG_INI_FOLDER"], filename)
+    filename = Path(body["filename"]).name  # remove any ../../ prefix stuff
+    config_path = Path(env["CONFIG_INI_FOLDER"]) / filename
 
     background_tasks.rm(config_path)
     return Response(status=204)
@@ -664,9 +637,6 @@ def delete_config():
 @app.route("/api/save_new_config", methods=["POST"])
 def save_new_config():
     """if the config file is unit specific, we only need to run sync-config on that unit."""
-
-    # TODO: this is too slow. Can we chain together the background tasks so we aren't
-    # contantly waiting around??
 
     body = request.get_json()
     filename, code = body["filename"], body["code"]
@@ -677,7 +647,8 @@ def save_new_config():
     # security bit:
     # users could have filename look like ../../../../root/bad.txt
     # the below code will strip any paths.
-    filename = os.path.basename(filename)
+    # General security risk here to save arbitrary file to OS.
+    filename = Path(filename).name
 
     # is the user editing a worker config or the global config?
     regex = re.compile(r"config_?(.*)?\.ini")
@@ -689,25 +660,30 @@ def save_new_config():
         flags = "--shared"
 
     # General security risk here to save arbitrary file to OS.
-    config_path = os.path.join(env["CONFIG_INI_FOLDER"], filename)
+    config_path = Path(env["CONFIG_INI_FOLDER"]) / filename
 
     # can the config actually be read? ex. no repeating sections, typos, etc.
     # filename is a string
     config = configparser.ConfigParser(allow_no_value=True)
 
     try:
-        config.read_string(filename)  # should return None
+        config.read_string(code)  # should return None
     except configparser.DuplicateSectionError as e:
         msg = f"Duplicate section [{e.section}] was found."
+        publish_to_error_log(msg, "save_new_config")
         return {"msg": msg}, 400
     except configparser.DuplicateOptionError as e:
-        msg = f"Duplicate option '{[e.option]}' was found in section {[e.section]}."
+        msg = f"Duplicate option {[e.option]} was found in section {[e.section]}."
+        publish_to_error_log(msg, "save_new_config")
         return {"msg": msg}, 400
     except configparser.ParsingError:
         msg = "Incorrect syntax."
+        publish_to_error_log(msg, "save_new_config")
         return {"msg": msg}, 400
     except Exception:
-        return {"msg": "Error, see logs."}, 400
+        msg = "Hm, something went wrong, check PioreactorUI logs."
+        publish_to_error_log(msg, "save_new_config")
+        return {"msg": msg}, 400
 
     result = background_tasks.write_config_and_sync(config_path, code, units, flags)
 
@@ -718,7 +694,7 @@ def save_new_config():
 
     if not status:
         publish_to_error_log(msg_or_exception, "save_new_config")
-        return {"msg": msg_or_exception}, 500
+        return {"msg": str(msg_or_exception)}, 500
 
     return Response(status=204)
 
