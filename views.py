@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import annotations
 
+import configparser
 import glob
 import os
 import re
@@ -671,7 +672,7 @@ def save_new_config():
     filename, code = body["filename"], body["code"]
 
     if not filename.endswith(".ini"):
-        return Response(status=400)
+        return {"msg": "Incorrect filetype. Must be .ini."}, 400
 
     # security bit:
     # users could have filename look like ../../../../root/bad.txt
@@ -690,6 +691,24 @@ def save_new_config():
     # General security risk here to save arbitrary file to OS.
     config_path = os.path.join(env["CONFIG_INI_FOLDER"], filename)
 
+    # can the config actually be read? ex. no repeating sections, typos, etc.
+    # filename is a string
+    config = configparser.ConfigParser(allow_no_value=True)
+
+    try:
+        config.read_string(filename)  # should return None
+    except configparser.DuplicateSectionError as e:
+        msg = f"Duplicate section [{e.section}] was found."
+        return {"msg": msg}, 400
+    except configparser.DuplicateOptionError as e:
+        msg = f"Duplicate option '{[e.option]}' was found in section {[e.section]}."
+        return {"msg": msg}, 400
+    except configparser.ParsingError:
+        msg = "Incorrect syntax."
+        return {"msg": msg}, 400
+    except Exception:
+        return {"msg": "Error, see logs."}, 400
+
     result = background_tasks.write_config_and_sync(config_path, code, units, flags)
 
     try:
@@ -699,7 +718,7 @@ def save_new_config():
 
     if not status:
         publish_to_error_log(msg_or_exception, "save_new_config")
-        return Response(status=500)
+        return {"msg": msg_or_exception}, 500
 
     return Response(status=204)
 
