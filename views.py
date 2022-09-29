@@ -324,8 +324,9 @@ def get_automation_contrib(automation_type: str):
         return Response(status=400)
 
     try:
-        automation_path = Path(env["CONTRIB_FOLDER"]) / "automations" / automation_type
-        files = sorted(automation_path.glob("*.y[a]ml"))
+        automation_path_default = Path(env["WWW"]) / "contrib" / "automations" / automation_type
+        automation_path_plugins = Path(env["DOT_PIOREACTOR"]) / "plugins" / "ui" / "automations" / automation_type
+        files = sorted(automation_path_default.glob("*.y[a]ml") + automation_path_plugins.glob("*.y[a]ml"))
         return jsonify([yaml_load(file.read_bytes(), Loader=Loader) for file in files])
     except Exception as e:
         publish_to_error_log(str(e), "get_automation_contrib")
@@ -337,8 +338,9 @@ def get_job_contrib():
     # TODO: this _could_ _maybe_ be served by the webserver. After all, these are static assets. Yaml conversion to js can happen on the client side
 
     try:
-        job_path = Path(env["CONTRIB_FOLDER"]) / "jobs"
-        files = sorted(job_path.glob("*.y[a]ml"))
+        job_path_default = Path(env["WWW"]) / "contrib" / "jobs"
+        job_path_plugins = Path(env["DOT_PIOREACTOR"]) / "plugins" / "contrib" / "jobs"
+        files = sorted(job_path_default.glob("*.y[a]ml") + job_path_plugins.glob("*.y[a]ml"))
         return jsonify([yaml_load(file.read_bytes(), Loader=Loader) for file in files])
     except Exception as e:
         publish_to_error_log(str(e), "get_job_contrib")
@@ -398,7 +400,7 @@ def export_datasets():
         "run",
         "export_experiment_data",
         "--output",
-        filename_with_path,
+        filename_with_path.as_posix(),
         *cmd_tables,
         *experiment_options,
     )
@@ -602,7 +604,7 @@ def get_config(filename: str):
     filename = Path(filename).name
 
     try:
-        specific_config_path = Path(env["CONFIG_INI_FOLDER"]) / filename
+        specific_config_path = Path(env["DOT_PIOREACTOR"]) / filename
         return specific_config_path.read_text()
 
     except Exception as e:
@@ -614,7 +616,7 @@ def get_config(filename: str):
 def get_configs():
     """get a list of all config.ini files in the .pioreactor folder"""
     try:
-        config_path = Path(env["CONFIG_INI_FOLDER"])
+        config_path = Path(env["DOT_PIOREACTOR"])
         return jsonify([file.name for file in config_path.glob("config*.ini")])
 
     except Exception as e:
@@ -628,7 +630,7 @@ def delete_config():
 
     body = request.get_json()
     filename = Path(body["filename"]).name  # remove any ../../ prefix stuff
-    config_path = Path(env["CONFIG_INI_FOLDER"]) / filename
+    config_path = Path(env["DOT_PIOREACTOR"]) / filename
 
     background_tasks.rm(config_path)
     return Response(status=204)
@@ -660,14 +662,19 @@ def save_new_config():
         flags = "--shared"
 
     # General security risk here to save arbitrary file to OS.
-    config_path = Path(env["CONFIG_INI_FOLDER"]) / filename
+    config_path = Path(env["DOT_PIOREACTOR"]) / filename
 
     # can the config actually be read? ex. no repeating sections, typos, etc.
     # filename is a string
     config = configparser.ConfigParser(allow_no_value=True)
 
     try:
-        config.read_string(code)  # should return None
+        config.read_string(code)  # test parser
+
+        # test to make sure we have minimal code to run pio commands
+        assert config["cluster.topology"]
+        assert config.get("cluster.topology", "leader_hostname")
+        assert config.get("cluster.topology", "leader_address")
     except configparser.DuplicateSectionError as e:
         msg = f"Duplicate section [{e.section}] was found."
         publish_to_error_log(msg, "save_new_config")
@@ -680,9 +687,13 @@ def save_new_config():
         msg = "Incorrect syntax."
         publish_to_error_log(msg, "save_new_config")
         return {"msg": msg}, 400
-    except Exception:
-        msg = "Hm, something went wrong, check PioreactorUI logs."
+    except (AssertionError, configparser.NoSectionError, KeyError, TypeError):
+        msg = "Missing required fields in [cluster.topology]: `leader_hostname` and/or `leader_address` ."
         publish_to_error_log(msg, "save_new_config")
+        return {"msg": msg}, 400
+    except Exception as e:
+        publish_to_error_log(str(e), "save_new_config")
+        msg = "Hm, something went wrong, check PioreactorUI logs."
         return {"msg": msg}, 400
 
     result = background_tasks.write_config_and_sync(config_path, code, units, flags)

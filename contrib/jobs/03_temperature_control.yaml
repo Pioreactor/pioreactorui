@@ -10,7 +10,7 @@ published_settings:
     unit: ℃
     label: Target temperature
     type: numeric
-    description: Change the target temperature. Lower bound is the ambient temperature, and upperbound is 50℃. Only used in when Stable automation is active.
+    description: Change the target temperature. Lower bound is the ambient temperature, and upperbound is 50℃. Only used in when Thermostat automation is active.
     default: null
     display: true
   - key: automation_name

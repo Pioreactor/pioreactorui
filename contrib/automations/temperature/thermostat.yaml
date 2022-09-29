@@ -1,6 +1,6 @@
 ---
-display_name: Stable
-automation_name: stable
+display_name: Thermostat
+automation_name: thermostat
 description: Vary the amount of applied heating to keep the culture near a target temperature, using a control-loop.
 fields:
   - key: target_temperature
