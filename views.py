@@ -398,7 +398,7 @@ def export_datasets():
         "run",
         "export_experiment_data",
         "--output",
-        filename_with_path,
+        filename_with_path.as_posix(),
         *cmd_tables,
         *experiment_options,
     )
@@ -667,7 +667,12 @@ def save_new_config():
     config = configparser.ConfigParser(allow_no_value=True)
 
     try:
-        config.read_string(code)  # should return None
+        config.read_string(code)  # test parser
+
+        # test to make sure we have minimal code to run pio commands
+        assert config["cluster.topology"]
+        assert config.get("cluster.topology", "leader_hostname")
+        assert config.get("cluster.topology", "leader_address")
     except configparser.DuplicateSectionError as e:
         msg = f"Duplicate section [{e.section}] was found."
         publish_to_error_log(msg, "save_new_config")
@@ -680,9 +685,13 @@ def save_new_config():
         msg = "Incorrect syntax."
         publish_to_error_log(msg, "save_new_config")
         return {"msg": msg}, 400
-    except Exception:
-        msg = "Hm, something went wrong, check PioreactorUI logs."
+    except (AssertionError, configparser.NoSectionError, KeyError, TypeError):
+        msg = "Missing required fields in [cluster.topology]: `leader_hostname` and/or `leader_address` ."
         publish_to_error_log(msg, "save_new_config")
+        return {"msg": msg}, 400
+    except Exception as e:
+        publish_to_error_log(str(e), "save_new_config")
+        msg = "Hm, something went wrong, check PioreactorUI logs."
         return {"msg": msg}, 400
 
     result = background_tasks.write_config_and_sync(config_path, code, units, flags)
