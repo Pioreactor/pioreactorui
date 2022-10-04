@@ -325,8 +325,12 @@ def get_automation_contrib(automation_type: str):
 
     try:
         automation_path_default = Path(env["WWW"]) / "contrib" / "automations" / automation_type
-        automation_path_plugins = Path(env["DOT_PIOREACTOR"]) / "plugins" / "ui" / "automations" / automation_type
-        files = sorted(automation_path_default.glob("*.y[a]ml") + automation_path_plugins.glob("*.y[a]ml"))
+        automation_path_plugins = (
+            Path(env["DOT_PIOREACTOR"]) / "plugins" / "ui" / "automations" / automation_type
+        )
+        files = sorted(automation_path_default.glob("*.y[a]ml")) + sorted(
+            automation_path_plugins.glob("*.y[a]ml")
+        )
         return jsonify([yaml_load(file.read_bytes(), Loader=Loader) for file in files])
     except Exception as e:
         publish_to_error_log(str(e), "get_automation_contrib")
@@ -340,7 +344,9 @@ def get_job_contrib():
     try:
         job_path_default = Path(env["WWW"]) / "contrib" / "jobs"
         job_path_plugins = Path(env["DOT_PIOREACTOR"]) / "plugins" / "contrib" / "jobs"
-        files = sorted(job_path_default.glob("*.y[a]ml") + job_path_plugins.glob("*.y[a]ml"))
+        files = sorted(job_path_default.glob("*.y[a]ml")) + sorted(
+            job_path_plugins.glob("*.y[a]ml")
+        )
         return jsonify([yaml_load(file.read_bytes(), Loader=Loader) for file in files])
     except Exception as e:
         publish_to_error_log(str(e), "get_job_contrib")
