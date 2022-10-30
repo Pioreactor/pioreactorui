@@ -677,10 +677,12 @@ def save_new_config():
     try:
         config.read_string(code)  # test parser
 
+        # if editing config.ini (not a unit specific)
         # test to make sure we have minimal code to run pio commands
-        assert config["cluster.topology"]
-        assert config.get("cluster.topology", "leader_hostname")
-        assert config.get("cluster.topology", "leader_address")
+        if filename == "config.ini":
+            assert config["cluster.topology"]
+            assert config.get("cluster.topology", "leader_hostname")
+            assert config.get("cluster.topology", "leader_address")
     except configparser.DuplicateSectionError as e:
         msg = f"Duplicate section [{e.section}] was found."
         publish_to_error_log(msg, "save_new_config")

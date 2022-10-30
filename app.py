@@ -15,6 +15,8 @@ from flask import Flask
 from flask import g
 
 NAME = "pioreactorui"
+VERSION = "22.10.0"
+
 env = dotenv_values(".env")  # a dictionary
 
 # set up logging
