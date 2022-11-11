@@ -356,7 +356,7 @@ def get_job_contrib():
 @app.route("/api/update_app", methods=["POST"])
 def update_app():
     background_tasks.update_app()
-    return 200
+    return Response(status=200)
 
 
 @app.route("/api/get_app_version", methods=["GET"])

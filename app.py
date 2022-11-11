@@ -31,7 +31,7 @@ file_handler.setFormatter(
     )
 )
 logger.addHandler(file_handler)
-logger.debug("Starting {NAME}={VERSION}...")
+logger.debug(f"Starting {NAME}={VERSION}...")
 
 
 logger.debug(f".env={dict(env)}")

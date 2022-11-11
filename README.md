@@ -3,7 +3,7 @@
 
 ### Starting development
 
-`python3 -m flask run`. Test by going to `localhost:5000/api/get_latest_experiment` in a browser.
+`python3 -m flask --app main --debug run`. Test by going to `localhost:5000/api/get_latest_experiment` in a browser.
 
 Run background workers with:
 
