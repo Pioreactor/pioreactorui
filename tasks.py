@@ -44,9 +44,18 @@ def update_app() -> bool:
     update_app_on_leader = ["pio", "update", "--app"]
     update_app_across_all_workers = ["pios", "update"]
     update_ui_on_leader = ["pio", "update", "--ui"]
-    subprocess.run(
-        update_app_on_leader + ["&&"] + update_app_across_all_workers + ["&&"] + update_ui_on_leader
+    result = subprocess.run(
+        update_app_on_leader
+        + ["&&"]
+        + update_app_across_all_workers
+        + ["&&"]
+        + update_ui_on_leader,
+        capture_output=True,
+        text=True,
     )
+    logger.info(result.stderr)
+    logger.info(result.stdout)
+    logger.info(result)
     return True
 
 
