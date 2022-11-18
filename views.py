@@ -6,6 +6,7 @@ import re
 import sqlite3
 import subprocess
 from datetime import datetime
+from datetime import timezone
 from pathlib import Path
 
 from flask import g
@@ -23,6 +24,20 @@ from app import env
 from app import insert_into_db
 from app import publish_to_error_log
 from app import query_db
+
+
+def current_utc_datetime() -> datetime:
+    # this is timezone aware.
+    return datetime.now(timezone.utc)
+
+
+def to_iso_format(dt: datetime) -> str:
+    return dt.isoformat().replace("+00:00", "Z")
+
+
+def current_utc_timestamp() -> str:
+    # this is timezone aware.
+    return to_iso_format(current_utc_datetime())
 
 
 ## PIOREACTOR CONTROL
@@ -533,11 +548,11 @@ def create_experiment():
         insert_into_db(
             "INSERT INTO experiments (created_at, experiment, description, media_used, organism_used) VALUES (?,?,?,?,?)",
             (
-                body["created_at"],
+                current_utc_timestamp(),
                 body["experiment"],
                 body.get("description"),
-                body.get("media_used"),
-                body.get("organism_used"),
+                body.get("mediaUsed"),
+                body.get("organismUsed"),
             ),
         )
 
@@ -731,6 +746,16 @@ def get_historical_config_for(filename: str):
         return Response(status=400)
 
     return jsonify(configs_for_filename)
+
+
+@app.route("/api/is_local_access_point_active", methods=["GET"])
+def is_local_access_point_active():
+    import os
+
+    if os.environ.get("LOCAL_ACCESS_POINT") == "1":
+        return "true"
+    else:
+        return "false"
 
 
 ### FLASK META VIEWS
