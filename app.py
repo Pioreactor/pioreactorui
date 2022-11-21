@@ -9,6 +9,7 @@ from datetime import datetime
 from datetime import timezone
 from logging import handlers
 
+import diskcache as dc
 import paho.mqtt.client as mqtt
 from dotenv import dotenv_values
 from flask import Flask
@@ -16,6 +17,8 @@ from flask import g
 
 NAME = "pioreactorui"
 VERSION = "22.11.1"
+LOG_TOPIC = f"pioreactor/{socket.gethostname()}/$experiment/logs/ui"
+
 
 env = dotenv_values(".env")  # a dictionary
 
@@ -31,22 +34,27 @@ file_handler.setFormatter(
     )
 )
 logger.addHandler(file_handler)
+
+
 logger.debug(f"Starting {NAME}={VERSION}...")
-
-
 logger.debug(f".env={dict(env)}")
 
 app = Flask(NAME)
 
 # connect to MQTT server
 logger.debug("Starting MQTT client")
+
 client = mqtt.Client()
 client.connect("localhost")
 client.loop_start()
-LOG_TOPIC = f"pioreactor/{socket.gethostname()}/$experiment/logs/ui"
+
+cache = dc.Cache(eviction_policy="none", cull_limit=0)
+logger.debug(f"Cache location: {cache.directory}")
 
 
 ## UTILS
+
+
 def msg_to_JSON(msg, task, level):
     return json.dumps(
         {

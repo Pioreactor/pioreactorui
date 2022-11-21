@@ -19,6 +19,7 @@ from yaml import load as yaml_load  # type: ignore
 
 import tasks as background_tasks
 from app import app
+from app import cache
 from app import client
 from app import env
 from app import insert_into_db
@@ -297,6 +298,7 @@ def get_unit_calibrations_of_type(pioreactor_unit: str, calibration_type: str):
 
 
 @app.route("/api/get_installed_plugins", methods=["GET"])
+@cache.memoize(expire=30)
 def list_installed_plugins():
 
     result = background_tasks.pio("list-plugins", "--json")
@@ -331,8 +333,8 @@ def uninstall_plugin():
 
 
 @app.route("/api/contrib/automations/<automation_type>", methods=["GET"])
+@cache.memoize(expire=20)
 def get_automation_contrib(automation_type: str):
-    # TODO: this _could_ _maybe_ be served by the webserver. After all, these are static assets.
 
     # security to prevent possibly reading arbitrary file
     if automation_type not in ["temperature", "dosing", "led"]:
@@ -353,8 +355,8 @@ def get_automation_contrib(automation_type: str):
 
 
 @app.route("/api/contrib/jobs", methods=["GET"])
+@cache.memoize(expire=20)
 def get_job_contrib():
-    # TODO: this _could_ _maybe_ be served by the webserver. After all, these are static assets. Yaml conversion to js can happen on the client side
 
     try:
         job_path_default = Path(env["WWW"]) / "contrib" / "jobs"
@@ -375,6 +377,7 @@ def update_app():
 
 
 @app.route("/api/get_app_version", methods=["GET"])
+@cache.memoize(expire=60)
 def get_app_version():
     result = subprocess.run(
         ["python", "-c", "import pioreactor; print(pioreactor.__version__)"],
@@ -454,6 +457,7 @@ def get_experiments():
 
 
 @app.route("/api/get_latest_experiment", methods=["GET"])
+@cache.memoize(expire=5)
 def get_latest_experiment():
     try:
         return jsonify(
@@ -618,6 +622,7 @@ def add_new_pioreactor():
 
 
 @app.route("/api/get_config/<filename>", methods=["GET"])
+@cache.memoize(expire=10)
 def get_config(filename: str):
     """get a specific config.ini file in the .pioreactor folder"""
 
