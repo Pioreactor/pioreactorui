@@ -217,6 +217,7 @@ def od_readings(experiment: str):
 
 
 @app.route("/api/time_series/alt_media_fraction/<experiment>", methods=["GET"])
+@cache.memoize(expire=30)
 def alt_media_fraction(experiment: str):
     """get fraction of alt media added to vial"""
 
@@ -235,6 +236,7 @@ def alt_media_fraction(experiment: str):
 
 
 @app.route("/api/recent_media_rates", methods=["GET"])
+@cache.memoize(expire=30)
 def recent_media_rates():
     """Shows amount of added media per unit"""
     ## this one confusing
@@ -643,6 +645,7 @@ def get_config(filename: str):
 
 
 @app.route("/api/get_configs", methods=["GET"])
+@cache.memoize(expire=30)
 def get_configs():
     """get a list of all config.ini files in the .pioreactor folder"""
     try:
@@ -758,6 +761,7 @@ def get_historical_config_for(filename: str):
 
 
 @app.route("/api/is_local_access_point_active", methods=["GET"])
+@cache.memoize(expire=1_000_000)
 def is_local_access_point_active():
     import os
 
