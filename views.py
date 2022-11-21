@@ -121,6 +121,7 @@ def recent_logs():
 
 
 @app.route("/api/time_series/growth_rates/<experiment>", methods=["GET"])
+@cache.memoize(expire=10)
 def growth_rates(experiment: str):
     """Gets growth rates for all units"""
     args = request.args
@@ -141,6 +142,7 @@ def growth_rates(experiment: str):
 
 
 @app.route("/api/time_series/temperature_readings/<experiment>", methods=["GET"])
+@cache.memoize(expire=60)
 def temperature_readings(experiment: str):
     """Gets temperature readings for all units"""
     args = request.args
@@ -161,6 +163,7 @@ def temperature_readings(experiment: str):
 
 
 @app.route("/api/time_series/od_readings_filtered/<experiment>", methods=["GET"])
+@cache.memoize(expire=10)
 def od_readings_filtered(experiment: str):
     """Gets normalized od for all units"""
     args = request.args
@@ -182,6 +185,7 @@ def od_readings_filtered(experiment: str):
 
 
 @app.route("/api/time_series/od_readings/<experiment>", methods=["GET"])
+@cache.memoize(expire=10)
 def od_readings(experiment: str):
     """Gets raw od for all units"""
     args = request.args
