@@ -479,6 +479,7 @@ def get_latest_experiment():
 
 
 @app.route("/api/get_current_unit_labels", methods=["GET"])
+@cache.memoize(expire=10)
 def get_current_unit_labels():
     try:
         current_unit_labels = query_db(
