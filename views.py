@@ -58,7 +58,7 @@ def stop_job_on_unit(job: str, unit: str):
     jobs_to_kill_over_MQTT = ["add_media", "add_alt_media", "remove_waste"]
 
     if job in jobs_to_kill_over_MQTT:
-        client.publish(f"pioreactor/{unit}/$experiment/{job}/$state/set", "disconnected", qos=2)
+        client.publish(f"pioreactor/{unit}/$experiment/{job}/$state/set", "disconnected", qos=1)
     else:
         background_tasks.pios("kill", "--all-jobs", "-y", "--units", unit)
 
