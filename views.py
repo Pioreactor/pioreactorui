@@ -304,7 +304,7 @@ def get_unit_calibrations_of_type(pioreactor_unit: str, calibration_type: str):
 
 
 @app.route("/api/get_installed_plugins", methods=["GET"])
-@cache.memoize(expire=30)
+@cache.memoize(expire=10)
 def list_installed_plugins():
 
     result = background_tasks.pio("list-plugins", "--json")
