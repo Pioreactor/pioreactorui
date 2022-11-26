@@ -304,7 +304,7 @@ def get_unit_calibrations_of_type(pioreactor_unit: str, calibration_type: str):
 
 
 @app.route("/api/get_installed_plugins", methods=["GET"])
-@cache.memoize(expire=10)
+@cache.memoize(expire=60, tag="plugins")
 def list_installed_plugins():
 
     result = background_tasks.pio("list-plugins", "--json")
@@ -323,15 +323,19 @@ def list_installed_plugins():
 
 @app.route("/api/install_plugin", methods=["POST"])
 def install_plugin():
+    cache.evict("plugins")
     body = request.get_json()
     background_tasks.pios("install-plugin", body["plugin_name"])
+    cache.evict("plugins")
     return Response(status=204)
 
 
 @app.route("/api/uninstall_plugin", methods=["POST"])
 def uninstall_plugin():
+    cache.evict("plugins")
     body = request.get_json()
     background_tasks.pios("uninstall-plugin", body["plugin_name"])
+    cache.evict("plugins")
     return Response(status=204)
 
 
@@ -339,7 +343,7 @@ def uninstall_plugin():
 
 
 @app.route("/api/contrib/automations/<automation_type>", methods=["GET"])
-@cache.memoize(expire=20)
+@cache.memoize(expire=60, tag="plugins")
 def get_automation_contrib(automation_type: str):
 
     # security to prevent possibly reading arbitrary file
@@ -361,7 +365,7 @@ def get_automation_contrib(automation_type: str):
 
 
 @app.route("/api/contrib/jobs", methods=["GET"])
-@cache.memoize(expire=20)
+@cache.memoize(expire=60, tag="plugins")
 def get_job_contrib():
 
     try:
@@ -449,6 +453,7 @@ def export_datasets():
 
 
 @app.route("/api/get_experiments", methods=["GET"])
+@cache.memoize(expire=60, tag="experiments")
 def get_experiments():
     try:
         return jsonify(
@@ -463,7 +468,7 @@ def get_experiments():
 
 
 @app.route("/api/get_latest_experiment", methods=["GET"])
-@cache.memoize(expire=5)
+@cache.memoize(expire=60, tag="experiments")
 def get_latest_experiment():
     try:
         return jsonify(
@@ -479,7 +484,7 @@ def get_latest_experiment():
 
 
 @app.route("/api/get_current_unit_labels", methods=["GET"])
-@cache.memoize(expire=10)
+@cache.memoize(expire=60, tag="unit_labels")
 def get_current_unit_labels():
     try:
         current_unit_labels = query_db(
@@ -497,6 +502,7 @@ def get_current_unit_labels():
 
 @app.route("/api/update_current_unit_labels", methods=["POST"])
 def update_current_unit_labels():
+    cache.evict("unit_labels")
 
     body = request.get_json()
 
@@ -552,6 +558,8 @@ def get_historical_media_used():
 
 @app.route("/api/create_experiment", methods=["POST"])
 def create_experiment():
+    cache.evict("experiments")
+    cache.evict("unit_labels")
 
     body = request.get_json()
 
@@ -590,6 +598,8 @@ def create_experiment():
 
 @app.route("/api/update_experiment_desc", methods=["POST"])
 def update_experiment_description():
+    cache.evict("experiments")
+
     body = request.get_json()
     try:
         insert_into_db(
@@ -629,7 +639,7 @@ def add_new_pioreactor():
 
 
 @app.route("/api/get_config/<filename>", methods=["GET"])
-@cache.memoize(expire=10)
+@cache.memoize(expire=60, tag="config")
 def get_config(filename: str):
     """get a specific config.ini file in the .pioreactor folder"""
 
@@ -646,7 +656,7 @@ def get_config(filename: str):
 
 
 @app.route("/api/get_configs", methods=["GET"])
-@cache.memoize(expire=30)
+@cache.memoize(expire=60, tag="config")
 def get_configs():
     """get a list of all config.ini files in the .pioreactor folder"""
     try:
@@ -661,7 +671,7 @@ def get_configs():
 @app.route("/api/delete_config", methods=["POST"])
 def delete_config():
     """TODO: should this http be DELETE?"""
-
+    cache.evict("config")
     body = request.get_json()
     filename = Path(body["filename"]).name  # remove any ../../ prefix stuff
     config_path = Path(env["DOT_PIOREACTOR"]) / filename
@@ -673,7 +683,7 @@ def delete_config():
 @app.route("/api/save_new_config", methods=["POST"])
 def save_new_config():
     """if the config file is unit specific, we only need to run sync-config on that unit."""
-
+    cache.evict("config")
     body = request.get_json()
     filename, code = body["filename"], body["code"]
 
@@ -762,7 +772,7 @@ def get_historical_config_for(filename: str):
 
 
 @app.route("/api/is_local_access_point_active", methods=["GET"])
-@cache.memoize(expire=1_000_000)
+@cache.memoize(expire=None)
 def is_local_access_point_active():
     import os
 
