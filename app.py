@@ -17,7 +17,8 @@ from flask import g
 
 NAME = "pioreactorui"
 VERSION = "22.11.1"
-LOG_TOPIC = f"pioreactor/{socket.gethostname()}/$experiment/logs/ui"
+HOSTNAME = socket.gethostname()
+LOG_TOPIC = f"pioreactor/{HOSTNAME}/$experiment/logs/ui"
 
 
 env = dotenv_values(".env")  # a dictionary
@@ -44,7 +45,8 @@ app = Flask(NAME)
 # connect to MQTT server
 logger.debug("Starting MQTT client")
 
-client = mqtt.Client()
+client = mqtt.Client(client_id=f"pio-{HOSTNAME}-pioreactorui")
+client.username_pw_set("pioreactor", "raspberry")
 client.connect("localhost")
 client.loop_start()
 
