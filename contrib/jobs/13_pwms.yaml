@@ -5,7 +5,7 @@ display: false
 source: app
 published_settings:
   - key: dc
-    label: PWM duty cycle
+    label: PWM intensity
     type: text
     display: true
     default: ""
