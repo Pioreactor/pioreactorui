@@ -382,12 +382,13 @@ def get_job_contrib():
 
 @app.route("/api/update_app", methods=["POST"])
 def update_app():
+    cache.evict("app")
     background_tasks.update_app()
     return Response(status=200)
 
 
 @app.route("/api/get_app_version", methods=["GET"])
-@cache.memoize(expire=60)
+@cache.memoize(expire=60, tag="app")
 def get_app_version():
     result = subprocess.run(
         ["python", "-c", "import pioreactor; print(pioreactor.__version__)"],
