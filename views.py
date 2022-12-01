@@ -142,7 +142,7 @@ def growth_rates(experiment: str):
 
 
 @app.route("/api/time_series/temperature_readings/<experiment>", methods=["GET"])
-@cache.memoize(expire=60)
+@cache.memoize(expire=10)
 def temperature_readings(experiment: str):
     """Gets temperature readings for all units"""
     args = request.args
@@ -469,7 +469,7 @@ def get_experiments():
 
 
 @app.route("/api/get_latest_experiment", methods=["GET"])
-@cache.memoize(expire=60, tag="experiments")
+@cache.memoize(expire=600, tag="experiments")
 def get_latest_experiment():
     try:
         return jsonify(
@@ -640,7 +640,7 @@ def add_new_pioreactor():
 
 
 @app.route("/api/get_config/<filename>", methods=["GET"])
-@cache.memoize(expire=60, tag="config")
+@cache.memoize(expire=600, tag="config")
 def get_config(filename: str):
     """get a specific config.ini file in the .pioreactor folder"""
 
@@ -657,7 +657,7 @@ def get_config(filename: str):
 
 
 @app.route("/api/get_configs", methods=["GET"])
-@cache.memoize(expire=60, tag="config")
+@cache.memoize(expire=600, tag="config")
 def get_configs():
     """get a list of all config.ini files in the .pioreactor folder"""
     try:
