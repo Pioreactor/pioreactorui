@@ -50,7 +50,7 @@ client.username_pw_set("pioreactor", "raspberry")
 client.connect("localhost")
 client.loop_start()
 
-cache = dc.Cache(eviction_policy="none", cull_limit=0)
+cache = dc.Cache(tag_index=True)
 logger.debug(f"Cache location: {cache.directory}")
 
 
