@@ -616,7 +616,7 @@ def update_experiment_description():
 
 @app.route("/api/add_new_pioreactor", methods=["POST"])
 def add_new_pioreactor():
-
+    cache.evict("config")
     new_name = request.get_json()["newPioreactorName"]
     try:
         result = background_tasks.add_new_pioreactor(new_name)
