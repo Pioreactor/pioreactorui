@@ -8,8 +8,8 @@ from logging import handlers
 from dotenv import dotenv_values
 from huey import SqliteHuey
 
-huey = SqliteHuey(filename="huey.db")
 env = dotenv_values(".env")
+huey = SqliteHuey(filename="huey.db")
 
 logger = logging.getLogger("huey.consumer")
 logger.setLevel(logging.INFO)

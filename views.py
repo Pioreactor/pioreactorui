@@ -25,6 +25,7 @@ from app import env
 from app import insert_into_db
 from app import publish_to_error_log
 from app import query_db
+from app import VERSION
 
 
 def current_utc_datetime() -> datetime:
@@ -400,6 +401,11 @@ def get_app_version():
         publish_to_error_log(result.stderr, "get_app_version")
         return Response(status=500)
     return result.stdout.strip()
+
+
+@app.route("/api/get_ui_version", methods=["GET"])
+def get_ui_version():
+    return VERSION
 
 
 @app.route("/api/export_datasets", methods=["POST"])
