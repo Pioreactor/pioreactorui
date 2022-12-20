@@ -41,7 +41,7 @@ def add_new_pioreactor(new_pioreactor_name: str) -> tuple[bool, str]:
 @huey.task()
 def update_app() -> bool:
     logger.info("Updating app on leader")
-    update_app_on_leader = ["pio", "update", "--app"]
+    update_app_on_leader = ["pio", "update", "app"]
     subprocess.run(update_app_on_leader)
 
     logger.info("Updating app on workers")
@@ -49,7 +49,7 @@ def update_app() -> bool:
     subprocess.run(update_app_across_all_workers)
 
     logger.info("Updating UI on leader")
-    update_ui_on_leader = ["pio", "update", "--ui"]
+    update_ui_on_leader = ["pio", "update", "ui"]
     subprocess.run(update_ui_on_leader)
 
     return True
