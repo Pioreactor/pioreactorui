@@ -16,7 +16,7 @@ from flask import Flask
 from flask import g
 
 NAME = "pioreactorui"
-VERSION = "22.11.1"
+VERSION = "22.12.0"
 HOSTNAME = socket.gethostname()
 LOG_TOPIC = f"pioreactor/{HOSTNAME}/$experiment/logs/ui"
 
@@ -37,7 +37,7 @@ file_handler.setFormatter(
 logger.addHandler(file_handler)
 
 
-logger.debug(f"Starting {NAME}={VERSION}...")
+logger.debug(f"Starting {NAME}={VERSION} on {HOSTNAME}...")
 logger.debug(f".env={dict(env)}")
 
 app = Flask(NAME)
