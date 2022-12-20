@@ -15,8 +15,10 @@ from dotenv import dotenv_values
 from flask import Flask
 from flask import g
 
+from version import __version__
+
 NAME = "pioreactorui"
-VERSION = "22.11.1"
+VERSION = __version__
 HOSTNAME = socket.gethostname()
 LOG_TOPIC = f"pioreactor/{HOSTNAME}/$experiment/logs/ui"
 
