@@ -325,18 +325,18 @@ def list_installed_plugins():
 @app.route("/api/install_plugin", methods=["POST"])
 def install_plugin():
     cache.evict("plugins")
+    cache.evict("config")
     body = request.get_json()
     background_tasks.pios("install-plugin", body["plugin_name"])
-    cache.evict("plugins")
     return Response(status=204)
 
 
 @app.route("/api/uninstall_plugin", methods=["POST"])
 def uninstall_plugin():
     cache.evict("plugins")
+    cache.evict("config")
     body = request.get_json()
     background_tasks.pios("uninstall-plugin", body["plugin_name"])
-    cache.evict("plugins")
     return Response(status=204)
 
 

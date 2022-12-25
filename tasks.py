@@ -45,7 +45,7 @@ def update_app() -> bool:
     subprocess.run(update_app_on_leader)
 
     logger.info("Updating app on workers")
-    update_app_across_all_workers = ["pios", "update"]
+    update_app_across_all_workers = ["pios", "update", "-y"]
     subprocess.run(update_app_across_all_workers)
 
     logger.info("Updating UI on leader")
