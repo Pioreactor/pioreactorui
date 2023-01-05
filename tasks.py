@@ -8,8 +8,8 @@ from logging import handlers
 from dotenv import dotenv_values
 from huey import SqliteHuey
 
-huey = SqliteHuey(filename="huey.db")
 env = dotenv_values(".env")
+huey = SqliteHuey(filename="huey.db")
 
 logger = logging.getLogger("huey.consumer")
 logger.setLevel(logging.INFO)
@@ -41,15 +41,15 @@ def add_new_pioreactor(new_pioreactor_name: str) -> tuple[bool, str]:
 @huey.task()
 def update_app() -> bool:
     logger.info("Updating app on leader")
-    update_app_on_leader = ["pio", "update", "--app"]
+    update_app_on_leader = ["pio", "update", "app"]
     subprocess.run(update_app_on_leader)
 
     logger.info("Updating app on workers")
-    update_app_across_all_workers = ["pios", "update"]
+    update_app_across_all_workers = ["pios", "update", "-y"]
     subprocess.run(update_app_across_all_workers)
 
     logger.info("Updating UI on leader")
-    update_ui_on_leader = ["pio", "update", "--ui"]
+    update_ui_on_leader = ["pio", "update", "ui"]
     subprocess.run(update_ui_on_leader)
 
     return True

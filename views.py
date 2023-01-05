@@ -14,9 +14,13 @@ from flask import jsonify
 from flask import request
 from flask import Response
 from huey.exceptions import HueyException
-from yaml import CLoader as Loader  # type: ignore
-from yaml import load as yaml_load  # type: ignore
 
+try:
+    from yaml import CLoader as Loader  # type: ignore
+except ImportError:
+    from yaml import Loader  # type: ignore
+
+from yaml import load as yaml_load  # type: ignore
 import tasks as background_tasks
 from app import app
 from app import cache
@@ -24,7 +28,9 @@ from app import client
 from app import env
 from app import insert_into_db
 from app import publish_to_error_log
+from app import publish_to_log
 from app import query_db
+from app import VERSION
 
 
 def current_utc_datetime() -> datetime:
@@ -324,18 +330,18 @@ def list_installed_plugins():
 @app.route("/api/install_plugin", methods=["POST"])
 def install_plugin():
     cache.evict("plugins")
+    cache.evict("config")
     body = request.get_json()
     background_tasks.pios("install-plugin", body["plugin_name"])
-    cache.evict("plugins")
     return Response(status=204)
 
 
 @app.route("/api/uninstall_plugin", methods=["POST"])
 def uninstall_plugin():
     cache.evict("plugins")
+    cache.evict("config")
     body = request.get_json()
     background_tasks.pios("uninstall-plugin", body["plugin_name"])
-    cache.evict("plugins")
     return Response(status=204)
 
 
@@ -400,6 +406,11 @@ def get_app_version():
         publish_to_error_log(result.stderr, "get_app_version")
         return Response(status=500)
     return result.stdout.strip()
+
+
+@app.route("/api/get_ui_version", methods=["GET"])
+def get_ui_version():
+    return VERSION
 
 
 @app.route("/api/export_datasets", methods=["POST"])
@@ -575,18 +586,9 @@ def create_experiment():
                 body.get("organismUsed"),
             ),
         )
-
-        # we want to make sure that this is published to MQTT
-        msg = client.publish(
-            "pioreactor/latest_experiment/experiment", body["experiment"], qos=2, retain=True
+        publish_to_log(
+            f"New experiment created: {body['experiment']}", "create_experiment", level="INFO"
         )
-        while msg.wait_for_publish(timeout=60):
-            pass
-        assert msg.is_published()
-        client.publish(
-            "pioreactor/latest_experiment/created_at", body["created_at"], qos=2, retain=True
-        )
-
         return Response(status=200)
 
     except sqlite3.IntegrityError as e:
@@ -678,6 +680,7 @@ def delete_config():
     config_path = Path(env["DOT_PIOREACTOR"]) / filename
 
     background_tasks.rm(config_path)
+    publish_to_log(f"Deleted config {body['filename']}.", "delete_config")
     return Response(status=204)
 
 
@@ -723,19 +726,19 @@ def save_new_config():
             assert config.get("cluster.topology", "leader_hostname")
             assert config.get("cluster.topology", "leader_address")
     except configparser.DuplicateSectionError as e:
-        msg = f"Duplicate section [{e.section}] was found."
+        msg = f"Duplicate section [{e.section}] was found. Please fix and try again."
         publish_to_error_log(msg, "save_new_config")
         return {"msg": msg}, 400
     except configparser.DuplicateOptionError as e:
-        msg = f"Duplicate option {[e.option]} was found in section {[e.section]}."
+        msg = f"Duplicate option, `{e.option}`, was found in section [{e.section}]. Please fix and try again."
         publish_to_error_log(msg, "save_new_config")
         return {"msg": msg}, 400
     except configparser.ParsingError:
-        msg = "Incorrect syntax."
+        msg = "Incorrect syntax. Please fix and try again."
         publish_to_error_log(msg, "save_new_config")
         return {"msg": msg}, 400
     except (AssertionError, configparser.NoSectionError, KeyError, TypeError):
-        msg = "Missing required fields in [cluster.topology]: `leader_hostname` and/or `leader_address` ."
+        msg = "Missing required field(s) in [cluster.topology]: `leader_hostname` and/or `leader_address`. Please fix and try again."
         publish_to_error_log(msg, "save_new_config")
         return {"msg": msg}, 400
     except Exception as e:

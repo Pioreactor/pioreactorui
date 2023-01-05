@@ -1,7 +1,10 @@
+# -*- coding: utf-8 -*-
+from __future__ import annotations
+
+import tasks  # noqa: F401,F403 # Import tasks so they are registered with Huey instance.
+import views  # noqa: F401,F403 # Import views so they are registered with Flask app.
 from app import app
-import tasks  # Import tasks so they are registered with Huey instance.
-import views  # Import views so they are registered with Flask app.
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     app.run()
