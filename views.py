@@ -14,9 +14,13 @@ from flask import jsonify
 from flask import request
 from flask import Response
 from huey.exceptions import HueyException
-from yaml import CLoader as Loader  # type: ignore
-from yaml import load as yaml_load  # type: ignore
 
+try:
+    from yaml import CLoader as Loader  # type: ignore
+except ImportError:
+    from yaml import Loader  # type: ignore
+
+from yaml import load as yaml_load  # type: ignore
 import tasks as background_tasks
 from app import app
 from app import cache
