@@ -1,4 +1,7 @@
-### Upcoming
+### 23.1.1
+ - Fix for `led_change_events` export.
+
+### 23.1.0
  - add `/api/get_ui_version`
 
 ### 22.12.0
