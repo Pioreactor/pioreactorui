@@ -50,9 +50,7 @@ def update_app() -> bool:
 
     logger.info("Updating UI on leader")
     update_ui_on_leader = ["pio", "update", "ui"]
-    # Why start_new_session=True? `pio update ui` eventually calls update_ui.sh, which stop huey, which kill this child process from finishing.
-    # start_new_session will fork.
-    subprocess.run(update_ui_on_leader, start_new_session=True)
+    subprocess.run(update_ui_on_leader)
 
     return True
 
