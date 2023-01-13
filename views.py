@@ -222,9 +222,9 @@ def od_readings(experiment: str):
     return raw_od_readings["result"]
 
 
-@app.route("/api/time_series/alt_media_fraction/<experiment>", methods=["GET"])
+@app.route("/api/time_series/alt_media_fractions/<experiment>", methods=["GET"])
 @cache.memoize(expire=30)
-def alt_media_fraction(experiment: str):
+def alt_media_fractions(experiment: str):
     """get fraction of alt media added to vial"""
 
     try:
