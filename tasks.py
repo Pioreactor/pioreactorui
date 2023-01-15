@@ -2,8 +2,8 @@
 from __future__ import annotations
 
 import logging
-import os
 import subprocess
+import tempfile
 from logging import handlers
 
 import diskcache as dc
@@ -26,7 +26,7 @@ file_handler.setFormatter(
 logger.addHandler(file_handler)
 
 
-cache = dc.Cache(directory=f"{os.environ.get('TMPDIR')}pioreactor_ui", tag_index=True)
+cache = dc.Cache(directory=f"{tempfile.gettempdir()}pioreactor_ui", tag_index=True)
 logger.debug(f"Cache location: {cache.directory}")
 
 logger.info("Starting Huey...")
