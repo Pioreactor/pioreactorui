@@ -2,9 +2,11 @@
 from __future__ import annotations
 
 import logging
+import os
 import subprocess
 from logging import handlers
 
+import diskcache as dc
 from dotenv import dotenv_values
 from huey import SqliteHuey
 
@@ -22,6 +24,11 @@ file_handler.setFormatter(
     )
 )
 logger.addHandler(file_handler)
+
+
+cache = dc.Cache(directory=f"{os.environ.get('TMPDIR')}pioreactor_ui", tag_index=True)
+logger.debug(f"Cache location: {cache.directory}")
+
 logger.info("Starting Huey...")
 
 
@@ -31,7 +38,7 @@ def add_new_pioreactor(new_pioreactor_name: str) -> tuple[bool, str]:
     result = subprocess.run(
         ["pio", "add-pioreactor", new_pioreactor_name], capture_output=True, text=True
     )
-
+    cache.evict("config")
     if result.returncode != 0:
         return False, str(result.stderr)
     else:
@@ -51,7 +58,7 @@ def update_app() -> bool:
     logger.info("Updating UI on leader")
     update_ui_on_leader = ["pio", "update", "ui"]
     subprocess.run(update_ui_on_leader)
-
+    cache.evict("app")
     return True
 
 
@@ -79,6 +86,32 @@ def rm(path) -> tuple[bool, str]:
 def pios(*args) -> tuple[bool, str]:
     logger.info(f'Executing `{" ".join(("pios",) + args)}`')
     result = subprocess.run(("pios",) + args, capture_output=True, text=True)
+    if result.returncode != 0:
+        return False, result.stderr
+    else:
+        return True, result.stdout
+
+
+@huey.task()
+def pios_install_plugin(plugin_name) -> tuple[bool, str]:
+    logger.info(f"Executing `pios install-plugin {plugin_name}`")
+    result = subprocess.run(("pios", "install-plugin", plugin_name), capture_output=True, text=True)
+    cache.evict("plugins")
+    cache.evict("config")
+    if result.returncode != 0:
+        return False, result.stderr
+    else:
+        return True, result.stdout
+
+
+@huey.task()
+def pios_uninstall_plugin(plugin_name) -> tuple[bool, str]:
+    logger.info(f"Executing `pios uninstall-plugin {plugin_name}`")
+    result = subprocess.run(
+        ("pios", "uninstall-plugin", plugin_name), capture_output=True, text=True
+    )
+    cache.evict("plugins")
+    cache.evict("config")
     if result.returncode != 0:
         return False, result.stderr
     else:

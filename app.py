@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 import socket
 import sqlite3
 from datetime import datetime
@@ -52,7 +53,7 @@ client.username_pw_set("pioreactor", "raspberry")
 client.connect("localhost")
 client.loop_start()
 
-cache = dc.Cache(tag_index=True)
+cache = dc.Cache(directory=f"{os.environ.get('TMPDIR')}pioreactor_ui", tag_index=True)
 logger.debug(f"Cache location: {cache.directory}")
 
 

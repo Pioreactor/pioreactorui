@@ -16,6 +16,7 @@ from flask import Response
 from huey.exceptions import HueyException
 
 try:
+    # TODO: delete this try after a while..
     from yaml import CLoader as Loader  # type: ignore
 except ImportError:
     from yaml import Loader  # type: ignore
@@ -244,7 +245,10 @@ def alt_media_fractions(experiment: str):
 @app.route("/api/recent_media_rates", methods=["GET"])
 @cache.memoize(expire=30)
 def recent_media_rates():
-    """Shows amount of added media per unit"""
+    """
+    Shows amount of added media per unit. Note that it only consider values from a dosing automation (i.e. not manual dosing, which includes continously dose)
+
+    """
     ## this one confusing
     hours = 3
 
@@ -329,19 +333,15 @@ def list_installed_plugins():
 
 @app.route("/api/install_plugin", methods=["POST"])
 def install_plugin():
-    cache.evict("plugins")
-    cache.evict("config")
     body = request.get_json()
-    background_tasks.pios("install-plugin", body["plugin_name"])
+    background_tasks.pios_install_plugin(body["plugin_name"])
     return Response(status=204)
 
 
 @app.route("/api/uninstall_plugin", methods=["POST"])
 def uninstall_plugin():
-    cache.evict("plugins")
-    cache.evict("config")
     body = request.get_json()
-    background_tasks.pios("uninstall-plugin", body["plugin_name"])
+    background_tasks.pios_uninstall_plugin(body["plugin_name"])
     return Response(status=204)
 
 
@@ -388,7 +388,6 @@ def get_job_contrib():
 
 @app.route("/api/update_app", methods=["POST"])
 def update_app():
-    cache.evict("app")
     background_tasks.update_app()
     return Response(status=200)
 
@@ -618,7 +617,6 @@ def update_experiment_description():
 
 @app.route("/api/add_new_pioreactor", methods=["POST"])
 def add_new_pioreactor():
-    cache.evict("config")
     new_name = request.get_json()["newPioreactorName"]
     try:
         result = background_tasks.add_new_pioreactor(new_name)
