@@ -2,6 +2,8 @@
 from __future__ import annotations
 
 import logging
+import pathlib
+import shutil
 import subprocess
 import tempfile
 from logging import handlers
@@ -26,8 +28,39 @@ file_handler.setFormatter(
 logger.addHandler(file_handler)
 
 
-cache = dc.Cache(directory=f"{tempfile.gettempdir()}/pioreactor_ui", tag_index=True)
+cache = dc.Cache(directory=f"{tempfile.gettempdir()}/pioreactorui_cache", tag_index=True)
 logger.debug(f"Cache location: {cache.directory}")
+
+#### techdebt
+# What needs to be accomplished?
+# 1. Both Huey (tasks.py) and lighttp (app.py, entry point is main.fcgi) need RW to the cache, which is a SQLite db (with associated metadata files) in /tmp dir
+# 2. Huey is run my user `pioreactor` (as it runs pio tasks), and lighttp is run by `www-data` user.
+#  - Note that `pioreactor` is part of `www-data` group, too
+# 3. At startup (or any restart), systemd starts huey.service and lighttpd.service
+# 4. If huey.service starts first, then the sqlite files are owned by `pioreactor`, and lighttp fails since it can't RW the db.
+# 5. So we explictly change the owner _and_ RW permissions on the necessary files
+# 6. Why the on_startup? main.fcgi imports tasks.py, which runs this code block, but with a user (www-data) that can't edit these files.
+
+
+@huey.on_startup()
+def create_correct_permissions():
+    # set permissions on files need for cache
+    logger.debug("Updating permissions in cache")
+    cache_dir = pathlib.Path(cache.directory)
+
+    (cache_dir / "cache.db").chmod(mode=0o770)
+    shutil.chown(cache_dir / "cache.db", user="pioreactor", group="www-data")
+
+    (cache_dir / "cache.db-shm").chmod(mode=0o770)
+    shutil.chown(cache_dir / "cache.db-shm", user="pioreactor", group="www-data")
+
+    (cache_dir / "cache.db-wal").chmod(mode=0o770)
+    shutil.chown(cache_dir / "cache.db-wal", user="pioreactor", group="www-data")
+    return
+
+
+#######
+
 
 logger.info("Starting Huey...")
 
