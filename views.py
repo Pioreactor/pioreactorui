@@ -14,14 +14,9 @@ from flask import jsonify
 from flask import request
 from flask import Response
 from huey.exceptions import HueyException
-
-try:
-    # TODO: delete this try after a while..
-    from yaml import CLoader as Loader  # type: ignore
-except ImportError:
-    from yaml import Loader  # type: ignore
-
+from yaml import CSafeLoader as Loader  # type: ignore
 from yaml import load as yaml_load  # type: ignore
+
 import tasks as background_tasks
 from app import app
 from app import cache
@@ -479,7 +474,7 @@ def get_experiments():
 
 
 @app.route("/api/get_latest_experiment", methods=["GET"])
-@cache.memoize(expire=600, tag="experiments")
+@cache.memoize(expire=30, tag="experiments")
 def get_latest_experiment():
     try:
         return jsonify(
@@ -495,7 +490,7 @@ def get_latest_experiment():
 
 
 @app.route("/api/get_current_unit_labels", methods=["GET"])
-@cache.memoize(expire=60, tag="unit_labels")
+@cache.memoize(expire=30, tag="unit_labels")
 def get_current_unit_labels():
     try:
         current_unit_labels = query_db(
@@ -640,7 +635,7 @@ def add_new_pioreactor():
 
 
 @app.route("/api/get_config/<filename>", methods=["GET"])
-@cache.memoize(expire=600, tag="config")
+@cache.memoize(expire=30, tag="config")
 def get_config(filename: str):
     """get a specific config.ini file in the .pioreactor folder"""
 
@@ -657,7 +652,7 @@ def get_config(filename: str):
 
 
 @app.route("/api/get_configs", methods=["GET"])
-@cache.memoize(expire=600, tag="config")
+@cache.memoize(expire=60, tag="config")
 def get_configs():
     """get a list of all config.ini files in the .pioreactor folder"""
     try:
