@@ -1,3 +1,8 @@
+### 23.1.2
+Lots of changes the the backend API, make note!
+
+ - The API is more RESTful now.
+
 ### 23.1.1
  - Fix for `led_change_events` export.
  - Fixes for `fraction_of_volume_that_is_alternative_media` chart in the UI.

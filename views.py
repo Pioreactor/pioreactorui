@@ -274,7 +274,7 @@ def recent_media_rates():
 ## CALIBRATIONS
 
 
-@app.route("/api/get_calibration_types", methods=["GET"])
+@app.route("/api/calibration_types", methods=["GET"])
 def get_calibration_types():
 
     try:
@@ -283,7 +283,7 @@ def get_calibration_types():
         )
 
     except Exception as e:
-        publish_to_error_log(str(e), "get_calibration_types")
+        publish_to_error_log(str(e), "calibration_types")
         return Response(status=400)
 
     return jsonify(types)
@@ -308,7 +308,7 @@ def get_unit_calibrations_of_type(pioreactor_unit: str, calibration_type: str):
 ## PLUGINS
 
 
-@app.route("/api/get_installed_plugins", methods=["GET"])
+@app.route("/api/installed_plugins", methods=["GET"])
 @cache.memoize(expire=60, tag="plugins")
 def list_installed_plugins():
 
@@ -319,7 +319,7 @@ def list_installed_plugins():
         status, msg = False, "Timed out."
 
     if not status:
-        publish_to_error_log(msg, "get_installed_plugins")
+        publish_to_error_log(msg, "installed_plugins")
         return jsonify([])
 
     else:
@@ -387,7 +387,7 @@ def update_app():
     return Response(status=200)
 
 
-@app.route("/api/get_app_version", methods=["GET"])
+@app.route("/api/app_version", methods=["GET"])
 @cache.memoize(expire=60, tag="app")
 def get_app_version():
     result = subprocess.run(
@@ -402,7 +402,7 @@ def get_app_version():
     return result.stdout.strip()
 
 
-@app.route("/api/get_ui_version", methods=["GET"])
+@app.route("/api/ui_version", methods=["GET"])
 def get_ui_version():
     return VERSION
 
@@ -458,7 +458,7 @@ def export_datasets():
     return {"result": status, "filename": filename, "msg": msg}, 200
 
 
-@app.route("/api/get_experiments", methods=["GET"])
+@app.route("/api/experiments", methods=["GET"])
 @cache.memoize(expire=60, tag="experiments")
 def get_experiments():
     try:
@@ -473,96 +473,7 @@ def get_experiments():
         return Response(status=400)
 
 
-@app.route("/api/get_latest_experiment", methods=["GET"])
-@cache.memoize(expire=30, tag="experiments")
-def get_latest_experiment():
-    try:
-        return jsonify(
-            query_db(
-                "SELECT experiment, created_at, description, media_used, organism_used, delta_hours FROM latest_experiment",
-                one=True,
-            )
-        )
-
-    except Exception as e:
-        publish_to_error_log(e, "get_latest_experiment")
-        return Response(status=400)
-
-
-@app.route("/api/get_current_unit_labels", methods=["GET"])
-@cache.memoize(expire=30, tag="unit_labels")
-def get_current_unit_labels():
-    try:
-        current_unit_labels = query_db(
-            "SELECT r.pioreactor_unit as unit, r.label FROM pioreactor_unit_labels AS r JOIN latest_experiment USING (experiment);"
-        )
-
-        keyed_by_unit = {d["unit"]: d["label"] for d in current_unit_labels}
-
-        return jsonify(keyed_by_unit)
-
-    except Exception as e:
-        publish_to_error_log(e, "get_current_unit_labels")
-        return Response(status=400)
-
-
-@app.route("/api/update_current_unit_labels", methods=["POST"])
-def update_current_unit_labels():
-    cache.evict("unit_labels")
-
-    body = request.get_json()
-
-    unit = body["unit"]
-    label = body["label"]
-
-    latest_experiment_dict = query_db("SELECT experiment FROM latest_experiment", one=True)
-
-    latest_experiment = latest_experiment_dict["experiment"]
-
-    try:
-        insert_into_db(
-            "INSERT OR REPLACE INTO pioreactor_unit_labels (label, experiment, pioreactor_unit, created_at) VALUES ((?), (?), (?), strftime('%Y-%m-%dT%H:%M:%S', datetime('now')) ) ON CONFLICT(experiment, pioreactor_unit) DO UPDATE SET label=excluded.label, created_at=strftime('%Y-%m-%dT%H:%M:%S', datetime('now'))",
-            (label, latest_experiment, unit),
-        )
-
-    except Exception as e:
-        publish_to_error_log(str(e), "update_current_unit_labels")
-        return Response(status=400)
-
-    # client.publish(f"pioreactor/{unit}/{latest_experiment}/unit_label", label, retain=True)
-
-    return Response(status=204)
-
-
-@app.route("/api/get_historical_organisms_used", methods=["GET"])
-def get_historical_organisms_used():
-    try:
-        historical_organisms = query_db(
-            'SELECT DISTINCT organism_used as key FROM experiments WHERE NOT (organism_used IS NULL OR organism_used == "") ORDER BY created_at DESC;'
-        )
-
-    except Exception as e:
-        publish_to_error_log(str(e), "get_historical_organisms_used_used")
-        return Response(status=400)
-
-    return jsonify(historical_organisms)
-
-
-@app.route("/api/get_historical_media_used", methods=["GET"])
-def get_historical_media_used():
-    try:
-        historical_media = query_db(
-            'SELECT DISTINCT media_used as key FROM experiments WHERE NOT (media_used IS NULL OR media_used == "") ORDER BY created_at DESC;'
-        )
-
-    except Exception as e:
-        publish_to_error_log(str(e), "get_historical_organisms_used_used")
-        return Response(status=400)
-
-    return jsonify(historical_media)
-
-
-@app.route("/api/create_experiment", methods=["POST"])
+@app.route("/api/experiments", methods=["POST"])
 def create_experiment():
     cache.evict("experiments")
     cache.evict("unit_labels")
@@ -593,7 +504,96 @@ def create_experiment():
         return Response(status=400)
 
 
-@app.route("/api/update_experiment_desc", methods=["POST"])
+@app.route("/api/experiments/latest", methods=["GET"])
+@cache.memoize(expire=30, tag="experiments")
+def get_latest_experiment():
+    try:
+        return jsonify(
+            query_db(
+                "SELECT experiment, created_at, description, media_used, organism_used, delta_hours FROM latest_experiment",
+                one=True,
+            )
+        )
+
+    except Exception as e:
+        publish_to_error_log(e, "get_latest_experiment")
+        return Response(status=400)
+
+
+@app.route("/api/current_unit_labels", methods=["GET"])
+@cache.memoize(expire=30, tag="unit_labels")
+def get_current_unit_labels():
+    try:
+        current_unit_labels = query_db(
+            "SELECT r.pioreactor_unit as unit, r.label FROM pioreactor_unit_labels AS r JOIN latest_experiment USING (experiment);"
+        )
+
+        keyed_by_unit = {d["unit"]: d["label"] for d in current_unit_labels}
+
+        return jsonify(keyed_by_unit)
+
+    except Exception as e:
+        publish_to_error_log(e, "get_current_unit_labels")
+        return Response(status=400)
+
+
+@app.route("/api/current_unit_labels", methods=["PUT"])
+def upsert_current_unit_labels():
+    cache.evict("unit_labels")
+
+    body = request.get_json()
+
+    unit = body["unit"]
+    label = body["label"]
+
+    latest_experiment_dict = query_db("SELECT experiment FROM latest_experiment", one=True)
+
+    latest_experiment = latest_experiment_dict["experiment"]
+
+    try:
+        insert_into_db(
+            "INSERT OR REPLACE INTO pioreactor_unit_labels (label, experiment, pioreactor_unit, created_at) VALUES ((?), (?), (?), strftime('%Y-%m-%dT%H:%M:%S', datetime('now')) ) ON CONFLICT(experiment, pioreactor_unit) DO UPDATE SET label=excluded.label, created_at=strftime('%Y-%m-%dT%H:%M:%S', datetime('now'))",
+            (label, latest_experiment, unit),
+        )
+
+    except Exception as e:
+        publish_to_error_log(str(e), "upsert_current_unit_labels")
+        return Response(status=400)
+
+    # client.publish(f"pioreactor/{unit}/{latest_experiment}/unit_label", label, retain=True)
+
+    return Response(status=204)
+
+
+@app.route("/api/historical_organisms", methods=["GET"])
+def get_historical_organisms_used():
+    try:
+        historical_organisms = query_db(
+            'SELECT DISTINCT organism_used as key FROM experiments WHERE NOT (organism_used IS NULL OR organism_used == "") ORDER BY created_at DESC;'
+        )
+
+    except Exception as e:
+        publish_to_error_log(str(e), "historical_organisms")
+        return Response(status=400)
+
+    return jsonify(historical_organisms)
+
+
+@app.route("/api/historical_media", methods=["GET"])
+def get_historical_media_used():
+    try:
+        historical_media = query_db(
+            'SELECT DISTINCT media_used as key FROM experiments WHERE NOT (media_used IS NULL OR media_used == "") ORDER BY created_at DESC;'
+        )
+
+    except Exception as e:
+        publish_to_error_log(str(e), "historical_media")
+        return Response(status=400)
+
+    return jsonify(historical_media)
+
+
+@app.route("/api/experiment_desc", methods=["PUT"])
 def update_experiment_description():
     cache.evict("experiments")
 
@@ -606,7 +606,7 @@ def update_experiment_description():
         return Response(status=204)
 
     except Exception as e:
-        publish_to_error_log(str(e), "update_experiment_desc")
+        publish_to_error_log(str(e), "update_experiment_description")
         return Response(status=500)
 
 
@@ -634,7 +634,7 @@ def add_new_pioreactor():
 ## CONFIG CONTROL
 
 
-@app.route("/api/get_config/<filename>", methods=["GET"])
+@app.route("/api/configs/<filename>", methods=["GET"])
 @cache.memoize(expire=30, tag="config")
 def get_config(filename: str):
     """get a specific config.ini file in the .pioreactor folder"""
@@ -651,7 +651,7 @@ def get_config(filename: str):
         return Response(status=400)
 
 
-@app.route("/api/get_configs", methods=["GET"])
+@app.route("/api/configs", methods=["GET"])
 @cache.memoize(expire=60, tag="config")
 def get_configs():
     """get a list of all config.ini files in the .pioreactor folder"""
@@ -664,25 +664,23 @@ def get_configs():
         return Response(status=400)
 
 
-@app.route("/api/delete_config", methods=["POST"])
-def delete_config():
-    """TODO: should this http be DELETE?"""
+@app.route("/api/configs/<filename>", methods=["DELETE"])
+def delete_config(filename):
     cache.evict("config")
-    body = request.get_json()
-    filename = Path(body["filename"]).name  # remove any ../../ prefix stuff
+    filename = Path(filename).name  # remove any ../../ prefix stuff
     config_path = Path(env["DOT_PIOREACTOR"]) / filename
 
     background_tasks.rm(config_path)
-    publish_to_log(f"Deleted config {body['filename']}.", "delete_config")
+    publish_to_log(f"Deleted config {filename}.", "delete_config")
     return Response(status=204)
 
 
-@app.route("/api/save_new_config", methods=["POST"])
-def save_new_config():
+@app.route("/api/configs/<filename>", methods=["PUT"])
+def update_new_config(filename):
     """if the config file is unit specific, we only need to run sync-config on that unit."""
     cache.evict("config")
     body = request.get_json()
-    filename, code = body["filename"], body["code"]
+    code = body["code"]
 
     if not filename.endswith(".ini"):
         return {"msg": "Incorrect filetype. Must be .ini."}, 400
@@ -753,7 +751,7 @@ def save_new_config():
     return Response(status=204)
 
 
-@app.route("/api/get_historical_configs/<filename>", methods=["GET"])
+@app.route("/api/historical_configs/<filename>", methods=["GET"])
 def get_historical_config_for(filename: str):
     try:
         configs_for_filename = query_db(
