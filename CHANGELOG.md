@@ -2,6 +2,8 @@
 Lots of changes the the backend API, make note!
 
  - The API is more RESTful now.
+ - Changing settings now have a button to submit, along with hitting `enter`
+ - Under all Pioreactor settings, boolean settings now show up correctly.
 
 ### 23.1.1
  - Fix for `led_change_events` export.
