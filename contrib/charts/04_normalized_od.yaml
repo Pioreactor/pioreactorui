@@ -1,0 +1,12 @@
+---
+data_source: od_readings_filtered # SQL table
+title: Normalized optical density
+mqtt_topic: growth_rate_calculating/od_filtered
+key: normalized_optical_density
+source: app
+payload_key: od_filtered
+y_axis_label: Current OD / initial OD
+interpolation: stepAfter
+y_axis_domain: [0.98, 1.02]
+lookback: parseFloat(config['ui.overview.settings']['filtered_od_lookback_hours'])
+fixed_decimals: 2

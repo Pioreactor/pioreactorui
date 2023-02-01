@@ -28,7 +28,11 @@ file_handler.setFormatter(
 logger.addHandler(file_handler)
 
 
-cache = dc.Cache(directory=f"{tempfile.gettempdir()}/pioreactorui_cache", tag_index=True)
+cache = dc.Cache(
+    directory=f"{tempfile.gettempdir()}/pioreactorui_cache",
+    tag_index=True,
+    disk_min_file_size=2**16,
+)
 logger.debug(f"Cache location: {cache.directory}")
 
 #### techdebt
@@ -47,6 +51,9 @@ def create_correct_permissions():
     # set permissions on files need for cache
     logger.debug("Updating permissions in cache")
     cache_dir = pathlib.Path(cache.directory)
+
+    (cache_dir).chmod(mode=0o770)
+    shutil.chown(cache_dir, user="pioreactor", group="www-data")
 
     (cache_dir / "cache.db").chmod(mode=0o770)
     shutil.chown(cache_dir / "cache.db", user="pioreactor", group="www-data")

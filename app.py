@@ -53,7 +53,11 @@ client.username_pw_set("pioreactor", "raspberry")
 client.connect("localhost")
 client.loop_start()
 
-cache = dc.Cache(directory=f"{tempfile.gettempdir()}/pioreactorui_cache", tag_index=True)
+cache = dc.Cache(
+    directory=f"{tempfile.gettempdir()}/pioreactorui_cache",
+    tag_index=True,
+    disk_min_file_size=2**16,
+)
 logger.debug(f"Cache location: {cache.directory}")
 
 

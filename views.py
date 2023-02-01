@@ -381,6 +381,21 @@ def get_job_contrib():
         return Response(status=400)
 
 
+@app.route("/api/contrib/charts", methods=["GET"])
+@cache.memoize(expire=60, tag="plugins")
+def get_charts_contrib():
+    try:
+        chart_path_default = Path(env["WWW"]) / "contrib" / "charts"
+        chart_path_plugins = Path(env["DOT_PIOREACTOR"]) / "plugins" / "ui" / "charts"
+        files = sorted(chart_path_default.glob("*.y[a]ml")) + sorted(
+            chart_path_plugins.glob("*.y[a]ml")
+        )
+        return jsonify([yaml_load(file.read_bytes(), Loader=Loader) for file in files])
+    except Exception as e:
+        publish_to_error_log(str(e), "get_charts_contrib")
+        return Response(status=400)
+
+
 @app.route("/api/update_app", methods=["POST"])
 def update_app():
     background_tasks.update_app()

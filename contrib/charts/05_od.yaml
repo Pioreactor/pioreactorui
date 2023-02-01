@@ -1,0 +1,11 @@
+---
+data_source: od_readings # SQL table
+title: Optical density
+mqtt_topic: od_reading/od/+
+key: raw_optical_density
+source: app
+payload_key: od
+y_axis_label: Reading
+interpolation: stepAfter
+lookback: parseFloat(config['ui.overview.settings']['od_lookback_hours'])
+fixed_decimals: 3

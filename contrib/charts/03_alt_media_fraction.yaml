@@ -1,0 +1,11 @@
+---
+data_source: alt_media_fractions # SQL table
+title: "Fraction of volume that is alternative media"
+mqtt_topic: dosing_automation/alt_media_fraction
+key: fraction_of_volume_that_is_alternative_media
+source: app
+y_axis_label: Fraction
+interpolation: stepAfter
+y_axis_domain: [0.00, 0.05]
+lookback: 100000
+fixed_decimals: 3
