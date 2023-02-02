@@ -5,7 +5,7 @@ Lots of changes the the backend API, make note!
  - Changing settings now have a button to update settings, along with hitting the `enter` key
  - Under all Pioreactor settings, boolean settings now show up correctly.
  - Fixed error where a large cache was not able to be written to disk due to permissions errors.
- - Charts are not able to be added the the UI. Put a yaml file under `~/.pioreactor/plugins/ui/contrib/charts`
+ - Time series charts are now able to be added the the UI. Put a yaml file under `~/.pioreactor/plugins/ui/contrib/charts`
 
 
 ### 23.1.1

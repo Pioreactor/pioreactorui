@@ -218,23 +218,19 @@ def od_readings(experiment: str):
     return raw_od_readings["result"]
 
 
-@app.route("/api/time_series/alt_media_fractions/<experiment>", methods=["GET"])
-@cache.memoize(expire=30)
-def alt_media_fractions(experiment: str):
-    """get fraction of alt media added to vial"""
-
+@app.route("/api/time_series/<data_source>/<experiment>/<column>", methods=["GET"])
+def fallback_time_series(data_source: str, experiment: str, column: str):
     try:
-        alt_media_fraction_ = query_db(
-            "SELECT json_object('series', json_group_array(unit), 'data', json_group_array(json(data))) as result FROM (SELECT pioreactor_unit as unit, json_group_array(json_object('x', timestamp, 'y', round(alt_media_fraction, 7))) as data FROM alt_media_fractions WHERE experiment=? GROUP BY 1);",
+        r = query_db(
+            f"SELECT json_object('series', json_group_array(unit), 'data', json_group_array(json(data))) as result FROM (SELECT pioreactor_unit as unit, json_group_array(json_object('x', timestamp, 'y', round({column}, 7))) as data FROM {data_source} WHERE experiment=? GROUP BY 1);",
             (experiment,),
             one=True,
         )
 
     except Exception as e:
-        publish_to_error_log(str(e), "alt_media_fractions")
+        publish_to_error_log(str(e), "fallback_time_series")
         return Response(status=400)
-
-    return alt_media_fraction_["result"]
+    return r["result"]
 
 
 @app.route("/api/recent_media_rates", methods=["GET"])

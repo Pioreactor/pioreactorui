@@ -1,8 +1,8 @@
 ---
 data_source: growth_rates # SQL table
+chart_key: implied_growth_rate
 title: Implied growth rate
 mqtt_topic: growth_rate_calculating/growth_rate
-key: implied_growth_rate
 source: app
 payload_key: growth_rate
 y_axis_label: Growth rate, h⁻¹
