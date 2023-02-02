@@ -350,7 +350,12 @@ def get_automation_contrib(automation_type: str):
     try:
         automation_path_default = Path(env["WWW"]) / "contrib" / "automations" / automation_type
         automation_path_plugins = (
-            Path(env["DOT_PIOREACTOR"]) / "plugins" / "ui" / "automations" / automation_type
+            Path(env["DOT_PIOREACTOR"])
+            / "plugins"
+            / "ui"
+            / "contrib"
+            / "automations"
+            / automation_type
         )
         files = sorted(automation_path_default.glob("*.y[a]ml")) + sorted(
             automation_path_plugins.glob("*.y[a]ml")
@@ -367,7 +372,7 @@ def get_job_contrib():
 
     try:
         job_path_default = Path(env["WWW"]) / "contrib" / "jobs"
-        job_path_plugins = Path(env["DOT_PIOREACTOR"]) / "plugins" / "contrib" / "jobs"
+        job_path_plugins = Path(env["DOT_PIOREACTOR"]) / "plugins" / "ui" / "contrib" / "jobs"
         files = sorted(job_path_default.glob("*.y[a]ml")) + sorted(
             job_path_plugins.glob("*.y[a]ml")
         )
@@ -382,7 +387,7 @@ def get_job_contrib():
 def get_charts_contrib():
     try:
         chart_path_default = Path(env["WWW"]) / "contrib" / "charts"
-        chart_path_plugins = Path(env["DOT_PIOREACTOR"]) / "plugins" / "ui" / "charts"
+        chart_path_plugins = Path(env["DOT_PIOREACTOR"]) / "plugins" / "ui" "contrib" / "charts"
         files = sorted(chart_path_default.glob("*.y[a]ml")) + sorted(
             chart_path_plugins.glob("*.y[a]ml")
         )
