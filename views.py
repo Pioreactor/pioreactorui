@@ -219,6 +219,7 @@ def od_readings(experiment: str):
 
 
 @app.route("/api/time_series/<data_source>/<experiment>/<column>", methods=["GET"])
+@cache.memoize(expire=30)
 def fallback_time_series(data_source: str, experiment: str, column: str):
     try:
         r = query_db(
@@ -367,7 +368,6 @@ def get_automation_contrib(automation_type: str):
 
 
 @app.route("/api/contrib/jobs", methods=["GET"])
-@cache.memoize(expire=60, tag="plugins")
 def get_job_contrib():
 
     try:
@@ -704,7 +704,7 @@ def update_new_config(filename):
     # security bit:
     # users could have filename look like ../../../../root/bad.txt
     # the below code will strip any paths.
-    # General security risk here to save arbitrary file to OS.
+    # General security risk here is ability to save arbitrary file to OS.
     filename = Path(filename).name
 
     # is the user editing a worker config or the global config?
