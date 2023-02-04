@@ -22,7 +22,7 @@ This is behind a lighttp web server on the RPi. See [our lighttp config]().
 
 #### Adding an automation
 
-You can add a X automation option by adding to a `.yaml` file to `backend/contrib/automations/X` folder. There is an example file under `backend/contrib/automations/automation.yaml.example`. The new automation will appear in the modal to switch automations on the /pioreactors page.
+You can add a X automation option by adding to a `.yaml` file to `backend/contrib/automations/X` folder. There is an example file under `backend/contrib/automations/automation.yaml.example`. The new automation will appear in the dialog to switch automations on the /pioreactors page.
 
 
 #### Adding a job

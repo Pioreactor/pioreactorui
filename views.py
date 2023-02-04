@@ -14,13 +14,9 @@ from flask import jsonify
 from flask import request
 from flask import Response
 from huey.exceptions import HueyException
-
-try:
-    from yaml import CLoader as Loader  # type: ignore
-except ImportError:
-    from yaml import Loader  # type: ignore
-
+from yaml import CSafeLoader as Loader  # type: ignore
 from yaml import load as yaml_load  # type: ignore
+
 import tasks as background_tasks
 from app import app
 from app import cache
@@ -222,29 +218,29 @@ def od_readings(experiment: str):
     return raw_od_readings["result"]
 
 
-@app.route("/api/time_series/alt_media_fractions/<experiment>", methods=["GET"])
+@app.route("/api/time_series/<data_source>/<experiment>/<column>", methods=["GET"])
 @cache.memoize(expire=30)
-def alt_media_fractions(experiment: str):
-    """get fraction of alt media added to vial"""
-
+def fallback_time_series(data_source: str, experiment: str, column: str):
     try:
-        alt_media_fraction_ = query_db(
-            "SELECT json_object('series', json_group_array(unit), 'data', json_group_array(json(data))) as result FROM (SELECT pioreactor_unit as unit, json_group_array(json_object('x', timestamp, 'y', round(alt_media_fraction, 7))) as data FROM alt_media_fractions WHERE experiment=? GROUP BY 1);",
+        r = query_db(
+            f"SELECT json_object('series', json_group_array(unit), 'data', json_group_array(json(data))) as result FROM (SELECT pioreactor_unit as unit, json_group_array(json_object('x', timestamp, 'y', round({column}, 7))) as data FROM {data_source} WHERE experiment=? GROUP BY 1);",
             (experiment,),
             one=True,
         )
 
     except Exception as e:
-        publish_to_error_log(str(e), "alt_media_fractions")
+        publish_to_error_log(str(e), "fallback_time_series")
         return Response(status=400)
-
-    return alt_media_fraction_["result"]
+    return r["result"]
 
 
 @app.route("/api/recent_media_rates", methods=["GET"])
 @cache.memoize(expire=30)
 def recent_media_rates():
-    """Shows amount of added media per unit"""
+    """
+    Shows amount of added media per unit. Note that it only consider values from a dosing automation (i.e. not manual dosing, which includes continously dose)
+
+    """
     ## this one confusing
     hours = 3
 
@@ -275,7 +271,7 @@ def recent_media_rates():
 ## CALIBRATIONS
 
 
-@app.route("/api/get_calibration_types", methods=["GET"])
+@app.route("/api/calibration_types", methods=["GET"])
 def get_calibration_types():
 
     try:
@@ -284,7 +280,7 @@ def get_calibration_types():
         )
 
     except Exception as e:
-        publish_to_error_log(str(e), "get_calibration_types")
+        publish_to_error_log(str(e), "calibration_types")
         return Response(status=400)
 
     return jsonify(types)
@@ -309,7 +305,7 @@ def get_unit_calibrations_of_type(pioreactor_unit: str, calibration_type: str):
 ## PLUGINS
 
 
-@app.route("/api/get_installed_plugins", methods=["GET"])
+@app.route("/api/installed_plugins", methods=["GET"])
 @cache.memoize(expire=60, tag="plugins")
 def list_installed_plugins():
 
@@ -320,7 +316,7 @@ def list_installed_plugins():
         status, msg = False, "Timed out."
 
     if not status:
-        publish_to_error_log(msg, "get_installed_plugins")
+        publish_to_error_log(msg, "installed_plugins")
         return jsonify([])
 
     else:
@@ -329,19 +325,15 @@ def list_installed_plugins():
 
 @app.route("/api/install_plugin", methods=["POST"])
 def install_plugin():
-    cache.evict("plugins")
-    cache.evict("config")
     body = request.get_json()
-    background_tasks.pios("install-plugin", body["plugin_name"])
+    background_tasks.pios_install_plugin(body["plugin_name"])
     return Response(status=204)
 
 
 @app.route("/api/uninstall_plugin", methods=["POST"])
 def uninstall_plugin():
-    cache.evict("plugins")
-    cache.evict("config")
     body = request.get_json()
-    background_tasks.pios("uninstall-plugin", body["plugin_name"])
+    background_tasks.pios_uninstall_plugin(body["plugin_name"])
     return Response(status=204)
 
 
@@ -359,7 +351,12 @@ def get_automation_contrib(automation_type: str):
     try:
         automation_path_default = Path(env["WWW"]) / "contrib" / "automations" / automation_type
         automation_path_plugins = (
-            Path(env["DOT_PIOREACTOR"]) / "plugins" / "ui" / "automations" / automation_type
+            Path(env["DOT_PIOREACTOR"])
+            / "plugins"
+            / "ui"
+            / "contrib"
+            / "automations"
+            / automation_type
         )
         files = sorted(automation_path_default.glob("*.y[a]ml")) + sorted(
             automation_path_plugins.glob("*.y[a]ml")
@@ -371,12 +368,11 @@ def get_automation_contrib(automation_type: str):
 
 
 @app.route("/api/contrib/jobs", methods=["GET"])
-@cache.memoize(expire=60, tag="plugins")
 def get_job_contrib():
 
     try:
         job_path_default = Path(env["WWW"]) / "contrib" / "jobs"
-        job_path_plugins = Path(env["DOT_PIOREACTOR"]) / "plugins" / "contrib" / "jobs"
+        job_path_plugins = Path(env["DOT_PIOREACTOR"]) / "plugins" / "ui" / "contrib" / "jobs"
         files = sorted(job_path_default.glob("*.y[a]ml")) + sorted(
             job_path_plugins.glob("*.y[a]ml")
         )
@@ -386,14 +382,28 @@ def get_job_contrib():
         return Response(status=400)
 
 
+@app.route("/api/contrib/charts", methods=["GET"])
+@cache.memoize(expire=60, tag="plugins")
+def get_charts_contrib():
+    try:
+        chart_path_default = Path(env["WWW"]) / "contrib" / "charts"
+        chart_path_plugins = Path(env["DOT_PIOREACTOR"]) / "plugins" / "ui" "contrib" / "charts"
+        files = sorted(chart_path_default.glob("*.y[a]ml")) + sorted(
+            chart_path_plugins.glob("*.y[a]ml")
+        )
+        return jsonify([yaml_load(file.read_bytes(), Loader=Loader) for file in files])
+    except Exception as e:
+        publish_to_error_log(str(e), "get_charts_contrib")
+        return Response(status=400)
+
+
 @app.route("/api/update_app", methods=["POST"])
 def update_app():
-    cache.evict("app")
     background_tasks.update_app()
     return Response(status=200)
 
 
-@app.route("/api/get_app_version", methods=["GET"])
+@app.route("/api/app_version", methods=["GET"])
 @cache.memoize(expire=60, tag="app")
 def get_app_version():
     result = subprocess.run(
@@ -408,7 +418,7 @@ def get_app_version():
     return result.stdout.strip()
 
 
-@app.route("/api/get_ui_version", methods=["GET"])
+@app.route("/api/ui_version", methods=["GET"])
 def get_ui_version():
     return VERSION
 
@@ -464,7 +474,7 @@ def export_datasets():
     return {"result": status, "filename": filename, "msg": msg}, 200
 
 
-@app.route("/api/get_experiments", methods=["GET"])
+@app.route("/api/experiments", methods=["GET"])
 @cache.memoize(expire=60, tag="experiments")
 def get_experiments():
     try:
@@ -479,96 +489,7 @@ def get_experiments():
         return Response(status=400)
 
 
-@app.route("/api/get_latest_experiment", methods=["GET"])
-@cache.memoize(expire=600, tag="experiments")
-def get_latest_experiment():
-    try:
-        return jsonify(
-            query_db(
-                "SELECT experiment, created_at, description, media_used, organism_used, delta_hours FROM latest_experiment",
-                one=True,
-            )
-        )
-
-    except Exception as e:
-        publish_to_error_log(e, "get_latest_experiment")
-        return Response(status=400)
-
-
-@app.route("/api/get_current_unit_labels", methods=["GET"])
-@cache.memoize(expire=60, tag="unit_labels")
-def get_current_unit_labels():
-    try:
-        current_unit_labels = query_db(
-            "SELECT r.pioreactor_unit as unit, r.label FROM pioreactor_unit_labels AS r JOIN latest_experiment USING (experiment);"
-        )
-
-        keyed_by_unit = {d["unit"]: d["label"] for d in current_unit_labels}
-
-        return jsonify(keyed_by_unit)
-
-    except Exception as e:
-        publish_to_error_log(e, "get_current_unit_labels")
-        return Response(status=400)
-
-
-@app.route("/api/update_current_unit_labels", methods=["POST"])
-def update_current_unit_labels():
-    cache.evict("unit_labels")
-
-    body = request.get_json()
-
-    unit = body["unit"]
-    label = body["label"]
-
-    latest_experiment_dict = query_db("SELECT experiment FROM latest_experiment", one=True)
-
-    latest_experiment = latest_experiment_dict["experiment"]
-
-    try:
-        insert_into_db(
-            "INSERT OR REPLACE INTO pioreactor_unit_labels (label, experiment, pioreactor_unit, created_at) VALUES ((?), (?), (?), strftime('%Y-%m-%dT%H:%M:%S', datetime('now')) ) ON CONFLICT(experiment, pioreactor_unit) DO UPDATE SET label=excluded.label, created_at=strftime('%Y-%m-%dT%H:%M:%S', datetime('now'))",
-            (label, latest_experiment, unit),
-        )
-
-    except Exception as e:
-        publish_to_error_log(str(e), "update_current_unit_labels")
-        return Response(status=400)
-
-    # client.publish(f"pioreactor/{unit}/{latest_experiment}/unit_label", label, retain=True)
-
-    return Response(status=204)
-
-
-@app.route("/api/get_historical_organisms_used", methods=["GET"])
-def get_historical_organisms_used():
-    try:
-        historical_organisms = query_db(
-            'SELECT DISTINCT organism_used as key FROM experiments WHERE NOT (organism_used IS NULL OR organism_used == "") ORDER BY created_at DESC;'
-        )
-
-    except Exception as e:
-        publish_to_error_log(str(e), "get_historical_organisms_used_used")
-        return Response(status=400)
-
-    return jsonify(historical_organisms)
-
-
-@app.route("/api/get_historical_media_used", methods=["GET"])
-def get_historical_media_used():
-    try:
-        historical_media = query_db(
-            'SELECT DISTINCT media_used as key FROM experiments WHERE NOT (media_used IS NULL OR media_used == "") ORDER BY created_at DESC;'
-        )
-
-    except Exception as e:
-        publish_to_error_log(str(e), "get_historical_organisms_used_used")
-        return Response(status=400)
-
-    return jsonify(historical_media)
-
-
-@app.route("/api/create_experiment", methods=["POST"])
+@app.route("/api/experiments", methods=["POST"])
 def create_experiment():
     cache.evict("experiments")
     cache.evict("unit_labels")
@@ -599,7 +520,96 @@ def create_experiment():
         return Response(status=400)
 
 
-@app.route("/api/update_experiment_desc", methods=["POST"])
+@app.route("/api/experiments/latest", methods=["GET"])
+@cache.memoize(expire=30, tag="experiments")
+def get_latest_experiment():
+    try:
+        return jsonify(
+            query_db(
+                "SELECT experiment, created_at, description, media_used, organism_used, delta_hours FROM latest_experiment",
+                one=True,
+            )
+        )
+
+    except Exception as e:
+        publish_to_error_log(e, "get_latest_experiment")
+        return Response(status=400)
+
+
+@app.route("/api/current_unit_labels", methods=["GET"])
+@cache.memoize(expire=30, tag="unit_labels")
+def get_current_unit_labels():
+    try:
+        current_unit_labels = query_db(
+            "SELECT r.pioreactor_unit as unit, r.label FROM pioreactor_unit_labels AS r JOIN latest_experiment USING (experiment);"
+        )
+
+        keyed_by_unit = {d["unit"]: d["label"] for d in current_unit_labels}
+
+        return jsonify(keyed_by_unit)
+
+    except Exception as e:
+        publish_to_error_log(e, "get_current_unit_labels")
+        return Response(status=400)
+
+
+@app.route("/api/current_unit_labels", methods=["PUT"])
+def upsert_current_unit_labels():
+    cache.evict("unit_labels")
+
+    body = request.get_json()
+
+    unit = body["unit"]
+    label = body["label"]
+
+    latest_experiment_dict = query_db("SELECT experiment FROM latest_experiment", one=True)
+
+    latest_experiment = latest_experiment_dict["experiment"]
+
+    try:
+        insert_into_db(
+            "INSERT OR REPLACE INTO pioreactor_unit_labels (label, experiment, pioreactor_unit, created_at) VALUES ((?), (?), (?), strftime('%Y-%m-%dT%H:%M:%S', datetime('now')) ) ON CONFLICT(experiment, pioreactor_unit) DO UPDATE SET label=excluded.label, created_at=strftime('%Y-%m-%dT%H:%M:%S', datetime('now'))",
+            (label, latest_experiment, unit),
+        )
+
+    except Exception as e:
+        publish_to_error_log(str(e), "upsert_current_unit_labels")
+        return Response(status=400)
+
+    # client.publish(f"pioreactor/{unit}/{latest_experiment}/unit_label", label, retain=True)
+
+    return Response(status=204)
+
+
+@app.route("/api/historical_organisms", methods=["GET"])
+def get_historical_organisms_used():
+    try:
+        historical_organisms = query_db(
+            'SELECT DISTINCT organism_used as key FROM experiments WHERE NOT (organism_used IS NULL OR organism_used == "") ORDER BY created_at DESC;'
+        )
+
+    except Exception as e:
+        publish_to_error_log(str(e), "historical_organisms")
+        return Response(status=400)
+
+    return jsonify(historical_organisms)
+
+
+@app.route("/api/historical_media", methods=["GET"])
+def get_historical_media_used():
+    try:
+        historical_media = query_db(
+            'SELECT DISTINCT media_used as key FROM experiments WHERE NOT (media_used IS NULL OR media_used == "") ORDER BY created_at DESC;'
+        )
+
+    except Exception as e:
+        publish_to_error_log(str(e), "historical_media")
+        return Response(status=400)
+
+    return jsonify(historical_media)
+
+
+@app.route("/api/experiment_desc", methods=["PUT"])
 def update_experiment_description():
     cache.evict("experiments")
 
@@ -612,13 +622,12 @@ def update_experiment_description():
         return Response(status=204)
 
     except Exception as e:
-        publish_to_error_log(str(e), "update_experiment_desc")
+        publish_to_error_log(str(e), "update_experiment_description")
         return Response(status=500)
 
 
 @app.route("/api/add_new_pioreactor", methods=["POST"])
 def add_new_pioreactor():
-    cache.evict("config")
     new_name = request.get_json()["newPioreactorName"]
     try:
         result = background_tasks.add_new_pioreactor(new_name)
@@ -641,8 +650,8 @@ def add_new_pioreactor():
 ## CONFIG CONTROL
 
 
-@app.route("/api/get_config/<filename>", methods=["GET"])
-@cache.memoize(expire=600, tag="config")
+@app.route("/api/configs/<filename>", methods=["GET"])
+@cache.memoize(expire=30, tag="config")
 def get_config(filename: str):
     """get a specific config.ini file in the .pioreactor folder"""
 
@@ -658,8 +667,8 @@ def get_config(filename: str):
         return Response(status=400)
 
 
-@app.route("/api/get_configs", methods=["GET"])
-@cache.memoize(expire=600, tag="config")
+@app.route("/api/configs", methods=["GET"])
+@cache.memoize(expire=60, tag="config")
 def get_configs():
     """get a list of all config.ini files in the .pioreactor folder"""
     try:
@@ -671,25 +680,23 @@ def get_configs():
         return Response(status=400)
 
 
-@app.route("/api/delete_config", methods=["POST"])
-def delete_config():
-    """TODO: should this http be DELETE?"""
+@app.route("/api/configs/<filename>", methods=["DELETE"])
+def delete_config(filename):
     cache.evict("config")
-    body = request.get_json()
-    filename = Path(body["filename"]).name  # remove any ../../ prefix stuff
+    filename = Path(filename).name  # remove any ../../ prefix stuff
     config_path = Path(env["DOT_PIOREACTOR"]) / filename
 
     background_tasks.rm(config_path)
-    publish_to_log(f"Deleted config {body['filename']}.", "delete_config")
+    publish_to_log(f"Deleted config {filename}.", "delete_config")
     return Response(status=204)
 
 
-@app.route("/api/save_new_config", methods=["POST"])
-def save_new_config():
+@app.route("/api/configs/<filename>", methods=["PUT"])
+def update_new_config(filename):
     """if the config file is unit specific, we only need to run sync-config on that unit."""
     cache.evict("config")
     body = request.get_json()
-    filename, code = body["filename"], body["code"]
+    code = body["code"]
 
     if not filename.endswith(".ini"):
         return {"msg": "Incorrect filetype. Must be .ini."}, 400
@@ -697,7 +704,7 @@ def save_new_config():
     # security bit:
     # users could have filename look like ../../../../root/bad.txt
     # the below code will strip any paths.
-    # General security risk here to save arbitrary file to OS.
+    # General security risk here is ability to save arbitrary file to OS.
     filename = Path(filename).name
 
     # is the user editing a worker config or the global config?
@@ -760,7 +767,7 @@ def save_new_config():
     return Response(status=204)
 
 
-@app.route("/api/get_historical_configs/<filename>", methods=["GET"])
+@app.route("/api/historical_configs/<filename>", methods=["GET"])
 def get_historical_config_for(filename: str):
     try:
         configs_for_filename = query_db(
