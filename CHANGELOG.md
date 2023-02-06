@@ -1,4 +1,7 @@
-### 23.1.2
+### 23.2.6
+ - Adding `pioreactor_unit_activity_data_rollup` to exportable datasets.
+
+### 23.2.4
 Lots of changes the the backend API, make note!
 
  - The API is more RESTful now.
