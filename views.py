@@ -342,7 +342,7 @@ def uninstall_plugin():
 
 
 @app.route("/api/contrib/automations/<automation_type>", methods=["GET"])
-@cache.memoize(expire=60, tag="plugins")
+@cache.memoize(expire=30, tag="plugins")
 def get_automation_contrib(automation_type: str):
 
     # security to prevent possibly reading arbitrary file
@@ -378,6 +378,7 @@ def get_automation_contrib(automation_type: str):
 
 
 @app.route("/api/contrib/jobs", methods=["GET"])
+@cache.memoize(expire=30, tag="plugins")
 def get_job_contrib():
 
     try:
@@ -402,6 +403,7 @@ def get_job_contrib():
 
 
 @app.route("/api/contrib/charts", methods=["GET"])
+@cache.memoize(expire=30, tag="plugins")
 def get_charts_contrib():
     try:
         chart_path_default = Path(env["WWW"]) / "contrib" / "charts"
