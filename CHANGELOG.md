@@ -10,7 +10,6 @@ Lots of changes the the backend API, make note!
  - Fixed error where a large cache was not able to be written to disk due to permissions errors.
  - Time series charts are now able to be added the the UI. Put a yaml file under `~/.pioreactor/plugins/ui/contrib/charts`
 
-
 ### 23.1.1
  - Fix for `led_change_events` export.
  - Fixes for `fraction_of_volume_that_is_alternative_media` chart in the UI.

@@ -7,6 +7,6 @@ display: true
 description:  Start an LED automation to control the non-IR LEDs (for example, in a photo-bioreactor). Learn more about <a href="https://docs.pioreactor.com/user-guide/led-automations">LED automations</a>.
 published_settings:
   - key: automation_name
-    type: text
+    type: string
     display: false
     default: ""
