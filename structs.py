@@ -8,7 +8,7 @@ from msgspec import Struct
 
 class PublishedSettingsDescriptor(Struct, forbid_unknown_fields=True):  # type: ignore
     key: str
-    type: t.Literal["numeric", "boolean", "string", "json"]
+    type: t.Literal["numeric", "boolean", "string", "json", "text"]  # "text" is being deprecated...
     display: bool
     description: t.Optional[str] = None
     default: t.Optional[t.Union[str, bool]] = None
