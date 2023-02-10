@@ -10,8 +10,8 @@ class PublishedSettingsDescriptor(Struct, forbid_unknown_fields=True):  # type: 
     key: str
     type: t.Literal["numeric", "boolean", "string", "json"]
     display: bool
-    description: str | None = None
-    default: str | bool | None = None
+    description: t.Optional[str] = None
+    default: t.Optional[t.Union[str, bool]] = None
     unit: t.Optional[str] = None
     label: t.Optional[str] = None  # if display is false, this isn't needed
 
@@ -29,8 +29,8 @@ class BackgroundJobDescriptor(Struct, forbid_unknown_fields=True):  # type: igno
 
 class AutomationPublishedSettingsDescriptor(Struct, forbid_unknown_fields=True):  # type: ignore
     key: str
-    default: str | float | int | None
-    unit: str | None
+    default: t.Union[str, float, int]
+    unit: t.Optional[str]
     label: str
     disabled: bool = False
 
@@ -50,12 +50,12 @@ class ChartDescriptor(Struct, forbid_unknown_fields=True):  # type: ignore
     source: str
     y_axis_label: str
     fixed_decimals: int
-    lookback: int | str = 100_000
-    data_source_column: str | None = None  # column in sql store
-    payload_key: str | None = None
-    delta_hours: int | None = None
-    y_transformation: str | None = "(y) => y"  # default is the identity
-    y_axis_domain: list[float] | None = None
+    lookback: t.Union[int, str] = 100_000
+    data_source_column: t.Optional[str] = None  # column in sql store
+    payload_key: t.Optional[str] = None
+    delta_hours: t.Optional[int] = None
+    y_transformation: t.Optional[str] = "(y) => y"  # default is the identity
+    y_axis_domain: t.Optional[list[float]] = None
     interpolation: t.Literal[
         "basis",
         "bundle",
