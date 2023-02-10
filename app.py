@@ -82,7 +82,7 @@ def publish_to_log(msg, task, level="DEBUG"):
 
 def publish_to_error_log(msg, task):
     logger.error(msg)
-    if isinstance(str, msg):
+    if isinstance(msg, str):
         publish_to_log(msg, task, "ERROR")
     else:
         publish_to_log(json.dumps(msg), task, "ERROR")

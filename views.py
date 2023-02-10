@@ -343,6 +343,7 @@ def uninstall_plugin():
 
 
 @app.route("/api/contrib/automations/<automation_type>", methods=["GET"])
+@cache.memoize(expire=30, tag="plugins")
 def get_automation_contrib(automation_type: str):
 
     # security to prevent possibly reading arbitrary file
