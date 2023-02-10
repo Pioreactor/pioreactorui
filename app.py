@@ -82,10 +82,10 @@ def publish_to_log(msg, task, level="DEBUG"):
 
 def publish_to_error_log(msg, task):
     logger.error(msg)
-    try:
+    if isinstance(str, msg):
+        publish_to_log(msg, task, "ERROR")
+    else:
         publish_to_log(json.dumps(msg), task, "ERROR")
-    except TypeError:
-        publish_to_log(str(msg), task, "ERROR")
 
 
 def _make_dicts(cursor, row):

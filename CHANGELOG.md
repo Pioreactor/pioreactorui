@@ -1,3 +1,8 @@
+### 23.2.10
+ - Better error handling when a yaml file is not correct format.
+ - Improvements to Plugins page
+
+
 ### 23.2.6
  - Adding `pioreactor_unit_activity_data_rollup` to exportable datasets.
 
