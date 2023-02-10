@@ -1,3 +1,8 @@
+### 23.2.10
+ - Better error handling when a yaml file is not correct format.
+ - Improvements to Plugins page
+
+
 ### 23.2.6
  - Adding `pioreactor_unit_activity_data_rollup` to exportable datasets.
 
@@ -9,7 +14,6 @@ Lots of changes the the backend API, make note!
  - Under all Pioreactor settings, boolean settings now show up correctly.
  - Fixed error where a large cache was not able to be written to disk due to permissions errors.
  - Time series charts are now able to be added the the UI. Put a yaml file under `~/.pioreactor/plugins/ui/contrib/charts`
-
 
 ### 23.1.1
  - Fix for `led_change_events` export.

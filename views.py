@@ -14,9 +14,11 @@ from flask import jsonify
 from flask import request
 from flask import Response
 from huey.exceptions import HueyException
-from yaml import CSafeLoader as Loader  # type: ignore
-from yaml import load as yaml_load  # type: ignore
+from msgspec import ValidationError
+from msgspec.json import encode as json_encode
+from msgspec.yaml import decode as yaml_decode
 
+import structs
 import tasks as background_tasks
 from app import app
 from app import cache
@@ -341,7 +343,7 @@ def uninstall_plugin():
 
 
 @app.route("/api/contrib/automations/<automation_type>", methods=["GET"])
-@cache.memoize(expire=60, tag="plugins")
+@cache.memoize(expire=30, tag="plugins")
 def get_automation_contrib(automation_type: str):
 
     # security to prevent possibly reading arbitrary file
@@ -361,13 +363,28 @@ def get_automation_contrib(automation_type: str):
         files = sorted(automation_path_default.glob("*.y[a]ml")) + sorted(
             automation_path_plugins.glob("*.y[a]ml")
         )
-        return jsonify([yaml_load(file.read_bytes(), Loader=Loader) for file in files])
+
+        parsed_yaml = []
+        for file in files:
+            try:
+                parsed_yaml.append(
+                    yaml_decode(file.read_bytes(), type=structs.AutomationDescriptor)
+                )
+            except ValidationError as e:
+                publish_to_error_log(f"Yaml error in {file}: {e}", "get_automation_contrib")
+
+        return app.response_class(
+            response=json_encode(parsed_yaml),
+            status=200,
+            mimetype="application/json",
+        )
     except Exception as e:
         publish_to_error_log(str(e), "get_automation_contrib")
         return Response(status=400)
 
 
 @app.route("/api/contrib/jobs", methods=["GET"])
+@cache.memoize(expire=30, tag="plugins")
 def get_job_contrib():
 
     try:
@@ -376,14 +393,28 @@ def get_job_contrib():
         files = sorted(job_path_default.glob("*.y[a]ml")) + sorted(
             job_path_plugins.glob("*.y[a]ml")
         )
-        return jsonify([yaml_load(file.read_bytes(), Loader=Loader) for file in files])
+
+        parsed_yaml = []
+        for file in files:
+            try:
+                parsed_yaml.append(
+                    yaml_decode(file.read_bytes(), type=structs.BackgroundJobDescriptor)
+                )
+            except ValidationError as e:
+                publish_to_error_log(f"Yaml error in {file}: {e}", "get_job_contrib")
+
+        return app.response_class(
+            response=json_encode(parsed_yaml),
+            status=200,
+            mimetype="application/json",
+        )
     except Exception as e:
         publish_to_error_log(str(e), "get_job_contrib")
         return Response(status=400)
 
 
 @app.route("/api/contrib/charts", methods=["GET"])
-@cache.memoize(expire=60, tag="plugins")
+@cache.memoize(expire=30, tag="plugins")
 def get_charts_contrib():
     try:
         chart_path_default = Path(env["WWW"]) / "contrib" / "charts"
@@ -391,7 +422,18 @@ def get_charts_contrib():
         files = sorted(chart_path_default.glob("*.y[a]ml")) + sorted(
             chart_path_plugins.glob("*.y[a]ml")
         )
-        return jsonify([yaml_load(file.read_bytes(), Loader=Loader) for file in files])
+        parsed_yaml = []
+        for file in files:
+            try:
+                parsed_yaml.append(yaml_decode(file.read_bytes(), type=structs.ChartDescriptor))
+            except ValidationError as e:
+                publish_to_error_log(f"Yaml error in {file}: {e}", "get_charts_contrib")
+
+        return app.response_class(
+            response=json_encode(parsed_yaml),
+            status=200,
+            mimetype="application/json",
+        )
     except Exception as e:
         publish_to_error_log(str(e), "get_charts_contrib")
         return Response(status=400)

@@ -1,7 +1,8 @@
+# pyyaml is installed elsewhere
 flask==2.2.2
 flup6==1.1.1
 python-dotenv==0.21.0
-# pyyaml
 paho-mqtt==1.6.1
 huey==2.4.3
 diskcache==5.4.0
+msgspec==0.13.1

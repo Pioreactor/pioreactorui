@@ -6,6 +6,6 @@ source: app
 published_settings:
   - key: dc
     label: PWM intensity
-    type: text
+    type: string
     display: true
     default: ""

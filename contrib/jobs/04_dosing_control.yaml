@@ -28,6 +28,6 @@ published_settings:
     display: true
     description: Change the target optical density. Typical values are between 1.0 and 2.5 (arbitrary units)
   - key: automation_name
-    type: text
+    type: string
     display: false
     default: ""

@@ -14,6 +14,6 @@ published_settings:
     default: null
     display: true
   - key: automation_name
-    type: text
+    type: string
     display: false
     default: ""

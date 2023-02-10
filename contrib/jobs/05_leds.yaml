@@ -6,6 +6,6 @@ source: app
 published_settings:
   - key: intensity
     label: LED intensity
-    type: text
+    type: string
     display: true
     default: ""

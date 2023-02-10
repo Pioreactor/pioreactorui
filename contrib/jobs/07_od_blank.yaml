@@ -6,3 +6,4 @@ source: app
 published_settings:
   - key: means
     display: false
+    type: json
