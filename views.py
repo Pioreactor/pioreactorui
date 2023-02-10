@@ -14,6 +14,7 @@ from flask import jsonify
 from flask import request
 from flask import Response
 from huey.exceptions import HueyException
+from msgspec import ValidationError
 from msgspec.json import encode as json_encode
 from msgspec.yaml import decode as yaml_decode
 
@@ -342,7 +343,6 @@ def uninstall_plugin():
 
 
 @app.route("/api/contrib/automations/<automation_type>", methods=["GET"])
-@cache.memoize(expire=30, tag="plugins")
 def get_automation_contrib(automation_type: str):
 
     # security to prevent possibly reading arbitrary file
@@ -362,13 +362,18 @@ def get_automation_contrib(automation_type: str):
         files = sorted(automation_path_default.glob("*.y[a]ml")) + sorted(
             automation_path_plugins.glob("*.y[a]ml")
         )
-        return app.response_class(
-            response=json_encode(
-                [
+
+        parsed_yaml = []
+        for file in files:
+            try:
+                parsed_yaml.append(
                     yaml_decode(file.read_bytes(), type=structs.AutomationDescriptor)
-                    for file in files
-                ]
-            ),
+                )
+            except ValidationError as e:
+                publish_to_error_log(f"Yaml error in {file}: {e}", "get_automation_contrib")
+
+        return app.response_class(
+            response=json_encode(parsed_yaml),
             status=200,
             mimetype="application/json",
         )
@@ -387,13 +392,18 @@ def get_job_contrib():
         files = sorted(job_path_default.glob("*.y[a]ml")) + sorted(
             job_path_plugins.glob("*.y[a]ml")
         )
-        return app.response_class(
-            response=json_encode(
-                [
+
+        parsed_yaml = []
+        for file in files:
+            try:
+                parsed_yaml.append(
                     yaml_decode(file.read_bytes(), type=structs.BackgroundJobDescriptor)
-                    for file in files
-                ]
-            ),
+                )
+            except ValidationError as e:
+                publish_to_error_log(f"Yaml error in {file}: {e}", "get_job_contrib")
+
+        return app.response_class(
+            response=json_encode(parsed_yaml),
             status=200,
             mimetype="application/json",
         )
@@ -411,10 +421,15 @@ def get_charts_contrib():
         files = sorted(chart_path_default.glob("*.y[a]ml")) + sorted(
             chart_path_plugins.glob("*.y[a]ml")
         )
+        parsed_yaml = []
+        for file in files:
+            try:
+                parsed_yaml.append(yaml_decode(file.read_bytes(), type=structs.ChartDescriptor))
+            except ValidationError as e:
+                publish_to_error_log(f"Yaml error in {file}: {e}", "get_charts_contrib")
+
         return app.response_class(
-            response=json_encode(
-                [yaml_decode(file.read_bytes(), type=structs.ChartDescriptor) for file in files]
-            ),
+            response=json_encode(parsed_yaml),
             status=200,
             mimetype="application/json",
         )
