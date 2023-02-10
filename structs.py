@@ -49,9 +49,11 @@ class ChartDescriptor(Struct, forbid_unknown_fields=True):  # type: ignore
     mqtt_topic: str
     source: str
     y_axis_label: str
-    lookback: int | str
     fixed_decimals: int
+    lookback: int | str = 100_000
+    data_source_column: str | None = None  # column in sql store
     payload_key: str | None = None
+    delta_hours: int | None = None
     y_transformation: str | None = "(y) => y"  # default is the identity
     y_axis_domain: list[float] | None = None
     interpolation: t.Literal[
