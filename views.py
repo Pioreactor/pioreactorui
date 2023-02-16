@@ -527,7 +527,7 @@ def get_experiments():
         )
 
     except Exception as e:
-        publish_to_error_log(e, "get_experiments")
+        publish_to_error_log(str(e), "get_experiments")
         return Response(status=400)
 
 
@@ -555,10 +555,10 @@ def create_experiment():
         return Response(status=200)
 
     except sqlite3.IntegrityError as e:
-        publish_to_error_log(e, "create_experiment")
+        publish_to_error_log(str(e), "create_experiment")
         return Response(status=400)
     except Exception as e:
-        publish_to_error_log(e, "create_experiment")
+        publish_to_error_log(str(e), "create_experiment")
         return Response(status=400)
 
 
@@ -574,7 +574,7 @@ def get_latest_experiment():
         )
 
     except Exception as e:
-        publish_to_error_log(e, "get_latest_experiment")
+        publish_to_error_log(str(e), "get_latest_experiment")
         return Response(status=400)
 
 
@@ -591,7 +591,7 @@ def get_current_unit_labels():
         return jsonify(keyed_by_unit)
 
     except Exception as e:
-        publish_to_error_log(e, "get_current_unit_labels")
+        publish_to_error_log(str(e), "get_current_unit_labels")
         return Response(status=400)
 
 
