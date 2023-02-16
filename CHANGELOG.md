@@ -1,4 +1,4 @@
-### Upcoming
+### 23.2.16
  - Fix chart issue where data from od_readings wasn't being displayed correctly if multiple non-REF sensors were used.
 
 ### 23.2.10
