@@ -59,12 +59,18 @@ def stop_all():
 def stop_job_on_unit(job: str, unit: str):
     """Kills specified job on unit"""
 
-    jobs_to_kill_over_MQTT = ["add_media", "add_alt_media", "remove_waste"]
+    jobs_to_kill_over_MQTT = {"add_media", "add_alt_media", "remove_waste"}
 
     if job in jobs_to_kill_over_MQTT:
-        client.publish(f"pioreactor/{unit}/$experiment/{job}/$state/set", "disconnected", qos=1)
+        msg = client.publish(
+            f"pioreactor/{unit}/$experiment/{job}/$state/set", b"disconnected", qos=1
+        )
+        try:
+            msg.wait_for_publish(timeout=1.0)
+        except Exception:
+            return Response(status=500)
     else:
-        background_tasks.pios("kill", "--all-jobs", "-y", "--units", unit)
+        background_tasks.pios("kill", job, "-y", "--units", unit)
 
     return Response(status=204)
 
@@ -347,7 +353,7 @@ def uninstall_plugin():
 def get_automation_contrib(automation_type: str):
 
     # security to prevent possibly reading arbitrary file
-    if automation_type not in ["temperature", "dosing", "led"]:
+    if automation_type not in {"temperature", "dosing", "led"}:
         return Response(status=400)
 
     try:
@@ -371,7 +377,9 @@ def get_automation_contrib(automation_type: str):
                     yaml_decode(file.read_bytes(), type=structs.AutomationDescriptor)
                 )
             except ValidationError as e:
-                publish_to_error_log(f"Yaml error in {file}: {e}", "get_automation_contrib")
+                publish_to_error_log(
+                    f"Yaml error in {Path(file).name}: {e}", "get_automation_contrib"
+                )
 
         return app.response_class(
             response=json_encode(parsed_yaml),
@@ -401,7 +409,7 @@ def get_job_contrib():
                     yaml_decode(file.read_bytes(), type=structs.BackgroundJobDescriptor)
                 )
             except ValidationError as e:
-                publish_to_error_log(f"Yaml error in {file}: {e}", "get_job_contrib")
+                publish_to_error_log(f"Yaml error in {Path(file).name}: {e}", "get_job_contrib")
 
         return app.response_class(
             response=json_encode(parsed_yaml),
@@ -427,7 +435,7 @@ def get_charts_contrib():
             try:
                 parsed_yaml.append(yaml_decode(file.read_bytes(), type=structs.ChartDescriptor))
             except ValidationError as e:
-                publish_to_error_log(f"Yaml error in {file}: {e}", "get_charts_contrib")
+                publish_to_error_log(f"Yaml error in {Path(file).name}: {e}", "get_charts_contrib")
 
         return app.response_class(
             response=json_encode(parsed_yaml),
