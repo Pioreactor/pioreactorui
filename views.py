@@ -59,7 +59,13 @@ def stop_all():
 def stop_job_on_unit(job: str, unit: str):
     """Kills specified job on unit"""
 
-    jobs_to_kill_over_MQTT = {"add_media", "add_alt_media", "remove_waste"}
+    jobs_to_kill_over_MQTT = {
+        "add_media",
+        "add_alt_media",
+        "remove_waste",
+        "circulate_media",
+        "circulate_alt_media",
+    }
 
     if job in jobs_to_kill_over_MQTT:
         msg = client.publish(

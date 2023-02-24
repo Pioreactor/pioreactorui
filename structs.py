@@ -8,7 +8,7 @@ from msgspec import Struct
 
 class PublishedSettingsDescriptor(Struct, forbid_unknown_fields=True):  # type: ignore
     key: str
-    type: t.Literal["numeric", "boolean", "string", "json", "text"]  # "text" is being deprecated...
+    type: t.Literal["numeric", "boolean", "string", "json"]  # "text" is being deprecated...
     display: bool
     description: t.Optional[str] = None
     default: t.Optional[t.Union[str, bool]] = None
@@ -20,8 +20,8 @@ class BackgroundJobDescriptor(Struct, forbid_unknown_fields=True):  # type: igno
     display_name: str
     job_name: str
     display: bool
-    source: str
     published_settings: list[PublishedSettingsDescriptor]
+    source: t.Optional[str] = None  # what plugin / app created this job? Usually `app`
     description: t.Optional[str] = None  # if display is false, this isn't needed
     subtext: t.Optional[str] = None
     is_testing: bool = False
@@ -39,7 +39,8 @@ class AutomationDescriptor(Struct, forbid_unknown_fields=True):  # type: ignore
     display_name: str
     automation_name: str
     description: str
-    fields: list[AutomationPublishedSettingsDescriptor]
+    source: t.Optional[str] = None  # what plugin / app created this automation? Usually `app`
+    fields: list[AutomationPublishedSettingsDescriptor] = []
 
 
 class ChartDescriptor(Struct, forbid_unknown_fields=True):  # type: ignore
