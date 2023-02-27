@@ -38,11 +38,11 @@ logger.debug(f"Cache location: {cache.directory}")
 #### techdebt
 # What needs to be accomplished?
 # 1. Both Huey (tasks.py) and lighttp (app.py, entry point is main.fcgi) need RW to the cache, which is a SQLite db (with associated metadata files) in /tmp dir
-# 2. Huey is run my user `pioreactor` (as it runs pio tasks), and lighttp is run by `www-data` user.
+# 2. Huey is run with user `pioreactor` (as it runs pio tasks), and lighttp is run by `www-data` user.
 #  - Note that `pioreactor` is part of `www-data` group, too
 # 3. At startup (or any restart), systemd starts huey.service and lighttpd.service
 # 4. If huey.service starts first, then the sqlite files are owned by `pioreactor`, and lighttp fails since it can't RW the db.
-# 5. So we explictly change the owner _and_ RW permissions on the necessary files
+# 5. So we explicitly change the owner _and_ RW permissions on the necessary files
 # 6. Why the on_startup? main.fcgi imports tasks.py, which runs this code block, but with a user (www-data) that can't edit these files.
 
 
