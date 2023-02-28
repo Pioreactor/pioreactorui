@@ -48,7 +48,7 @@ logger.debug(f"Cache location: {cache.directory}")
 
 @huey.on_startup()
 def create_correct_permissions():
-    # set permissions on files need for cache
+    # set permissions lon files need for cache
     cache_dir = pathlib.Path(cache.directory)
 
     (cache_dir).chmod(mode=0o770)
