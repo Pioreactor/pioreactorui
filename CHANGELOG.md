@@ -1,3 +1,7 @@
+### 23.3.1
+ - Better manual dosing pageg
+ - Pioreactor hardware version and serial number are displayed in the `/pioreactor` page, under `Manage` -> `System`.
+
 ### 23.2.16
  - Fix chart issue where data from od_readings wasn't being displayed correctly if multiple non-REF sensors were used.
 

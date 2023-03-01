@@ -7,5 +7,5 @@ source: app
 payload_key: od
 y_axis_label: Reading
 interpolation: stepAfter
-lookback: parseFloat(config['ui.overview.settings']['od_lookback_hours'])
+lookback: parseFloat(config['ui.overview.settings']['raw_od_lookback_hours'])
 fixed_decimals: 3

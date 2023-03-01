@@ -59,12 +59,24 @@ def stop_all():
 def stop_job_on_unit(job: str, unit: str):
     """Kills specified job on unit"""
 
-    jobs_to_kill_over_MQTT = ["add_media", "add_alt_media", "remove_waste"]
+    jobs_to_kill_over_MQTT = {
+        "add_media",
+        "add_alt_media",
+        "remove_waste",
+        "circulate_media",
+        "circulate_alt_media",
+    }
 
     if job in jobs_to_kill_over_MQTT:
-        client.publish(f"pioreactor/{unit}/$experiment/{job}/$state/set", "disconnected", qos=1)
+        msg = client.publish(
+            f"pioreactor/{unit}/$experiment/{job}/$state/set", b"disconnected", qos=1
+        )
+        try:
+            msg.wait_for_publish(timeout=1.0)
+        except Exception:
+            return Response(status=500)
     else:
-        background_tasks.pios("kill", "--all-jobs", "-y", "--units", unit)
+        background_tasks.pios("kill", job, "-y", "--units", unit)
 
     return Response(status=204)
 
@@ -347,7 +359,7 @@ def uninstall_plugin():
 def get_automation_contrib(automation_type: str):
 
     # security to prevent possibly reading arbitrary file
-    if automation_type not in ["temperature", "dosing", "led"]:
+    if automation_type not in {"temperature", "dosing", "led"}:
         return Response(status=400)
 
     try:
@@ -371,7 +383,9 @@ def get_automation_contrib(automation_type: str):
                     yaml_decode(file.read_bytes(), type=structs.AutomationDescriptor)
                 )
             except ValidationError as e:
-                publish_to_error_log(f"Yaml error in {file}: {e}", "get_automation_contrib")
+                publish_to_error_log(
+                    f"Yaml error in {Path(file).name}: {e}", "get_automation_contrib"
+                )
 
         return app.response_class(
             response=json_encode(parsed_yaml),
@@ -401,7 +415,7 @@ def get_job_contrib():
                     yaml_decode(file.read_bytes(), type=structs.BackgroundJobDescriptor)
                 )
             except ValidationError as e:
-                publish_to_error_log(f"Yaml error in {file}: {e}", "get_job_contrib")
+                publish_to_error_log(f"Yaml error in {Path(file).name}: {e}", "get_job_contrib")
 
         return app.response_class(
             response=json_encode(parsed_yaml),
@@ -427,7 +441,7 @@ def get_charts_contrib():
             try:
                 parsed_yaml.append(yaml_decode(file.read_bytes(), type=structs.ChartDescriptor))
             except ValidationError as e:
-                publish_to_error_log(f"Yaml error in {file}: {e}", "get_charts_contrib")
+                publish_to_error_log(f"Yaml error in {Path(file).name}: {e}", "get_charts_contrib")
 
         return app.response_class(
             response=json_encode(parsed_yaml),
@@ -527,8 +541,8 @@ def get_experiments():
         )
 
     except Exception as e:
-        publish_to_error_log(e, "get_experiments")
-        return Response(status=400)
+        publish_to_error_log(str(e), "get_experiments")
+        return Response(status=500)
 
 
 @app.route("/api/experiments", methods=["POST"])
@@ -555,11 +569,11 @@ def create_experiment():
         return Response(status=200)
 
     except sqlite3.IntegrityError as e:
-        publish_to_error_log(e, "create_experiment")
+        publish_to_error_log(str(e), "create_experiment")
         return Response(status=400)
     except Exception as e:
-        publish_to_error_log(e, "create_experiment")
-        return Response(status=400)
+        publish_to_error_log(str(e), "create_experiment")
+        return Response(status=500)
 
 
 @app.route("/api/experiments/latest", methods=["GET"])
@@ -574,8 +588,8 @@ def get_latest_experiment():
         )
 
     except Exception as e:
-        publish_to_error_log(e, "get_latest_experiment")
-        return Response(status=400)
+        publish_to_error_log(str(e), "get_latest_experiment")
+        return Response(status=500)
 
 
 @app.route("/api/current_unit_labels", methods=["GET"])
@@ -591,8 +605,8 @@ def get_current_unit_labels():
         return jsonify(keyed_by_unit)
 
     except Exception as e:
-        publish_to_error_log(e, "get_current_unit_labels")
-        return Response(status=400)
+        publish_to_error_log(str(e), "get_current_unit_labels")
+        return Response(status=500)
 
 
 @app.route("/api/current_unit_labels", methods=["PUT"])
@@ -632,7 +646,7 @@ def get_historical_organisms_used():
 
     except Exception as e:
         publish_to_error_log(str(e), "historical_organisms")
-        return Response(status=400)
+        return Response(status=500)
 
     return jsonify(historical_organisms)
 
@@ -646,7 +660,7 @@ def get_historical_media_used():
 
     except Exception as e:
         publish_to_error_log(str(e), "historical_media")
-        return Response(status=400)
+        return Response(status=500)
 
     return jsonify(historical_media)
 
@@ -719,7 +733,7 @@ def get_configs():
 
     except Exception as e:
         publish_to_error_log(str(e), "get_configs")
-        return Response(status=400)
+        return Response(status=500)
 
 
 @app.route("/api/configs/<filename>", methods=["DELETE"])
@@ -793,7 +807,7 @@ def update_new_config(filename):
     except Exception as e:
         publish_to_error_log(str(e), "save_new_config")
         msg = "Hm, something went wrong, check PioreactorUI logs."
-        return {"msg": msg}, 400
+        return {"msg": msg}, 500
 
     result = background_tasks.write_config_and_sync(config_path, code, units, flags)
 
