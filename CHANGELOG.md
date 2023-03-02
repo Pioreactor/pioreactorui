@@ -1,3 +1,6 @@
+### Upcoming
+ - Fix 'resume' / 'pause' text switching
+
 ### 23.3.1
  - Better manual dosing pageg
  - Pioreactor hardware version and serial number are displayed in the `/pioreactor` page, under `Manage` -> `System`.
