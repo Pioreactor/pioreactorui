@@ -11,7 +11,7 @@ from dotenv import dotenv_values
 from huey import SqliteHuey
 
 env = dotenv_values(".env")
-huey = SqliteHuey(filename="/tmp/huey.db")  # why isn't huey.db in /tmp?
+huey = SqliteHuey(filename=f"{tempfile.gettempdir()}/pioreactorui_cache/huey.db")
 
 logger = logging.getLogger("huey.consumer")
 logger.setLevel(logging.INFO)
