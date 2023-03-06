@@ -5,17 +5,16 @@ import json
 import logging
 import socket
 import sqlite3
-import tempfile
 from datetime import datetime
 from datetime import timezone
 from logging import handlers
 
-import diskcache as dc
 import paho.mqtt.client as mqtt
-from dotenv import dotenv_values
 from flask import Flask
 from flask import g
 
+from config import cache
+from config import env
 from version import __version__
 
 NAME = "pioreactorui"
@@ -23,8 +22,6 @@ VERSION = __version__
 HOSTNAME = socket.gethostname()
 LOG_TOPIC = f"pioreactor/{HOSTNAME}/$experiment/logs/ui"
 
-
-env = dotenv_values(".env")  # a dictionary
 
 # set up logging
 logger = logging.getLogger(NAME)
@@ -53,11 +50,6 @@ client.username_pw_set("pioreactor", "raspberry")
 client.connect("localhost")
 client.loop_start()
 
-cache = dc.Cache(
-    directory=f"{tempfile.gettempdir()}/pioreactorui_cache",
-    tag_index=True,
-    disk_min_file_size=2**16,
-)
 logger.debug(f"Cache location: {cache.directory}")
 
 
