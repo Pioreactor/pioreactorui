@@ -21,14 +21,14 @@ from msgspec.yaml import decode as yaml_decode
 import structs
 import tasks as background_tasks
 from app import app
-from app import cache
 from app import client
-from app import env
 from app import insert_into_db
 from app import publish_to_error_log
 from app import publish_to_log
 from app import query_db
 from app import VERSION
+from config import cache
+from config import env
 
 
 def current_utc_datetime() -> datetime:
