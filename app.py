@@ -13,7 +13,6 @@ import paho.mqtt.client as mqtt
 from flask import Flask
 from flask import g
 
-from config import cache
 from config import env
 from version import __version__
 
@@ -49,9 +48,6 @@ client = mqtt.Client(client_id=f"pio-{HOSTNAME}-pioreactorui")
 client.username_pw_set("pioreactor", "raspberry")
 client.connect("localhost")
 client.loop_start()
-
-logger.debug(f"Cache location: {cache.directory}")
-
 
 ## UTILS
 
@@ -112,6 +108,3 @@ def insert_into_db(insert_smt, args=()):
     finally:
         cur.close()
     return
-
-
-logger.debug("Finished initializing.")

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-
+this contains shared data for both huey and the flask app
 
 """
 from __future__ import annotations
