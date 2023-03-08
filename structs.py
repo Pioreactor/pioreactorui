@@ -51,10 +51,9 @@ class ChartDescriptor(Struct, forbid_unknown_fields=True):  # type: ignore
     source: str
     y_axis_label: str
     fixed_decimals: int
-    lookback: t.Union[int, str] = 100_000
+    lookback: t.Union[int, str, float] = 100_000
     data_source_column: t.Optional[str] = None  # column in sql store
     payload_key: t.Optional[str] = None
-    delta_hours: t.Optional[int] = None
     y_transformation: t.Optional[str] = "(y) => y"  # default is the identity
     y_axis_domain: t.Optional[list[float]] = None
     interpolation: t.Literal[
