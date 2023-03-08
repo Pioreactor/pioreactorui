@@ -1,9 +1,13 @@
-### Upcoming
+### 23.3.8
+ - Adding `lookback` parameter to all charts.
+ - Changes to make charts YAML options more flexible
+
+### 23.3.6
  - Fix 'resume' / 'pause' text switching
  - huey.db now lives in /tmp/pioreactorui_cache
 
 ### 23.3.1
- - Better manual dosing pageg
+ - Better manual dosing page
  - Pioreactor hardware version and serial number are displayed in the `/pioreactor` page, under `Manage` -> `System`.
 
 ### 23.2.16

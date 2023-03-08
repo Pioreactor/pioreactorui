@@ -21,14 +21,14 @@ from msgspec.yaml import decode as yaml_decode
 import structs
 import tasks as background_tasks
 from app import app
-from app import cache
 from app import client
-from app import env
 from app import insert_into_db
 from app import publish_to_error_log
 from app import publish_to_log
 from app import query_db
 from app import VERSION
+from config import cache
+from config import env
 
 
 def current_utc_datetime() -> datetime:
@@ -142,11 +142,12 @@ def growth_rates(experiment: str):
     """Gets growth rates for all units"""
     args = request.args
     filter_mod_n = float(args.get("filter_mod_N", 100.0))
+    lookback = float(args.get("lookback", 4.0))
 
     try:
         growth_rates = query_db(
-            "SELECT json_object('series', json_group_array(unit), 'data', json_group_array(json(data))) as result FROM (SELECT pioreactor_unit as unit, json_group_array(json_object('x', timestamp, 'y', round(rate, 5))) as data FROM growth_rates WHERE experiment=? AND ((ROWID * 0.61803398875) - cast(ROWID * 0.61803398875 as int) < 1.0/?) GROUP BY 1);",
-            (experiment, filter_mod_n),
+            "SELECT json_object('series', json_group_array(unit), 'data', json_group_array(json(data))) as result FROM (SELECT pioreactor_unit as unit, json_group_array(json_object('x', timestamp, 'y', round(rate, 5))) as data FROM growth_rates WHERE experiment=? AND ((ROWID * 0.61803398875) - cast(ROWID * 0.61803398875 as int) < 1.0/?) AND timestamp > strftime('%Y-%m-%dT%H:%M:%S', datetime('now',?)) GROUP BY 1);",
+            (experiment, filter_mod_n, f"-{lookback} hours"),
             one=True,
         )
 
@@ -163,11 +164,12 @@ def temperature_readings(experiment: str):
     """Gets temperature readings for all units"""
     args = request.args
     filter_mod_n = float(args.get("filter_mod_N", 100.0))
+    lookback = float(args.get("lookback", 4.0))
 
     try:
         temperature_readings = query_db(
-            "SELECT json_object('series', json_group_array(unit), 'data', json_group_array(json(data))) as result FROM (SELECT pioreactor_unit as unit, json_group_array(json_object('x', timestamp, 'y', round(temperature_c, 2))) as data FROM temperature_readings WHERE experiment=? AND ((ROWID * 0.61803398875) - cast(ROWID * 0.61803398875 as int) < 1.0/?) GROUP BY 1);",
-            (experiment, filter_mod_n),
+            "SELECT json_object('series', json_group_array(unit), 'data', json_group_array(json(data))) as result FROM (SELECT pioreactor_unit as unit, json_group_array(json_object('x', timestamp, 'y', round(temperature_c, 2))) as data FROM temperature_readings WHERE experiment=? AND ((ROWID * 0.61803398875) - cast(ROWID * 0.61803398875 as int) < 1.0/?) AND timestamp > strftime('%Y-%m-%dT%H:%M:%S', datetime('now',?)) GROUP BY 1);",
+            (experiment, filter_mod_n, f"-{lookback} hours"),
             one=True,
         )
 
@@ -235,10 +237,15 @@ def od_readings(experiment: str):
 @app.route("/api/time_series/<data_source>/<experiment>/<column>", methods=["GET"])
 @cache.memoize(expire=30)
 def fallback_time_series(data_source: str, experiment: str, column: str):
+    args = request.args
+    lookback = float(args.get("lookback", 4.0))
+    print(
+        f"SELECT json_object('series', json_group_array(unit), 'data', json_group_array(json(data))) as result FROM (SELECT pioreactor_unit as unit, json_group_array(json_object('x', timestamp, 'y', round({column}, 7))) as data FROM {data_source} WHERE experiment={experiment} AND timestamp > strftime('%Y-%m-%dT%H:%M:%S', datetime('now',{lookback})) GROUP BY 1);",
+    )
     try:
         r = query_db(
-            f"SELECT json_object('series', json_group_array(unit), 'data', json_group_array(json(data))) as result FROM (SELECT pioreactor_unit as unit, json_group_array(json_object('x', timestamp, 'y', round({column}, 7))) as data FROM {data_source} WHERE experiment=? GROUP BY 1);",
-            (experiment,),
+            f"SELECT json_object('series', json_group_array(unit), 'data', json_group_array(json(data))) as result FROM (SELECT pioreactor_unit as unit, json_group_array(json_object('x', timestamp, 'y', round({column}, 7))) as data FROM {data_source} WHERE experiment=? AND timestamp > strftime('%Y-%m-%dT%H:%M:%S', datetime('now',?)) GROUP BY 1);",
+            (experiment, f"-{lookback} hours"),
             one=True,
         )
 
@@ -432,7 +439,7 @@ def get_job_contrib():
 def get_charts_contrib():
     try:
         chart_path_default = Path(env["WWW"]) / "contrib" / "charts"
-        chart_path_plugins = Path(env["DOT_PIOREACTOR"]) / "plugins" / "ui" "contrib" / "charts"
+        chart_path_plugins = Path(env["DOT_PIOREACTOR"]) / "plugins" / "ui" / "contrib" / "charts"
         files = sorted(chart_path_default.glob("*.y[a]ml")) + sorted(
             chart_path_plugins.glob("*.y[a]ml")
         )

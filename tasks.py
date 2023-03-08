@@ -3,18 +3,12 @@ from __future__ import annotations
 
 import logging
 import subprocess
-import tempfile
 from logging import handlers
-from pathlib import Path
 
-import diskcache as dc
-from dotenv import dotenv_values
-from huey import SqliteHuey
-
-CACHE_DIR = Path(tempfile.gettempdir()) / "pioreactorui_cache"
-
-env = dotenv_values(".env")
-huey = SqliteHuey(filename=CACHE_DIR / "huey.db")
+from config import cache
+from config import CACHE_DIR
+from config import env
+from config import huey
 
 logger = logging.getLogger("huey.consumer")
 logger.setLevel(logging.INFO)
@@ -27,13 +21,6 @@ file_handler.setFormatter(
     )
 )
 logger.addHandler(file_handler)
-
-
-cache = dc.Cache(
-    directory=CACHE_DIR,
-    tag_index=True,
-    disk_min_file_size=2**16,
-)
 
 
 @huey.on_startup()

@@ -9,4 +9,4 @@ y_axis_label: Current OD / initial OD
 interpolation: stepAfter
 y_axis_domain: [0.98, 1.02]
 lookback: parseFloat(config['ui.overview.settings']['filtered_od_lookback_hours'])
-fixed_decimals: 2
+fixed_decimals: 3
