@@ -47,10 +47,10 @@ class ChartDescriptor(Struct, forbid_unknown_fields=True):  # type: ignore
     chart_key: str
     data_source: str  # SQL table
     title: str
-    mqtt_topic: str
     source: str
     y_axis_label: str
     fixed_decimals: int
+    mqtt_topic: t.Optional[str] = None  # leave empty for no live updates from mqtt
     lookback: t.Union[int, str, float] = 100_000
     data_source_column: t.Optional[str] = None  # column in sql store
     payload_key: t.Optional[str] = None
