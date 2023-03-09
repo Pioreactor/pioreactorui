@@ -9,3 +9,4 @@ y_axis_label: Reading
 interpolation: stepAfter
 lookback: parseFloat(config['ui.overview.settings']['raw_od_lookback_hours'])
 fixed_decimals: 3
+y_axis_domain: [0, 0.01] # good default for near 0 OD, but will break out after growth.

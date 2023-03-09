@@ -3,5 +3,5 @@ display_name: Growth rate
 job_name: growth_rate_calculating
 display: true
 source: app
-description: Transform optical density measurements into culture growth rate measurements.
+description: Transform optical density measurements into culture growth rate measurements. Begins by sampling for a few minutes to gather a baseline.
 published_settings: []
