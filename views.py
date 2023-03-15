@@ -650,7 +650,9 @@ def get_latest_experiment():
                 )
             ),
             status=200,
-            headers={"Cache-Control": "public,max-age=10"},
+            headers={
+                "Cache-Control": "public,max-age=2"
+            },  # don't make this too high, as it caches description, which changes fast.
             mimetype="application/json",
         )
 
@@ -901,6 +903,7 @@ def update_new_config(filename):
 
 
 @app.route("/api/historical_configs/<filename>", methods=["GET"])
+@cache.memoize(expire=60, tag="config")
 def get_historical_config_for(filename: str):
     try:
         configs_for_filename = query_db(
