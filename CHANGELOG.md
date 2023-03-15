@@ -1,3 +1,8 @@
+### 23.3.15
+ - Performance improvements
+ - Better empty states
+
+
 ### 23.3.8
  - Adding `lookback` parameter to all charts.
  - Changes to make charts YAML options more flexible

@@ -146,7 +146,19 @@ def growth_rates(experiment: str):
 
     try:
         growth_rates = query_db(
-            "SELECT json_object('series', json_group_array(unit), 'data', json_group_array(json(data))) as result FROM (SELECT pioreactor_unit as unit, json_group_array(json_object('x', timestamp, 'y', round(rate, 5))) as data FROM growth_rates WHERE experiment=? AND ((ROWID * 0.61803398875) - cast(ROWID * 0.61803398875 as int) < 1.0/?) AND timestamp > strftime('%Y-%m-%dT%H:%M:%S', datetime('now',?)) GROUP BY 1);",
+            """
+            SELECT
+                json_object('series', json_group_array(unit), 'data', json_group_array(json(data))) as result
+            FROM (
+                SELECT pioreactor_unit as unit,
+                       json_group_array(json_object('x', timestamp, 'y', round(rate, 5))) as data
+                FROM growth_rates
+                WHERE experiment=? AND
+                      ((ROWID * 0.61803398875) - cast(ROWID * 0.61803398875 as int) < 1.0/?) AND
+                      timestamp > strftime('%Y-%m-%dT%H:%M:%S', datetime('now',?))
+                GROUP BY 1
+                );
+            """,
             (experiment, filter_mod_n, f"-{lookback} hours"),
             one=True,
         )
@@ -168,7 +180,19 @@ def temperature_readings(experiment: str):
 
     try:
         temperature_readings = query_db(
-            "SELECT json_object('series', json_group_array(unit), 'data', json_group_array(json(data))) as result FROM (SELECT pioreactor_unit as unit, json_group_array(json_object('x', timestamp, 'y', round(temperature_c, 2))) as data FROM temperature_readings WHERE experiment=? AND ((ROWID * 0.61803398875) - cast(ROWID * 0.61803398875 as int) < 1.0/?) AND timestamp > strftime('%Y-%m-%dT%H:%M:%S', datetime('now',?)) GROUP BY 1);",
+            """
+            SELECT json_object('series', json_group_array(unit), 'data', json_group_array(json(data))) as result
+            FROM (
+                SELECT
+                    pioreactor_unit as unit,
+                    json_group_array(json_object('x', timestamp, 'y', round(temperature_c, 2))) as data
+                FROM temperature_readings
+                WHERE experiment=? AND
+                    ((ROWID * 0.61803398875) - cast(ROWID * 0.61803398875 as int) < 1.0/?) AND
+                    timestamp > strftime('%Y-%m-%dT%H:%M:%S', datetime('now',?))
+                GROUP BY 1
+                );
+            """,
             (experiment, filter_mod_n, f"-{lookback} hours"),
             one=True,
         )
@@ -190,7 +214,20 @@ def od_readings_filtered(experiment: str):
 
     try:
         filtered_od_readings = query_db(
-            "SELECT json_object('series', json_group_array(unit), 'data', json_group_array(json(data))) as result FROM (SELECT pioreactor_unit as unit, json_group_array(json_object('x', timestamp, 'y', round(normalized_od_reading, 7))) as data FROM od_readings_filtered WHERE experiment=? AND ((ROWID * 0.61803398875) - cast(ROWID * 0.61803398875 as int) < 1.0/?) AND timestamp > strftime('%Y-%m-%dT%H:%M:%S', datetime('now',?)) GROUP BY 1);",
+            """
+            SELECT
+                json_object('series', json_group_array(unit), 'data', json_group_array(json(data))) as result
+            FROM (
+                SELECT
+                    pioreactor_unit as unit,
+                    json_group_array(json_object('x', timestamp, 'y', round(normalized_od_reading, 7))) as data
+                FROM od_readings_filtered
+                WHERE experiment=? AND
+                    ((ROWID * 0.61803398875) - cast(ROWID * 0.61803398875 as int) < 1.0/?) AND
+                    timestamp > strftime('%Y-%m-%dT%H:%M:%S', datetime('now',?))
+                GROUP BY 1
+                );
+            """,
             (experiment, filter_mod_n, f"-{lookback} hours"),
             one=True,
         )
@@ -212,16 +249,17 @@ def od_readings(experiment: str):
 
     try:
         raw_od_readings = query_db(
-            """SELECT
-                    json_object('series', json_group_array(unit), 'data', json_group_array(json(data))) as result
-                FROM (
-                    SELECT pioreactor_unit || '-' || channel as unit, json_group_array(json_object('x', timestamp, 'y', round(od_reading, 7))) as data
-                    FROM od_readings
-                    WHERE experiment=? AND
+            """
+            SELECT
+                json_object('series', json_group_array(unit), 'data', json_group_array(json(data))) as result
+            FROM (
+                SELECT pioreactor_unit || '-' || channel as unit, json_group_array(json_object('x', timestamp, 'y', round(od_reading, 7))) as data
+                FROM od_readings
+                WHERE experiment=? AND
                     ((ROWID * 0.61803398875) - cast(ROWID * 0.61803398875 as int) < 1.0/?) AND
                     timestamp > strftime('%Y-%m-%dT%H:%M:%S', datetime('now', ?))
-                    GROUP BY 1
-                    );
+                GROUP BY 1
+                );
             """,
             (experiment, filter_mod_n, f"-{lookback} hours"),
             one=True,
@@ -239,9 +277,6 @@ def od_readings(experiment: str):
 def fallback_time_series(data_source: str, experiment: str, column: str):
     args = request.args
     lookback = float(args.get("lookback", 4.0))
-    print(
-        f"SELECT json_object('series', json_group_array(unit), 'data', json_group_array(json(data))) as result FROM (SELECT pioreactor_unit as unit, json_group_array(json_object('x', timestamp, 'y', round({column}, 7))) as data FROM {data_source} WHERE experiment={experiment} AND timestamp > strftime('%Y-%m-%dT%H:%M:%S', datetime('now',{lookback})) GROUP BY 1);",
-    )
     try:
         r = query_db(
             f"SELECT json_object('series', json_group_array(unit), 'data', json_group_array(json(data))) as result FROM (SELECT pioreactor_unit as unit, json_group_array(json_object('x', timestamp, 'y', round({column}, 7))) as data FROM {data_source} WHERE experiment=? AND timestamp > strftime('%Y-%m-%dT%H:%M:%S', datetime('now',?)) GROUP BY 1);",
@@ -267,7 +302,19 @@ def recent_media_rates():
 
     try:
         rows = query_db(
-            "SELECT d.pioreactor_unit, SUM(CASE WHEN event='add_media' THEN volume_change_ml ELSE 0 END) / ? AS media_rate, SUM(CASE WHEN event='add_alt_media' THEN volume_change_ml ELSE 0 END) / ? AS alt_media_rate FROM dosing_events AS d JOIN latest_experiment USING (experiment) WHERE datetime(d.timestamp) >= datetime('now', '-? hours') AND event IN ('add_alt_media', 'add_media') AND source_of_event LIKE 'dosing_automation%' GROUP BY d.pioreactor_unit;",
+            """
+            SELECT
+                d.pioreactor_unit,
+                SUM(CASE WHEN event='add_media' THEN volume_change_ml ELSE 0 END) / ? AS media_rate,
+                SUM(CASE WHEN event='add_alt_media' THEN volume_change_ml ELSE 0 END) / ? AS alt_media_rate
+            FROM dosing_events AS d
+            JOIN latest_experiment USING (experiment)
+            WHERE
+                datetime(d.timestamp) >= datetime('now', '-? hours') AND
+                event IN ('add_alt_media', 'add_media') AND
+                source_of_event LIKE 'dosing_automation%'
+            GROUP BY d.pioreactor_unit;
+            """,
             (hours, hours),
         )
 
@@ -394,10 +441,11 @@ def get_automation_contrib(automation_type: str):
                     f"Yaml error in {Path(file).name}: {e}", "get_automation_contrib"
                 )
 
-        return app.response_class(
+        return Response(
             response=json_encode(parsed_yaml),
             status=200,
             mimetype="application/json",
+            headers={"Cache-Control": "public,max-age=10"},
         )
     except Exception as e:
         publish_to_error_log(str(e), "get_automation_contrib")
@@ -424,10 +472,11 @@ def get_job_contrib():
             except ValidationError as e:
                 publish_to_error_log(f"Yaml error in {Path(file).name}: {e}", "get_job_contrib")
 
-        return app.response_class(
+        return Response(
             response=json_encode(parsed_yaml),
             status=200,
             mimetype="application/json",
+            headers={"Cache-Control": "public,max-age=10"},
         )
     except Exception as e:
         publish_to_error_log(str(e), "get_job_contrib")
@@ -450,10 +499,11 @@ def get_charts_contrib():
             except ValidationError as e:
                 publish_to_error_log(f"Yaml error in {Path(file).name}: {e}", "get_charts_contrib")
 
-        return app.response_class(
+        return Response(
             response=json_encode(parsed_yaml),
             status=200,
             mimetype="application/json",
+            headers={"Cache-Control": "public,max-age=10"},
         )
     except Exception as e:
         publish_to_error_log(str(e), "get_charts_contrib")
@@ -478,7 +528,12 @@ def get_app_version():
         publish_to_error_log(result.stdout, "get_app_version")
         publish_to_error_log(result.stderr, "get_app_version")
         return Response(status=500)
-    return result.stdout.strip()
+    return Response(
+        response=result.stdout.strip(),
+        status=200,
+        mimetype="text/plain",
+        headers={"Cache-Control": "public,max-age=10"},
+    )
 
 
 @app.route("/api/ui_version", methods=["GET"])
@@ -541,11 +596,12 @@ def export_datasets():
 @cache.memoize(expire=60, tag="experiments")
 def get_experiments():
     try:
-        return jsonify(
+        response = jsonify(
             query_db(
                 "SELECT experiment, created_at, description FROM experiments ORDER BY created_at DESC;"
             )
         )
+        return response
 
     except Exception as e:
         publish_to_error_log(str(e), "get_experiments")
@@ -575,8 +631,7 @@ def create_experiment():
         )
         return Response(status=200)
 
-    except sqlite3.IntegrityError as e:
-        publish_to_error_log(str(e), "create_experiment")
+    except sqlite3.IntegrityError:
         return Response(status=400)
     except Exception as e:
         publish_to_error_log(str(e), "create_experiment")
@@ -587,11 +642,18 @@ def create_experiment():
 @cache.memoize(expire=30, tag="experiments")
 def get_latest_experiment():
     try:
-        return jsonify(
-            query_db(
-                "SELECT experiment, created_at, description, media_used, organism_used, delta_hours FROM latest_experiment",
-                one=True,
-            )
+        return Response(
+            response=json_encode(
+                query_db(
+                    "SELECT experiment, created_at, description, media_used, organism_used, delta_hours FROM latest_experiment",
+                    one=True,
+                )
+            ),
+            status=200,
+            headers={
+                "Cache-Control": "public,max-age=2"
+            },  # don't make this too high, as it caches description, which changes fast.
+            mimetype="application/json",
         )
 
     except Exception as e:
@@ -609,7 +671,12 @@ def get_current_unit_labels():
 
         keyed_by_unit = {d["unit"]: d["label"] for d in current_unit_labels}
 
-        return jsonify(keyed_by_unit)
+        return Response(
+            response=json_encode(keyed_by_unit),
+            status=200,
+            headers={"Cache-Control": "public,max-age=10"},
+            mimetype="application/json",
+        )
 
     except Exception as e:
         publish_to_error_log(str(e), "get_current_unit_labels")
@@ -723,7 +790,12 @@ def get_config(filename: str):
 
     try:
         specific_config_path = Path(env["DOT_PIOREACTOR"]) / filename
-        return specific_config_path.read_text()
+        return Response(
+            response=specific_config_path.read_text(),
+            status=200,
+            mimetype="text/plain",
+            headers={"Cache-Control": "public,max-age=10"},
+        )
 
     except Exception as e:
         publish_to_error_log(str(e), "get_config_of_file")
@@ -831,6 +903,7 @@ def update_new_config(filename):
 
 
 @app.route("/api/historical_configs/<filename>", methods=["GET"])
+@cache.memoize(expire=60, tag="config")
 def get_historical_config_for(filename: str):
     try:
         configs_for_filename = query_db(
