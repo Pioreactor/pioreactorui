@@ -146,7 +146,19 @@ def growth_rates(experiment: str):
 
     try:
         growth_rates = query_db(
-            "SELECT json_object('series', json_group_array(unit), 'data', json_group_array(json(data))) as result FROM (SELECT pioreactor_unit as unit, json_group_array(json_object('x', timestamp, 'y', round(rate, 5))) as data FROM growth_rates WHERE experiment=? AND ((ROWID * 0.61803398875) - cast(ROWID * 0.61803398875 as int) < 1.0/?) AND timestamp > strftime('%Y-%m-%dT%H:%M:%S', datetime('now',?)) GROUP BY 1);",
+            """
+            SELECT
+                json_object('series', json_group_array(unit), 'data', json_group_array(json(data))) as result
+            FROM (
+                SELECT pioreactor_unit as unit,
+                       json_group_array(json_object('x', timestamp, 'y', round(rate, 5))) as data
+                FROM growth_rates
+                WHERE experiment=? AND
+                      ((ROWID * 0.61803398875) - cast(ROWID * 0.61803398875 as int) < 1.0/?) AND
+                      timestamp > strftime('%Y-%m-%dT%H:%M:%S', datetime('now',?))
+                GROUP BY 1
+                );
+            """,
             (experiment, filter_mod_n, f"-{lookback} hours"),
             one=True,
         )
@@ -168,7 +180,19 @@ def temperature_readings(experiment: str):
 
     try:
         temperature_readings = query_db(
-            "SELECT json_object('series', json_group_array(unit), 'data', json_group_array(json(data))) as result FROM (SELECT pioreactor_unit as unit, json_group_array(json_object('x', timestamp, 'y', round(temperature_c, 2))) as data FROM temperature_readings WHERE experiment=? AND ((ROWID * 0.61803398875) - cast(ROWID * 0.61803398875 as int) < 1.0/?) AND timestamp > strftime('%Y-%m-%dT%H:%M:%S', datetime('now',?)) GROUP BY 1);",
+            """
+            SELECT json_object('series', json_group_array(unit), 'data', json_group_array(json(data))) as result
+            FROM (
+                SELECT
+                    pioreactor_unit as unit,
+                    json_group_array(json_object('x', timestamp, 'y', round(temperature_c, 2))) as data
+                FROM temperature_readings
+                WHERE experiment=? AND
+                    ((ROWID * 0.61803398875) - cast(ROWID * 0.61803398875 as int) < 1.0/?) AND
+                    timestamp > strftime('%Y-%m-%dT%H:%M:%S', datetime('now',?))
+                GROUP BY 1
+                );
+            """,
             (experiment, filter_mod_n, f"-{lookback} hours"),
             one=True,
         )
@@ -190,7 +214,20 @@ def od_readings_filtered(experiment: str):
 
     try:
         filtered_od_readings = query_db(
-            "SELECT json_object('series', json_group_array(unit), 'data', json_group_array(json(data))) as result FROM (SELECT pioreactor_unit as unit, json_group_array(json_object('x', timestamp, 'y', round(normalized_od_reading, 7))) as data FROM od_readings_filtered WHERE experiment=? AND ((ROWID * 0.61803398875) - cast(ROWID * 0.61803398875 as int) < 1.0/?) AND timestamp > strftime('%Y-%m-%dT%H:%M:%S', datetime('now',?)) GROUP BY 1);",
+            """
+            SELECT
+                json_object('series', json_group_array(unit), 'data', json_group_array(json(data))) as result
+            FROM (
+                SELECT
+                    pioreactor_unit as unit,
+                    json_group_array(json_object('x', timestamp, 'y', round(normalized_od_reading, 7))) as data
+                FROM od_readings_filtered
+                WHERE experiment=? AND
+                    ((ROWID * 0.61803398875) - cast(ROWID * 0.61803398875 as int) < 1.0/?) AND
+                    timestamp > strftime('%Y-%m-%dT%H:%M:%S', datetime('now',?))
+                GROUP BY 1
+                );
+            """,
             (experiment, filter_mod_n, f"-{lookback} hours"),
             one=True,
         )
@@ -212,16 +249,17 @@ def od_readings(experiment: str):
 
     try:
         raw_od_readings = query_db(
-            """SELECT
-                    json_object('series', json_group_array(unit), 'data', json_group_array(json(data))) as result
-                FROM (
-                    SELECT pioreactor_unit || '-' || channel as unit, json_group_array(json_object('x', timestamp, 'y', round(od_reading, 7))) as data
-                    FROM od_readings
-                    WHERE experiment=? AND
+            """
+            SELECT
+                json_object('series', json_group_array(unit), 'data', json_group_array(json(data))) as result
+            FROM (
+                SELECT pioreactor_unit || '-' || channel as unit, json_group_array(json_object('x', timestamp, 'y', round(od_reading, 7))) as data
+                FROM od_readings
+                WHERE experiment=? AND
                     ((ROWID * 0.61803398875) - cast(ROWID * 0.61803398875 as int) < 1.0/?) AND
                     timestamp > strftime('%Y-%m-%dT%H:%M:%S', datetime('now', ?))
-                    GROUP BY 1
-                    );
+                GROUP BY 1
+                );
             """,
             (experiment, filter_mod_n, f"-{lookback} hours"),
             one=True,
@@ -239,9 +277,6 @@ def od_readings(experiment: str):
 def fallback_time_series(data_source: str, experiment: str, column: str):
     args = request.args
     lookback = float(args.get("lookback", 4.0))
-    print(
-        f"SELECT json_object('series', json_group_array(unit), 'data', json_group_array(json(data))) as result FROM (SELECT pioreactor_unit as unit, json_group_array(json_object('x', timestamp, 'y', round({column}, 7))) as data FROM {data_source} WHERE experiment={experiment} AND timestamp > strftime('%Y-%m-%dT%H:%M:%S', datetime('now',{lookback})) GROUP BY 1);",
-    )
     try:
         r = query_db(
             f"SELECT json_object('series', json_group_array(unit), 'data', json_group_array(json(data))) as result FROM (SELECT pioreactor_unit as unit, json_group_array(json_object('x', timestamp, 'y', round({column}, 7))) as data FROM {data_source} WHERE experiment=? AND timestamp > strftime('%Y-%m-%dT%H:%M:%S', datetime('now',?)) GROUP BY 1);",
@@ -267,7 +302,19 @@ def recent_media_rates():
 
     try:
         rows = query_db(
-            "SELECT d.pioreactor_unit, SUM(CASE WHEN event='add_media' THEN volume_change_ml ELSE 0 END) / ? AS media_rate, SUM(CASE WHEN event='add_alt_media' THEN volume_change_ml ELSE 0 END) / ? AS alt_media_rate FROM dosing_events AS d JOIN latest_experiment USING (experiment) WHERE datetime(d.timestamp) >= datetime('now', '-? hours') AND event IN ('add_alt_media', 'add_media') AND source_of_event LIKE 'dosing_automation%' GROUP BY d.pioreactor_unit;",
+            """
+            SELECT
+                d.pioreactor_unit,
+                SUM(CASE WHEN event='add_media' THEN volume_change_ml ELSE 0 END) / ? AS media_rate,
+                SUM(CASE WHEN event='add_alt_media' THEN volume_change_ml ELSE 0 END) / ? AS alt_media_rate
+            FROM dosing_events AS d
+            JOIN latest_experiment USING (experiment)
+            WHERE
+                datetime(d.timestamp) >= datetime('now', '-? hours') AND
+                event IN ('add_alt_media', 'add_media') AND
+                source_of_event LIKE 'dosing_automation%'
+            GROUP BY d.pioreactor_unit;
+            """,
             (hours, hours),
         )
 
@@ -584,8 +631,7 @@ def create_experiment():
         )
         return Response(status=200)
 
-    except sqlite3.IntegrityError as e:
-        publish_to_error_log(str(e), "create_experiment")
+    except sqlite3.IntegrityError:
         return Response(status=400)
     except Exception as e:
         publish_to_error_log(str(e), "create_experiment")
