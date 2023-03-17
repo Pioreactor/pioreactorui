@@ -394,10 +394,12 @@ def list_installed_plugins():
 def get_plugin(filename: str):
     """get a specific Python file in the .pioreactor/plugin folder"""
     # security bit: strip out any paths that may be attached, ex: ../../../root/bad
-    filename = Path(filename).name
+    file = Path(filename).name
 
     try:
-        specific_plugin_path = Path(env["DOT_PIOREACTOR"]) / "plugins" / filename
+        assert Path(file).suffix == ".py"
+
+        specific_plugin_path = Path(env["DOT_PIOREACTOR"]) / "plugins" / file
         return Response(
             response=specific_plugin_path.read_text(),
             status=200,
@@ -807,6 +809,9 @@ def get_config(filename: str):
     filename = Path(filename).name
 
     try:
+
+        assert Path(filename).suffix == ".ini"
+
         specific_config_path = Path(env["DOT_PIOREACTOR"]) / filename
         return Response(
             response=specific_config_path.read_text(),
