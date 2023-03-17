@@ -374,6 +374,7 @@ def get_unit_calibrations_of_type(pioreactor_unit: str, calibration_type: str):
 
 
 @app.route("/api/installed_plugins", methods=["GET"])
+@cache.memoize(expire=30, tag="plugins")
 def list_installed_plugins():
 
     result = background_tasks.pio("list-plugins", "--json")
@@ -396,7 +397,7 @@ def get_plugin(filename: str):
     filename = Path(filename).name
 
     try:
-        specific_plugin_path = Path(env["DOT_PIOREACTOR"]) / "plugins_dev" / filename
+        specific_plugin_path = Path(env["DOT_PIOREACTOR"]) / "plugins" / filename
         return Response(
             response=specific_plugin_path.read_text(),
             status=200,
