@@ -374,7 +374,6 @@ def get_unit_calibrations_of_type(pioreactor_unit: str, calibration_type: str):
 
 
 @app.route("/api/installed_plugins", methods=["GET"])
-@cache.memoize(expire=60, tag="plugins")
 def list_installed_plugins():
 
     result = background_tasks.pio("list-plugins", "--json")
@@ -386,9 +385,27 @@ def list_installed_plugins():
     if not status:
         publish_to_error_log(msg, "installed_plugins")
         return jsonify([])
-
     else:
         return msg
+
+
+@app.route("/api/installed_plugins/<filename>", methods=["GET"])
+def get_plugin(filename: str):
+    """get a specific Python file in the .pioreactor/plugin folder"""
+    # security bit: strip out any paths that may be attached, ex: ../../../root/bad
+    filename = Path(filename).name
+
+    try:
+        specific_plugin_path = Path(env["DOT_PIOREACTOR"]) / "plugins_dev" / filename
+        return Response(
+            response=specific_plugin_path.read_text(),
+            status=200,
+            mimetype="text/plain",
+        )
+
+    except Exception as e:
+        publish_to_error_log(str(e), "get_plugin")
+        return Response(status=400)
 
 
 @app.route("/api/install_plugin", methods=["POST"])
