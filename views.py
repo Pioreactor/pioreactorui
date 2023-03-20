@@ -333,7 +333,7 @@ def recent_media_rates():
 
     except Exception as e:
         publish_to_error_log(str(e), "recent_media_rates")
-        return Response(status=400)
+        return Response(status=500)
 
 
 ## CALIBRATIONS
@@ -349,7 +349,7 @@ def get_calibration_types():
 
     except Exception as e:
         publish_to_error_log(str(e), "calibration_types")
-        return Response(status=400)
+        return Response(status=500)
 
     return jsonify(types)
 
@@ -365,7 +365,7 @@ def get_unit_calibrations_of_type(pioreactor_unit: str, calibration_type: str):
 
     except Exception as e:
         publish_to_error_log(str(e), "get_unit_calibrations_of_type")
-        return Response(status=400)
+        return Response(status=500)
 
     return jsonify(unit_calibration)
 
@@ -374,7 +374,7 @@ def get_unit_calibrations_of_type(pioreactor_unit: str, calibration_type: str):
 
 
 @app.route("/api/installed_plugins", methods=["GET"])
-@cache.memoize(expire=60, tag="plugins")
+@cache.memoize(expire=30, tag="plugins")
 def list_installed_plugins():
 
     result = background_tasks.pio("list-plugins", "--json")
@@ -386,9 +386,33 @@ def list_installed_plugins():
     if not status:
         publish_to_error_log(msg, "installed_plugins")
         return jsonify([])
-
     else:
         return msg
+
+
+@app.route("/api/installed_plugins/<filename>", methods=["GET"])
+def get_plugin(filename: str):
+    """get a specific Python file in the .pioreactor/plugin folder"""
+    # security bit: strip out any paths that may be attached, ex: ../../../root/bad
+    file = Path(filename).name
+
+    try:
+        assert Path(file).suffix == ".py"
+
+        specific_plugin_path = Path(env["DOT_PIOREACTOR"]) / "plugins" / file
+        return Response(
+            response=specific_plugin_path.read_text(),
+            status=200,
+            mimetype="text/plain",
+        )
+    except AssertionError:
+        return Response(status=404)
+    except IOError as e:
+        publish_to_log(str(e), "get_plugin")
+        return Response(status=404)
+    except Exception as e:
+        publish_to_error_log(str(e), "get_plugin")
+        return Response(status=500)
 
 
 @app.route("/api/install_plugin", methods=["POST"])
@@ -596,11 +620,7 @@ def export_datasets():
 @cache.memoize(expire=60, tag="experiments")
 def get_experiments():
     try:
-        response = jsonify(
-            query_db(
-                "SELECT experiment, created_at, description FROM experiments ORDER BY created_at DESC;"
-            )
-        )
+        response = jsonify(query_db("SELECT experiment FROM experiments ORDER BY created_at DESC;"))
         return response
 
     except Exception as e:
@@ -632,7 +652,7 @@ def create_experiment():
         return Response(status=200)
 
     except sqlite3.IntegrityError:
-        return Response(status=400)
+        return Response(status=409)
     except Exception as e:
         publish_to_error_log(str(e), "create_experiment")
         return Response(status=500)
@@ -789,6 +809,9 @@ def get_config(filename: str):
     filename = Path(filename).name
 
     try:
+
+        assert Path(filename).suffix == ".ini"
+
         specific_config_path = Path(env["DOT_PIOREACTOR"]) / filename
         return Response(
             response=specific_config_path.read_text(),
@@ -937,7 +960,7 @@ def not_found(e):
     try:
         return app.send_static_file("index.html")
     except Exception:
-        return "Not found! Missing index.html?", 404
+        return Response(status=404)
 
 
 @app.teardown_appcontext
