@@ -960,7 +960,7 @@ def not_found(e):
     try:
         return app.send_static_file("index.html")
     except Exception:
-        return "Not found! Missing index.html?", 404
+        return Response(status=404)
 
 
 @app.teardown_appcontext

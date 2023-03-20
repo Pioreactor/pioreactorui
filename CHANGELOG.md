@@ -1,7 +1,12 @@
+### 23.3.20
+ - New route `/api/installed_plugins/<filename>` for getting back specific Python files in the plugins folder. Later, this will be generalized to getting entry_point plugins, too.
+ - Python files in `plugins/` folder on leader are viewable on the /plugins page in the UI.
+ - Python files in `plugins/` folder on leader are uninstallable (aka deleted) on the /plugins page in the UI.
+ - Better workflow for starting a new experiment
+
 ### 23.3.15
  - Performance improvements
  - Better empty states
-
 
 ### 23.3.8
  - Adding `lookback` parameter to all charts.
