@@ -434,7 +434,9 @@ def create_new_calibrations():
                 body["pioreactor_unit"],
                 body["created_at"],
                 body["type"],
-                json_encode(body),
+                json_encode(
+                    body
+                ).decode(),  # keep it as a string, not bytes, probably equivalent to request.get_data(as_text=True)
                 body["name"],
                 0,
                 None,
