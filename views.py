@@ -442,8 +442,9 @@ def create_new_calibrations():
         )
 
         return Response(status=201)
-    except KeyError:
-        return Response(status=404)
+    except KeyError as e:
+        publish_to_error_log(str(e), "create_new_calibrations")
+        return Response(status=400)
     except Exception as e:
         publish_to_error_log(str(e), "create_new_calibrations")
         return Response(status=500)
