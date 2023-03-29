@@ -381,6 +381,27 @@ def get_current_calibrations_of_type(pioreactor_unit: str, calibration_type: str
         return Response(status=500)
 
 
+@app.route("/api/calibrations/<pioreactor_unit>/<calibration_type>/<name>", methods=["GET"])
+def get_calibrations_of_type(pioreactor_unit: str, calibration_type: str, name: str):
+    """
+    retrieve the calibration for type with name
+    """
+    try:
+        r = query_db(
+            "SELECT * FROM calibrations WHERE type=? AND pioreactor_unit=? AND name=?",
+            (calibration_type, pioreactor_unit, name),
+            one=True,
+        )
+        assert isinstance(r, dict)
+
+        r["data"] = json_decode(r["data"])
+        return jsonify(r)
+
+    except Exception as e:
+        publish_to_error_log(str(e), "get_calibrations_of_type")
+        return Response(status=500)
+
+
 @app.route(
     "/api/calibrations/<pioreactor_unit>/<calibration_type>/<calibration_name>", methods=["PATCH"]
 )
