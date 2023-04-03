@@ -1,3 +1,9 @@
+### 23.4.3
+ - Backend work to complete calibrations utilities:
+  - Edits to the `calibrations` table in the database require a full drop and recreation.
+  - New API endpoints on the webserver to store calibrations, get calibrations, set as current, etc.
+  - add robots.txt that disallows crawlers
+
 ### 23.3.20
  - New route `/api/installed_plugins/<filename>` for getting back specific Python files in the plugins folder. Later, this will be generalized to getting entry_point plugins, too.
  - Python files in `plugins/` folder on leader are viewable on the /plugins page in the UI.

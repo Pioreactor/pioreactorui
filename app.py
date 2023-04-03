@@ -5,6 +5,7 @@ import json
 import logging
 import socket
 import sqlite3
+import typing as t
 from datetime import datetime
 from datetime import timezone
 from logging import handlers
@@ -52,7 +53,7 @@ client.loop_start()
 ## UTILS
 
 
-def msg_to_JSON(msg, task, level):
+def msg_to_JSON(msg: str, task: str, level: str) -> str:
     return json.dumps(
         {
             "message": msg.strip(),
@@ -64,11 +65,11 @@ def msg_to_JSON(msg, task, level):
     )
 
 
-def publish_to_log(msg, task, level="DEBUG"):
+def publish_to_log(msg: str, task: str, level="DEBUG") -> None:
     client.publish(LOG_TOPIC, msg_to_JSON(msg, task, level))
 
 
-def publish_to_error_log(msg, task):
+def publish_to_error_log(msg, task: str) -> None:
     logger.error(msg)
     if isinstance(msg, str):
         publish_to_log(msg, task, "ERROR")
@@ -76,7 +77,7 @@ def publish_to_error_log(msg, task):
         publish_to_log(json.dumps(msg), task, "ERROR")
 
 
-def _make_dicts(cursor, row):
+def _make_dicts(cursor, row) -> dict:
     return dict((cursor.description[idx][0], value) for idx, value in enumerate(row))
 
 
@@ -89,18 +90,20 @@ def _get_db_connection():
     return db
 
 
-def query_db(query, args=(), one=False):
+def query_db(
+    query: str, args=(), one: bool = False
+) -> t.Optional[list[dict[str, t.Any]] | dict[str, t.Any]]:
     cur = _get_db_connection().execute(query, args)
     rv = cur.fetchall()
     cur.close()
     return (rv[0] if rv else None) if one else rv
 
 
-def insert_into_db(insert_smt, args=()):
+def modify_db(statement: str, args=()) -> None:
     con = _get_db_connection()
     cur = con.cursor()
     try:
-        cur.execute(insert_smt, args)
+        cur.execute(statement, args)
         con.commit()
     except Exception as e:
         con.rollback()  # TODO: test

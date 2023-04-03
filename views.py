@@ -15,6 +15,7 @@ from flask import request
 from flask import Response
 from huey.exceptions import HueyException
 from msgspec import ValidationError
+from msgspec.json import decode as json_decode
 from msgspec.json import encode as json_encode
 from msgspec.yaml import decode as yaml_decode
 
@@ -22,7 +23,7 @@ import structs
 import tasks as background_tasks
 from app import app
 from app import client
-from app import insert_into_db
+from app import modify_db
 from app import publish_to_error_log
 from app import publish_to_log
 from app import query_db
@@ -52,7 +53,7 @@ def current_utc_timestamp() -> str:
 def stop_all():
     """Kills all jobs"""
     background_tasks.pios("kill", "--all-jobs", "-y")
-    return Response(status=204)
+    return Response(status=202)
 
 
 @app.route("/api/stop/<job>/<unit>", methods=["POST"])
@@ -78,7 +79,7 @@ def stop_job_on_unit(job: str, unit: str):
     else:
         background_tasks.pios("kill", job, "-y", "--units", unit)
 
-    return Response(status=204)
+    return Response(status=202)
 
 
 @app.route("/api/run/<job>/<unit>", methods=["POST"])
@@ -87,14 +88,14 @@ def run_job_on_unit(job: str, unit: str):
 
     client.publish(f"pioreactor/{unit}/$experiment/run/{job}", request.get_data() or r"{}", qos=2)
 
-    return Response(status=204)
+    return Response(status=202)
 
 
 @app.route("/api/reboot/<unit>", methods=["POST"])
 def reboot_unit(unit: str):
     """Reboots unit"""
     background_tasks.pios("reboot", "-y", "--units", unit)
-    return Response(status=204)
+    return Response(status=202)
 
 
 ## DATA FOR CARDS ON OVERVIEW
@@ -162,6 +163,7 @@ def growth_rates(experiment: str):
             (experiment, filter_mod_n, f"-{lookback} hours"),
             one=True,
         )
+        assert isinstance(growth_rates, dict)
 
     except Exception as e:
         publish_to_error_log(str(e), "growth_rates")
@@ -196,6 +198,7 @@ def temperature_readings(experiment: str):
             (experiment, filter_mod_n, f"-{lookback} hours"),
             one=True,
         )
+        assert isinstance(temperature_readings, dict)
 
     except Exception as e:
         publish_to_error_log(str(e), "temperature_readings")
@@ -231,6 +234,7 @@ def od_readings_filtered(experiment: str):
             (experiment, filter_mod_n, f"-{lookback} hours"),
             one=True,
         )
+        assert isinstance(filtered_od_readings, dict)
 
     except Exception as e:
         publish_to_error_log(str(e), "od_readings_filtered")
@@ -264,6 +268,7 @@ def od_readings(experiment: str):
             (experiment, filter_mod_n, f"-{lookback} hours"),
             one=True,
         )
+        assert isinstance(raw_od_readings, dict)
 
     except Exception as e:
         publish_to_error_log(str(e), "od_readings")
@@ -283,6 +288,7 @@ def fallback_time_series(data_source: str, experiment: str, column: str):
             (experiment, f"-{lookback} hours"),
             one=True,
         )
+        assert isinstance(r, dict)
 
     except Exception as e:
         publish_to_error_log(str(e), "fallback_time_series")
@@ -339,24 +345,33 @@ def recent_media_rates():
 ## CALIBRATIONS
 
 
-@app.route("/api/calibration_types", methods=["GET"])
-def get_calibration_types():
-
+@app.route("/api/calibrations/<pioreactor_unit>", methods=["GET"])
+def available_calibrations_type_by_unit(pioreactor_unit: str):
+    """
+    {
+        "types": [
+            "temperature",
+            "pH",
+            "dissolved_oxygen",
+            "conductivity"
+        ]
+    }
+    """
     try:
         types = query_db(
-            "SELECT DISTINCT type FROM calibrations",
+            "SELECT DISTINCT type FROM calibrations WHERE pioreactor_unit=?",
+            (pioreactor_unit),
         )
 
     except Exception as e:
-        publish_to_error_log(str(e), "calibration_types")
+        publish_to_error_log(str(e), "available_calibrations_type_by_unit")
         return Response(status=500)
 
     return jsonify(types)
 
 
 @app.route("/api/calibrations/<pioreactor_unit>/<calibration_type>", methods=["GET"])
-def get_unit_calibrations_of_type(pioreactor_unit: str, calibration_type: str):
-
+def available_calibrations_of_type(pioreactor_unit: str, calibration_type: str):
     try:
         unit_calibration = query_db(
             "SELECT * FROM calibrations WHERE type=? AND pioreactor_unit=?",
@@ -364,10 +379,125 @@ def get_unit_calibrations_of_type(pioreactor_unit: str, calibration_type: str):
         )
 
     except Exception as e:
-        publish_to_error_log(str(e), "get_unit_calibrations_of_type")
+        publish_to_error_log(str(e), "available_calibrations_of_type")
         return Response(status=500)
 
     return jsonify(unit_calibration)
+
+
+@app.route("/api/calibrations/<pioreactor_unit>/<calibration_type>/current", methods=["GET"])
+def get_current_calibrations_of_type(pioreactor_unit: str, calibration_type: str):
+    """
+    retrieve the current calibration for type
+    """
+    try:
+        r = query_db(
+            "SELECT * FROM calibrations WHERE type=? AND pioreactor_unit=? AND is_current=1",
+            (calibration_type, pioreactor_unit),
+            one=True,
+        )
+        assert isinstance(r, dict)
+
+        r["data"] = json_decode(r["data"])
+        return jsonify(r)
+
+    except Exception as e:
+        publish_to_error_log(str(e), "get_current_calibrations_of_type")
+        return Response(status=500)
+
+
+@app.route(
+    "/api/calibrations/<pioreactor_unit>/<calibration_type>/<calibration_name>", methods=["GET"]
+)
+def get_calibrations_of_type(pioreactor_unit: str, calibration_type: str, calibration_name: str):
+    """
+    retrieve the calibration for type with name
+    """
+    try:
+        r = query_db(
+            "SELECT * FROM calibrations WHERE type=? AND pioreactor_unit=? AND name=?",
+            (calibration_type, pioreactor_unit, calibration_name),
+            one=True,
+        )
+        assert isinstance(r, dict)
+
+        r["data"] = json_decode(r["data"])
+        return jsonify(r)
+
+    except Exception as e:
+        publish_to_error_log(str(e), "get_calibrations_of_type")
+        return Response(status=500)
+
+
+@app.route(
+    "/api/calibrations/<pioreactor_unit>/<calibration_type>/<calibration_name>", methods=["PATCH"]
+)
+def patch_calibrations(pioreactor_unit: str, calibration_type: str, calibration_name: str):
+
+    body = request.get_json()
+
+    if "current" in body and body["current"] == 1:
+        try:
+            # does the new one exist in the database?
+            existing_row = query_db(
+                "SELECT * FROM calibrations WHERE pioreactor_unit=(?) AND type=(?) AND name=(?)",
+                (pioreactor_unit, calibration_type, calibration_name),
+                one=True,
+            )
+            assert isinstance(existing_row, dict)
+
+            if existing_row is None:
+                return Response(status=404)
+            elif existing_row["is_current"] == 1:
+                # already current
+                return Response(status=200)
+
+            modify_db(
+                "UPDATE calibrations SET is_current=0, set_to_current_at=NULL WHERE pioreactor_unit=(?) AND type=(?) AND is_current=1",
+                (pioreactor_unit, calibration_type),
+            )
+
+            modify_db(
+                "UPDATE calibrations SET is_current=1, set_to_current_at=CURRENT_TIMESTAMP WHERE pioreactor_unit=(?) AND type=(?) AND name=(?)",
+                (pioreactor_unit, calibration_type, calibration_name),
+            )
+            return Response(status=200)
+
+        except Exception as e:
+            publish_to_error_log(str(e), "patch_calibrations")
+            return Response(status=500)
+
+    else:
+        return Response(status=404)
+
+
+@app.route("/api/calibrations", methods=["PUT"])
+def create_new_calibrations():
+    try:
+        body = request.get_json()
+
+        modify_db(
+            "INSERT OR REPLACE INTO calibrations (pioreactor_unit, created_at, type, data, name, is_current, set_to_current_at) values (?, ?, ?, ?, ?, ?, ?)",
+            (
+                body["pioreactor_unit"],
+                body["created_at"],
+                body["type"],
+                json_encode(
+                    body
+                ).decode(),  # keep it as a string, not bytes, probably equivalent to request.get_data(as_text=True)
+                body["name"],
+                0,
+                None,
+            ),
+        )
+
+        return Response(status=201)
+    except KeyError as e:
+        publish_to_error_log(str(e), "create_new_calibrations")
+        return Response(status=400)
+    except Exception as e:
+        publish_to_error_log(str(e), "create_new_calibrations")
+        return Response(status=500)
 
 
 ## PLUGINS
@@ -419,14 +549,14 @@ def get_plugin(filename: str):
 def install_plugin():
     body = request.get_json()
     background_tasks.pios_install_plugin(body["plugin_name"])
-    return Response(status=204)
+    return Response(status=202)
 
 
 @app.route("/api/uninstall_plugin", methods=["POST"])
 def uninstall_plugin():
     body = request.get_json()
     background_tasks.pios_uninstall_plugin(body["plugin_name"])
-    return Response(status=204)
+    return Response(status=202)
 
 
 ## MISC
@@ -537,7 +667,7 @@ def get_charts_contrib():
 @app.route("/api/update_app", methods=["POST"])
 def update_app():
     background_tasks.update_app()
-    return Response(status=200)
+    return Response(status=202)
 
 
 @app.route("/api/app_version", methods=["GET"])
@@ -636,7 +766,7 @@ def create_experiment():
     body = request.get_json()
 
     try:
-        insert_into_db(
+        modify_db(
             "INSERT INTO experiments (created_at, experiment, description, media_used, organism_used) VALUES (?,?,?,?,?)",
             (
                 current_utc_timestamp(),
@@ -649,7 +779,7 @@ def create_experiment():
         publish_to_log(
             f"New experiment created: {body['experiment']}", "create_experiment", level="INFO"
         )
-        return Response(status=200)
+        return Response(status=201)
 
     except sqlite3.IntegrityError:
         return Response(status=409)
@@ -717,7 +847,7 @@ def upsert_current_unit_labels():
     latest_experiment = latest_experiment_dict["experiment"]
 
     try:
-        insert_into_db(
+        modify_db(
             "INSERT OR REPLACE INTO pioreactor_unit_labels (label, experiment, pioreactor_unit, created_at) VALUES ((?), (?), (?), strftime('%Y-%m-%dT%H:%M:%S', datetime('now')) ) ON CONFLICT(experiment, pioreactor_unit) DO UPDATE SET label=excluded.label, created_at=strftime('%Y-%m-%dT%H:%M:%S', datetime('now'))",
             (label, latest_experiment, unit),
         )
@@ -728,7 +858,7 @@ def upsert_current_unit_labels():
 
     # client.publish(f"pioreactor/{unit}/{latest_experiment}/unit_label", label, retain=True)
 
-    return Response(status=204)
+    return Response(status=201)
 
 
 @app.route("/api/historical_organisms", methods=["GET"])
@@ -759,17 +889,20 @@ def get_historical_media_used():
     return jsonify(historical_media)
 
 
-@app.route("/api/experiment_desc", methods=["PUT"])
-def update_experiment_description():
+@app.route("/api/experiments/<experiment>", methods=["PATCH"])
+def update_experiment_description(experiment):
     cache.evict("experiments")
 
     body = request.get_json()
     try:
-        insert_into_db(
-            "UPDATE experiments SET description = (?) WHERE experiment=(?)",
-            (body["description"], body["experiment"]),
-        )
-        return Response(status=204)
+
+        if "description" in body:
+            modify_db(
+                "UPDATE experiments SET description = (?) WHERE experiment=(?)",
+                (body["description"], experiment),
+            )
+
+        return Response(status=200)
 
     except Exception as e:
         publish_to_error_log(str(e), "update_experiment_description")
@@ -791,7 +924,7 @@ def add_new_pioreactor():
         status, msg = False, "Timed out, see logs."
 
     if status:
-        return Response(status=204)
+        return Response(status=202)
     else:
         publish_to_error_log(msg, "add_new_pioreactor")
         return {"msg": msg}, 500
@@ -846,10 +979,10 @@ def delete_config(filename):
 
     background_tasks.rm(config_path)
     publish_to_log(f"Deleted config {filename}.", "delete_config")
-    return Response(status=204)
+    return Response(status=202)
 
 
-@app.route("/api/configs/<filename>", methods=["PUT"])
+@app.route("/api/configs/<filename>", methods=["PATCH"])
 def update_new_config(filename):
     """if the config file is unit specific, we only need to run sync-config on that unit."""
     cache.evict("config")
@@ -922,7 +1055,7 @@ def update_new_config(filename):
         publish_to_error_log(msg_or_exception, "save_new_config")
         return {"msg": str(msg_or_exception)}, 500
 
-    return Response(status=204)
+    return Response(status=202)
 
 
 @app.route("/api/historical_configs/<filename>", methods=["GET"])
