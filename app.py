@@ -65,7 +65,7 @@ def msg_to_JSON(msg: str, task: str, level: str) -> str:
     )
 
 
-def publish_to_log(msg, task: str, level="DEBUG"):
+def publish_to_log(msg: str, task: str, level="DEBUG") -> None:
     client.publish(LOG_TOPIC, msg_to_JSON(msg, task, level))
 
 
@@ -90,14 +90,16 @@ def _get_db_connection():
     return db
 
 
-def query_db(query, args=(), one=False) -> t.Optional[list[dict[str, t.Any]] | dict[str, t.Any]]:
+def query_db(
+    query: str, args=(), one: bool = False
+) -> t.Optional[list[dict[str, t.Any]] | dict[str, t.Any]]:
     cur = _get_db_connection().execute(query, args)
     rv = cur.fetchall()
     cur.close()
     return (rv[0] if rv else None) if one else rv
 
 
-def modify_db(statement, args=()) -> None:
+def modify_db(statement: str, args=()) -> None:
     con = _get_db_connection()
     cur = con.cursor()
     try:

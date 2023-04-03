@@ -345,6 +345,31 @@ def recent_media_rates():
 ## CALIBRATIONS
 
 
+@app.route("/api/calibrations/<pioreactor_unit>", methods=["GET"])
+def available_calibrations_type_by_unit(pioreactor_unit: str):
+    """
+    {
+        "types": [
+            "temperature",
+            "pH",
+            "dissolved_oxygen",
+            "conductivity"
+        ]
+    }
+    """
+    try:
+        types = query_db(
+            "SELECT type FROM calibrations WHERE pioreactor_unit=?",
+            (pioreactor_unit),
+        )
+
+    except Exception as e:
+        publish_to_error_log(str(e), "available_calibrations_type_by_unit")
+        return Response(status=500)
+
+    return jsonify(types)
+
+
 @app.route("/api/calibrations/<pioreactor_unit>/<calibration_type>", methods=["GET"])
 def available_calibrations_of_type(pioreactor_unit: str, calibration_type: str):
     try:
@@ -381,15 +406,17 @@ def get_current_calibrations_of_type(pioreactor_unit: str, calibration_type: str
         return Response(status=500)
 
 
-@app.route("/api/calibrations/<pioreactor_unit>/<calibration_type>/<name>", methods=["GET"])
-def get_calibrations_of_type(pioreactor_unit: str, calibration_type: str, name: str):
+@app.route(
+    "/api/calibrations/<pioreactor_unit>/<calibration_type>/<calibration_name>", methods=["GET"]
+)
+def get_calibrations_of_type(pioreactor_unit: str, calibration_type: str, calibration_name: str):
     """
     retrieve the calibration for type with name
     """
     try:
         r = query_db(
             "SELECT * FROM calibrations WHERE type=? AND pioreactor_unit=? AND name=?",
-            (calibration_type, pioreactor_unit, name),
+            (calibration_type, pioreactor_unit, calibration_name),
             one=True,
         )
         assert isinstance(r, dict)
