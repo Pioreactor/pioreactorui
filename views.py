@@ -359,7 +359,7 @@ def available_calibrations_type_by_unit(pioreactor_unit: str):
     """
     try:
         types = query_db(
-            "SELECT type FROM calibrations WHERE pioreactor_unit=?",
+            "SELECT DISTINCT type FROM calibrations WHERE pioreactor_unit=?",
             (pioreactor_unit),
         )
 
