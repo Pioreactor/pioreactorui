@@ -56,8 +56,8 @@ def stop_all():
     return Response(status=202)
 
 
-@app.route("/api/stop/<job>/<unit>", methods=["POST"])
-def stop_job_on_unit(job: str, unit: str):
+@app.route("/api/stop/<unit>/<job>", methods=["POST"])
+def stop_job_on_unit(unit: str, job: str):
     """Kills specified job on unit"""
 
     jobs_to_kill_over_MQTT = {
@@ -82,11 +82,28 @@ def stop_job_on_unit(job: str, unit: str):
     return Response(status=202)
 
 
-@app.route("/api/run/<job>/<unit>", methods=["POST"])
-def run_job_on_unit(job: str, unit: str):
-    """Runs specified job on unit"""
+@app.route("/api/run/<unit>/<job>", methods=["POST"])
+def run_job_on_unit(unit: str, job: str):
+    """
+    Runs specified job on unit.
 
-    client.publish(f"pioreactor/{unit}/$experiment/run/{job}", request.get_data() or r"{}", qos=2)
+    The body is passed to the CLI, and should look like:
+
+    {
+      "options": {
+        "option1": "value1",
+        "option2": "value2"
+      },
+      "args": ["arg1", "arg2"]
+    }
+
+    """
+
+    client.publish(
+        f"pioreactor/{unit}/$experiment/run/{job}",
+        request.get_data() or r'{"options": {}, "args": []}',
+        qos=2,
+    )
 
     return Response(status=202)
 
@@ -101,8 +118,8 @@ def reboot_unit(unit: str):
 ## DATA FOR CARDS ON OVERVIEW
 
 
-@app.route("/api/recent_logs", methods=["GET"])
-def recent_logs():
+@app.route("/api/logs/recent", methods=["GET"])
+def get_recent_logs():
     """Shows event logs from all units"""
     args = request.args
     if "min_level" in args:
@@ -131,7 +148,46 @@ def recent_logs():
             ("$experiment",),
         )
     except Exception as e:
-        publish_to_error_log(str(e), "recent_logs")
+        publish_to_error_log(str(e), "get_recent_logs")
+        return Response(status=500)
+
+    return jsonify(recent_logs)
+
+
+@app.route("/api/logs/<experiment>", methods=["GET"])
+def get_logs(experiment):
+    """Shows event logs from all units"""
+    args = request.args
+    if "min_level" in args:
+        min_level = args["min_level"]
+    else:
+        min_level = "INFO"
+
+    if min_level == "DEBUG":
+        level_string = '(level == "ERROR" or level == "WARNING" or level == "NOTICE" or level == "INFO" or level == "DEBUG")'
+    elif min_level == "INFO":
+        level_string = (
+            '(level == "ERROR" or level == "NOTICE" or level == "INFO" or level == "WARNING")'
+        )
+    elif min_level == "WARNING":
+        level_string = '(level == "ERROR" or level == "WARNING")'
+    elif min_level == "ERROR":
+        level_string = '(level == "ERROR")'
+    else:
+        level_string = (
+            '(level == "ERROR" or level == "NOTICE" or level == "INFO" or level == "WARNING")'
+        )
+
+    try:
+        recent_logs = query_db(
+            f"SELECT l.timestamp, level=='ERROR'as is_error, level=='WARNING' as is_warning, level=='NOTICE' as is_notice, l.pioreactor_unit, message, task FROM logs AS l WHERE (le.experiment=? OR l.experiment=?) AND {level_string} AND l.timestamp >= MAX(strftime('%Y-%m-%dT%H:%M:%S', datetime('now', '-24 hours')), le.created_at) ORDER BY l.timestamp DESC LIMIT 50;",
+            (
+                experiment,
+                "$experiment",
+            ),
+        )
+    except Exception as e:
+        publish_to_error_log(str(e), "get_logs")
         return Response(status=500)
 
     return jsonify(recent_logs)
@@ -139,7 +195,7 @@ def recent_logs():
 
 @app.route("/api/time_series/growth_rates/<experiment>", methods=["GET"])
 @cache.memoize(expire=10)
-def growth_rates(experiment: str):
+def get_growth_rates(experiment: str):
     """Gets growth rates for all units"""
     args = request.args
     filter_mod_n = float(args.get("filter_mod_N", 100.0))
@@ -166,7 +222,7 @@ def growth_rates(experiment: str):
         assert isinstance(growth_rates, dict)
 
     except Exception as e:
-        publish_to_error_log(str(e), "growth_rates")
+        publish_to_error_log(str(e), "get_growth_rates")
         return Response(status=400)
 
     return growth_rates["result"]
@@ -174,7 +230,7 @@ def growth_rates(experiment: str):
 
 @app.route("/api/time_series/temperature_readings/<experiment>", methods=["GET"])
 @cache.memoize(expire=10)
-def temperature_readings(experiment: str):
+def get_temperature_readings(experiment: str):
     """Gets temperature readings for all units"""
     args = request.args
     filter_mod_n = float(args.get("filter_mod_N", 100.0))
@@ -201,7 +257,7 @@ def temperature_readings(experiment: str):
         assert isinstance(temperature_readings, dict)
 
     except Exception as e:
-        publish_to_error_log(str(e), "temperature_readings")
+        publish_to_error_log(str(e), "get_temperature_readings")
         return Response(status=400)
 
     return temperature_readings["result"]
@@ -209,7 +265,7 @@ def temperature_readings(experiment: str):
 
 @app.route("/api/time_series/od_readings_filtered/<experiment>", methods=["GET"])
 @cache.memoize(expire=10)
-def od_readings_filtered(experiment: str):
+def get_od_readings_filtered(experiment: str):
     """Gets normalized od for all units"""
     args = request.args
     filter_mod_n = float(args.get("filter_mod_N", 100.0))
@@ -237,7 +293,7 @@ def od_readings_filtered(experiment: str):
         assert isinstance(filtered_od_readings, dict)
 
     except Exception as e:
-        publish_to_error_log(str(e), "od_readings_filtered")
+        publish_to_error_log(str(e), "get_od_readings_filtered")
         return Response(status=400)
 
     return filtered_od_readings["result"]
@@ -245,7 +301,7 @@ def od_readings_filtered(experiment: str):
 
 @app.route("/api/time_series/od_readings/<experiment>", methods=["GET"])
 @cache.memoize(expire=10)
-def od_readings(experiment: str):
+def get_od_readings(experiment: str):
     """Gets raw od for all units"""
     args = request.args
     filter_mod_n = float(args.get("filter_mod_N", 100.0))
@@ -271,7 +327,7 @@ def od_readings(experiment: str):
         assert isinstance(raw_od_readings, dict)
 
     except Exception as e:
-        publish_to_error_log(str(e), "od_readings")
+        publish_to_error_log(str(e), "get_od_readings")
         return Response(status=400)
 
     return raw_od_readings["result"]
@@ -279,7 +335,7 @@ def od_readings(experiment: str):
 
 @app.route("/api/time_series/<data_source>/<experiment>/<column>", methods=["GET"])
 @cache.memoize(expire=30)
-def fallback_time_series(data_source: str, experiment: str, column: str):
+def get_fallback_time_series(data_source: str, experiment: str, column: str):
     args = request.args
     lookback = float(args.get("lookback", 4.0))
     try:
@@ -291,14 +347,14 @@ def fallback_time_series(data_source: str, experiment: str, column: str):
         assert isinstance(r, dict)
 
     except Exception as e:
-        publish_to_error_log(str(e), "fallback_time_series")
+        publish_to_error_log(str(e), "get_fallback_time_series")
         return Response(status=400)
     return r["result"]
 
 
-@app.route("/api/recent_media_rates", methods=["GET"])
+@app.route("/api/media_rates/current", methods=["GET"])
 @cache.memoize(expire=30)
-def recent_media_rates():
+def get_current_media_rates():
     """
     Shows amount of added media per unit. Note that it only consider values from a dosing automation (i.e. not manual dosing, which includes continously dose)
 
@@ -338,7 +394,7 @@ def recent_media_rates():
         return jsonify(json_result)
 
     except Exception as e:
-        publish_to_error_log(str(e), "recent_media_rates")
+        publish_to_error_log(str(e), "get_current_media_rates")
         return Response(status=500)
 
 
@@ -346,7 +402,7 @@ def recent_media_rates():
 
 
 @app.route("/api/calibrations/<pioreactor_unit>", methods=["GET"])
-def available_calibrations_type_by_unit(pioreactor_unit: str):
+def get_available_calibrations_type_by_unit(pioreactor_unit: str):
     """
     {
         "types": [
@@ -364,14 +420,14 @@ def available_calibrations_type_by_unit(pioreactor_unit: str):
         )
 
     except Exception as e:
-        publish_to_error_log(str(e), "available_calibrations_type_by_unit")
+        publish_to_error_log(str(e), "get_available_calibrations_type_by_unit")
         return Response(status=500)
 
     return jsonify(types)
 
 
 @app.route("/api/calibrations/<pioreactor_unit>/<calibration_type>", methods=["GET"])
-def available_calibrations_of_type(pioreactor_unit: str, calibration_type: str):
+def get_available_calibrations_of_type(pioreactor_unit: str, calibration_type: str):
     try:
         unit_calibration = query_db(
             "SELECT * FROM calibrations WHERE type=? AND pioreactor_unit=?",
@@ -379,7 +435,7 @@ def available_calibrations_of_type(pioreactor_unit: str, calibration_type: str):
         )
 
     except Exception as e:
-        publish_to_error_log(str(e), "available_calibrations_of_type")
+        publish_to_error_log(str(e), "get_available_calibrations_of_type")
         return Response(status=500)
 
     return jsonify(unit_calibration)
@@ -444,11 +500,14 @@ def patch_calibrations(pioreactor_unit: str, calibration_type: str, calibration_
                 (pioreactor_unit, calibration_type, calibration_name),
                 one=True,
             )
-            assert isinstance(existing_row, dict)
-
             if existing_row is None:
+                publish_to_error_log(
+                    f"calibration {calibration_name=}, {pioreactor_unit=}, {calibration_type=} doesn't exist in database.",
+                    "patch_calibrations",
+                )
                 return Response(status=404)
-            elif existing_row["is_current"] == 1:
+
+            elif existing_row["is_current"] == 1:  # type: ignore
                 # already current
                 return Response(status=200)
 
@@ -505,7 +564,7 @@ def create_new_calibrations():
 
 @app.route("/api/installed_plugins", methods=["GET"])
 @cache.memoize(expire=30, tag="plugins")
-def list_installed_plugins():
+def get_installed_plugins():
 
     result = background_tasks.pio("list-plugins", "--json")
     try:
@@ -527,7 +586,8 @@ def get_plugin(filename: str):
     file = Path(filename).name
 
     try:
-        assert Path(file).suffix == ".py"
+        if Path(file).suffix != ".py":
+            raise IOError("must provide a .py file")
 
         specific_plugin_path = Path(env["DOT_PIOREACTOR"]) / "plugins" / file
         return Response(
@@ -535,8 +595,6 @@ def get_plugin(filename: str):
             status=200,
             mimetype="text/plain",
         )
-    except AssertionError:
-        return Response(status=404)
     except IOError as e:
         publish_to_log(str(e), "get_plugin")
         return Response(status=404)
@@ -750,7 +808,11 @@ def export_datasets():
 @cache.memoize(expire=60, tag="experiments")
 def get_experiments():
     try:
-        response = jsonify(query_db("SELECT experiment FROM experiments ORDER BY created_at DESC;"))
+        response = jsonify(
+            query_db(
+                "SELECT experiment, created_at, description FROM experiments ORDER BY created_at DESC;"
+            )
+        )
         return response
 
     except Exception as e:
@@ -764,6 +826,18 @@ def create_experiment():
     cache.evict("unit_labels")
 
     body = request.get_json()
+    proposed_experiment_name = body["experiment"]
+
+    if not proposed_experiment_name:
+        return Response(status=404)
+    elif proposed_experiment_name.lower() == "current":  # too much API rework
+        return Response(status=404)
+    elif (
+        ("#" in proposed_experiment_name)
+        or ("+" in proposed_experiment_name)
+        or ("/" in proposed_experiment_name)
+    ):
+        return Response(status=404)
 
     try:
         modify_db(
@@ -811,15 +885,23 @@ def get_latest_experiment():
         return Response(status=500)
 
 
-@app.route("/api/current_unit_labels", methods=["GET"])
+@app.route("/api/unit_labels/<experiment>", methods=["GET"])
 @cache.memoize(expire=30, tag="unit_labels")
-def get_current_unit_labels():
-    try:
-        current_unit_labels = query_db(
-            "SELECT r.pioreactor_unit as unit, r.label FROM pioreactor_unit_labels AS r JOIN latest_experiment USING (experiment);"
-        )
+def get_current_unit_labels(experiment):
 
-        keyed_by_unit = {d["unit"]: d["label"] for d in current_unit_labels}
+    try:
+
+        if experiment == "current":
+            unit_labels = query_db(
+                "SELECT r.pioreactor_unit as unit, r.label FROM pioreactor_unit_labels AS r JOIN latest_experiment USING (experiment);"
+            )
+        else:
+            unit_labels = query_db(
+                "SELECT r.pioreactor_unit as unit, r.label FROM pioreactor_unit_labels as r WHERE experiment=?;",
+                (experiment,),
+            )
+
+        keyed_by_unit = {d["unit"]: d["label"] for d in unit_labels}
 
         return Response(
             response=json_encode(keyed_by_unit),
@@ -833,7 +915,7 @@ def get_current_unit_labels():
         return Response(status=500)
 
 
-@app.route("/api/current_unit_labels", methods=["PUT"])
+@app.route("/api/unit_labels/current", methods=["PUT"])
 def upsert_current_unit_labels():
     cache.evict("unit_labels")
 
