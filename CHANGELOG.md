@@ -1,8 +1,13 @@
+### 23.14.4
+ - Added new "Past Experiments" page
+ - Query params can be added to `/export-data` that will populate the datasets and experiment to export
+ - New API routes for some endpoints: `/api/stop`, `/api/run`, `/api/unit_labels/`. See docs: https://docs.pioreactor.com/developer-guide/web-ui-api
+
 ### 23.4.3
  - Backend work to complete calibrations utilities:
-  - Edits to the `calibrations` table in the database require a full drop and recreation.
-  - New API endpoints on the webserver to store calibrations, get calibrations, set as current, etc.
-  - add robots.txt that disallows crawlers
+   - Edits to the `calibrations` table in the database require a full drop and recreation.
+   - New API endpoints on the webserver to store calibrations, get calibrations, set as current, etc.
+   - add robots.txt that disallows crawlers
 
 ### 23.3.20
  - New route `/api/installed_plugins/<filename>` for getting back specific Python files in the plugins folder. Later, this will be generalized to getting entry_point plugins, too.
