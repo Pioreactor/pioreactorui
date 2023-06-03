@@ -621,7 +621,7 @@ def uninstall_plugin():
 
 
 @app.route("/api/contrib/automations/<automation_type>", methods=["GET"])
-@cache.memoize(expire=30, tag="plugins")
+@cache.memoize(expire=20, tag="plugins")
 def get_automation_contrib(automation_type: str):
 
     # security to prevent possibly reading arbitrary file
@@ -657,7 +657,7 @@ def get_automation_contrib(automation_type: str):
             response=json_encode(parsed_yaml),
             status=200,
             mimetype="application/json",
-            headers={"Cache-Control": "public,max-age=10"},
+            headers={"Cache-Control": "public,max-age=6"},
         )
     except Exception as e:
         publish_to_error_log(str(e), "get_automation_contrib")
@@ -665,7 +665,7 @@ def get_automation_contrib(automation_type: str):
 
 
 @app.route("/api/contrib/jobs", methods=["GET"])
-@cache.memoize(expire=30, tag="plugins")
+@cache.memoize(expire=20, tag="plugins")
 def get_job_contrib():
 
     try:
@@ -688,7 +688,7 @@ def get_job_contrib():
             response=json_encode(parsed_yaml),
             status=200,
             mimetype="application/json",
-            headers={"Cache-Control": "public,max-age=10"},
+            headers={"Cache-Control": "public,max-age=6"},
         )
     except Exception as e:
         publish_to_error_log(str(e), "get_job_contrib")
@@ -696,7 +696,7 @@ def get_job_contrib():
 
 
 @app.route("/api/contrib/charts", methods=["GET"])
-@cache.memoize(expire=30, tag="plugins")
+@cache.memoize(expire=20, tag="plugins")
 def get_charts_contrib():
     try:
         chart_path_default = Path(env["WWW"]) / "contrib" / "charts"
@@ -715,7 +715,7 @@ def get_charts_contrib():
             response=json_encode(parsed_yaml),
             status=200,
             mimetype="application/json",
-            headers={"Cache-Control": "public,max-age=10"},
+            headers={"Cache-Control": "public,max-age=6"},
         )
     except Exception as e:
         publish_to_error_log(str(e), "get_charts_contrib")
@@ -744,7 +744,7 @@ def get_app_version():
         response=result.stdout.strip(),
         status=200,
         mimetype="text/plain",
-        headers={"Cache-Control": "public,max-age=10"},
+        headers={"Cache-Control": "public,max-age=6"},
     )
 
 
@@ -906,7 +906,7 @@ def get_current_unit_labels(experiment):
         return Response(
             response=json_encode(keyed_by_unit),
             status=200,
-            headers={"Cache-Control": "public,max-age=10"},
+            headers={"Cache-Control": "public,max-age=6"},
             mimetype="application/json",
         )
 
@@ -917,6 +917,35 @@ def get_current_unit_labels(experiment):
 
 @app.route("/api/unit_labels/current", methods=["PUT"])
 def upsert_current_unit_labels():
+    """
+    Update or insert a new unit label for the current experiment.
+
+    This API endpoint accepts a PUT request with a JSON body containing a "unit" and a "label".
+    The "unit" is the identifier for the pioreactor and the "label" is the desired label for that unit.
+    If the unit label for the current experiment already exists, it will be updated; otherwise, a new entry will be created.
+
+    The response will be a status code of 201 if the operation is successful, and 400 if there was an error.
+
+
+    JSON Request Body:
+    {
+        "unit": "<unit_identifier>",
+        "label": "<new_label>"
+    }
+
+    Example usage:
+    PUT /api/unit_labels/current
+    {
+        "unit": "unit1",
+        "label": "new_label"
+    }
+
+    Returns:
+    HTTP Response with status code 201 if successful, 400 if there was an error.
+
+    Raises:
+    Exception: Any error encountered during the database operation is published to the error log.
+    """
     cache.evict("unit_labels")
 
     body = request.get_json()
@@ -937,8 +966,6 @@ def upsert_current_unit_labels():
     except Exception as e:
         publish_to_error_log(str(e), "upsert_current_unit_labels")
         return Response(status=400)
-
-    # client.publish(f"pioreactor/{unit}/{latest_experiment}/unit_label", label, retain=True)
 
     return Response(status=201)
 
@@ -1032,7 +1059,7 @@ def get_config(filename: str):
             response=specific_config_path.read_text(),
             status=200,
             mimetype="text/plain",
-            headers={"Cache-Control": "public,max-age=10"},
+            headers={"Cache-Control": "public,max-age=6"},
         )
 
     except Exception as e:
@@ -1165,6 +1192,91 @@ def is_local_access_point_active():
         return "true"
     else:
         return "false"
+
+
+### experiment profiles
+
+
+@app.route("/api/experiment_profiles", methods=["POST"])
+def add_new_experiment_profile():
+    body = request.get_json()
+    experiment_profile_body = body["experiment_profile_body"]
+    experiment_profile_filename = Path(body["experiment_profile_filename"]).name
+
+    # verify content
+    try:
+        assert len(experiment_profile_body) <= 50000
+        yaml_decode(experiment_profile_body, type=structs.Profile)
+    except Exception as e:
+        msg = f"{e}"
+        publish_to_error_log(msg, "add_new_experiment_profile")
+        return {"msg": msg}, 400
+
+    # verify file type
+    try:
+        assert experiment_profile_filename.endswith(
+            ".yaml"
+        ) or experiment_profile_filename.endswith(".yml")
+    except Exception:
+        msg = "Invalid filename"
+        publish_to_error_log(msg, "add_new_experiment_profile")
+        return {"msg": msg}, 400
+
+    # save file to disk
+    background_tasks.save_file(
+        Path(env["DOT_PIOREACTOR"]) / "experiment_profiles" / experiment_profile_filename,
+        experiment_profile_body,
+    )
+
+    return Response(status=200)
+
+
+@app.route("/api/experiment_profiles", methods=["GET"])
+def get_experiment_profiles():
+    try:
+        profile_path_plugins = Path(env["DOT_PIOREACTOR"]) / "experiment_profiles"
+        files = sorted(profile_path_plugins.glob("*.y[a]ml"))
+
+        parsed_yaml = []
+        for file in files:
+            try:
+                parsed_yaml.append(yaml_decode(file.read_bytes(), type=structs.Profile))
+            except ValidationError as e:
+                publish_to_error_log(
+                    f"Yaml error in {Path(file).name}: {e}", "get_experiment_profiles"
+                )
+
+        return Response(
+            response=json_encode(parsed_yaml),
+            status=200,
+            mimetype="application/json",
+            headers={"Cache-Control": "public,max-age=6"},
+        )
+    except Exception as e:
+        publish_to_error_log(str(e), "get_experiment_profiles")
+        return Response(status=400)
+
+
+@app.route("/api/experiment_profiles/<filename>", methods=["GET"])
+def get_experiment_profile(filename: str):
+    # security bit: strip out any paths that may be attached, ex: ../../../root/bad
+    filename = Path(filename).name
+
+    try:
+
+        assert Path(filename).suffix == ".yaml" or Path(filename).suffix == ".yml"
+
+        specific_path = Path(env["DOT_PIOREACTOR"]) / "experiment_profiles" / filename
+        return Response(
+            response=specific_path.read_text(),
+            status=200,
+            mimetype="text/plain",
+            headers={"Cache-Control": "public,max-age=6"},
+        )
+
+    except Exception as e:
+        publish_to_error_log(str(e), "get_experiment_profile")
+        return Response(status=400)
 
 
 ### FLASK META VIEWS

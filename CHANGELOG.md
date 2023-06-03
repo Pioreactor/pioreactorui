@@ -1,3 +1,6 @@
+### Upcoming
+ - Adding manual dosing adjustment form under Dosing tab
+
 ### 23.5.9
  - New PWM voltage in Systems card.
  - Improvements to changing LED values.
