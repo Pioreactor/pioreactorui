@@ -56,7 +56,7 @@ def stop_all():
     return Response(status=202)
 
 
-@app.route("/api/stop/<unit>/<job>", methods=["POST"])
+@app.route("/api/stop/<unit>/<job>", methods=["PATCH"])
 def stop_job_on_unit(unit: str, job: str):
     """Kills specified job on unit"""
 
@@ -82,7 +82,7 @@ def stop_job_on_unit(unit: str, job: str):
     return Response(status=202)
 
 
-@app.route("/api/run/<unit>/<job>", methods=["POST"])
+@app.route("/api/run/<unit>/<job>", methods=["PATCH"])
 def run_job_on_unit(unit: str, job: str):
     """
     Runs specified job on unit.
@@ -465,7 +465,7 @@ def get_current_calibrations_of_type(pioreactor_unit: str, calibration_type: str
 @app.route(
     "/api/calibrations/<pioreactor_unit>/<calibration_type>/<calibration_name>", methods=["GET"]
 )
-def get_calibrations_of_type(pioreactor_unit: str, calibration_type: str, calibration_name: str):
+def get_calibration_by_name(pioreactor_unit: str, calibration_type: str, calibration_name: str):
     """
     retrieve the calibration for type with name
     """
@@ -481,7 +481,7 @@ def get_calibrations_of_type(pioreactor_unit: str, calibration_type: str, calibr
         return jsonify(r)
 
     except Exception as e:
-        publish_to_error_log(str(e), "get_calibrations_of_type")
+        publish_to_error_log(str(e), "get_calibration_by_name")
         return Response(status=500)
 
 
@@ -531,7 +531,7 @@ def patch_calibrations(pioreactor_unit: str, calibration_type: str, calibration_
 
 
 @app.route("/api/calibrations", methods=["PUT"])
-def create_new_calibrations():
+def create_or_update_new_calibrations():
     try:
         body = request.get_json()
 
@@ -552,10 +552,10 @@ def create_new_calibrations():
 
         return Response(status=201)
     except KeyError as e:
-        publish_to_error_log(str(e), "create_new_calibrations")
+        publish_to_error_log(str(e), "create_or_update_new_calibrations")
         return Response(status=400)
     except Exception as e:
-        publish_to_error_log(str(e), "create_new_calibrations")
+        publish_to_error_log(str(e), "create_or_update_new_calibrations")
         return Response(status=500)
 
 
@@ -728,7 +728,7 @@ def update_app():
     return Response(status=202)
 
 
-@app.route("/api/app_version", methods=["GET"])
+@app.route("/api/versions/app", methods=["GET"])
 @cache.memoize(expire=60, tag="app")
 def get_app_version():
     result = subprocess.run(
@@ -748,7 +748,7 @@ def get_app_version():
     )
 
 
-@app.route("/api/ui_version", methods=["GET"])
+@app.route("/api/versions/ui", methods=["GET"])
 def get_ui_version():
     return VERSION
 
@@ -887,7 +887,7 @@ def get_latest_experiment():
 
 @app.route("/api/unit_labels/<experiment>", methods=["GET"])
 @cache.memoize(expire=30, tag="unit_labels")
-def get_current_unit_labels(experiment):
+def get_unit_labels(experiment):
 
     try:
 
@@ -911,7 +911,7 @@ def get_current_unit_labels(experiment):
         )
 
     except Exception as e:
-        publish_to_error_log(str(e), "get_current_unit_labels")
+        publish_to_error_log(str(e), "get_unit_labels")
         return Response(status=500)
 
 
@@ -999,7 +999,7 @@ def get_historical_media_used():
 
 
 @app.route("/api/experiments/<experiment>", methods=["PATCH"])
-def update_experiment_description(experiment):
+def update_experiment(experiment):
     cache.evict("experiments")
 
     body = request.get_json()
@@ -1014,17 +1014,17 @@ def update_experiment_description(experiment):
         return Response(status=200)
 
     except Exception as e:
-        publish_to_error_log(str(e), "update_experiment_description")
+        publish_to_error_log(str(e), "update_experiment")
         return Response(status=500)
 
 
-@app.route("/api/add_new_pioreactor", methods=["POST"])
-def add_new_pioreactor():
+@app.route("/api/setup_worker_pioreactor", methods=["POST"])
+def setup_worker_pioreactor():
     new_name = request.get_json()["newPioreactorName"]
     try:
         result = background_tasks.add_new_pioreactor(new_name)
     except Exception as e:
-        publish_to_error_log(str(e), "add_new_pioreactor")
+        publish_to_error_log(str(e), "setup_worker_pioreactor")
         return {"msg": str(e)}, 500
 
     try:
@@ -1035,7 +1035,7 @@ def add_new_pioreactor():
     if status:
         return Response(status=202)
     else:
-        publish_to_error_log(msg, "add_new_pioreactor")
+        publish_to_error_log(msg, "setup_worker_pioreactor")
         return {"msg": msg}, 500
 
 
@@ -1092,7 +1092,7 @@ def delete_config(filename):
 
 
 @app.route("/api/configs/<filename>", methods=["PATCH"])
-def update_new_config(filename):
+def update_config(filename):
     """if the config file is unit specific, we only need to run sync-config on that unit."""
     cache.evict("config")
     body = request.get_json()
@@ -1134,22 +1134,22 @@ def update_new_config(filename):
             assert config.get("cluster.topology", "leader_address")
     except configparser.DuplicateSectionError as e:
         msg = f"Duplicate section [{e.section}] was found. Please fix and try again."
-        publish_to_error_log(msg, "save_new_config")
+        publish_to_error_log(msg, "update_config")
         return {"msg": msg}, 400
     except configparser.DuplicateOptionError as e:
         msg = f"Duplicate option, `{e.option}`, was found in section [{e.section}]. Please fix and try again."
-        publish_to_error_log(msg, "save_new_config")
+        publish_to_error_log(msg, "update_config")
         return {"msg": msg}, 400
     except configparser.ParsingError:
         msg = "Incorrect syntax. Please fix and try again."
-        publish_to_error_log(msg, "save_new_config")
+        publish_to_error_log(msg, "update_config")
         return {"msg": msg}, 400
     except (AssertionError, configparser.NoSectionError, KeyError, TypeError):
         msg = "Missing required field(s) in [cluster.topology]: `leader_hostname` and/or `leader_address`. Please fix and try again."
-        publish_to_error_log(msg, "save_new_config")
+        publish_to_error_log(msg, "update_config")
         return {"msg": msg}, 400
     except Exception as e:
-        publish_to_error_log(str(e), "save_new_config")
+        publish_to_error_log(str(e), "update_config")
         msg = "Hm, something went wrong, check PioreactorUI logs."
         return {"msg": msg}, 500
 
