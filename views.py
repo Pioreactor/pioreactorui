@@ -96,14 +96,16 @@ def run_job_on_unit(unit: str, job: str):
       },
       "args": ["arg1", "arg2"]
     }
-
     """
-
-    client.publish(
-        f"pioreactor/{unit}/$experiment/run/{job}",
-        request.get_data() or r'{"options": {}, "args": []}',
-        qos=2,
-    )
+    try:
+        client.publish(
+            f"pioreactor/{unit}/$experiment/run/{job}",
+            request.get_data() or r'{"options": {}, "args": []}',
+            qos=2,
+        )
+    except Exception as e:
+        publish_to_error_log(e, "run_job_on_unit")
+        raise e
 
     return Response(status=202)
 
@@ -1240,7 +1242,8 @@ def get_experiment_profiles():
         parsed_yaml = []
         for file in files:
             try:
-                parsed_yaml.append(yaml_decode(file.read_bytes(), type=structs.Profile))
+                profile = yaml_decode(file.read_bytes(), type=structs.Profile)
+                parsed_yaml.append({"experimentProfile": profile, "file": str(file)})
             except ValidationError as e:
                 publish_to_error_log(
                     f"Yaml error in {Path(file).name}: {e}", "get_experiment_profiles"
