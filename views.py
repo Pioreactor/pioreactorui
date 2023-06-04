@@ -1261,11 +1261,10 @@ def get_experiment_profiles():
 
 
 @app.route("/api/experiment_profiles/<filename>", methods=["GET"])
-def get_experiment_profile(filename):
+def get_experiment_profile(filename: str):
     file = Path(filename).name
-
     try:
-        if Path(file).suffix != ".yaml" or Path(file).suffix != ".yml":
+        if not (Path(file).suffix == ".yaml" or Path(file).suffix == ".yml"):
             raise IOError("must provide a YAML file")
 
         specific_profile_path = Path(env["DOT_PIOREACTOR"]) / "experiment_profiles" / file
