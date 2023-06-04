@@ -1261,25 +1261,25 @@ def get_experiment_profiles():
 
 
 @app.route("/api/experiment_profiles/<filename>", methods=["GET"])
-def get_experiment_profile(filename: str):
-    # security bit: strip out any paths that may be attached, ex: ../../../root/bad
-    filename = Path(filename).name
+def get_experiment_profile(filename):
+    file = Path(filename).name
 
     try:
+        if Path(file).suffix != ".yaml" or Path(file).suffix != ".yml":
+            raise IOError("must provide a YAML file")
 
-        assert Path(filename).suffix == ".yaml" or Path(filename).suffix == ".yml"
-
-        specific_path = Path(env["DOT_PIOREACTOR"]) / "experiment_profiles" / filename
+        specific_profile_path = Path(env["DOT_PIOREACTOR"]) / "experiment_profiles" / file
         return Response(
-            response=specific_path.read_text(),
+            response=specific_profile_path.read_text(),
             status=200,
             mimetype="text/plain",
-            headers={"Cache-Control": "public,max-age=6"},
         )
-
+    except IOError as e:
+        publish_to_log(str(e), "get_experiment_profile")
+        return Response(status=404)
     except Exception as e:
         publish_to_error_log(str(e), "get_experiment_profile")
-        return Response(status=400)
+        return Response(status=500)
 
 
 ### FLASK META VIEWS
