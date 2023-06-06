@@ -116,6 +116,17 @@ def pios_uninstall_plugin(plugin_name) -> tuple[bool, str]:
 
 
 @huey.task()
+def save_file(path: str, content: str):
+    try:
+        with open(path, "w") as f:
+            f.write(content)
+        return True
+    except Exception as e:
+        logger.error(e)
+        return False
+
+
+@huey.task()
 def write_config_and_sync(config_path: str, text: str, units: str, flags: str) -> tuple[bool, str]:
     try:
         with open(config_path, "w") as f:

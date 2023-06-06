@@ -1,3 +1,7 @@
+### 23.6.6
+ - Adding manual dosing adjustment form under Dosing tab
+ - Adding support for experiment profiles
+
 ### 23.5.9
  - New PWM voltage in Systems card.
  - Improvements to changing LED values.

@@ -56,7 +56,7 @@ def stop_all():
     return Response(status=202)
 
 
-@app.route("/api/stop/<unit>/<job>", methods=["POST"])
+@app.route("/api/stop/<unit>/<job>", methods=["PATCH"])
 def stop_job_on_unit(unit: str, job: str):
     """Kills specified job on unit"""
 
@@ -82,7 +82,7 @@ def stop_job_on_unit(unit: str, job: str):
     return Response(status=202)
 
 
-@app.route("/api/run/<unit>/<job>", methods=["POST"])
+@app.route("/api/run/<unit>/<job>", methods=["PATCH"])
 def run_job_on_unit(unit: str, job: str):
     """
     Runs specified job on unit.
@@ -96,14 +96,16 @@ def run_job_on_unit(unit: str, job: str):
       },
       "args": ["arg1", "arg2"]
     }
-
     """
-
-    client.publish(
-        f"pioreactor/{unit}/$experiment/run/{job}",
-        request.get_data() or r'{"options": {}, "args": []}',
-        qos=2,
-    )
+    try:
+        client.publish(
+            f"pioreactor/{unit}/$experiment/run/{job}",
+            request.get_data() or r'{"options": {}, "args": []}',
+            qos=2,
+        )
+    except Exception as e:
+        publish_to_error_log(e, "run_job_on_unit")
+        raise e
 
     return Response(status=202)
 
@@ -465,7 +467,7 @@ def get_current_calibrations_of_type(pioreactor_unit: str, calibration_type: str
 @app.route(
     "/api/calibrations/<pioreactor_unit>/<calibration_type>/<calibration_name>", methods=["GET"]
 )
-def get_calibrations_of_type(pioreactor_unit: str, calibration_type: str, calibration_name: str):
+def get_calibration_by_name(pioreactor_unit: str, calibration_type: str, calibration_name: str):
     """
     retrieve the calibration for type with name
     """
@@ -481,7 +483,7 @@ def get_calibrations_of_type(pioreactor_unit: str, calibration_type: str, calibr
         return jsonify(r)
 
     except Exception as e:
-        publish_to_error_log(str(e), "get_calibrations_of_type")
+        publish_to_error_log(str(e), "get_calibration_by_name")
         return Response(status=500)
 
 
@@ -531,7 +533,7 @@ def patch_calibrations(pioreactor_unit: str, calibration_type: str, calibration_
 
 
 @app.route("/api/calibrations", methods=["PUT"])
-def create_new_calibrations():
+def create_or_update_new_calibrations():
     try:
         body = request.get_json()
 
@@ -552,10 +554,10 @@ def create_new_calibrations():
 
         return Response(status=201)
     except KeyError as e:
-        publish_to_error_log(str(e), "create_new_calibrations")
+        publish_to_error_log(str(e), "create_or_update_new_calibrations")
         return Response(status=400)
     except Exception as e:
-        publish_to_error_log(str(e), "create_new_calibrations")
+        publish_to_error_log(str(e), "create_or_update_new_calibrations")
         return Response(status=500)
 
 
@@ -621,7 +623,7 @@ def uninstall_plugin():
 
 
 @app.route("/api/contrib/automations/<automation_type>", methods=["GET"])
-@cache.memoize(expire=30, tag="plugins")
+@cache.memoize(expire=20, tag="plugins")
 def get_automation_contrib(automation_type: str):
 
     # security to prevent possibly reading arbitrary file
@@ -657,7 +659,7 @@ def get_automation_contrib(automation_type: str):
             response=json_encode(parsed_yaml),
             status=200,
             mimetype="application/json",
-            headers={"Cache-Control": "public,max-age=10"},
+            headers={"Cache-Control": "public,max-age=6"},
         )
     except Exception as e:
         publish_to_error_log(str(e), "get_automation_contrib")
@@ -665,7 +667,7 @@ def get_automation_contrib(automation_type: str):
 
 
 @app.route("/api/contrib/jobs", methods=["GET"])
-@cache.memoize(expire=30, tag="plugins")
+@cache.memoize(expire=20, tag="plugins")
 def get_job_contrib():
 
     try:
@@ -688,7 +690,7 @@ def get_job_contrib():
             response=json_encode(parsed_yaml),
             status=200,
             mimetype="application/json",
-            headers={"Cache-Control": "public,max-age=10"},
+            headers={"Cache-Control": "public,max-age=6"},
         )
     except Exception as e:
         publish_to_error_log(str(e), "get_job_contrib")
@@ -696,7 +698,7 @@ def get_job_contrib():
 
 
 @app.route("/api/contrib/charts", methods=["GET"])
-@cache.memoize(expire=30, tag="plugins")
+@cache.memoize(expire=20, tag="plugins")
 def get_charts_contrib():
     try:
         chart_path_default = Path(env["WWW"]) / "contrib" / "charts"
@@ -715,7 +717,7 @@ def get_charts_contrib():
             response=json_encode(parsed_yaml),
             status=200,
             mimetype="application/json",
-            headers={"Cache-Control": "public,max-age=10"},
+            headers={"Cache-Control": "public,max-age=6"},
         )
     except Exception as e:
         publish_to_error_log(str(e), "get_charts_contrib")
@@ -728,7 +730,7 @@ def update_app():
     return Response(status=202)
 
 
-@app.route("/api/app_version", methods=["GET"])
+@app.route("/api/versions/app", methods=["GET"])
 @cache.memoize(expire=60, tag="app")
 def get_app_version():
     result = subprocess.run(
@@ -744,11 +746,11 @@ def get_app_version():
         response=result.stdout.strip(),
         status=200,
         mimetype="text/plain",
-        headers={"Cache-Control": "public,max-age=10"},
+        headers={"Cache-Control": "public,max-age=6"},
     )
 
 
-@app.route("/api/ui_version", methods=["GET"])
+@app.route("/api/versions/ui", methods=["GET"])
 def get_ui_version():
     return VERSION
 
@@ -887,7 +889,7 @@ def get_latest_experiment():
 
 @app.route("/api/unit_labels/<experiment>", methods=["GET"])
 @cache.memoize(expire=30, tag="unit_labels")
-def get_current_unit_labels(experiment):
+def get_unit_labels(experiment):
 
     try:
 
@@ -906,17 +908,46 @@ def get_current_unit_labels(experiment):
         return Response(
             response=json_encode(keyed_by_unit),
             status=200,
-            headers={"Cache-Control": "public,max-age=10"},
+            headers={"Cache-Control": "public,max-age=6"},
             mimetype="application/json",
         )
 
     except Exception as e:
-        publish_to_error_log(str(e), "get_current_unit_labels")
+        publish_to_error_log(str(e), "get_unit_labels")
         return Response(status=500)
 
 
 @app.route("/api/unit_labels/current", methods=["PUT"])
 def upsert_current_unit_labels():
+    """
+    Update or insert a new unit label for the current experiment.
+
+    This API endpoint accepts a PUT request with a JSON body containing a "unit" and a "label".
+    The "unit" is the identifier for the pioreactor and the "label" is the desired label for that unit.
+    If the unit label for the current experiment already exists, it will be updated; otherwise, a new entry will be created.
+
+    The response will be a status code of 201 if the operation is successful, and 400 if there was an error.
+
+
+    JSON Request Body:
+    {
+        "unit": "<unit_identifier>",
+        "label": "<new_label>"
+    }
+
+    Example usage:
+    PUT /api/unit_labels/current
+    {
+        "unit": "unit1",
+        "label": "new_label"
+    }
+
+    Returns:
+    HTTP Response with status code 201 if successful, 400 if there was an error.
+
+    Raises:
+    Exception: Any error encountered during the database operation is published to the error log.
+    """
     cache.evict("unit_labels")
 
     body = request.get_json()
@@ -937,8 +968,6 @@ def upsert_current_unit_labels():
     except Exception as e:
         publish_to_error_log(str(e), "upsert_current_unit_labels")
         return Response(status=400)
-
-    # client.publish(f"pioreactor/{unit}/{latest_experiment}/unit_label", label, retain=True)
 
     return Response(status=201)
 
@@ -972,7 +1001,7 @@ def get_historical_media_used():
 
 
 @app.route("/api/experiments/<experiment>", methods=["PATCH"])
-def update_experiment_description(experiment):
+def update_experiment(experiment):
     cache.evict("experiments")
 
     body = request.get_json()
@@ -987,17 +1016,17 @@ def update_experiment_description(experiment):
         return Response(status=200)
 
     except Exception as e:
-        publish_to_error_log(str(e), "update_experiment_description")
+        publish_to_error_log(str(e), "update_experiment")
         return Response(status=500)
 
 
-@app.route("/api/add_new_pioreactor", methods=["POST"])
-def add_new_pioreactor():
+@app.route("/api/setup_worker_pioreactor", methods=["POST"])
+def setup_worker_pioreactor():
     new_name = request.get_json()["newPioreactorName"]
     try:
         result = background_tasks.add_new_pioreactor(new_name)
     except Exception as e:
-        publish_to_error_log(str(e), "add_new_pioreactor")
+        publish_to_error_log(str(e), "setup_worker_pioreactor")
         return {"msg": str(e)}, 500
 
     try:
@@ -1008,7 +1037,7 @@ def add_new_pioreactor():
     if status:
         return Response(status=202)
     else:
-        publish_to_error_log(msg, "add_new_pioreactor")
+        publish_to_error_log(msg, "setup_worker_pioreactor")
         return {"msg": msg}, 500
 
 
@@ -1032,7 +1061,7 @@ def get_config(filename: str):
             response=specific_config_path.read_text(),
             status=200,
             mimetype="text/plain",
-            headers={"Cache-Control": "public,max-age=10"},
+            headers={"Cache-Control": "public,max-age=6"},
         )
 
     except Exception as e:
@@ -1065,7 +1094,7 @@ def delete_config(filename):
 
 
 @app.route("/api/configs/<filename>", methods=["PATCH"])
-def update_new_config(filename):
+def update_config(filename):
     """if the config file is unit specific, we only need to run sync-config on that unit."""
     cache.evict("config")
     body = request.get_json()
@@ -1107,22 +1136,22 @@ def update_new_config(filename):
             assert config.get("cluster.topology", "leader_address")
     except configparser.DuplicateSectionError as e:
         msg = f"Duplicate section [{e.section}] was found. Please fix and try again."
-        publish_to_error_log(msg, "save_new_config")
+        publish_to_error_log(msg, "update_config")
         return {"msg": msg}, 400
     except configparser.DuplicateOptionError as e:
         msg = f"Duplicate option, `{e.option}`, was found in section [{e.section}]. Please fix and try again."
-        publish_to_error_log(msg, "save_new_config")
+        publish_to_error_log(msg, "update_config")
         return {"msg": msg}, 400
     except configparser.ParsingError:
         msg = "Incorrect syntax. Please fix and try again."
-        publish_to_error_log(msg, "save_new_config")
+        publish_to_error_log(msg, "update_config")
         return {"msg": msg}, 400
     except (AssertionError, configparser.NoSectionError, KeyError, TypeError):
         msg = "Missing required field(s) in [cluster.topology]: `leader_hostname` and/or `leader_address`. Please fix and try again."
-        publish_to_error_log(msg, "save_new_config")
+        publish_to_error_log(msg, "update_config")
         return {"msg": msg}, 400
     except Exception as e:
-        publish_to_error_log(str(e), "save_new_config")
+        publish_to_error_log(str(e), "update_config")
         msg = "Hm, something went wrong, check PioreactorUI logs."
         return {"msg": msg}, 500
 
@@ -1165,6 +1194,91 @@ def is_local_access_point_active():
         return "true"
     else:
         return "false"
+
+
+### experiment profiles
+
+
+@app.route("/api/experiment_profiles", methods=["POST"])
+def add_new_experiment_profile():
+    body = request.get_json()
+    experiment_profile_body = body["experiment_profile_body"]
+    experiment_profile_filename = Path(body["experiment_profile_filename"]).name
+
+    # verify content
+    try:
+        assert len(experiment_profile_body) <= 50000
+        yaml_decode(experiment_profile_body, type=structs.Profile)
+    except Exception as e:
+        msg = f"{e}"
+        publish_to_error_log(msg, "add_new_experiment_profile")
+        return {"msg": msg}, 400
+
+    # verify file type
+    try:
+        assert experiment_profile_filename.endswith(
+            ".yaml"
+        ) or experiment_profile_filename.endswith(".yml")
+    except Exception:
+        msg = "Invalid filename"
+        publish_to_error_log(msg, "add_new_experiment_profile")
+        return {"msg": msg}, 400
+
+    # save file to disk
+    background_tasks.save_file(
+        Path(env["DOT_PIOREACTOR"]) / "experiment_profiles" / experiment_profile_filename,
+        experiment_profile_body,
+    )
+
+    return Response(status=200)
+
+
+@app.route("/api/experiment_profiles", methods=["GET"])
+def get_experiment_profiles():
+    try:
+        profile_path_plugins = Path(env["DOT_PIOREACTOR"]) / "experiment_profiles"
+        files = sorted(profile_path_plugins.glob("*.y[a]ml"))
+
+        parsed_yaml = []
+        for file in files:
+            try:
+                profile = yaml_decode(file.read_bytes(), type=structs.Profile)
+                parsed_yaml.append({"experimentProfile": profile, "file": str(file)})
+            except ValidationError as e:
+                publish_to_error_log(
+                    f"Yaml error in {Path(file).name}: {e}", "get_experiment_profiles"
+                )
+
+        return Response(
+            response=json_encode(parsed_yaml),
+            status=200,
+            mimetype="application/json",
+            headers={"Cache-Control": "public,max-age=6"},
+        )
+    except Exception as e:
+        publish_to_error_log(str(e), "get_experiment_profiles")
+        return Response(status=400)
+
+
+@app.route("/api/experiment_profiles/<filename>", methods=["GET"])
+def get_experiment_profile(filename: str):
+    file = Path(filename).name
+    try:
+        if not (Path(file).suffix == ".yaml" or Path(file).suffix == ".yml"):
+            raise IOError("must provide a YAML file")
+
+        specific_profile_path = Path(env["DOT_PIOREACTOR"]) / "experiment_profiles" / file
+        return Response(
+            response=specific_profile_path.read_text(),
+            status=200,
+            mimetype="text/plain",
+        )
+    except IOError as e:
+        publish_to_log(str(e), "get_experiment_profile")
+        return Response(status=404)
+    except Exception as e:
+        publish_to_error_log(str(e), "get_experiment_profile")
+        return Response(status=500)
 
 
 ### FLASK META VIEWS
