@@ -60,6 +60,23 @@ def update_app() -> bool:
 
 
 @huey.task()
+def update_app_to_develop() -> bool:
+    logger.info("Updating app to development on leader")
+    update_app_on_leader = ["pio", "update", "app", "-b", "develop"]
+    subprocess.run(update_app_on_leader)
+
+    logger.info("Updating app to development on workers")
+    update_app_across_all_workers = ["pios", "update", "-y", "-b", "develop"]
+    subprocess.run(update_app_across_all_workers)
+
+    logger.info("Updating UI to development on leader")
+    update_ui_on_leader = ["pio", "update", "ui", "-b", "develop"]
+    subprocess.run(update_ui_on_leader)
+    cache.evict("app")
+    return True
+
+
+@huey.task()
 def pio(*args) -> tuple[bool, str]:
     logger.info(f'Executing `{" ".join(("pio",) + args)}`')
     result = subprocess.run(("pio",) + args, capture_output=True, text=True)
