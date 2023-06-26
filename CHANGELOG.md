@@ -1,4 +1,4 @@
-### Upcoming
+### 23.6.26
  - Adding ability to upgrade to develop branches
 
 ### 23.6.6
