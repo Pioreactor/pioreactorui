@@ -567,7 +567,7 @@ def get_installed_plugins():
         return jsonify([])
     else:
         # sometimes an error from a plugin will be printed. We just want to last line, the json bit.
-        plugins_as_json = msg.split("\n")
+        plugins_as_json = msg.split("\n")[-1]
         return plugins_as_json
 
 
