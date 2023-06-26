@@ -123,26 +123,20 @@ def reboot_unit(unit: str):
 @app.route("/api/logs/recent", methods=["GET"])
 def get_recent_logs():
     """Shows event logs from all units"""
-    args = request.args
-    if "min_level" in args:
-        min_level = args["min_level"]
-    else:
-        min_level = "INFO"
 
-    if min_level == "DEBUG":
-        level_string = '(level == "ERROR" or level == "WARNING" or level == "NOTICE" or level == "INFO" or level == "DEBUG")'
-    elif min_level == "INFO":
-        level_string = (
-            '(level == "ERROR" or level == "NOTICE" or level == "INFO" or level == "WARNING")'
-        )
-    elif min_level == "WARNING":
-        level_string = '(level == "ERROR" or level == "WARNING")'
-    elif min_level == "ERROR":
-        level_string = '(level == "ERROR")'
-    else:
-        level_string = (
-            '(level == "ERROR" or level == "NOTICE" or level == "INFO" or level == "WARNING")'
-        )
+    def get_level_string(min_level):
+        levels = {
+            "DEBUG": ["ERROR", "WARNING", "NOTICE", "INFO", "DEBUG"],
+            "INFO": ["ERROR", "NOTICE", "INFO", "WARNING"],
+            "WARNING": ["ERROR", "WARNING"],
+            "ERROR": ["ERROR"],
+        }
+
+        selected_levels = levels.get(min_level, levels["INFO"])
+        return " or ".join(f'level == "{level}"' for level in selected_levels)
+
+    min_level = request.args.get("min_level", "INFO")
+    level_string = "(" + get_level_string(min_level) + ")"
 
     try:
         recent_logs = query_db(
@@ -159,26 +153,20 @@ def get_recent_logs():
 @app.route("/api/logs/<experiment>", methods=["GET"])
 def get_logs(experiment):
     """Shows event logs from all units"""
-    args = request.args
-    if "min_level" in args:
-        min_level = args["min_level"]
-    else:
-        min_level = "INFO"
 
-    if min_level == "DEBUG":
-        level_string = '(level == "ERROR" or level == "WARNING" or level == "NOTICE" or level == "INFO" or level == "DEBUG")'
-    elif min_level == "INFO":
-        level_string = (
-            '(level == "ERROR" or level == "NOTICE" or level == "INFO" or level == "WARNING")'
-        )
-    elif min_level == "WARNING":
-        level_string = '(level == "ERROR" or level == "WARNING")'
-    elif min_level == "ERROR":
-        level_string = '(level == "ERROR")'
-    else:
-        level_string = (
-            '(level == "ERROR" or level == "NOTICE" or level == "INFO" or level == "WARNING")'
-        )
+    def get_level_string(min_level):
+        levels = {
+            "DEBUG": ["ERROR", "WARNING", "NOTICE", "INFO", "DEBUG"],
+            "INFO": ["ERROR", "NOTICE", "INFO", "WARNING"],
+            "WARNING": ["ERROR", "WARNING"],
+            "ERROR": ["ERROR"],
+        }
+
+        selected_levels = levels.get(min_level, levels["INFO"])
+        return " or ".join(f'level == "{level}"' for level in selected_levels)
+
+    min_level = request.args.get("min_level", "INFO")
+    level_string = "(" + get_level_string(min_level) + ")"
 
     try:
         recent_logs = query_db(
@@ -578,7 +566,9 @@ def get_installed_plugins():
         publish_to_error_log(msg, "installed_plugins")
         return jsonify([])
     else:
-        return msg
+        # sometimes an error from a plugin will be printed. We just want to last line, the json bit.
+        plugins_as_json = msg.split("\n")[-1]
+        return plugins_as_json
 
 
 @app.route("/api/installed_plugins/<filename>", methods=["GET"])
@@ -727,6 +717,12 @@ def get_charts_contrib():
 @app.route("/api/update_app", methods=["POST"])
 def update_app():
     background_tasks.update_app()
+    return Response(status=202)
+
+
+@app.route("/api/update_app_to_develop", methods=["POST"])
+def update_app_to_develop():
+    background_tasks.update_app_to_develop()
     return Response(status=202)
 
 
@@ -1075,7 +1071,7 @@ def get_configs():
     """get a list of all config.ini files in the .pioreactor folder"""
     try:
         config_path = Path(env["DOT_PIOREACTOR"])
-        return jsonify([file.name for file in config_path.glob("config*.ini")])
+        return jsonify([file.name for file in sorted(config_path.glob("config*.ini"))])
 
     except Exception as e:
         publish_to_error_log(str(e), "get_configs")
@@ -1272,6 +1268,7 @@ def get_experiment_profile(filename: str):
             response=specific_profile_path.read_text(),
             status=200,
             mimetype="text/plain",
+            headers={"Cache-Control": "public,max-age=20"},
         )
     except IOError as e:
         publish_to_log(str(e), "get_experiment_profile")
