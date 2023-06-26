@@ -37,9 +37,9 @@ def add_new_pioreactor(new_pioreactor_name: str) -> tuple[bool, str]:
     )
     cache.evict("config")
     if result.returncode != 0:
-        return False, str(result.stderr)
+        return False, str(result.stderr.strip())
     else:
-        return True, str(result.stderr)
+        return True, str(result.stderr.strip())
 
 
 @huey.task()
@@ -81,9 +81,9 @@ def pio(*args) -> tuple[bool, str]:
     logger.info(f'Executing `{" ".join(("pio",) + args)}`')
     result = subprocess.run(("pio",) + args, capture_output=True, text=True)
     if result.returncode != 0:
-        return False, result.stderr
+        return False, result.stderr.strip()
     else:
-        return True, result.stdout
+        return True, result.stdout.strip()
 
 
 @huey.task()
@@ -91,9 +91,9 @@ def rm(path) -> tuple[bool, str]:
     logger.info(f"Deleting {path}.")
     result = subprocess.run(["rm", path], capture_output=True, text=True)
     if result.returncode != 0:
-        return False, result.stderr
+        return False, result.stderr.strip()
     else:
-        return True, result.stdout
+        return True, result.stdout.strip()
 
 
 @huey.task()
@@ -101,9 +101,9 @@ def pios(*args) -> tuple[bool, str]:
     logger.info(f'Executing `{" ".join(("pios",) + args)}`')
     result = subprocess.run(("pios",) + args, capture_output=True, text=True)
     if result.returncode != 0:
-        return False, result.stderr
+        return False, result.stderr.strip()
     else:
-        return True, result.stdout
+        return True, result.stdout.strip()
 
 
 @huey.task()
@@ -113,9 +113,9 @@ def pios_install_plugin(plugin_name) -> tuple[bool, str]:
     cache.evict("plugins")
     cache.evict("config")
     if result.returncode != 0:
-        return False, result.stderr
+        return False, result.stderr.strip()
     else:
-        return True, result.stdout
+        return True, result.stdout.strip()
 
 
 @huey.task()
@@ -127,9 +127,9 @@ def pios_uninstall_plugin(plugin_name) -> tuple[bool, str]:
     cache.evict("plugins")
     cache.evict("config")
     if result.returncode != 0:
-        return False, result.stderr
+        return False, result.stderr.strip()
     else:
-        return True, result.stdout
+        return True, result.stdout.strip()
 
 
 @huey.task()
@@ -153,7 +153,7 @@ def write_config_and_sync(config_path: str, text: str, units: str, flags: str) -
             ("pios", "sync-configs", "--units", units, flags), capture_output=True, text=True
         )
         if result.returncode != 0:
-            raise Exception(result.stderr)
+            raise Exception(result.stderr.strip())
 
         return (True, "")
 

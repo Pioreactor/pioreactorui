@@ -559,7 +559,6 @@ def get_installed_plugins():
     result = background_tasks.pio("list-plugins", "--json")
     try:
         status, msg = result(blocking=True, timeout=10)
-        # sometimes an error from a plugin will be printed. We just want to last line, the json bit.
     except HueyException:
         status, msg = False, "Timed out."
 
@@ -567,7 +566,8 @@ def get_installed_plugins():
         publish_to_error_log(msg, "installed_plugins")
         return jsonify([])
     else:
-        plugins_as_json = msg.split("\n")[-1]
+        # sometimes an error from a plugin will be printed. We just want to last line, the json bit.
+        plugins_as_json = msg.split("\n")
         return plugins_as_json
 
 
