@@ -10,3 +10,4 @@ interpolation: stepAfter
 y_axis_domain: [0.00, 0.05]
 lookback: 100000
 fixed_decimals: 3
+down_sample: false

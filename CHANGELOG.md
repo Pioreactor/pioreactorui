@@ -1,3 +1,6 @@
+### 23.6.25
+ - Mostly copy changes and improvements
+
 ### 23.6.26
  - Adding ability to upgrade to develop branches
 
