@@ -51,6 +51,7 @@ class ChartDescriptor(Struct, forbid_unknown_fields=True):  # type: ignore
     source: str
     y_axis_label: str
     fixed_decimals: int
+    down_sample: bool = True
     mqtt_topic: t.Optional[str] = None  # leave empty for no live updates from mqtt
     lookback: t.Union[int, str, float] = 100_000
     data_source_column: t.Optional[str] = None  # column in sql store

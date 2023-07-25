@@ -110,6 +110,21 @@ def run_job_on_unit(unit: str, job: str):
     return Response(status=202)
 
 
+# @app.route("/api/run", methods=["GET"])
+# def list_running_jobs_on_cluster(unit: str, job: str):
+#     #TODO
+#     active_jobs = []
+#     def append(msg):
+#         if msg.payload == b"ready":
+#             active_jobs.append(msg)
+#
+#     client.message_callback_add(
+#         f"pioreactor/+/+/+/$state", append
+#     )
+#
+#     return Response(status=202)
+
+
 @app.route("/api/reboot/<unit>", methods=["POST"])
 def reboot_unit(unit: str):
     """Reboots unit"""
