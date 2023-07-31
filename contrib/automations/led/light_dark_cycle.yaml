@@ -13,10 +13,10 @@ fields:
     unit: "%"
     label: Light intensity
   - key: light_duration_minutes
-    unit: h
+    unit: min
     label: Light duration
     default: 16
   - key: dark_duration_minutes
-    unit: h
+    unit: min
     label: Dark duration
     default: 8

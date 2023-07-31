@@ -1,3 +1,7 @@
+### 23.7.31
+ - copy changes and improvements
+ - fixed bug that had the wrong units and defaults for Light Dark Cycle automation
+
 ### 23.7.25
  - Mostly copy changes and improvements
 
