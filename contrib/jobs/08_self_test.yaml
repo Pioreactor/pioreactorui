@@ -39,6 +39,9 @@ published_settings:
   - key: test_aux_power_is_not_too_high
     display: false
     type: boolean
+  - key: test_PD_is_near_0_volts_for_blank
+    display: false
+    type: boolean
   - key: all_tests_passed
     display: false
     default: false
