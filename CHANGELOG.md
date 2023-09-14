@@ -1,3 +1,8 @@
+### Upcoming
+ - Fixed bug that ignored `.yml` files
+ - Security improvements
+ - Ability to create and edit Experiment Profiles in the UI
+
 ### 23.8.28
  - Pioreactor's IPv4 and hostname is now displayed under System in the UI.
  - added another self-test test to confirm that an aturbid liquid in vial will produce a near 0 signal.
