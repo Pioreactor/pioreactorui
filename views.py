@@ -612,8 +612,12 @@ def get_plugin(filename: str):
 
 @app.route("/api/install_plugin", methods=["POST"])
 def install_plugin():
+    # there is a security problem here. See https://github.com/Pioreactor/pioreactor/issues/421
+    # a crappy solution is to check if the plugin_name is on our safelist
     body = request.get_json()
-    background_tasks.pios_install_plugin(body["plugin_name"])
+    plugin_name = body["plugin_name"]
+
+    background_tasks.pios_install_plugin(plugin_name)
     return Response(status=202)
 
 
