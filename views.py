@@ -1289,13 +1289,32 @@ def get_experiment_profile(filename: str):
             response=specific_profile_path.read_text(),
             status=200,
             mimetype="text/plain",
-            headers={"Cache-Control": "public,max-age=20"},
+            headers={"Cache-Control": "public,max-age=3"},
         )
     except IOError as e:
         publish_to_log(str(e), "get_experiment_profile")
         return Response(status=404)
     except Exception as e:
         publish_to_error_log(str(e), "get_experiment_profile")
+        return Response(status=500)
+
+
+@app.route("/api/contrib/experiment_profiles/<filename>", methods=["DELETE"])
+def delete_experiment_profile(filename: str):
+    file = Path(filename).name
+    try:
+        if not (Path(file).suffix == ".yaml" or Path(file).suffix == ".yml"):
+            raise IOError("must provide a YAML file")
+
+        specific_profile_path = Path(env["DOT_PIOREACTOR"]) / "experiment_profiles" / file
+        background_tasks.rm(specific_profile_path)
+        publish_to_log(f"Deleted profile {filename}.", "delete_experiment_profile")
+        return Response(status=200)
+    except IOError as e:
+        publish_to_log(str(e), "delete_experiment_profile")
+        return Response(status=404)
+    except Exception as e:
+        publish_to_error_log(str(e), "delete_experiment_profile")
         return Response(status=500)
 
 

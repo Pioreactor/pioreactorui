@@ -2,6 +2,7 @@
  - Fixed bug that ignored `.yml` files
  - Security improvements
  - Ability to create and edit Experiment Profiles in the UI
+ - version configs was dropping the latest entry.
 
 ### 23.8.28
  - Pioreactor's IPv4 and hostname is now displayed under System in the UI.
