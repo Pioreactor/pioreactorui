@@ -46,6 +46,14 @@ def current_utc_timestamp() -> str:
     return to_iso_format(current_utc_datetime())
 
 
+def is_valid_unix_filename(filename):
+    return (
+        bool(re.fullmatch(r"[a-zA-Z0-9._-]+", filename))
+        and "/" not in filename
+        and "\0" not in filename
+    )
+
+
 ## PIOREACTOR CONTROL
 
 
@@ -1231,8 +1239,9 @@ def add_new_experiment_profile():
         publish_to_error_log(msg, "add_new_experiment_profile")
         return {"msg": msg}, 400
 
-    # verify file type
+    # verify file
     try:
+        assert is_valid_unix_filename(experiment_profile_filename)
         assert experiment_profile_filename.endswith(
             ".yaml"
         ) or experiment_profile_filename.endswith(".yml")
