@@ -1270,7 +1270,6 @@ def get_experiment_profiles():
             response=json_encode(parsed_yaml),
             status=200,
             mimetype="application/json",
-            headers={"Cache-Control": "public,max-age=6"},
         )
     except Exception as e:
         publish_to_error_log(str(e), "get_experiment_profiles")
@@ -1289,7 +1288,6 @@ def get_experiment_profile(filename: str):
             response=specific_profile_path.read_text(),
             status=200,
             mimetype="text/plain",
-            headers={"Cache-Control": "public,max-age=3"},
         )
     except IOError as e:
         publish_to_log(str(e), "get_experiment_profile")
