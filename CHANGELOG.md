@@ -1,4 +1,4 @@
-### Upcoming
+### 23.9.18
  - Fixed bug that ignored `.yml` files
  - Security improvements
  - Ability to create and edit Experiment Profiles in the UI
