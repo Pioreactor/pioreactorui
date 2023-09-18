@@ -46,6 +46,14 @@ def current_utc_timestamp() -> str:
     return to_iso_format(current_utc_datetime())
 
 
+def is_valid_unix_filename(filename):
+    return (
+        bool(re.fullmatch(r"[a-zA-Z0-9._-]+", filename))
+        and "/" not in filename
+        and "\0" not in filename
+    )
+
+
 ## PIOREACTOR CONTROL
 
 
@@ -612,8 +620,12 @@ def get_plugin(filename: str):
 
 @app.route("/api/install_plugin", methods=["POST"])
 def install_plugin():
+    # there is a security problem here. See https://github.com/Pioreactor/pioreactor/issues/421
+    # a crappy solution is to check if the plugin_name is on our safelist
     body = request.get_json()
-    background_tasks.pios_install_plugin(body["plugin_name"])
+    plugin_name = body["plugin_name"]
+
+    background_tasks.pios_install_plugin(plugin_name)
     return Response(status=202)
 
 
@@ -645,23 +657,23 @@ def get_automation_contrib(automation_type: str):
             / "automations"
             / automation_type
         )
-        files = sorted(automation_path_default.glob("*.y[a]ml")) + sorted(
-            automation_path_plugins.glob("*.y[a]ml")
+        files = sorted(automation_path_default.glob("*.y*ml")) + sorted(
+            automation_path_plugins.glob("*.y*ml")
         )
 
-        parsed_yaml = []
+        # we dedup based on 'automation_name'.
+        parsed_yaml = {}
         for file in files:
             try:
-                parsed_yaml.append(
-                    yaml_decode(file.read_bytes(), type=structs.AutomationDescriptor)
-                )
+                decoded_yaml = yaml_decode(file.read_bytes(), type=structs.AutomationDescriptor)
+                parsed_yaml[decoded_yaml.automation_name] = decoded_yaml
             except ValidationError as e:
                 publish_to_error_log(
                     f"Yaml error in {Path(file).name}: {e}", "get_automation_contrib"
                 )
 
         return Response(
-            response=json_encode(parsed_yaml),
+            response=json_encode(list(parsed_yaml.values())),
             status=200,
             mimetype="application/json",
             headers={"Cache-Control": "public,max-age=6"},
@@ -678,21 +690,20 @@ def get_job_contrib():
     try:
         job_path_default = Path(env["WWW"]) / "contrib" / "jobs"
         job_path_plugins = Path(env["DOT_PIOREACTOR"]) / "plugins" / "ui" / "contrib" / "jobs"
-        files = sorted(job_path_default.glob("*.y[a]ml")) + sorted(
-            job_path_plugins.glob("*.y[a]ml")
-        )
+        files = sorted(job_path_default.glob("*.y*ml")) + sorted(job_path_plugins.glob("*.y*ml"))
 
-        parsed_yaml = []
+        # we dedup based on 'job_name'.
+        parsed_yaml = {}
+
         for file in files:
             try:
-                parsed_yaml.append(
-                    yaml_decode(file.read_bytes(), type=structs.BackgroundJobDescriptor)
-                )
+                decoded_yaml = yaml_decode(file.read_bytes(), type=structs.BackgroundJobDescriptor)
+                parsed_yaml[decoded_yaml.job_name] = decoded_yaml
             except ValidationError as e:
                 publish_to_error_log(f"Yaml error in {Path(file).name}: {e}", "get_job_contrib")
 
         return Response(
-            response=json_encode(parsed_yaml),
+            response=json_encode(list(parsed_yaml.values())),
             status=200,
             mimetype="application/json",
             headers={"Cache-Control": "public,max-age=6"},
@@ -708,18 +719,21 @@ def get_charts_contrib():
     try:
         chart_path_default = Path(env["WWW"]) / "contrib" / "charts"
         chart_path_plugins = Path(env["DOT_PIOREACTOR"]) / "plugins" / "ui" / "contrib" / "charts"
-        files = sorted(chart_path_default.glob("*.y[a]ml")) + sorted(
-            chart_path_plugins.glob("*.y[a]ml")
+        files = sorted(chart_path_default.glob("*.y*ml")) + sorted(
+            chart_path_plugins.glob("*.y*ml")
         )
-        parsed_yaml = []
+
+        # we dedup based on chart 'chart_key'.
+        parsed_yaml = {}
         for file in files:
             try:
-                parsed_yaml.append(yaml_decode(file.read_bytes(), type=structs.ChartDescriptor))
+                decoded_yaml = yaml_decode(file.read_bytes(), type=structs.ChartDescriptor)
+                parsed_yaml[decoded_yaml.chart_key] = decoded_yaml
             except ValidationError as e:
                 publish_to_error_log(f"Yaml error in {Path(file).name}: {e}", "get_charts_contrib")
 
         return Response(
-            response=json_encode(parsed_yaml),
+            response=json_encode(list(parsed_yaml.values())),
             status=200,
             mimetype="application/json",
             headers={"Cache-Control": "public,max-age=6"},
@@ -1210,23 +1224,24 @@ def is_local_access_point_active():
 ### experiment profiles
 
 
-@app.route("/api/experiment_profiles", methods=["POST"])
+@app.route("/api/contrib/experiment_profiles", methods=["POST"])
 def add_new_experiment_profile():
     body = request.get_json()
-    experiment_profile_body = body["experiment_profile_body"]
-    experiment_profile_filename = Path(body["experiment_profile_filename"]).name
+    experiment_profile_body = body["body"]
+    experiment_profile_filename = Path(body["filename"]).name
 
     # verify content
     try:
-        assert len(experiment_profile_body) <= 50000
+        assert len(experiment_profile_body) <= 50000, "Too long"
         yaml_decode(experiment_profile_body, type=structs.Profile)
     except Exception as e:
         msg = f"{e}"
         publish_to_error_log(msg, "add_new_experiment_profile")
         return {"msg": msg}, 400
 
-    # verify file type
+    # verify file
     try:
+        assert is_valid_unix_filename(experiment_profile_filename)
         assert experiment_profile_filename.endswith(
             ".yaml"
         ) or experiment_profile_filename.endswith(".yml")
@@ -1244,11 +1259,11 @@ def add_new_experiment_profile():
     return Response(status=200)
 
 
-@app.route("/api/experiment_profiles", methods=["GET"])
+@app.route("/api/contrib/experiment_profiles", methods=["GET"])
 def get_experiment_profiles():
     try:
         profile_path_plugins = Path(env["DOT_PIOREACTOR"]) / "experiment_profiles"
-        files = sorted(profile_path_plugins.glob("*.y[a]ml"))
+        files = sorted(profile_path_plugins.glob("*.y*ml"))
 
         parsed_yaml = []
         for file in files:
@@ -1264,14 +1279,13 @@ def get_experiment_profiles():
             response=json_encode(parsed_yaml),
             status=200,
             mimetype="application/json",
-            headers={"Cache-Control": "public,max-age=6"},
         )
     except Exception as e:
         publish_to_error_log(str(e), "get_experiment_profiles")
         return Response(status=400)
 
 
-@app.route("/api/experiment_profiles/<filename>", methods=["GET"])
+@app.route("/api/contrib/experiment_profiles/<filename>", methods=["GET"])
 def get_experiment_profile(filename: str):
     file = Path(filename).name
     try:
@@ -1283,13 +1297,31 @@ def get_experiment_profile(filename: str):
             response=specific_profile_path.read_text(),
             status=200,
             mimetype="text/plain",
-            headers={"Cache-Control": "public,max-age=20"},
         )
     except IOError as e:
         publish_to_log(str(e), "get_experiment_profile")
         return Response(status=404)
     except Exception as e:
         publish_to_error_log(str(e), "get_experiment_profile")
+        return Response(status=500)
+
+
+@app.route("/api/contrib/experiment_profiles/<filename>", methods=["DELETE"])
+def delete_experiment_profile(filename: str):
+    file = Path(filename).name
+    try:
+        if not (Path(file).suffix == ".yaml" or Path(file).suffix == ".yml"):
+            raise IOError("must provide a YAML file")
+
+        specific_profile_path = Path(env["DOT_PIOREACTOR"]) / "experiment_profiles" / file
+        background_tasks.rm(specific_profile_path)
+        publish_to_log(f"Deleted profile {filename}.", "delete_experiment_profile")
+        return Response(status=200)
+    except IOError as e:
+        publish_to_log(str(e), "delete_experiment_profile")
+        return Response(status=404)
+    except Exception as e:
+        publish_to_error_log(str(e), "delete_experiment_profile")
         return Response(status=500)
 
 
