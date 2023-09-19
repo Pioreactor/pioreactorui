@@ -140,6 +140,13 @@ def reboot_unit(unit: str):
     return Response(status=202)
 
 
+@app.route("/api/shutdown/<unit>", methods=["POST"])
+def shutdown_unit(unit: str):
+    """Shutdown unit"""
+    background_tasks.pios("shutdown", "-y", "--units", unit)
+    return Response(status=202)
+
+
 ## DATA FOR CARDS ON OVERVIEW
 
 
