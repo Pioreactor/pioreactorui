@@ -1,3 +1,6 @@
+### 23.9.19
+ - Adding a RPi shutdown button to the UI.
+
 ### 23.9.18
  - Fixed bug that ignored `.yml` files
  - Security improvements
