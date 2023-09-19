@@ -9,7 +9,7 @@
 
 ### 23.8.28
  - Pioreactor's IPv4 and hostname is now displayed under System in the UI.
- - added another self-test test to confirm that an aturbid liquid in vial will produce a near 0 signal.
+ - added another self-tegst test to confirm that an aturbid liquid in vial will produce a near 0 signal.
  - general improvements to self-test
 
 ### 23.7.31
