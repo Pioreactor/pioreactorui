@@ -1,3 +1,6 @@
+### 23.9.20
+ - Fixing /updates bug
+
 ### 23.9.19
  - Adding a RPi shutdown button to the UI.
 
