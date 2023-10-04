@@ -1,5 +1,5 @@
 ---
-display_name: Turbidostat
+display_name: Turbidostat targeting nOD
 automation_name: turbidostat
 description: Every half-minute, check if the normalized OD is above target normalized OD. If so, exchange volume amount. For high growth cultures (for example, h⁻¹ > 1.0), try a volume larger than 2.0 mL.
 fields:

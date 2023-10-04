@@ -1,3 +1,6 @@
+### 23.10.4
+ - Adding "install plugin by name" button to UI.
+
 ### 23.9.20
  - Fixing /updates bug
 
