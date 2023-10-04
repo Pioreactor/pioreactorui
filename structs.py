@@ -100,6 +100,7 @@ Jobs = dict[JobName, dict[t.Literal["actions"], list[Action]]]
 
 
 class Profile(Struct):
+    # should be the same as in pioreactor/experiment_profiles/profile_struct.py
     experiment_profile_name: str
     metadata: Metadata = field(default_factory=Metadata)
     plugins: list[Plugin] = []
