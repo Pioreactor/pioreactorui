@@ -1,3 +1,6 @@
+### 23.10.10
+ - Fix bug that wasn't allowing for manual dosing / LED updates.
+
 ### 23.10.4
  - Adding "install plugin by name" button to UI.
 
