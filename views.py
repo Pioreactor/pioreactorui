@@ -1217,16 +1217,17 @@ def get_historical_config_for(filename: str):
     return jsonify(configs_for_filename)
 
 
-@app.route("/api/is_local_access_point_active", methods=["GET"])
-@cache.memoize(expire=None)
-def is_local_access_point_active():
-    import os
-
-    if os.environ.get("LOCAL_ACCESS_POINT") == "1":
-        return "true"
-    else:
-        return "false"
-
+# no one sets LOCAL_ACCESS_POINT...
+# @app.route("/api/is_local_access_point_active", methods=["GET"])
+# @cache.memoize(expire=None)
+# def is_local_access_point_active():
+#     import os
+#
+#     if os.environ.get("LOCAL_ACCESS_POINT") == "1":
+#         return "true"
+#     else:
+#         return "false"
+#
 
 ### experiment profiles
 
