@@ -1,3 +1,8 @@
+### 23.10.20
+ - Prepare for bookworm release
+ - Adding ability to change x-axis to duration since experiment start, instead of clock time.
+ - small UI improvements
+
 ### 23.10.10
  - Fix bug that wasn't allowing for manual dosing / LED updates.
 
