@@ -1222,7 +1222,7 @@ def get_historical_config_for(filename: str):
 def is_local_access_point_active():
     import os
 
-    if os.environ.get("LOCAL_ACCESS_POINT") == "1":
+    if os.path.isfile("/boot/firmware/local_access_point"):
         return "true"
     else:
         return "false"
