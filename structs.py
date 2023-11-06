@@ -87,7 +87,7 @@ class Plugin(Struct):
 
 
 class Action(Struct):
-    type: t.Literal["start", "pause", "resume", "stop", "update"]
+    type: t.Literal["start", "pause", "resume", "stop", "update", "log"]
     hours_elapsed: float
     options: dict[str, t.Any] = {}
     args: list[str] = []
@@ -104,6 +104,7 @@ class Profile(Struct):
     experiment_profile_name: str
     metadata: Metadata = field(default_factory=Metadata)
     plugins: list[Plugin] = []
+    stop_on_exit: bool = False
     labels: dict[PioreactorUnitName, PioreactorLabel] = {}
     common: Jobs = {}
     pioreactors: dict[

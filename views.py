@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import configparser
+import os
 import re
 import sqlite3
 import subprocess
@@ -588,7 +589,7 @@ def get_installed_plugins():
 
     result = background_tasks.pio("list-plugins", "--json")
     try:
-        status, msg = result(blocking=True, timeout=10)
+        status, msg = result(blocking=True, timeout=20)
     except HueyException:
         status, msg = False, "Timed out."
 
@@ -625,10 +626,22 @@ def get_plugin(filename: str):
         return Response(status=500)
 
 
+@app.route("/api/alllow_ui_installs", methods=["GET"])
+@cache.memoize(expire=None)
+def able_to_install_plugins_from_ui():
+
+    if os.path.isfile(Path(env["DOT_PIOREACTOR"]) / "DISALLOW_UI_INSTALLS"):
+        return "false"
+    else:
+        return "true"
+
+
 @app.route("/api/install_plugin", methods=["POST"])
 def install_plugin():
     # there is a security problem here. See https://github.com/Pioreactor/pioreactor/issues/421
-    # a crappy solution is to check if the plugin_name is on our safelist
+    if os.path.isfile(Path(env["DOT_PIOREACTOR"]) / "DISALLOW_UI_INSTALLS"):
+        return Response(status=403)
+
     body = request.get_json()
     plugin_name = body["plugin_name"]
 
@@ -1062,7 +1075,7 @@ def setup_worker_pioreactor():
         return {"msg": str(e)}, 500
 
     try:
-        status, msg = result(blocking=True, timeout=60)
+        status, msg = result(blocking=True, timeout=180)
     except HueyException:
         status, msg = False, "Timed out, see logs."
 
@@ -1220,8 +1233,6 @@ def get_historical_config_for(filename: str):
 @app.route("/api/is_local_access_point_active", methods=["GET"])
 @cache.memoize(expire=None)
 def is_local_access_point_active():
-    import os
-
     if os.path.isfile("/boot/firmware/local_access_point"):
         return "true"
     else:
@@ -1269,8 +1280,8 @@ def add_new_experiment_profile():
 @app.route("/api/contrib/experiment_profiles", methods=["GET"])
 def get_experiment_profiles():
     try:
-        profile_path_plugins = Path(env["DOT_PIOREACTOR"]) / "experiment_profiles"
-        files = sorted(profile_path_plugins.glob("*.y*ml"))
+        profile_path = Path(env["DOT_PIOREACTOR"]) / "experiment_profiles"
+        files = sorted(profile_path.glob("*.y*ml"))
 
         parsed_yaml = []
         for file in files:
