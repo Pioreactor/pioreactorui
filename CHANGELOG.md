@@ -1,3 +1,6 @@
+### 23.11.08
+ - some updates for the 23.11.08 release of Pioreactor software.
+
 ### 23.10.20
  - Prepare for bookworm release
  - Adding ability to change x-axis to duration since experiment start, instead of clock time.
