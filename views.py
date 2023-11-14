@@ -33,6 +33,14 @@ from config import cache
 from config import env
 
 
+def scrub_to_valid(value: str):
+    if value is None:
+        raise ValueError()
+    elif value.startswith("sqlite_"):
+        raise ValueError()
+    return "".join(chr for chr in value if (chr.isalnum() or chr == "_"))
+
+
 def current_utc_datetime() -> datetime:
     # this is timezone aware.
     return datetime.now(timezone.utc)
@@ -355,13 +363,15 @@ def get_od_readings(experiment: str):
 
 
 @app.route("/api/time_series/<data_source>/<experiment>/<column>", methods=["GET"])
-@cache.memoize(expire=30)
+@cache.memoize(expire=15)
 def get_fallback_time_series(data_source: str, experiment: str, column: str):
     args = request.args
-    lookback = float(args.get("lookback", 4.0))
     try:
+        lookback = float(args.get("lookback", 4.0))
+        data_source = scrub_to_valid(data_source)
+        column = scrub_to_valid(column)
         r = query_db(
-            f"SELECT json_object('series', json_group_array(unit), 'data', json_group_array(json(data))) as result FROM (SELECT pioreactor_unit as unit, json_group_array(json_object('x', timestamp, 'y', round({column}, 7))) as data FROM {data_source} WHERE experiment=? AND timestamp > strftime('%Y-%m-%dT%H:%M:%S', datetime('now',?)) GROUP BY 1);",
+            f"SELECT json_object('series', json_group_array(unit), 'data', json_group_array(json(data))) as result FROM (SELECT pioreactor_unit as unit, json_group_array(json_object('x', timestamp, 'y', round({column}, 7))) as data FROM {data_source} WHERE experiment=? AND timestamp > strftime('%Y-%m-%dT%H:%M:%S', datetime('now',?)) and {column} IS NOT NULL GROUP BY 1);",
             (experiment, f"-{lookback} hours"),
             one=True,
         )
@@ -510,7 +520,6 @@ def get_calibration_by_name(pioreactor_unit: str, calibration_type: str, calibra
     "/api/calibrations/<pioreactor_unit>/<calibration_type>/<calibration_name>", methods=["PATCH"]
 )
 def patch_calibrations(pioreactor_unit: str, calibration_type: str, calibration_name: str):
-
     body = request.get_json()
 
     if "current" in body and body["current"] == 1:
@@ -584,9 +593,8 @@ def create_or_update_new_calibrations():
 
 
 @app.route("/api/installed_plugins", methods=["GET"])
-@cache.memoize(expire=30, tag="plugins")
+@cache.memoize(expire=15, tag="plugins")
 def get_installed_plugins():
-
     result = background_tasks.pio("list-plugins", "--json")
     try:
         status, msg = result(blocking=True, timeout=20)
@@ -629,7 +637,6 @@ def get_plugin(filename: str):
 @app.route("/api/alllow_ui_installs", methods=["GET"])
 @cache.memoize(expire=None)
 def able_to_install_plugins_from_ui():
-
     if os.path.isfile(Path(env["DOT_PIOREACTOR"]) / "DISALLOW_UI_INSTALLS"):
         return "false"
     else:
@@ -662,7 +669,6 @@ def uninstall_plugin():
 @app.route("/api/contrib/automations/<automation_type>", methods=["GET"])
 @cache.memoize(expire=20, tag="plugins")
 def get_automation_contrib(automation_type: str):
-
     # security to prevent possibly reading arbitrary file
     if automation_type not in {"temperature", "dosing", "led"}:
         return Response(status=400)
@@ -706,7 +712,6 @@ def get_automation_contrib(automation_type: str):
 @app.route("/api/contrib/jobs", methods=["GET"])
 @cache.memoize(expire=20, tag="plugins")
 def get_job_contrib():
-
     try:
         job_path_default = Path(env["WWW"]) / "contrib" / "jobs"
         job_path_plugins = Path(env["DOT_PIOREACTOR"]) / "plugins" / "ui" / "contrib" / "jobs"
@@ -935,9 +940,7 @@ def get_latest_experiment():
 @app.route("/api/unit_labels/<experiment>", methods=["GET"])
 @cache.memoize(expire=30, tag="unit_labels")
 def get_unit_labels(experiment):
-
     try:
-
         if experiment == "current":
             unit_labels = query_db(
                 "SELECT r.pioreactor_unit as unit, r.label FROM pioreactor_unit_labels AS r JOIN latest_experiment USING (experiment);"
@@ -1051,7 +1054,6 @@ def update_experiment(experiment):
 
     body = request.get_json()
     try:
-
         if "description" in body:
             modify_db(
                 "UPDATE experiments SET description = (?) WHERE experiment=(?)",
@@ -1098,7 +1100,6 @@ def get_config(filename: str):
     filename = Path(filename).name
 
     try:
-
         assert Path(filename).suffix == ".ini"
 
         specific_config_path = Path(env["DOT_PIOREACTOR"]) / filename

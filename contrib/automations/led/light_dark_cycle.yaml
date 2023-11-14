@@ -9,7 +9,7 @@ fields:
     label: Duration between checks
     disabled: True
   - key: light_intensity
-    default: 50
+    default: 5
     unit: "%"
     label: Light intensity
   - key: light_duration_minutes
