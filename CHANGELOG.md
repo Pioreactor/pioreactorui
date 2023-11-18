@@ -1,3 +1,9 @@
+### 23.11.18
+ - The "Label" step in the New Experiment flow is skipped if there is only 1 active Pioreactor in the cluster.
+ - Simplify some UI elements.
+ - Security improvements
+ - Reduce the default LED intensity in `light_dark_cycle` from 50% to 5%. This is more appropriate for sparse cultures.
+
 ### 23.11.08
  - some updates for the 23.11.08 release of Pioreactor software.
 
