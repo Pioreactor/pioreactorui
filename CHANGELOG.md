@@ -1,3 +1,8 @@
+### 23.11.27
+ - The "Stop" button is always available now in the "Dosing" tab for "Manage all Pioreactors".
+ - Fix for Ngrok remote access
+ - When using "hours" for charts, this also changes the Log Table's "time" column
+
 ### 23.11.18
  - The "Label" step in the New Experiment flow is skipped if there is only 1 active Pioreactor in the cluster.
  - Simplify some UI elements.
