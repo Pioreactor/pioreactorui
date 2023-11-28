@@ -7,3 +7,4 @@ fields:
     default: 25
     unit: ℃
     label: Target temperature
+    type: numeric

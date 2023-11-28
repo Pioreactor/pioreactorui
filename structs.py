@@ -34,6 +34,7 @@ class AutomationPublishedSettingsDescriptor(Struct, forbid_unknown_fields=True):
     unit: t.Optional[str]
     label: str
     disabled: bool = False
+    type: t.Literal["numeric", "string"] = "numeric"  # later, we will include boolean
 
 
 class AutomationDescriptor(Struct, forbid_unknown_fields=True):  # type: ignore

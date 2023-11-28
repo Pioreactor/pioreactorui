@@ -7,7 +7,9 @@ fields:
     default: 720
     unit: min
     label: Duration between additions
+    type: numeric
   - key: volume
     default: 1.0
     unit: mL
     label: Volume / dose
+    type: numeric

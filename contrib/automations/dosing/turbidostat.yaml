@@ -12,16 +12,20 @@ fields:
     default: null
     unit: AU
     label: Target nOD
+    type: numeric
   - key: target_od
     default: null
     unit: OD
     label: Target OD
+    type: numeric
   - key: volume
     default: 2.0
     unit: mL
     label: Volume
+    type: numeric
   - key: duration
     default: 0.5
     unit: min
     label: Time between check
     disabled: True
+    type: numeric

@@ -7,11 +7,14 @@ fields:
     default: 60
     unit: min
     label: Time between events
+    type: numeric
   - key: target_normalized_od
     default: 1.5
     unit: AU
     label: Target OD
+    type: numeric
   - key: target_growth_rate
     default: 0.1
     unit: h⁻¹
     label: Target growth rate
+    type: numeric
