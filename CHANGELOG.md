@@ -1,3 +1,7 @@
+### 23.11.29
+ - new `type` for fields of automations. Currently available: `numeric` and `string`
+ - light validation for automation forms
+
 ### 23.11.28
  - Include both Target nOD and Target OD.
 

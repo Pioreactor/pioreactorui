@@ -8,15 +8,19 @@ fields:
     unit: min
     label: Duration between checks
     disabled: True
+    type: numeric
   - key: light_intensity
     default: 5
     unit: "%"
     label: Light intensity
+    type: numeric
   - key: light_duration_minutes
     unit: min
     label: Light duration
     default: 960
+    type: numeric
   - key: dark_duration_minutes
     unit: min
     label: Dark duration
     default: 480
+    type: numeric
