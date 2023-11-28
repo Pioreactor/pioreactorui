@@ -30,7 +30,7 @@ class BackgroundJobDescriptor(Struct, forbid_unknown_fields=True):  # type: igno
 
 class AutomationPublishedSettingsDescriptor(Struct, forbid_unknown_fields=True):  # type: ignore
     key: str
-    default: t.Union[str, float, int]
+    default: t.Union[str, float, int, None]
     unit: t.Optional[str]
     label: str
     disabled: bool = False
