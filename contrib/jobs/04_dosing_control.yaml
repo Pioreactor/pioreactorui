@@ -20,13 +20,20 @@ published_settings:
     default: null
     display: true
     description: Change the volume per dilution. Typical values are between 0.0mL and 2.0mL.
-  - key: target_od
+  - key: target_normalized_od
     unit: AU
+    label: Target nOD
+    type: numeric
+    default: null
+    display: true
+    description: Change the target normalized optical density. Typical values are between 1.0 AU and 10.0 AU.
+  - key: target_od
+    unit: OD
     label: Target OD
     type: numeric
     default: null
     display: true
-    description: Change the target optical density. Typical values are between 1.0 and 2.5 (arbitrary units)
+    description: Change the target optical density. Only used if running "Turbidostat Targeting OD" automation.
   - key: automation_name
     type: string
     display: false
