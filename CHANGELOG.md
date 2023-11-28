@@ -1,6 +1,12 @@
+### 23.11.30
+ - The automation form in the UI for pid_morbidostat was missing `volume`, that's been added now.
+ - UI tweaks
+
 ### 23.11.29
  - new `type` for fields of automations. Currently available: `numeric` and `string`
  - light validation for automation forms
+ - Merged the turbidostat automations into one. You can either select target target nOD or target OD, but not both!
+
 
 ### 23.11.28
  - Include both Target nOD and Target OD.
