@@ -1,3 +1,6 @@
+### 23.11.28
+ - Include both Target nOD and Target OD.
+
 ### 23.11.27
  - The "Stop" button is always available now in the "Dosing" tab for "Manage all Pioreactors".
  - Fix for Ngrok remote access
