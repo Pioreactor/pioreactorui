@@ -7,3 +7,4 @@ fields:
     default: 30
     unit: min
     label: Duration between events
+    type: numeric
