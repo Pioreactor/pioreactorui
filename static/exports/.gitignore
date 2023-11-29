@@ -1,0 +1,6 @@
+# We need a /export dir for exported Pioreactor data to go into, this .gitignore allows use to keep
+# this empty dir as part of the bundle.
+# Ignore everything in this directory
+*
+# Except this file
+!.gitignore
