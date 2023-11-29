@@ -1,3 +1,7 @@
+### 23.11.31
+ - Fix for exporting data from the UI
+
+
 ### 23.11.30
  - The automation form in the UI for pid_morbidostat was missing `volume`, that's been added now.
  - UI tweaks
