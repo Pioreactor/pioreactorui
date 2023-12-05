@@ -75,7 +75,7 @@ def update_app_to_develop() -> bool:
 
 
 @huey.task()
-def update_app_from_release_archive(archive_location) -> bool:
+def update_app_from_release_archive(archive_location: str) -> bool:
     logger.info(f"Updating app on leader from {archive_location}")
     update_app_on_leader = ["pio", "update", "app", "--source", archive_location]
     run(update_app_on_leader)
@@ -90,6 +90,9 @@ def update_app_from_release_archive(archive_location) -> bool:
     update_ui_on_leader = ["pio", "update", "ui", "--source", "/tmp/pioreactorui_archive"]
     run(update_ui_on_leader)
     cache.evict("app")
+
+    # remove bits
+    run(["rm", f"/tmp/{archive_location}", "/tmp/pioreactorui_archive"])
     return True
 
 
