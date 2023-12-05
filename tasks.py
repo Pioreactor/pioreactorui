@@ -75,6 +75,25 @@ def update_app_to_develop() -> bool:
 
 
 @huey.task()
+def update_app_from_release_archive(archive_location) -> bool:
+    logger.info(f"Updating app on leader from {archive_location}")
+    update_app_on_leader = ["pio", "update", "app", "--source", archive_location]
+    run(update_app_on_leader)
+
+    logger.info("Updating app to development on workers")
+    distribute_archive_to_workers = ["pios", "cp", archive_location, "-y"]
+    run(distribute_archive_to_workers)
+    update_app_across_all_workers = ["pios", "update", "--source", archive_location, "-y"]
+    run(update_app_across_all_workers)
+
+    logger.info("Updating UI to development on leader")
+    update_ui_on_leader = ["pio", "update", "ui", "--source", "/tmp/pioreactorui_archive"]
+    run(update_ui_on_leader)
+    cache.evict("app")
+    return True
+
+
+@huey.task()
 def pio(*args) -> tuple[bool, str]:
     logger.info(f'Executing `{" ".join(("pio",) + args)}`')
     result = run(("pio",) + args, capture_output=True, text=True)
