@@ -626,7 +626,7 @@ def upload():
     # empty file without a filename.
     if file.filename == "":
         return jsonify({"error": "No selected file"}), 400
-    if file.content_length >= 20_000_000:
+    if file.content_length >= 30_000_000:  # 30mb?
         return jsonify({"error": "Too large"}), 400
 
     if file:
