@@ -87,7 +87,13 @@ def update_app_from_release_archive(archive_location: str) -> bool:
     run(update_app_across_all_workers)
 
     logger.info("Updating UI to development on leader")
-    update_ui_on_leader = ["pio", "update", "ui", "--source", "/tmp/pioreactorui_archive"]
+    update_ui_on_leader = [
+        "pio",
+        "update",
+        "ui",
+        "--source",
+        "/tmp/pioreactorui_archive",
+    ]  # this /tmp location is added during `pio update app`, kinda gross
     run(update_ui_on_leader)
     cache.evict("app")
 
@@ -107,7 +113,7 @@ def pio(*args) -> tuple[bool, str]:
 
 
 @huey.task()
-def rm(path) -> tuple[bool, str]:
+def rm(path: str) -> tuple[bool, str]:
     logger.info(f"Deleting {path}.")
     result = run(["rm", path], capture_output=True, text=True)
     if result.returncode != 0:
@@ -127,7 +133,7 @@ def pios(*args) -> tuple[bool, str]:
 
 
 @huey.task()
-def pios_install_plugin(plugin_name) -> tuple[bool, str]:
+def pios_install_plugin(plugin_name: str) -> tuple[bool, str]:
     logger.info(f"Executing `pios install-plugin {plugin_name}`")
     result = run(("pios", "install-plugin", plugin_name), capture_output=True, text=True)
     cache.evict("plugins")
@@ -139,7 +145,7 @@ def pios_install_plugin(plugin_name) -> tuple[bool, str]:
 
 
 @huey.task()
-def pios_uninstall_plugin(plugin_name) -> tuple[bool, str]:
+def pios_uninstall_plugin(plugin_name: str) -> tuple[bool, str]:
     logger.info(f"Executing `pios uninstall-plugin {plugin_name}`")
     result = run(("pios", "uninstall-plugin", plugin_name), capture_output=True, text=True)
     cache.evict("plugins")
