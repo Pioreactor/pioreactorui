@@ -1,3 +1,6 @@
+### 23.12.10
+ - Ability to update via our release_archives (available on the github release page) via the UI. To turn this feature off (which is a recommended practice when you expose your UI publically), add an empty file called `DISALLOW_UI_UPLOADS` to the `~/.pioreactor` directory.
+
 ### 23.11.31
  - Fix for exporting data from the UI
 
