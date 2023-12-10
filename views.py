@@ -6,6 +6,7 @@ import os
 import re
 import sqlite3
 import subprocess
+import tempfile
 from datetime import datetime
 from datetime import timezone
 from pathlib import Path
@@ -19,6 +20,7 @@ from msgspec import ValidationError
 from msgspec.json import decode as json_decode
 from msgspec.json import encode as json_encode
 from msgspec.yaml import decode as yaml_decode
+from werkzeug.utils import secure_filename
 
 import structs
 import tasks as background_tasks
@@ -610,6 +612,30 @@ def get_installed_plugins():
         return plugins_as_json
 
 
+@app.route("/api/upload", methods=["POST"])
+def upload():
+    if os.path.isfile(Path(env["DOT_PIOREACTOR"]) / "DISALLOW_UI_UPLOADS"):
+        return Response(status=403)
+
+    if "file" not in request.files:
+        return jsonify({"error": "No file part"}), 400
+
+    file = request.files["file"]
+
+    # If the user does not select a file, the browser submits an
+    # empty file without a filename.
+    if file.filename == "":
+        return jsonify({"error": "No selected file"}), 400
+    if file.content_length >= 30_000_000:  # 30mb?
+        return jsonify({"error": "Too large"}), 400
+
+    if file:
+        filename = secure_filename(file.filename)
+        save_path = os.path.join(tempfile.gettempdir(), filename)
+        file.save(save_path)
+        return jsonify({"message": "File successfully uploaded", "save_path": save_path}), 200
+
+
 @app.route("/api/installed_plugins/<filename>", methods=["GET"])
 def get_plugin(filename: str):
     """get a specific Python file in the .pioreactor/plugin folder"""
@@ -777,6 +803,15 @@ def update_app():
 @app.route("/api/update_app_to_develop", methods=["POST"])
 def update_app_to_develop():
     background_tasks.update_app_to_develop()
+    return Response(status=202)
+
+
+@app.route("/api/update_app_from_release_archive", methods=["POST"])
+def update_app_from_release_archive():
+    body = request.get_json()
+    release_archive_location = body["release_archive_location"]
+    assert release_archive_location.endswith(".zip")
+    background_tasks.update_app_from_release_archive(release_archive_location)
     return Response(status=202)
 
 
