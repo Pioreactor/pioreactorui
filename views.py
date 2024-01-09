@@ -1239,7 +1239,7 @@ def update_config(filename):
     result = background_tasks.write_config_and_sync(config_path, code, units, flags)
 
     try:
-        status, msg_or_exception = result(blocking=True, timeout=60)
+        status, msg_or_exception = result(blocking=True, timeout=75)
     except HueyException:
         status, msg_or_exception = False, "sync-configs timed out."
 

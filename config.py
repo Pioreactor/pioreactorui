@@ -15,7 +15,7 @@ from huey import SqliteHuey
 
 CACHE_DIR = Path(tempfile.gettempdir()) / "pioreactorui_cache"
 
-env = dotenv_values(".env")
+env = dotenv_values(".env", verbose=True)
 huey = SqliteHuey(filename=CACHE_DIR / "huey.db")
 
 
