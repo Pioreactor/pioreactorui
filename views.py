@@ -599,7 +599,7 @@ def create_or_update_new_calibrations():
 def get_installed_plugins():
     result = background_tasks.pio("list-plugins", "--json")
     try:
-        status, msg = result(blocking=True, timeout=20)
+        status, msg = result(blocking=True, timeout=120)
     except HueyException:
         status, msg = False, "Timed out."
 
@@ -1112,7 +1112,7 @@ def setup_worker_pioreactor():
         return {"msg": str(e)}, 500
 
     try:
-        status, msg = result(blocking=True, timeout=180)
+        status, msg = result(blocking=True, timeout=250)
     except HueyException:
         status, msg = False, "Timed out, see logs."
 
