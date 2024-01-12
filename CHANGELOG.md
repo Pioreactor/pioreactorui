@@ -1,4 +1,4 @@
-### Upcoming
+### 24.1.12
  - fix initial state of boolean switches
 
 ### 24.1.8
