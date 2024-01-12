@@ -1,3 +1,6 @@
+### 24.1.12
+ - fix initial state of boolean switches
+
 ### 24.1.8
  - added MAC address to system tab
  - fixing export bug
