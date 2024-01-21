@@ -2,7 +2,7 @@
 chart_key: raw_optical_density
 data_source: od_readings # SQL table
 title: Optical density
-mqtt_topic: od_reading/od/+
+mqtt_topic: [od_reading/od1, od_reading/od2]
 source: app
 payload_key: od
 y_axis_label: Reading
