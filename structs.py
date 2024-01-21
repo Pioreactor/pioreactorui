@@ -104,12 +104,12 @@ class _LogOptions(Struct):
 class Log(Struct, tag=str.lower, forbid_unknown_fields=True):
     hours_elapsed: float
     options: _LogOptions
-    if_: str = field(name="if", default="True")
+    if_: t.Optional[str] = field(name="if", default=None)
 
 
 class _Action(Struct, tag=str.lower, forbid_unknown_fields=True):
     hours_elapsed: float
-    if_: str = field(name="if", default="True")
+    if_: t.Optional[str] = field(name="if", default=None)
 
 
 class Start(_Action, tag=str.lower, forbid_unknown_fields=True):
@@ -138,10 +138,18 @@ Action = t.Union[Log, Start, Pause, Stop, Update, Resume]
 #######
 
 
+class Job(Struct, forbid_unknown_fields=True):
+    actions: list[Action]
+    # description?
+    # metadata?
+    # calibration_settings?
+    # config_options?
+
+
 PioreactorUnitName = str
 PioreactorLabel = str
 JobName = str
-Jobs = dict[JobName, dict[t.Literal["actions"], list[Action]]]
+Jobs = dict[JobName, Job]
 
 
 class PioreactorSpecificBlock(Struct, forbid_unknown_fields=True):
@@ -149,6 +157,7 @@ class PioreactorSpecificBlock(Struct, forbid_unknown_fields=True):
     label: t.Optional[str] = None
     # calibration_settings?
     # config_options?
+    # description?
 
 
 class CommonBlock(Struct, forbid_unknown_fields=True):
