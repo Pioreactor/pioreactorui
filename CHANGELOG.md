@@ -1,3 +1,11 @@
+### 23.1.25
+ - Update experiment profiles:
+  - fix errors when there are no profiles
+  - highlights
+  - update to new profile schema
+ - Updates for new OD topics in MQTT
+ - Update chart schema to allow for lists in `mqtt_topic`
+
 ### 24.1.12
  - fix initial state of boolean switches
 
