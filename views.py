@@ -1279,7 +1279,7 @@ def is_local_access_point_active():
 
 
 @app.route("/api/contrib/experiment_profiles", methods=["POST"])
-def add_new_experiment_profile():
+def create_experiment_profile():
     body = request.get_json()
     experiment_profile_body = body["body"]
     experiment_profile_filename = Path(body["filename"]).name
@@ -1290,7 +1290,7 @@ def add_new_experiment_profile():
         yaml_decode(experiment_profile_body, type=structs.Profile)
     except Exception as e:
         msg = f"{e}"
-        publish_to_error_log(msg, "add_new_experiment_profile")
+        publish_to_error_log(msg, "create_experiment_profile")
         return {"msg": msg}, 400
 
     # verify file
@@ -1301,7 +1301,7 @@ def add_new_experiment_profile():
         ) or experiment_profile_filename.endswith(".yml")
     except Exception:
         msg = "Invalid filename"
-        publish_to_error_log(msg, "add_new_experiment_profile")
+        publish_to_error_log(msg, "create_experiment_profile")
         return {"msg": msg}, 400
 
     # save file to disk
