@@ -1317,7 +1317,7 @@ def create_experiment_profile():
 def get_experiment_profiles():
     try:
         profile_path = Path(env["DOT_PIOREACTOR"]) / "experiment_profiles"
-        files = sorted(profile_path.glob("*.y*ml"))
+        files = sorted(profile_path.glob("*.y*ml"), key=os.path.getmtime)
 
         parsed_yaml = []
         for file in files:
