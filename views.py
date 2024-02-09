@@ -120,7 +120,7 @@ def run_job_on_unit(unit: str, job: str):
         client.publish(
             f"pioreactor/{unit}/$experiment/run/{job}",
             request.get_data() or r'{"options": {}, "args": []}',
-            qos=2,
+            qos=1,
         )
     except Exception as e:
         publish_to_error_log(e, "run_job_on_unit")
@@ -225,7 +225,6 @@ def get_logs(experiment):
 
 
 @app.route("/api/time_series/growth_rates/<experiment>", methods=["GET"])
-@cache.memoize(expire=10)
 def get_growth_rates(experiment: str):
     """Gets growth rates for all units"""
     args = request.args
@@ -260,7 +259,6 @@ def get_growth_rates(experiment: str):
 
 
 @app.route("/api/time_series/temperature_readings/<experiment>", methods=["GET"])
-@cache.memoize(expire=10)
 def get_temperature_readings(experiment: str):
     """Gets temperature readings for all units"""
     args = request.args
@@ -295,7 +293,6 @@ def get_temperature_readings(experiment: str):
 
 
 @app.route("/api/time_series/od_readings_filtered/<experiment>", methods=["GET"])
-@cache.memoize(expire=10)
 def get_od_readings_filtered(experiment: str):
     """Gets normalized od for all units"""
     args = request.args
@@ -331,7 +328,6 @@ def get_od_readings_filtered(experiment: str):
 
 
 @app.route("/api/time_series/od_readings/<experiment>", methods=["GET"])
-@cache.memoize(expire=10)
 def get_od_readings(experiment: str):
     """Gets raw od for all units"""
     args = request.args
@@ -365,7 +361,6 @@ def get_od_readings(experiment: str):
 
 
 @app.route("/api/time_series/<data_source>/<experiment>/<column>", methods=["GET"])
-@cache.memoize(expire=15)
 def get_fallback_time_series(data_source: str, experiment: str, column: str):
     args = request.args
     try:
@@ -1286,7 +1281,6 @@ def create_experiment_profile():
 
     # verify content
     try:
-        assert len(experiment_profile_body) <= 50000, "Too long"
         yaml_decode(experiment_profile_body, type=structs.Profile)
     except Exception as e:
         msg = f"{e}"
