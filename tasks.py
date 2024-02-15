@@ -123,6 +123,12 @@ def rm(path: str) -> tuple[bool, str]:
 
 
 @huey.task()
+def get_time(path: str) -> str:
+    result = run(["date"], capture_output=True, text=True)
+    return result.stdout.strip()
+
+
+@huey.task()
 def pios(*args) -> tuple[bool, str]:
     logger.info(f'Executing `{" ".join(("pios",) + args)}`')
     result = run(("pios",) + args, capture_output=True, text=True)

@@ -381,14 +381,14 @@ def get_fallback_time_series(data_source: str, experiment: str, column: str):
 
 
 @app.route("/api/media_rates/current", methods=["GET"])
-@cache.memoize(expire=30)
 def get_current_media_rates():
     """
     Shows amount of added media per unit. Note that it only consider values from a dosing automation (i.e. not manual dosing, which includes continously dose)
 
     """
     ## this one confusing
-    hours = 3
+    args = request.args
+    lookback = float(args.get("lookback", 3.0))
 
     try:
         rows = query_db(
@@ -405,7 +405,7 @@ def get_current_media_rates():
                 source_of_event LIKE 'dosing_automation%'
             GROUP BY d.pioreactor_unit;
             """,
-            (hours, hours),
+            (lookback, lookback),
         )
 
         json_result = {}
@@ -835,6 +835,26 @@ def get_ui_version():
     return VERSION
 
 
+@app.route("/api/cluster_time", methods=["POST"])
+def get_custer_time():
+    result = background_tasks.get_time()
+    timestamp = result(blocking=True, timeout=5)
+    return Response(
+        response=timestamp,
+        status=200,
+        mimetype="text/plain",
+    )
+
+
+@app.route("/api/cluster_time", methods=["GET"])
+def set_cluster_time():
+    # body = request.get_json()
+
+    # timestamp = body["timestamp"]
+    # not implemented
+    return 500
+
+
 @app.route("/api/export_datasets", methods=["POST"])
 def export_datasets():
     body = request.get_json()
@@ -1210,6 +1230,11 @@ def update_config(filename):
             assert config["cluster.topology"]
             assert config.get("cluster.topology", "leader_hostname")
             assert config.get("cluster.topology", "leader_address")
+
+        # other important values for usability
+        if not config.get("remote", "ws_url", fallback="ws").startswith("ws"):
+            raise ValueError("ws_url should start with: ws")
+
     except configparser.DuplicateSectionError as e:
         msg = f"Duplicate section [{e.section}] was found. Please fix and try again."
         publish_to_error_log(msg, "update_config")
@@ -1224,6 +1249,10 @@ def update_config(filename):
         return {"msg": msg}, 400
     except (AssertionError, configparser.NoSectionError, KeyError, TypeError):
         msg = "Missing required field(s) in [cluster.topology]: `leader_hostname` and/or `leader_address`. Please fix and try again."
+        publish_to_error_log(msg, "update_config")
+        return {"msg": msg}, 400
+    except ValueError as e:
+        msg = f"Error: {e}"
         publish_to_error_log(msg, "update_config")
         return {"msg": msg}, 400
     except Exception as e:
