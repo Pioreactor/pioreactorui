@@ -835,7 +835,7 @@ def get_ui_version():
     return VERSION
 
 
-@app.route("/api/cluster_time", methods=["POST"])
+@app.route("/api/cluster_time", methods=["GET"])
 def get_custer_time():
     result = background_tasks.get_time()
     timestamp = result(blocking=True, timeout=5)
@@ -846,7 +846,7 @@ def get_custer_time():
     )
 
 
-@app.route("/api/cluster_time", methods=["GET"])
+@app.route("/api/cluster_time", methods=["POST"])
 def set_cluster_time():
     # body = request.get_json()
 
@@ -1230,10 +1230,6 @@ def update_config(filename):
             assert config["cluster.topology"]
             assert config.get("cluster.topology", "leader_hostname")
             assert config.get("cluster.topology", "leader_address")
-
-        # other important values for usability
-        if not config.get("remote", "ws_url", fallback="ws").startswith("ws"):
-            raise ValueError("ws_url should start with: ws")
 
     except configparser.DuplicateSectionError as e:
         msg = f"Duplicate section [{e.section}] was found. Please fix and try again."
