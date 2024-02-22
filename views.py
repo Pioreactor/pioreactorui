@@ -16,6 +16,7 @@ from flask import jsonify
 from flask import request
 from flask import Response
 from huey.exceptions import HueyException
+from msgspec import DecodeError
 from msgspec import ValidationError
 from msgspec.json import decode as json_decode
 from msgspec.json import encode as json_encode
@@ -714,7 +715,7 @@ def get_automation_contrib(automation_type: str):
             try:
                 decoded_yaml = yaml_decode(file.read_bytes(), type=structs.AutomationDescriptor)
                 parsed_yaml[decoded_yaml.automation_name] = decoded_yaml
-            except ValidationError as e:
+            except (ValidationError, DecodeError) as e:
                 publish_to_error_log(
                     f"Yaml error in {Path(file).name}: {e}", "get_automation_contrib"
                 )
@@ -745,7 +746,7 @@ def get_job_contrib():
             try:
                 decoded_yaml = yaml_decode(file.read_bytes(), type=structs.BackgroundJobDescriptor)
                 parsed_yaml[decoded_yaml.job_name] = decoded_yaml
-            except ValidationError as e:
+            except (ValidationError, DecodeError) as e:
                 publish_to_error_log(f"Yaml error in {Path(file).name}: {e}", "get_job_contrib")
 
         return Response(
@@ -1343,7 +1344,7 @@ def get_experiment_profiles():
             try:
                 profile = yaml_decode(file.read_bytes(), type=structs.Profile)
                 parsed_yaml.append({"experimentProfile": profile, "file": str(file)})
-            except ValidationError as e:
+            except (ValidationError, DecodeError) as e:
                 publish_to_error_log(
                     f"Yaml error in {Path(file).name}: {e}", "get_experiment_profiles"
                 )
