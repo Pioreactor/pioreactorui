@@ -388,36 +388,34 @@ def get_current_media_rates():
 
     """
     ## this one confusing
-    args = request.args
-    lookback = float(args.get("lookback", 3.0))
 
     try:
         rows = query_db(
             """
             SELECT
                 d.pioreactor_unit,
-                SUM(CASE WHEN event='add_media' THEN volume_change_ml ELSE 0 END) / ? AS media_rate,
-                SUM(CASE WHEN event='add_alt_media' THEN volume_change_ml ELSE 0 END) / ? AS alt_media_rate
+                SUM(CASE WHEN event='add_media' THEN volume_change_ml ELSE 0 END) / 3 AS mediaRate,
+                SUM(CASE WHEN event='add_alt_media' THEN volume_change_ml ELSE 0 END) / 3 AS altMediaRate
             FROM dosing_events AS d
             JOIN latest_experiment USING (experiment)
             WHERE
-                datetime(d.timestamp) >= datetime('now', '-? hours') AND
+                datetime(d.timestamp) >= datetime('now', '-3 hours') AND
                 event IN ('add_alt_media', 'add_media') AND
                 source_of_event LIKE 'dosing_automation%'
             GROUP BY d.pioreactor_unit;
-            """,
-            (lookback, lookback),
+            """
         )
 
         json_result = {}
         aggregate = {"altMediaRate": 0.0, "mediaRate": 0.0}
+
         for row in rows:
             json_result[row["pioreactor_unit"]] = {
-                "alt_media_rate": row["alt_media_rate"],
-                "media_rate": row["media_rate"],
+                "altMediaRate": row["altMediaRate"],
+                "mediaRate": row["mediaRate"],
             }
-            aggregate["media_rate"] = aggregate["media_rate"] + row["media_rate"]
-            aggregate["alt_media_rate"] = aggregate["alt_media_rate"] + row["alt_media_rate"]
+            aggregate["mediaRate"] = aggregate["mediaRate"] + row["mediaRate"]
+            aggregate["altMediaRate"] = aggregate["altMediaRate"] + row["altMediaRate"]
 
         json_result["all"] = aggregate
         return jsonify(json_result)
@@ -776,7 +774,7 @@ def get_charts_contrib():
             try:
                 decoded_yaml = yaml_decode(file.read_bytes(), type=structs.ChartDescriptor)
                 parsed_yaml[decoded_yaml.chart_key] = decoded_yaml
-            except ValidationError as e:
+            except (ValidationError, DecodeError) as e:
                 publish_to_error_log(f"Yaml error in {Path(file).name}: {e}", "get_charts_contrib")
 
         return Response(
