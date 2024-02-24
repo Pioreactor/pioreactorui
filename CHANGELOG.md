@@ -1,3 +1,12 @@
+### 24.2.24
+ - Change MQTT library
+ - Fix media card
+ - fixed bug that was partially crashing the UI if some bad syntax was entered into a custom yaml file. Sorry!
+ - fixed bug that was causing bad json from the server, causing empty / non-loading areas in the UI. Sorry!
+ - fixed `datum` bug in the Overview that was crashing the UI. Sorry!
+ - added Pioreactor specific software version to the UI: Page *Pioreactors -> Manage -> System -> Version*
+
+
 ### 24.2.9
  - fixed a bug that was causing colors between graphs to not be aligned
  - adding grouped buttons for changing chart settings
