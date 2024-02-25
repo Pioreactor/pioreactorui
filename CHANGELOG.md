@@ -1,5 +1,5 @@
-### 24.2.24
- - Change MQTT library
+### 24.2.25
+ - Change MQTT library to mqtt.js
  - Fix media card
  - fixed bug that was partially crashing the UI if some bad syntax was entered into a custom yaml file. Sorry!
  - fixed bug that was causing bad json from the server, causing empty / non-loading areas in the UI. Sorry!
