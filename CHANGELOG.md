@@ -1,3 +1,6 @@
+### Upcoming
+ - changelog is now available from the leader's webserver, instead of over the internet.
+
 ### 24.2.25
  - Change MQTT library to mqtt.js
  - Fix media card

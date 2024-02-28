@@ -686,6 +686,27 @@ def uninstall_plugin():
 ## MISC
 
 
+@app.route("/api/changelog", methods=["GET"])
+def get_changelog():
+    # not implemented yet
+
+    return Response(status=500)
+
+    try:
+        # this is hardcoded and generally sucks
+        changelog_path = Path("/usr/local/lib/python3.11/dist-packages/pioreactor/CHANGELOG.md")
+        return Response(
+            response=changelog_path.read_text(),
+            status=200,
+            mimetype="text/plain",
+            headers={"Cache-Control": "public,max-age=30"},
+        )
+
+    except Exception as e:
+        publish_to_error_log(str(e), "get_changelog")
+        return Response(status=400)
+
+
 @app.route("/api/contrib/automations/<automation_type>", methods=["GET"])
 @cache.memoize(expire=20, tag="plugins")
 def get_automation_contrib(automation_type: str):

@@ -7,6 +7,9 @@ from msgspec import field
 from msgspec import Struct
 
 
+#### Jobs
+
+
 class PublishedSettingsDescriptor(Struct, forbid_unknown_fields=True):  # type: ignore
     key: str
     type: t.Literal["numeric", "boolean", "string", "json"]
@@ -28,7 +31,10 @@ class BackgroundJobDescriptor(Struct, forbid_unknown_fields=True):  # type: igno
     is_testing: bool = False
 
 
-class AutomationPublishedSettingsDescriptor(Struct, forbid_unknown_fields=True):  # type: ignore
+#### Automations
+
+
+class AutomationFieldsDescriptor(Struct, forbid_unknown_fields=True):  # type: ignore
     key: str
     default: t.Union[str, float, int, None]
     unit: t.Optional[str]
@@ -42,7 +48,10 @@ class AutomationDescriptor(Struct, forbid_unknown_fields=True):  # type: ignore
     automation_name: str
     description: str
     source: t.Optional[str] = None  # what plugin / app created this automation? Usually `app`
-    fields: list[AutomationPublishedSettingsDescriptor] = []
+    fields: list[AutomationFieldsDescriptor] = []
+
+
+#### Charts
 
 
 class ChartDescriptor(Struct, forbid_unknown_fields=True):  # type: ignore
