@@ -1,5 +1,5 @@
 ### Upcoming
- - changelog is now available from the leader's webserver, instead of over the internet.
+ - Fixes for change to MQTT.js
 
 ### 24.2.25
  - Change MQTT library to mqtt.js
