@@ -45,7 +45,7 @@ app = Flask(NAME)
 # connect to MQTT server
 logger.debug("Starting MQTT client")
 
-client = mqtt.Client(client_id=f"pio-{HOSTNAME}-pioreactorui")
+client = mqtt.Client()
 client.username_pw_set("pioreactor", "raspberry")
 client.connect("localhost")
 client.loop_start()
