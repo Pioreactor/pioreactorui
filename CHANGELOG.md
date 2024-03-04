@@ -1,5 +1,7 @@
-### Upcoming
- - Fixes for change to MQTT.js
+### 24.3.4
+ - Fixes for the library swap to MQTT.js
+ - Performance improvements
+ - Dynamically disable / enable "update" options
 
 ### 24.2.25
  - Change MQTT library to mqtt.js
