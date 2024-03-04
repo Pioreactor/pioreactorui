@@ -1,3 +1,7 @@
+### 24.3.5
+ - Fix experiment profile name not showing up.
+
+
 ### 24.3.4
  - Fixes for the library swap to MQTT.js
  - Performance improvements
