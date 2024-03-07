@@ -1,3 +1,6 @@
+### Upcoming
+ - performance improvements by using less mqtt clients.
+
 ### 24.3.5
  - Fix experiment profile name not showing up.
 
