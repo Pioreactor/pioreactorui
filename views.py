@@ -655,7 +655,7 @@ def get_plugin(filename: str):
 
 
 @app.route("/api/alllow_ui_installs", methods=["GET"])
-@cache.memoize(expire=None)
+@cache.memoize(expire=10_000)
 def able_to_install_plugins_from_ui():
     if os.path.isfile(Path(env["DOT_PIOREACTOR"]) / "DISALLOW_UI_INSTALLS"):
         return "false"
@@ -1307,7 +1307,7 @@ def get_historical_config_for(filename: str):
 
 
 @app.route("/api/is_local_access_point_active", methods=["GET"])
-@cache.memoize(expire=None)
+@cache.memoize(expire=10_000)
 def is_local_access_point_active():
     if os.path.isfile("/boot/firmware/local_access_point"):
         return "true"

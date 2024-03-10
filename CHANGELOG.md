@@ -1,4 +1,8 @@
 ### 24.3.8
+ - performance improvements by using less backend calls
+
+
+### 24.3.8
  - performance improvements by using less mqtt clients.
 
 ### 24.3.5
