@@ -1,13 +1,11 @@
-### 24.3.8
+### 24.3.9
  - performance improvements by using less backend calls
-
 
 ### 24.3.8
  - performance improvements by using less mqtt clients.
 
 ### 24.3.5
  - Fix experiment profile name not showing up.
-
 
 ### 24.3.4
  - Fixes for the library swap to MQTT.js

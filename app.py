@@ -86,6 +86,7 @@ def _get_db_connection():
     if db is None:
         db = g._database = sqlite3.connect(env["DB_LOCATION"])
         db.row_factory = _make_dicts
+        db.execute("PRAGMA foreign_keys = 1")
 
     return db
 
@@ -99,15 +100,19 @@ def query_db(
     return (rv[0] if rv else None) if one else rv
 
 
-def modify_db(statement: str, args=()) -> None:
+def modify_db(statement: str, args=()) -> int:
     con = _get_db_connection()
     cur = con.cursor()
     try:
         cur.execute(statement, args)
         con.commit()
+    except sqlite3.IntegrityError:
+        return 0
     except Exception as e:
+        print(e)
         con.rollback()  # TODO: test
         raise e
     finally:
+        row_changes = cur.rowcount
         cur.close()
-    return
+    return row_changes

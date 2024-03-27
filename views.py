@@ -69,14 +69,28 @@ def is_valid_unix_filename(filename):
 ## PIOREACTOR CONTROL
 
 
-@app.route("/api/stop_all", methods=["POST"])
+@app.route("/api/workers/stop", methods=["POST"])
 def stop_all():
     """Kills all jobs"""
     background_tasks.pios("kill", "--all-jobs", "-y")
     return Response(status=202)
 
 
-@app.route("/api/stop/<unit>/<job>", methods=["PATCH"])
+@app.route("/api/experiments/<experiment_id>/workers/stop", methods=["POST"])
+def stop_all_in_experiment(experiment_id):
+    """Kills all jobs for workers assigned to experiment"""
+    workers = query_db(
+        "SELECT pioreactor_unit FROM experiment_worker_assignments WHERE experiment = ?",
+        (experiment_id,),
+    )
+
+    units = sum([("--units", w["pioreactor_unit"]) for w in workers], ())
+
+    background_tasks.pios("kill", "--all-jobs", "-y", **units)
+    return Response(status=202)
+
+
+@app.route("/api/workers/<unit>/jobs/<job>/stop", methods=["PATCH"])
 def stop_job_on_unit(unit: str, job: str):
     """Kills specified job on unit"""
 
@@ -93,7 +107,7 @@ def stop_job_on_unit(unit: str, job: str):
             f"pioreactor/{unit}/$experiment/{job}/$state/set", b"disconnected", qos=1
         )
         try:
-            msg.wait_for_publish(timeout=1.0)
+            msg.wait_for_publish(timeout=2.0)
         except Exception:
             return Response(status=500)
     else:
@@ -102,7 +116,7 @@ def stop_job_on_unit(unit: str, job: str):
     return Response(status=202)
 
 
-@app.route("/api/run/<unit>/<job>", methods=["PATCH"])
+@app.route("/api/workers/<unit>/jobs/<job>/run", methods=["PATCH"])
 def run_job_on_unit(unit: str, job: str):
     """
     Runs specified job on unit.
@@ -130,21 +144,6 @@ def run_job_on_unit(unit: str, job: str):
     return Response(status=202)
 
 
-# @app.route("/api/run", methods=["GET"])
-# def list_running_jobs_on_cluster(unit: str, job: str):
-#     #TODO
-#     active_jobs = []
-#     def append(msg):
-#         if msg.payload == b"ready":
-#             active_jobs.append(msg)
-#
-#     client.message_callback_add(
-#         f"pioreactor/+/+/+/$state", append
-#     )
-#
-#     return Response(status=202)
-
-
 @app.route("/api/reboot/<unit>", methods=["POST"])
 def reboot_unit(unit: str):
     """Reboots unit"""
@@ -162,37 +161,7 @@ def shutdown_unit(unit: str):
 ## DATA FOR CARDS ON OVERVIEW
 
 
-@app.route("/api/logs/recent", methods=["GET"])
-def get_recent_logs():
-    """Shows event logs from all units"""
-
-    def get_level_string(min_level):
-        levels = {
-            "DEBUG": ["ERROR", "WARNING", "NOTICE", "INFO", "DEBUG"],
-            "INFO": ["ERROR", "NOTICE", "INFO", "WARNING"],
-            "WARNING": ["ERROR", "WARNING"],
-            "ERROR": ["ERROR"],
-        }
-
-        selected_levels = levels.get(min_level, levels["INFO"])
-        return " or ".join(f'level == "{level}"' for level in selected_levels)
-
-    min_level = request.args.get("min_level", "INFO")
-    level_string = "(" + get_level_string(min_level) + ")"
-
-    try:
-        recent_logs = query_db(
-            f"SELECT l.timestamp, level=='ERROR'as is_error, level=='WARNING' as is_warning, level=='NOTICE' as is_notice, l.pioreactor_unit, message, task FROM logs AS l LEFT JOIN latest_experiment AS le ON (le.experiment = l.experiment OR l.experiment=?) WHERE {level_string} AND l.timestamp >= MAX(strftime('%Y-%m-%dT%H:%M:%S', datetime('now', '-24 hours')), le.created_at) ORDER BY l.timestamp DESC LIMIT 50;",
-            ("$experiment",),
-        )
-    except Exception as e:
-        publish_to_error_log(str(e), "get_recent_logs")
-        return Response(status=500)
-
-    return jsonify(recent_logs)
-
-
-@app.route("/api/logs/<experiment>", methods=["GET"])
+@app.route("/api/experiments/<experiment>/logs", methods=["GET"])
 def get_logs(experiment):
     """Shows event logs from all units"""
 
@@ -212,7 +181,14 @@ def get_logs(experiment):
 
     try:
         recent_logs = query_db(
-            f"SELECT l.timestamp, level=='ERROR'as is_error, level=='WARNING' as is_warning, level=='NOTICE' as is_notice, l.pioreactor_unit, message, task FROM logs AS l WHERE (le.experiment=? OR l.experiment=?) AND {level_string} AND l.timestamp >= MAX(strftime('%Y-%m-%dT%H:%M:%S', datetime('now', '-24 hours')), le.created_at) ORDER BY l.timestamp DESC LIMIT 50;",
+            f"""SELECT l.timestamp, level=='ERROR'as is_error, level=='WARNING' as is_warning, level=='NOTICE' as is_notice, l.pioreactor_unit, message, task
+                FROM logs AS l
+                LEFT JOIN latest_experiment AS le
+                    ON (le.experiment = l.experiment)
+                WHERE (le.experiment=? OR l.experiment=?)
+                    AND {level_string}
+                    AND l.timestamp >= MAX(strftime('%Y-%m-%dT%H:%M:%S', datetime('now', '-24 hours')), le.created_at)
+                ORDER BY l.timestamp DESC LIMIT 50;""",
             (
                 experiment,
                 "$experiment",
@@ -381,8 +357,8 @@ def get_fallback_time_series(data_source: str, experiment: str, column: str):
     return r["result"]
 
 
-@app.route("/api/media_rates/current", methods=["GET"])
-def get_current_media_rates():
+@app.route("/api/experiments/<experiment>/media_rates", methods=["GET"])
+def get_media_rates(experiment):
     """
     Shows amount of added media per unit. Note that it only consider values from a dosing automation (i.e. not manual dosing, which includes continously dose)
 
@@ -397,13 +373,14 @@ def get_current_media_rates():
                 SUM(CASE WHEN event='add_media' THEN volume_change_ml ELSE 0 END) / 3 AS mediaRate,
                 SUM(CASE WHEN event='add_alt_media' THEN volume_change_ml ELSE 0 END) / 3 AS altMediaRate
             FROM dosing_events AS d
-            JOIN latest_experiment USING (experiment)
             WHERE
                 datetime(d.timestamp) >= datetime('now', '-3 hours') AND
                 event IN ('add_alt_media', 'add_media') AND
-                source_of_event LIKE 'dosing_automation%'
+                source_of_event LIKE 'dosing_automation%' AND
+                experiment = ?
             GROUP BY d.pioreactor_unit;
-            """
+            """,
+            (experiment,),
         )
 
         json_result = {}
@@ -421,7 +398,7 @@ def get_current_media_rates():
         return jsonify(json_result)
 
     except Exception as e:
-        publish_to_error_log(str(e), "get_current_media_rates")
+        publish_to_error_log(str(e), "get_media_rates")
         return Response(status=500)
 
 
@@ -686,27 +663,6 @@ def uninstall_plugin():
 ## MISC
 
 
-@app.route("/api/changelog", methods=["GET"])
-def get_changelog():
-    # not implemented yet
-
-    return Response(status=500)
-
-    try:
-        # this is hardcoded and generally sucks
-        changelog_path = Path("/usr/local/lib/python3.11/dist-packages/pioreactor/CHANGELOG.md")
-        return Response(
-            response=changelog_path.read_text(),
-            status=200,
-            mimetype="text/plain",
-            headers={"Cache-Control": "public,max-age=30"},
-        )
-
-    except Exception as e:
-        publish_to_error_log(str(e), "get_changelog")
-        return Response(status=400)
-
-
 @app.route("/api/contrib/automations/<automation_type>", methods=["GET"])
 @cache.memoize(expire=20, tag="plugins")
 def get_automation_contrib(automation_type: str):
@@ -962,7 +918,7 @@ def create_experiment():
         return Response(status=404)
 
     try:
-        modify_db(
+        row_count = modify_db(
             "INSERT INTO experiments (created_at, experiment, description, media_used, organism_used) VALUES (?,?,?,?,?)",
             (
                 current_utc_timestamp(),
@@ -972,6 +928,10 @@ def create_experiment():
                 body.get("organismUsed"),
             ),
         )
+
+        if row_count == 0:
+            raise sqlite3.IntegrityError()
+
         publish_to_log(
             f"New experiment created: {body['experiment']}", "create_experiment", level="INFO"
         )
@@ -982,6 +942,12 @@ def create_experiment():
     except Exception as e:
         publish_to_error_log(str(e), "create_experiment")
         return Response(status=500)
+
+
+@app.route("/api/experiments", methods=["DELETE"])
+def delete_experiment():
+    cache.evict("experiments")
+    pass
 
 
 @app.route("/api/experiments/latest", methods=["GET"])
@@ -1007,7 +973,7 @@ def get_latest_experiment():
         return Response(status=500)
 
 
-@app.route("/api/unit_labels/<experiment>", methods=["GET"])
+@app.route("/api/experiments/<experiment>/unit_labels", methods=["GET"])
 @cache.memoize(expire=30, tag="unit_labels")
 def get_unit_labels(experiment):
     try:
@@ -1035,8 +1001,8 @@ def get_unit_labels(experiment):
         return Response(status=500)
 
 
-@app.route("/api/unit_labels/current", methods=["PUT"])
-def upsert_current_unit_labels():
+@app.route("/api/experiments/<experiment>/unit_labels", methods=["PUT"])
+def upsert_unit_labels(experiment):
     """
     Update or insert a new unit label for the current experiment.
 
@@ -1054,7 +1020,7 @@ def upsert_current_unit_labels():
     }
 
     Example usage:
-    PUT /api/unit_labels/current
+    PUT /api/experiments/demo/unit_labels
     {
         "unit": "unit1",
         "label": "new_label"
@@ -1073,14 +1039,10 @@ def upsert_current_unit_labels():
     unit = body["unit"]
     label = body["label"]
 
-    latest_experiment_dict = query_db("SELECT experiment FROM latest_experiment", one=True)
-
-    latest_experiment = latest_experiment_dict["experiment"]
-
     try:
         modify_db(
             "INSERT OR REPLACE INTO pioreactor_unit_labels (label, experiment, pioreactor_unit, created_at) VALUES ((?), (?), (?), strftime('%Y-%m-%dT%H:%M:%S', datetime('now')) ) ON CONFLICT(experiment, pioreactor_unit) DO UPDATE SET label=excluded.label, created_at=strftime('%Y-%m-%dT%H:%M:%S', datetime('now'))",
-            (label, latest_experiment, unit),
+            (label, experiment, unit),
         )
 
     except Exception as e:
@@ -1403,7 +1365,7 @@ def get_experiment_profile(filename: str):
 def delete_experiment_profile(filename: str):
     file = Path(filename).name
     try:
-        if not (Path(file).suffix == ".yaml" or Path(file).suffix == ".yml"):
+        if Path(file).suffix not in (".yaml", ".yml"):
             raise IOError("must provide a YAML file")
 
         specific_profile_path = Path(env["DOT_PIOREACTOR"]) / "experiment_profiles" / file
@@ -1416,6 +1378,170 @@ def delete_experiment_profile(filename: str):
     except Exception as e:
         publish_to_error_log(str(e), "delete_experiment_profile")
         return Response(status=500)
+
+
+##### Worker endpoints
+
+
+@app.route("/api/workers", methods=["GET"])
+def get_list_of_workers():
+    # Get a list of all workers
+    all_workers = query_db(
+        "SELECT pioreactor_unit, added_at, is_active FROM workers ORDER BY added_at;"
+    )
+    return jsonify(all_workers)
+
+
+@app.route("/api/workers", methods=["PUT"])
+def add_worker():
+    data = request.json
+    pioreactor_unit = data.get("pioreactor_unit")
+    nrows = modify_db(
+        "INSERT OR REPLACE INTO workers (pioreactor_unit, added_at, is_active) VALUES (?, STRFTIME('%Y-%m-%dT%H:%M:%f000Z', 'NOW'), 1);",
+        (pioreactor_unit,),
+    )
+    if nrows > 0:
+        return Response(status=201)
+    else:
+        return Response(status=404)
+
+
+@app.route("/api/workers/<pioreactor_unit>", methods=["DELETE"])
+def delete_worker(pioreactor_unit):
+    row_count = modify_db("DELETE FROM workers WHERE pioreactor_unit=?;", (pioreactor_unit,))
+    if row_count > 0:
+        background_tasks.pios("kill", "--all-jobs", "-y", "--units", pioreactor_unit)
+        return Response(status=204)
+    else:
+        return Response(status=404)
+
+
+@app.route("/api/workers/<pioreactor_unit>/is_active", methods=["PUT"])
+def change_worker_status(pioreactor_unit):
+    # Get the new status from the request body
+    data = request.json
+    new_status = data.get("is_active")
+
+    if new_status not in [0, 1]:
+        return jsonify({"error": "Invalid status. Status must be 0 or 1."}), 400
+
+    # Update the status of the worker in the database
+    row_count = modify_db(
+        "UPDATE workers SET is_active = (?) WHERE pioreactor_unit = (?)",
+        (new_status, pioreactor_unit),
+    )
+
+    if row_count > 0:
+        return Response(status=204)
+    else:
+        return Response(status=404)
+
+
+@app.route("/api/workers/<pioreactor_unit>", methods=["GET"])
+def get_worker(pioreactor_unit):
+    # Query the database for the status of the worker in the given experiment
+    result = query_db(
+        """
+        SELECT pioreactor_unit, added_at, is_active
+        FROM workers
+        WHERE pioreactor_unit = ?""",
+        (pioreactor_unit,),
+        one=True,
+    )
+
+    # Check if the worker is found and assigned to the experiment
+    if result:
+        return jsonify(result)
+    else:
+        return jsonify({"error": "Worker not found"}), 404
+
+
+### Experiment worker assignments
+
+
+@app.route("/api/workers/assignments", methods=["GET"])
+def get_workers_and_experiment_assignments():
+    # Get the experiment that a worker is assigned to along with its status
+    result = query_db(
+        """
+        SELECT w.pioreactor_unit, a.experiment
+        FROM workers w
+        LEFT JOIN experiment_worker_assignments a
+          on w.pioreactor_unit = a.pioreactor_unit
+        ORDER BY added_at
+        """,
+    )
+    if result:
+        return jsonify(result)
+    else:
+        return jsonify({"error": "No workers"}), 404
+
+
+@app.route("/api/workers/<pioreactor_unit>/experiment", methods=["GET"])
+def get_experiment_assignment_for_worker(pioreactor_unit):
+    # Get the experiment that a worker is assigned to along with its status
+    result = query_db(
+        """
+        SELECT experiment, is_active
+        FROM experiment_worker_assignments a
+        JOIN workers w
+          on w.pioreactor_unit = a.pioreactor_unit
+        WHERE w.pioreactor_unit = ?
+        """,
+        (pioreactor_unit,),
+        one=True,
+    )
+    if result:
+        return jsonify({"experiment": result["experiment"]})
+    else:
+        return jsonify({"error": "Worker not found"}), 404
+
+
+@app.route("/api/experiments/<experiment_id>/workers", methods=["GET"])
+def get_list_of_workers_for_experiment(experiment_id):
+    workers = query_db(
+        """
+        SELECT w.pioreactor_unit, is_active
+        FROM experiment_worker_assignments a
+        JOIN workers w
+          on w.pioreactor_unit = a.pioreactor_unit
+        WHERE experiment = ?
+        ORDER BY assigned_at DESC
+        """,
+        (experiment_id,),
+    )
+    return jsonify(workers)
+
+
+@app.route("/api/experiments/<experiment_id>/workers", methods=["PUT"])
+def add_worker_to_experiment(experiment_id):
+    # assign
+    data = request.json
+    pioreactor_unit = data.get("pioreactor_unit")
+    if not pioreactor_unit:
+        return jsonify({"error": "Missing pioreactor_unit"}), 400
+
+    row_counts = modify_db(
+        "INSERT OR REPLACE INTO experiment_worker_assignments (pioreactor_unit, experiment, assigned_at) VALUES (?, ?, STRFTIME('%Y-%m-%dT%H:%M:%f000Z', 'NOW'))",
+        (pioreactor_unit, experiment_id),
+    )
+    if row_counts > 0:
+        return Response(status=204)
+    else:
+        # probably an integrity error
+        return Response(status=404)
+
+
+@app.route("/api/experiments/<experiment_id>/workers/<pioreactor_unit>", methods=["DELETE"])
+def remove_worker_from_experiment(experiment_id, pioreactor_unit):
+    # unassign
+    modify_db(
+        "DELETE FROM experiment_worker_assignments WHERE pioreactor_unit = ? AND experiment = ?",
+        (pioreactor_unit, experiment_id),
+    )
+    background_tasks.pios("kill", "--experiment", experiment_id, "--units", pioreactor_unit, "-y")
+
+    return Response(status=204)
 
 
 ### FLASK META VIEWS
