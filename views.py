@@ -86,13 +86,14 @@ def stop_all_in_experiment(experiment_id):
 
     units = sum([("--units", w["pioreactor_unit"]) for w in workers], ())
 
-    background_tasks.pios("kill", "--all-jobs", "-y", **units)
+    background_tasks.pios("kill", "--all-jobs", "-y", *units)
     return Response(status=202)
 
 
 @app.route("/api/workers/<unit>/jobs/<job>/stop", methods=["PATCH"])
 def stop_job_on_unit(unit: str, job: str):
     """Kills specified job on unit"""
+    # TODO: this is barely used, we should remove it / unify it.
 
     jobs_to_kill_over_MQTT = {
         "add_media",
@@ -944,9 +945,15 @@ def create_experiment():
         return Response(status=500)
 
 
-@app.route("/api/experiments", methods=["DELETE"])
-def delete_experiment():
+@app.route("/api/experiments/<experiment_id>", methods=["DELETE"])
+def delete_experiment(experiment_id):
     cache.evict("experiments")
+    row_count = modify_db("DELETE FROM experiments WHERE experiment=?;", (experiment_id,))
+    background_tasks.pios("kill", "--all-jobs", "-y", "--experiment", experiment_id)
+    if row_count > 0:
+        return Response(status=204)
+    else:
+        return Response(status=404)
     pass
 
 
@@ -1540,6 +1547,18 @@ def remove_worker_from_experiment(experiment_id, pioreactor_unit):
         (pioreactor_unit, experiment_id),
     )
     background_tasks.pios("kill", "--experiment", experiment_id, "--units", pioreactor_unit, "-y")
+
+    return Response(status=204)
+
+
+@app.route("/api/experiments/<experiment_id>/workers", methods=["DELETE"])
+def remove_workers_from_experiment(experiment_id):
+    # unassign all from experiment
+    modify_db(
+        "DELETE FROM experiment_worker_assignments WHERE experiment = ?",
+        (experiment_id,),
+    )
+    background_tasks.pios("kill", "--experiment", experiment_id, "-y")
 
     return Response(status=204)
 
