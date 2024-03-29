@@ -184,7 +184,7 @@ def get_logs(experiment):
         recent_logs = query_db(
             f"""SELECT l.timestamp, level=='ERROR'as is_error, level=='WARNING' as is_warning, level=='NOTICE' as is_notice, l.pioreactor_unit, message, task
                 FROM logs AS l
-                LEFT JOIN latest_experiment AS le
+                LEFT JOIN experiments AS le
                     ON (le.experiment = l.experiment)
                 WHERE (le.experiment=? OR l.experiment=?)
                     AND {level_string}
@@ -889,7 +889,7 @@ def get_experiments():
     try:
         response = jsonify(
             query_db(
-                "SELECT experiment, created_at, description FROM experiments ORDER BY created_at DESC;"
+                'SELECT experiment, created_at, description, round( (strftime("%s","now") - strftime("%s", created_at))/60/60, 0) as delta_hours FROM experiments ORDER BY created_at DESC;'
             )
         )
         return response
