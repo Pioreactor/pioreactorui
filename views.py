@@ -112,7 +112,7 @@ def stop_job_on_unit(unit: str, job: str):
         except Exception:
             return Response(status=500)
     else:
-        background_tasks.pios("kill", job, "-y", "--units", unit)
+        background_tasks.pios("kill", "--name", job, "-y", "--units", unit)
 
     return Response(status=202)
 
