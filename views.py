@@ -117,8 +117,8 @@ def stop_job_on_unit(unit: str, job: str):
     return Response(status=202)
 
 
-@app.route("/api/workers/<unit>/jobs/<job>/run", methods=["PATCH"])
-def run_job_on_unit(unit: str, job: str):
+@app.route("/api/workers/<unit>/experiments/<experiment>/jobs/<job>/run", methods=["PATCH"])
+def run_job_on_unit(unit: str, experiment: str, job: str):
     """
     Runs specified job on unit.
 
@@ -134,7 +134,7 @@ def run_job_on_unit(unit: str, job: str):
     """
     try:
         client.publish(
-            f"pioreactor/{unit}/$experiment/run/{job}",
+            f"pioreactor/{unit}/{experiment}/run/{job}",
             request.get_data() or r'{"options": {}, "args": []}',
             qos=1,
         )

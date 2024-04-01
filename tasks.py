@@ -32,7 +32,7 @@ def initialized():
 @huey.task()
 def add_new_pioreactor(new_pioreactor_name: str) -> tuple[bool, str]:
     logger.info(f"Adding new pioreactor {new_pioreactor_name}")
-    result = run(["pio", "add-pioreactor", new_pioreactor_name], capture_output=True, text=True)
+    result = run(["pio", "workers", "add", new_pioreactor_name], capture_output=True, text=True)
     cache.evict("config")
     if result.returncode != 0:
         return False, str(result.stderr.strip())
