@@ -69,13 +69,6 @@ def is_valid_unix_filename(filename):
 ## PIOREACTOR CONTROL
 
 
-@app.route("/api/workers/stop", methods=["POST"])
-def stop_all():
-    """Kills all jobs"""
-    background_tasks.pios("kill", "--all-jobs", "-y")
-    return Response(status=202)
-
-
 @app.route("/api/experiments/<experiment_id>/workers/stop", methods=["POST"])
 def stop_all_in_experiment(experiment_id):
     """Kills all jobs for workers assigned to experiment"""
@@ -915,6 +908,7 @@ def create_experiment():
         ("#" in proposed_experiment_name)
         or ("+" in proposed_experiment_name)
         or ("/" in proposed_experiment_name)
+        or ("\\" in proposed_experiment_name)
     ):
         return Response(status=404)
 
@@ -949,7 +943,7 @@ def create_experiment():
 def delete_experiment(experiment_id):
     cache.evict("experiments")
     row_count = modify_db("DELETE FROM experiments WHERE experiment=?;", (experiment_id,))
-    background_tasks.pios("kill", "--all-jobs", "-y", "--experiment", experiment_id)
+    background_tasks.pios("kill", "--experiment", experiment_id, "-y")
     if row_count > 0:
         return Response(status=204)
     else:
@@ -1439,6 +1433,8 @@ def change_worker_status(pioreactor_unit):
     )
 
     if row_count > 0:
+        if new_status == 0:
+            background_tasks.pios("kill", "--all-jobs", "-y", "--units", pioreactor_unit)
         return Response(status=204)
     else:
         return Response(status=404)
