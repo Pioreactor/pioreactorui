@@ -130,8 +130,8 @@ def get_time(path: str) -> str:
 
 @huey.task()
 def pios(*args) -> tuple[bool, str]:
-    logger.info(f'Executing `{" ".join(("pios",) + args)}`')
-    result = run(("pios",) + args, capture_output=True, text=True)
+    logger.info(f'Executing `{" ".join(("pios", "-y") + args)}`')
+    result = run(("pios", "-y") + args, capture_output=True, text=True)
     if result.returncode != 0:
         return False, result.stderr.strip()
     else:

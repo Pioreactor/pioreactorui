@@ -79,7 +79,7 @@ def stop_all_in_experiment(experiment_id):
 
     units = sum([("--units", w["pioreactor_unit"]) for w in workers], ())
 
-    background_tasks.pios("kill", "--all-jobs", "-y", *units)
+    background_tasks.pios("kill", "--all-jobs", *units)
     return Response(status=202)
 
 
@@ -105,7 +105,7 @@ def stop_job_on_unit(unit: str, job: str):
         except Exception:
             return Response(status=500)
     else:
-        background_tasks.pios("kill", "--name", job, "-y", "--units", unit)
+        background_tasks.pios("kill", "--name", job, "--units", unit)
 
     return Response(status=202)
 
@@ -141,14 +141,14 @@ def run_job_on_unit(unit: str, experiment: str, job: str):
 @app.route("/api/reboot/<unit>", methods=["POST"])
 def reboot_unit(unit: str):
     """Reboots unit"""
-    background_tasks.pios("reboot", "-y", "--units", unit)
+    background_tasks.pios("reboot", "--units", unit)
     return Response(status=202)
 
 
 @app.route("/api/shutdown/<unit>", methods=["POST"])
 def shutdown_unit(unit: str):
     """Shutdown unit"""
-    background_tasks.pios("shutdown", "-y", "--units", unit)
+    background_tasks.pios("shutdown", "--units", unit)
     return Response(status=202)
 
 
@@ -1411,7 +1411,7 @@ def add_worker():
 def delete_worker(pioreactor_unit):
     row_count = modify_db("DELETE FROM workers WHERE pioreactor_unit=?;", (pioreactor_unit,))
     if row_count > 0:
-        background_tasks.pios("kill", "--all-jobs", "-y", "--units", pioreactor_unit)
+        background_tasks.pios("kill", "--all-jobs", "--units", pioreactor_unit)
         return Response(status=204)
     else:
         return Response(status=404)
@@ -1434,7 +1434,7 @@ def change_worker_status(pioreactor_unit):
 
     if row_count > 0:
         if new_status == 0:
-            background_tasks.pios("kill", "--all-jobs", "-y", "--units", pioreactor_unit)
+            background_tasks.pios("kill", "--all-jobs", "--units", pioreactor_unit)
         return Response(status=204)
     else:
         return Response(status=404)
@@ -1542,7 +1542,7 @@ def remove_worker_from_experiment(experiment_id, pioreactor_unit):
         "DELETE FROM experiment_worker_assignments WHERE pioreactor_unit = ? AND experiment = ?",
         (pioreactor_unit, experiment_id),
     )
-    background_tasks.pios("kill", "--experiment", experiment_id, "--units", pioreactor_unit, "-y")
+    background_tasks.pios("kill", "--experiment", experiment_id, "--units", pioreactor_unit)
 
     return Response(status=204)
 
@@ -1554,7 +1554,7 @@ def remove_workers_from_experiment(experiment_id):
         "DELETE FROM experiment_worker_assignments WHERE experiment = ?",
         (experiment_id,),
     )
-    background_tasks.pios("kill", "--experiment", experiment_id, "-y")
+    background_tasks.pios("kill", "--experiment", experiment_id)
 
     return Response(status=204)
 
