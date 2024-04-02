@@ -1,3 +1,8 @@
+### 24.4.2
+ - Major overhaul to experiments and inventory
+ - new API backend (docs: https://docs.pioreactor.com/developer-guide/web-ui-api#all-endpoints)
+ - Performance updates
+
 ### 24.3.9
  - performance improvements by using less backend calls
 
