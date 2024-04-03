@@ -184,7 +184,7 @@ def get_logs(experiment):
                     ON (le.experiment = l.experiment)
                 WHERE (le.experiment=? OR l.experiment=?)
                     AND {level_string}
-                    AND l.timestamp >= MAX(strftime('%Y-%m-%dT%H:%M:%S', datetime('now', '-24 hours')), le.created_at)
+                    AND l.timestamp >= strftime('%Y-%m-%dT%H:%M:%S', datetime('now', '-24 hours'))
                 ORDER BY l.timestamp DESC LIMIT 50;""",
             (
                 experiment,
@@ -946,7 +946,7 @@ def create_experiment():
 def delete_experiment(experiment_id):
     cache.evict("experiments")
     row_count = modify_db("DELETE FROM experiments WHERE experiment=?;", (experiment_id,))
-    background_tasks.pios("kill", "--experiment", experiment_id, "-y")
+    background_tasks.pios("kill", "--experiment", experiment_id)
     if row_count > 0:
         return Response(status=204)
     else:
