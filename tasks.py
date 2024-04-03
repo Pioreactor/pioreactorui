@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import logging
 from logging import handlers
+from shlex import join
 from subprocess import run
 
 from config import cache
@@ -104,7 +105,7 @@ def update_app_from_release_archive(archive_location: str) -> bool:
 
 @huey.task()
 def pio(*args) -> tuple[bool, str]:
-    logger.info(f'Executing `{" ".join(("pio",) + args)}`')
+    logger.info(f'Executing `{join(("pio",) + args)}`')
     result = run(("pio",) + args, capture_output=True, text=True)
     if result.returncode != 0:
         return False, result.stderr.strip()
@@ -130,8 +131,8 @@ def get_time(path: str) -> str:
 
 @huey.task()
 def pios(*args) -> tuple[bool, str]:
-    logger.info(f'Executing `{" ".join(("pios", "-y") + args)}`')
-    result = run(("pios", "-y") + args, capture_output=True, text=True)
+    logger.info(f'Executing `{join(("pios",) + args + ("-y",))}`')
+    result = run(("pios",) + args + ("-y",), capture_output=True, text=True)
     if result.returncode != 0:
         return False, result.stderr.strip()
     else:
