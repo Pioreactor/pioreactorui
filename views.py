@@ -78,8 +78,11 @@ def stop_all_in_experiment(experiment_id):
     )
 
     units = sum([("--units", w["pioreactor_unit"]) for w in workers], ())
-
     background_tasks.pios("kill", "--all-jobs", *units)
+
+    # also kill any jobs running on leader (this unit) that are associated to the experiment (like a profile)
+    background_tasks.pio("kill", "--experiment", experiment_id)
+
     return Response(status=202)
 
 
