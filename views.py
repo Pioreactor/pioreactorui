@@ -180,9 +180,7 @@ def get_logs(experiment):
         recent_logs = query_db(
             f"""SELECT l.timestamp, level=='ERROR'as is_error, level=='WARNING' as is_warning, level=='NOTICE' as is_notice, l.pioreactor_unit, message, task
                 FROM logs AS l
-                LEFT JOIN experiments AS le
-                    ON (le.experiment = l.experiment)
-                WHERE (le.experiment=? OR l.experiment=?)
+                WHERE (l.experiment=? OR l.experiment=?)
                     AND {level_string}
                     AND l.timestamp >= strftime('%Y-%m-%dT%H:%M:%S', datetime('now', '-24 hours'))
                 ORDER BY l.timestamp DESC LIMIT 50;""",

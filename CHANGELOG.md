@@ -1,3 +1,7 @@
+### 24.4.4
+ - Fix log table not showing entries
+ -
+
 ### 24.4.3
  - Bug fixes from 24.4.2
 
