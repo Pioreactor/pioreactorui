@@ -141,8 +141,8 @@ def pios(*args) -> tuple[bool, str]:
 
 @huey.task()
 def pios_install_plugin(plugin_name: str) -> tuple[bool, str]:
-    logger.info(f"Executing `pios install-plugin {plugin_name}`")
-    result = run(("pios", "install-plugin", plugin_name), capture_output=True, text=True)
+    logger.info(f"Executing `pios plugins install {plugin_name} -y`")
+    result = run(("pios", "plugins", "install", plugin_name, "-y"), capture_output=True, text=True)
     cache.evict("plugins")
     cache.evict("config")
     if result.returncode != 0:
@@ -153,8 +153,10 @@ def pios_install_plugin(plugin_name: str) -> tuple[bool, str]:
 
 @huey.task()
 def pios_uninstall_plugin(plugin_name: str) -> tuple[bool, str]:
-    logger.info(f"Executing `pios uninstall-plugin {plugin_name}`")
-    result = run(("pios", "uninstall-plugin", plugin_name), capture_output=True, text=True)
+    logger.info(f"Executing `pios plugins uninstall {plugin_name} -y`")
+    result = run(
+        ("pios", "plugins", "uninstall", plugin_name, "-y"), capture_output=True, text=True
+    )
     cache.evict("plugins")
     cache.evict("config")
     if result.returncode != 0:

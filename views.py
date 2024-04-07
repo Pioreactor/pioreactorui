@@ -29,6 +29,7 @@ from app import app
 from app import client
 from app import modify_db
 from app import publish_to_error_log
+from app import publish_to_experiment_log
 from app import publish_to_log
 from app import query_db
 from app import VERSION
@@ -619,7 +620,7 @@ def get_plugin(filename: str):
             mimetype="text/plain",
         )
     except IOError as e:
-        publish_to_log(str(e), "get_plugin")
+        publish_to_error_log(str(e), "get_plugin")
         return Response(status=404)
     except Exception as e:
         publish_to_error_log(str(e), "get_plugin")
@@ -1356,7 +1357,7 @@ def get_experiment_profile(filename: str):
             mimetype="text/plain",
         )
     except IOError as e:
-        publish_to_log(str(e), "get_experiment_profile")
+        publish_to_error_log(str(e), "get_experiment_profile")
         return Response(status=404)
     except Exception as e:
         publish_to_error_log(str(e), "get_experiment_profile")
@@ -1375,7 +1376,7 @@ def delete_experiment_profile(filename: str):
         publish_to_log(f"Deleted profile {filename}.", "delete_experiment_profile")
         return Response(status=200)
     except IOError as e:
-        publish_to_log(str(e), "delete_experiment_profile")
+        publish_to_error_log(str(e), "delete_experiment_profile")
         return Response(status=404)
     except Exception as e:
         publish_to_error_log(str(e), "delete_experiment_profile")
@@ -1425,7 +1426,7 @@ def change_worker_status(pioreactor_unit):
     new_status = data.get("is_active")
 
     if new_status not in [0, 1]:
-        return jsonify({"error": "Invalid status. Status must be 0 or 1."}), 400
+        return jsonify({"error": "Invalid status. Status must be integer 0 or 1."}), 400
 
     # Update the status of the worker in the database
     row_count = modify_db(
@@ -1434,6 +1435,11 @@ def change_worker_status(pioreactor_unit):
     )
 
     if row_count > 0:
+        publish_to_log(
+            f"Set {pioreactor_unit} to {'Active' if new_status else 'Inactive'}.",
+            task="worker_status",
+            level="INFO",
+        )
         if new_status == 0:
             background_tasks.pios("kill", "--all-jobs", "--units", pioreactor_unit)
         return Response(status=204)
@@ -1517,8 +1523,8 @@ def get_list_of_workers_for_experiment(experiment_id):
     return jsonify(workers)
 
 
-@app.route("/api/experiments/<experiment_id>/workers", methods=["PUT"])
-def add_worker_to_experiment(experiment_id):
+@app.route("/api/experiments/<experiment>/workers", methods=["PUT"])
+def add_worker_to_experiment(experiment):
     # assign
     data = request.json
     pioreactor_unit = data.get("pioreactor_unit")
@@ -1527,9 +1533,16 @@ def add_worker_to_experiment(experiment_id):
 
     row_counts = modify_db(
         "INSERT OR REPLACE INTO experiment_worker_assignments (pioreactor_unit, experiment, assigned_at) VALUES (?, ?, STRFTIME('%Y-%m-%dT%H:%M:%f000Z', 'NOW'))",
-        (pioreactor_unit, experiment_id),
+        (pioreactor_unit, experiment),
     )
     if row_counts > 0:
+        publish_to_experiment_log(
+            f"Assigned {pioreactor_unit} to {experiment}.",
+            experiment=experiment,
+            task="assignment",
+            level="INFO",
+        )
+
         return Response(status=204)
     else:
         # probably an integrity error
@@ -1544,6 +1557,12 @@ def remove_worker_from_experiment(experiment_id, pioreactor_unit):
         (pioreactor_unit, experiment_id),
     )
     background_tasks.pios("kill", "--experiment", experiment_id, "--units", pioreactor_unit)
+    publish_to_experiment_log(
+        f"Removed {pioreactor_unit} from {experiment_id}.",
+        experiment=experiment_id,
+        level="INFO",
+        task="assignment",
+    )
 
     return Response(status=204)
 
@@ -1556,6 +1575,12 @@ def remove_workers_from_experiment(experiment_id):
         (experiment_id,),
     )
     background_tasks.pios("kill", "--experiment", experiment_id)
+    publish_to_experiment_log(
+        f"Removed all workers from {experiment_id}.",
+        experiment=experiment_id,
+        level="INFO",
+        task="assignment",
+    )
 
     return Response(status=204)
 

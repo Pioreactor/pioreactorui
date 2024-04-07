@@ -69,6 +69,10 @@ def publish_to_log(msg: str, task: str, level="DEBUG") -> None:
     client.publish(LOG_TOPIC, msg_to_JSON(msg, task, level))
 
 
+def publish_to_experiment_log(msg: str, experiment: str, task: str, level="DEBUG") -> None:
+    client.publish(f"pioreactor/{HOSTNAME}/{experiment}/logs/ui", msg_to_JSON(msg, task, level))
+
+
 def publish_to_error_log(msg, task: str) -> None:
     logger.error(msg)
     if isinstance(msg, str):

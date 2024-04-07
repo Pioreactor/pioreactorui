@@ -1,6 +1,6 @@
 ### 24.4.4
  - Fix log table not showing entries
- -
+ - Fix button not showing up in UI
 
 ### 24.4.3
  - Bug fixes from 24.4.2
