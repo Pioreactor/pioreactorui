@@ -15,6 +15,7 @@ from flask import g
 from flask import jsonify
 from flask import request
 from flask import Response
+from flask.typing import ResponseReturnValue
 from huey.exceptions import HueyException
 from msgspec import DecodeError
 from msgspec import ValidationError
@@ -37,7 +38,7 @@ from config import cache
 from config import env
 
 
-def scrub_to_valid(value: str):
+def scrub_to_valid(value: str) -> str:
     if value is None:
         raise ValueError()
     elif value.startswith("sqlite_"):
@@ -59,7 +60,7 @@ def current_utc_timestamp() -> str:
     return to_iso_format(current_utc_datetime())
 
 
-def is_valid_unix_filename(filename):
+def is_valid_unix_filename(filename: str) -> bool:
     return (
         bool(re.fullmatch(r"[a-zA-Z0-9._-]+", filename))
         and "/" not in filename
@@ -70,25 +71,25 @@ def is_valid_unix_filename(filename):
 ## PIOREACTOR CONTROL
 
 
-@app.route("/api/experiments/<experiment_id>/workers/stop", methods=["POST"])
-def stop_all_in_experiment(experiment_id):
+@app.route("/api/experiments/<experiment>/workers/stop", methods=["POST"])
+def stop_all_in_experiment(experiment: str) -> ResponseReturnValue:
     """Kills all jobs for workers assigned to experiment"""
     workers = query_db(
         "SELECT pioreactor_unit FROM experiment_worker_assignments WHERE experiment = ?",
-        (experiment_id,),
+        (experiment,),
     )
 
     units = sum([("--units", w["pioreactor_unit"]) for w in workers], ())
     background_tasks.pios("kill", "--all-jobs", *units)
 
     # also kill any jobs running on leader (this unit) that are associated to the experiment (like a profile)
-    background_tasks.pio("kill", "--experiment", experiment_id)
+    background_tasks.pio("kill", "--experiment", experiment)
 
     return Response(status=202)
 
 
 @app.route("/api/workers/<unit>/jobs/<job>/stop", methods=["PATCH"])
-def stop_job_on_unit(unit: str, job: str):
+def stop_job_on_unit(unit: str, job: str) -> ResponseReturnValue:
     """Kills specified job on unit"""
     # TODO: this is barely used, we should remove it / unify it.
 
@@ -115,7 +116,7 @@ def stop_job_on_unit(unit: str, job: str):
 
 
 @app.route("/api/workers/<unit>/experiments/<experiment>/jobs/<job>/run", methods=["PATCH"])
-def run_job_on_unit(unit: str, experiment: str, job: str):
+def run_job_on_unit(unit: str, experiment: str, job: str) -> ResponseReturnValue:
     """
     Runs specified job on unit.
 
@@ -143,14 +144,14 @@ def run_job_on_unit(unit: str, experiment: str, job: str):
 
 
 @app.route("/api/reboot/<unit>", methods=["POST"])
-def reboot_unit(unit: str):
+def reboot_unit(unit: str) -> ResponseReturnValue:
     """Reboots unit"""
     background_tasks.pios("reboot", "--units", unit)
     return Response(status=202)
 
 
 @app.route("/api/shutdown/<unit>", methods=["POST"])
-def shutdown_unit(unit: str):
+def shutdown_unit(unit: str) -> ResponseReturnValue:
     """Shutdown unit"""
     background_tasks.pios("shutdown", "--units", unit)
     return Response(status=202)
@@ -160,10 +161,10 @@ def shutdown_unit(unit: str):
 
 
 @app.route("/api/experiments/<experiment>/logs", methods=["GET"])
-def get_logs(experiment):
+def get_logs(experiment: str) -> ResponseReturnValue:
     """Shows event logs from all units"""
 
-    def get_level_string(min_level):
+    def get_level_string(min_level: str) -> str:
         levels = {
             "DEBUG": ["ERROR", "WARNING", "NOTICE", "INFO", "DEBUG"],
             "INFO": ["ERROR", "NOTICE", "INFO", "WARNING"],
@@ -198,7 +199,7 @@ def get_logs(experiment):
 
 
 @app.route("/api/time_series/growth_rates/<experiment>", methods=["GET"])
-def get_growth_rates(experiment: str):
+def get_growth_rates(experiment: str) -> ResponseReturnValue:
     """Gets growth rates for all units"""
     args = request.args
     filter_mod_n = float(args.get("filter_mod_N", 100.0))
@@ -232,7 +233,7 @@ def get_growth_rates(experiment: str):
 
 
 @app.route("/api/time_series/temperature_readings/<experiment>", methods=["GET"])
-def get_temperature_readings(experiment: str):
+def get_temperature_readings(experiment: str) -> ResponseReturnValue:
     """Gets temperature readings for all units"""
     args = request.args
     filter_mod_n = float(args.get("filter_mod_N", 100.0))
@@ -266,7 +267,7 @@ def get_temperature_readings(experiment: str):
 
 
 @app.route("/api/time_series/od_readings_filtered/<experiment>", methods=["GET"])
-def get_od_readings_filtered(experiment: str):
+def get_od_readings_filtered(experiment: str) -> ResponseReturnValue:
     """Gets normalized od for all units"""
     args = request.args
     filter_mod_n = float(args.get("filter_mod_N", 100.0))
@@ -301,7 +302,7 @@ def get_od_readings_filtered(experiment: str):
 
 
 @app.route("/api/time_series/od_readings/<experiment>", methods=["GET"])
-def get_od_readings(experiment: str):
+def get_od_readings(experiment: str) -> ResponseReturnValue:
     """Gets raw od for all units"""
     args = request.args
     filter_mod_n = float(args.get("filter_mod_N", 100.0))
@@ -334,7 +335,7 @@ def get_od_readings(experiment: str):
 
 
 @app.route("/api/time_series/<data_source>/<experiment>/<column>", methods=["GET"])
-def get_fallback_time_series(data_source: str, experiment: str, column: str):
+def get_fallback_time_series(data_source: str, experiment: str, column: str) -> ResponseReturnValue:
     args = request.args
     try:
         lookback = float(args.get("lookback", 4.0))
@@ -354,7 +355,7 @@ def get_fallback_time_series(data_source: str, experiment: str, column: str):
 
 
 @app.route("/api/experiments/<experiment>/media_rates", methods=["GET"])
-def get_media_rates(experiment):
+def get_media_rates(experiment: str) -> ResponseReturnValue:
     """
     Shows amount of added media per unit. Note that it only consider values from a dosing automation (i.e. not manual dosing, which includes continously dose)
 
@@ -378,9 +379,8 @@ def get_media_rates(experiment):
             """,
             (experiment,),
         )
-
-        json_result = {}
-        aggregate = {"altMediaRate": 0.0, "mediaRate": 0.0}
+        json_result: dict[str, dict[str, float]] = {}
+        aggregate: dict[str, float] = {"altMediaRate": 0.0, "mediaRate": 0.0}
 
         for row in rows:
             json_result[row["pioreactor_unit"]] = {
@@ -402,7 +402,7 @@ def get_media_rates(experiment):
 
 
 @app.route("/api/calibrations/<pioreactor_unit>", methods=["GET"])
-def get_available_calibrations_type_by_unit(pioreactor_unit: str):
+def get_available_calibrations_type_by_unit(pioreactor_unit: str) -> ResponseReturnValue:
     """
     {
         "types": [
@@ -427,7 +427,9 @@ def get_available_calibrations_type_by_unit(pioreactor_unit: str):
 
 
 @app.route("/api/calibrations/<pioreactor_unit>/<calibration_type>", methods=["GET"])
-def get_available_calibrations_of_type(pioreactor_unit: str, calibration_type: str):
+def get_available_calibrations_of_type(
+    pioreactor_unit: str, calibration_type: str
+) -> ResponseReturnValue:
     try:
         unit_calibration = query_db(
             "SELECT * FROM calibrations WHERE type=? AND pioreactor_unit=?",
@@ -442,7 +444,9 @@ def get_available_calibrations_of_type(pioreactor_unit: str, calibration_type: s
 
 
 @app.route("/api/calibrations/<pioreactor_unit>/<calibration_type>/current", methods=["GET"])
-def get_current_calibrations_of_type(pioreactor_unit: str, calibration_type: str):
+def get_current_calibrations_of_type(
+    pioreactor_unit: str, calibration_type: str
+) -> ResponseReturnValue:
     """
     retrieve the current calibration for type
     """
@@ -465,7 +469,9 @@ def get_current_calibrations_of_type(pioreactor_unit: str, calibration_type: str
 @app.route(
     "/api/calibrations/<pioreactor_unit>/<calibration_type>/<calibration_name>", methods=["GET"]
 )
-def get_calibration_by_name(pioreactor_unit: str, calibration_type: str, calibration_name: str):
+def get_calibration_by_name(
+    pioreactor_unit: str, calibration_type: str, calibration_name: str
+) -> ResponseReturnValue:
     """
     retrieve the calibration for type with name
     """
@@ -488,7 +494,9 @@ def get_calibration_by_name(pioreactor_unit: str, calibration_type: str, calibra
 @app.route(
     "/api/calibrations/<pioreactor_unit>/<calibration_type>/<calibration_name>", methods=["PATCH"]
 )
-def patch_calibrations(pioreactor_unit: str, calibration_type: str, calibration_name: str):
+def patch_calibrations(
+    pioreactor_unit: str, calibration_type: str, calibration_name: str
+) -> ResponseReturnValue:
     body = request.get_json()
 
     if "current" in body and body["current"] == 1:
@@ -530,7 +538,7 @@ def patch_calibrations(pioreactor_unit: str, calibration_type: str, calibration_
 
 
 @app.route("/api/calibrations", methods=["PUT"])
-def create_or_update_new_calibrations():
+def create_or_update_new_calibrations() -> ResponseReturnValue:
     try:
         body = request.get_json()
 
@@ -563,7 +571,7 @@ def create_or_update_new_calibrations():
 
 @app.route("/api/installed_plugins", methods=["GET"])
 @cache.memoize(expire=15, tag="plugins")
-def get_installed_plugins():
+def get_installed_plugins() -> ResponseReturnValue:
     result = background_tasks.pio("list-plugins", "--json")
     try:
         status, msg = result(blocking=True, timeout=120)
@@ -580,7 +588,7 @@ def get_installed_plugins():
 
 
 @app.route("/api/upload", methods=["POST"])
-def upload():
+def upload() -> ResponseReturnValue:
     if os.path.isfile(Path(env["DOT_PIOREACTOR"]) / "DISALLOW_UI_UPLOADS"):
         return Response(status=403)
 
@@ -604,7 +612,7 @@ def upload():
 
 
 @app.route("/api/installed_plugins/<filename>", methods=["GET"])
-def get_plugin(filename: str):
+def get_plugin(filename: str) -> ResponseReturnValue:
     """get a specific Python file in the .pioreactor/plugin folder"""
     # security bit: strip out any paths that may be attached, ex: ../../../root/bad
     file = Path(filename).name
@@ -629,7 +637,7 @@ def get_plugin(filename: str):
 
 @app.route("/api/alllow_ui_installs", methods=["GET"])
 @cache.memoize(expire=10_000)
-def able_to_install_plugins_from_ui():
+def able_to_install_plugins_from_ui() -> ResponseReturnValue:
     if os.path.isfile(Path(env["DOT_PIOREACTOR"]) / "DISALLOW_UI_INSTALLS"):
         return "false"
     else:
@@ -637,7 +645,7 @@ def able_to_install_plugins_from_ui():
 
 
 @app.route("/api/install_plugin", methods=["POST"])
-def install_plugin():
+def install_plugin() -> ResponseReturnValue:
     # there is a security problem here. See https://github.com/Pioreactor/pioreactor/issues/421
     if os.path.isfile(Path(env["DOT_PIOREACTOR"]) / "DISALLOW_UI_INSTALLS"):
         return Response(status=403)
@@ -650,7 +658,7 @@ def install_plugin():
 
 
 @app.route("/api/uninstall_plugin", methods=["POST"])
-def uninstall_plugin():
+def uninstall_plugin() -> ResponseReturnValue:
     body = request.get_json()
     background_tasks.pios_uninstall_plugin(body["plugin_name"])
     return Response(status=202)
@@ -661,7 +669,7 @@ def uninstall_plugin():
 
 @app.route("/api/contrib/automations/<automation_type>", methods=["GET"])
 @cache.memoize(expire=20, tag="plugins")
-def get_automation_contrib(automation_type: str):
+def get_automation_contrib(automation_type: str) -> ResponseReturnValue:
     # security to prevent possibly reading arbitrary file
     if automation_type not in {"temperature", "dosing", "led"}:
         return Response(status=400)
@@ -704,7 +712,7 @@ def get_automation_contrib(automation_type: str):
 
 @app.route("/api/contrib/jobs", methods=["GET"])
 @cache.memoize(expire=20, tag="plugins")
-def get_job_contrib():
+def get_job_contrib() -> ResponseReturnValue:
     try:
         job_path_default = Path(env["WWW"]) / "contrib" / "jobs"
         job_path_plugins = Path(env["DOT_PIOREACTOR"]) / "plugins" / "ui" / "contrib" / "jobs"
@@ -733,7 +741,7 @@ def get_job_contrib():
 
 @app.route("/api/contrib/charts", methods=["GET"])
 @cache.memoize(expire=20, tag="plugins")
-def get_charts_contrib():
+def get_charts_contrib() -> ResponseReturnValue:
     try:
         chart_path_default = Path(env["WWW"]) / "contrib" / "charts"
         chart_path_plugins = Path(env["DOT_PIOREACTOR"]) / "plugins" / "ui" / "contrib" / "charts"
@@ -762,19 +770,19 @@ def get_charts_contrib():
 
 
 @app.route("/api/update_app", methods=["POST"])
-def update_app():
+def update_app() -> ResponseReturnValue:
     background_tasks.update_app()
     return Response(status=202)
 
 
 @app.route("/api/update_app_to_develop", methods=["POST"])
-def update_app_to_develop():
+def update_app_to_develop() -> ResponseReturnValue:
     background_tasks.update_app_to_develop()
     return Response(status=202)
 
 
 @app.route("/api/update_app_from_release_archive", methods=["POST"])
-def update_app_from_release_archive():
+def update_app_from_release_archive() -> ResponseReturnValue:
     body = request.get_json()
     release_archive_location = body["release_archive_location"]
     assert release_archive_location.endswith(".zip")
@@ -784,7 +792,7 @@ def update_app_from_release_archive():
 
 @app.route("/api/versions/app", methods=["GET"])
 @cache.memoize(expire=60, tag="app")
-def get_app_version():
+def get_app_version() -> ResponseReturnValue:
     result = subprocess.run(
         ["python", "-c", "import pioreactor; print(pioreactor.__version__)"],
         capture_output=True,
@@ -803,12 +811,12 @@ def get_app_version():
 
 
 @app.route("/api/versions/ui", methods=["GET"])
-def get_ui_version():
+def get_ui_version() -> ResponseReturnValue:
     return VERSION
 
 
 @app.route("/api/cluster_time", methods=["GET"])
-def get_custer_time():
+def get_custer_time() -> ResponseReturnValue:
     result = background_tasks.get_time()
     timestamp = result(blocking=True, timeout=5)
     return Response(
@@ -819,7 +827,7 @@ def get_custer_time():
 
 
 @app.route("/api/cluster_time", methods=["POST"])
-def set_cluster_time():
+def set_cluster_time() -> ResponseReturnValue:
     # body = request.get_json()
 
     # timestamp = body["timestamp"]
@@ -828,10 +836,10 @@ def set_cluster_time():
 
 
 @app.route("/api/export_datasets", methods=["POST"])
-def export_datasets():
+def export_datasets() -> ResponseReturnValue:
     body = request.get_json()
 
-    cmd_tables = sum(
+    cmd_tables: list[str] = sum(
         [
             ["--tables", table_name]
             for (table_name, exporting) in body["datasetCheckbox"].items()
@@ -880,7 +888,7 @@ def export_datasets():
 
 @app.route("/api/experiments", methods=["GET"])
 @cache.memoize(expire=60, tag="experiments")
-def get_experiments():
+def get_experiments() -> ResponseReturnValue:
     try:
         response = jsonify(
             query_db(
@@ -895,7 +903,7 @@ def get_experiments():
 
 
 @app.route("/api/experiments", methods=["POST"])
-def create_experiment():
+def create_experiment() -> ResponseReturnValue:
     cache.evict("experiments")
     cache.evict("unit_labels")
 
@@ -942,7 +950,7 @@ def create_experiment():
 
 
 @app.route("/api/experiments/<experiment_id>", methods=["DELETE"])
-def delete_experiment(experiment_id):
+def delete_experiment(experiment_id: str) -> ResponseReturnValue:
     cache.evict("experiments")
     row_count = modify_db("DELETE FROM experiments WHERE experiment=?;", (experiment_id,))
     background_tasks.pios("kill", "--experiment", experiment_id)
@@ -955,7 +963,7 @@ def delete_experiment(experiment_id):
 
 @app.route("/api/experiments/latest", methods=["GET"])
 @cache.memoize(expire=30, tag="experiments")
-def get_latest_experiment():
+def get_latest_experiment() -> ResponseReturnValue:
     try:
         return Response(
             response=json_encode(
@@ -978,7 +986,7 @@ def get_latest_experiment():
 
 @app.route("/api/experiments/<experiment>/unit_labels", methods=["GET"])
 @cache.memoize(expire=30, tag="unit_labels")
-def get_unit_labels(experiment):
+def get_unit_labels(experiment: str) -> ResponseReturnValue:
     try:
         if experiment == "current":
             unit_labels = query_db(
@@ -989,6 +997,8 @@ def get_unit_labels(experiment):
                 "SELECT r.pioreactor_unit as unit, r.label FROM pioreactor_unit_labels as r WHERE experiment=?;",
                 (experiment,),
             )
+
+        assert isinstance(unit_labels, list)
 
         keyed_by_unit = {d["unit"]: d["label"] for d in unit_labels}
 
@@ -1005,7 +1015,7 @@ def get_unit_labels(experiment):
 
 
 @app.route("/api/experiments/<experiment>/unit_labels", methods=["PUT"])
-def upsert_unit_labels(experiment):
+def upsert_unit_labels(experiment: str) -> ResponseReturnValue:
     """
     Update or insert a new unit label for the current experiment.
 
@@ -1056,7 +1066,7 @@ def upsert_unit_labels(experiment):
 
 
 @app.route("/api/historical_organisms", methods=["GET"])
-def get_historical_organisms_used():
+def get_historical_organisms_used() -> ResponseReturnValue:
     try:
         historical_organisms = query_db(
             'SELECT DISTINCT organism_used as key FROM experiments WHERE NOT (organism_used IS NULL OR organism_used == "") ORDER BY created_at DESC;'
@@ -1070,7 +1080,7 @@ def get_historical_organisms_used():
 
 
 @app.route("/api/historical_media", methods=["GET"])
-def get_historical_media_used():
+def get_historical_media_used() -> ResponseReturnValue:
     try:
         historical_media = query_db(
             'SELECT DISTINCT media_used as key FROM experiments WHERE NOT (media_used IS NULL OR media_used == "") ORDER BY created_at DESC;'
@@ -1084,7 +1094,7 @@ def get_historical_media_used():
 
 
 @app.route("/api/experiments/<experiment>", methods=["PATCH"])
-def update_experiment(experiment):
+def update_experiment(experiment: str) -> ResponseReturnValue:
     cache.evict("experiments")
 
     body = request.get_json()
@@ -1103,7 +1113,7 @@ def update_experiment(experiment):
 
 
 @app.route("/api/setup_worker_pioreactor", methods=["POST"])
-def setup_worker_pioreactor():
+def setup_worker_pioreactor() -> ResponseReturnValue:
     new_name = request.get_json()["newPioreactorName"]
     try:
         result = background_tasks.add_new_pioreactor(new_name)
@@ -1128,7 +1138,7 @@ def setup_worker_pioreactor():
 
 @app.route("/api/configs/<filename>", methods=["GET"])
 @cache.memoize(expire=30, tag="config")
-def get_config(filename: str):
+def get_config(filename: str) -> ResponseReturnValue:
     """get a specific config.ini file in the .pioreactor folder"""
 
     # security bit: strip out any paths that may be attached, ex: ../../../root/bad
@@ -1152,7 +1162,7 @@ def get_config(filename: str):
 
 @app.route("/api/configs", methods=["GET"])
 @cache.memoize(expire=60, tag="config")
-def get_configs():
+def get_configs() -> ResponseReturnValue:
     """get a list of all config.ini files in the .pioreactor folder"""
     try:
         config_path = Path(env["DOT_PIOREACTOR"])
@@ -1164,7 +1174,7 @@ def get_configs():
 
 
 @app.route("/api/configs/<filename>", methods=["DELETE"])
-def delete_config(filename):
+def delete_config(filename: str) -> ResponseReturnValue:
     cache.evict("config")
     filename = Path(filename).name  # remove any ../../ prefix stuff
     config_path = Path(env["DOT_PIOREACTOR"]) / filename
@@ -1175,7 +1185,7 @@ def delete_config(filename):
 
 
 @app.route("/api/configs/<filename>", methods=["PATCH"])
-def update_config(filename):
+def update_config(filename: str) -> ResponseReturnValue:
     """if the config file is unit specific, we only need to run sync-config on that unit."""
     cache.evict("config")
     body = request.get_json()
@@ -1192,6 +1202,8 @@ def update_config(filename):
 
     # is the user editing a worker config or the global config?
     regex = re.compile(r"config_?(.*)?\.ini")
+    result = regex.match(filename)
+    assert regex.match(filename) is not None
     if regex.match(filename)[1] != "":
         units = regex.match(filename)[1]
         flags = "--specific"
@@ -1257,7 +1269,7 @@ def update_config(filename):
 
 @app.route("/api/historical_configs/<filename>", methods=["GET"])
 @cache.memoize(expire=60, tag="config")
-def get_historical_config_for(filename: str):
+def get_historical_config_for(filename: str) -> ResponseReturnValue:
     try:
         configs_for_filename = query_db(
             "SELECT filename, timestamp, data FROM config_files_histories WHERE filename=? ORDER BY timestamp DESC",
@@ -1273,7 +1285,7 @@ def get_historical_config_for(filename: str):
 
 @app.route("/api/is_local_access_point_active", methods=["GET"])
 @cache.memoize(expire=10_000)
-def is_local_access_point_active():
+def is_local_access_point_active() -> ResponseReturnValue:
     if os.path.isfile("/boot/firmware/local_access_point"):
         return "true"
     else:
@@ -1284,7 +1296,7 @@ def is_local_access_point_active():
 
 
 @app.route("/api/contrib/experiment_profiles", methods=["POST"])
-def create_experiment_profile():
+def create_experiment_profile() -> ResponseReturnValue:
     body = request.get_json()
     experiment_profile_body = body["body"]
     experiment_profile_filename = Path(body["filename"]).name
@@ -1318,7 +1330,7 @@ def create_experiment_profile():
 
 
 @app.route("/api/contrib/experiment_profiles", methods=["GET"])
-def get_experiment_profiles():
+def get_experiment_profiles() -> ResponseReturnValue:
     try:
         profile_path = Path(env["DOT_PIOREACTOR"]) / "experiment_profiles"
         files = sorted(profile_path.glob("*.y*ml"), key=os.path.getmtime, reverse=True)
@@ -1344,7 +1356,7 @@ def get_experiment_profiles():
 
 
 @app.route("/api/contrib/experiment_profiles/<filename>", methods=["GET"])
-def get_experiment_profile(filename: str):
+def get_experiment_profile(filename: str) -> ResponseReturnValue:
     file = Path(filename).name
     try:
         if not (Path(file).suffix == ".yaml" or Path(file).suffix == ".yml"):
@@ -1365,7 +1377,7 @@ def get_experiment_profile(filename: str):
 
 
 @app.route("/api/contrib/experiment_profiles/<filename>", methods=["DELETE"])
-def delete_experiment_profile(filename: str):
+def delete_experiment_profile(filename: str) -> ResponseReturnValue:
     file = Path(filename).name
     try:
         if Path(file).suffix not in (".yaml", ".yml"):
@@ -1387,7 +1399,7 @@ def delete_experiment_profile(filename: str):
 
 
 @app.route("/api/workers", methods=["GET"])
-def get_list_of_workers():
+def get_list_of_workers() -> ResponseReturnValue:
     # Get a list of all workers
     all_workers = query_db(
         "SELECT pioreactor_unit, added_at, is_active FROM workers ORDER BY added_at;"
@@ -1396,7 +1408,7 @@ def get_list_of_workers():
 
 
 @app.route("/api/workers", methods=["PUT"])
-def add_worker():
+def add_worker() -> ResponseReturnValue:
     data = request.json
     pioreactor_unit = data.get("pioreactor_unit")
     nrows = modify_db(
@@ -1410,7 +1422,7 @@ def add_worker():
 
 
 @app.route("/api/workers/<pioreactor_unit>", methods=["DELETE"])
-def delete_worker(pioreactor_unit):
+def delete_worker(pioreactor_unit: str) -> ResponseReturnValue:
     row_count = modify_db("DELETE FROM workers WHERE pioreactor_unit=?;", (pioreactor_unit,))
     if row_count > 0:
         background_tasks.pios("kill", "--all-jobs", "--units", pioreactor_unit)
@@ -1420,7 +1432,7 @@ def delete_worker(pioreactor_unit):
 
 
 @app.route("/api/workers/<pioreactor_unit>/is_active", methods=["PUT"])
-def change_worker_status(pioreactor_unit):
+def change_worker_status(pioreactor_unit: str) -> ResponseReturnValue:
     # Get the new status from the request body
     data = request.json
     new_status = data.get("is_active")
@@ -1448,7 +1460,7 @@ def change_worker_status(pioreactor_unit):
 
 
 @app.route("/api/workers/<pioreactor_unit>", methods=["GET"])
-def get_worker(pioreactor_unit):
+def get_worker(pioreactor_unit: str) -> ResponseReturnValue:
     # Query the database for the status of the worker in the given experiment
     result = query_db(
         """
@@ -1470,7 +1482,7 @@ def get_worker(pioreactor_unit):
 
 
 @app.route("/api/workers/assignments", methods=["GET"])
-def get_workers_and_experiment_assignments():
+def get_workers_and_experiment_assignments() -> ResponseReturnValue:
     # Get the experiment that a worker is assigned to along with its status
     result = query_db(
         """
@@ -1488,7 +1500,7 @@ def get_workers_and_experiment_assignments():
 
 
 @app.route("/api/workers/<pioreactor_unit>/experiment", methods=["GET"])
-def get_experiment_assignment_for_worker(pioreactor_unit):
+def get_experiment_assignment_for_worker(pioreactor_unit: str) -> ResponseReturnValue:
     # Get the experiment that a worker is assigned to along with its status
     result = query_db(
         """
@@ -1508,7 +1520,7 @@ def get_experiment_assignment_for_worker(pioreactor_unit):
 
 
 @app.route("/api/experiments/<experiment_id>/workers", methods=["GET"])
-def get_list_of_workers_for_experiment(experiment_id):
+def get_list_of_workers_for_experiment(experiment_id: str) -> ResponseReturnValue:
     workers = query_db(
         """
         SELECT w.pioreactor_unit, is_active
@@ -1524,7 +1536,7 @@ def get_list_of_workers_for_experiment(experiment_id):
 
 
 @app.route("/api/experiments/<experiment>/workers", methods=["PUT"])
-def add_worker_to_experiment(experiment):
+def add_worker_to_experiment(experiment: str) -> ResponseReturnValue:
     # assign
     data = request.json
     pioreactor_unit = data.get("pioreactor_unit")
@@ -1550,7 +1562,7 @@ def add_worker_to_experiment(experiment):
 
 
 @app.route("/api/experiments/<experiment_id>/workers/<pioreactor_unit>", methods=["DELETE"])
-def remove_worker_from_experiment(experiment_id, pioreactor_unit):
+def remove_worker_from_experiment(experiment_id: str, pioreactor_unit: str) -> ResponseReturnValue:
     # unassign
     modify_db(
         "DELETE FROM experiment_worker_assignments WHERE pioreactor_unit = ? AND experiment = ?",
@@ -1568,7 +1580,7 @@ def remove_worker_from_experiment(experiment_id, pioreactor_unit):
 
 
 @app.route("/api/experiments/<experiment_id>/workers", methods=["DELETE"])
-def remove_workers_from_experiment(experiment_id):
+def remove_workers_from_experiment(experiment_id: str) -> ResponseReturnValue:
     # unassign all from experiment
     modify_db(
         "DELETE FROM experiment_worker_assignments WHERE experiment = ?",
