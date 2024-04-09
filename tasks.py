@@ -4,6 +4,7 @@ from __future__ import annotations
 import logging
 from logging import handlers
 from shlex import join
+from subprocess import check_call
 from subprocess import run
 
 from config import cache
@@ -45,15 +46,15 @@ def add_new_pioreactor(new_pioreactor_name: str) -> tuple[bool, str]:
 def update_app() -> bool:
     logger.info("Updating app on leader")
     update_app_on_leader = ["pio", "update", "app"]
-    run(update_app_on_leader)
+    check_call(update_app_on_leader)
 
     logger.info("Updating app on workers")
     update_app_across_all_workers = ["pios", "update", "-y"]
-    run(update_app_across_all_workers)
+    check_call(update_app_across_all_workers)
 
     logger.info("Updating UI on leader")
     update_ui_on_leader = ["pio", "update", "ui"]
-    run(update_ui_on_leader)
+    check_call(update_ui_on_leader)
     cache.evict("app")
     return True
 
@@ -62,15 +63,15 @@ def update_app() -> bool:
 def update_app_to_develop() -> bool:
     logger.info("Updating app to development on leader")
     update_app_on_leader = ["pio", "update", "app", "-b", "develop"]
-    run(update_app_on_leader)
+    check_call(update_app_on_leader)
 
     logger.info("Updating app to development on workers")
     update_app_across_all_workers = ["pios", "update", "-y", "-b", "develop"]
-    run(update_app_across_all_workers)
+    check_call(update_app_across_all_workers)
 
     logger.info("Updating UI to development on leader")
     update_ui_on_leader = ["pio", "update", "ui", "-b", "develop"]
-    run(update_ui_on_leader)
+    check_call(update_ui_on_leader)
     cache.evict("app")
     return True
 
@@ -79,13 +80,13 @@ def update_app_to_develop() -> bool:
 def update_app_from_release_archive(archive_location: str) -> bool:
     logger.info(f"Updating app on leader from {archive_location}")
     update_app_on_leader = ["pio", "update", "app", "--source", archive_location]
-    run(update_app_on_leader)
+    check_call(update_app_on_leader)
 
     logger.info("Updating app to development on workers")
     distribute_archive_to_workers = ["pios", "cp", archive_location, "-y"]
-    run(distribute_archive_to_workers)
+    check_call(distribute_archive_to_workers)
     update_app_across_all_workers = ["pios", "update", "--source", archive_location, "-y"]
-    run(update_app_across_all_workers)
+    check_call(update_app_across_all_workers)
 
     logger.info("Updating UI to development on leader")
     update_ui_on_leader = [
@@ -95,10 +96,10 @@ def update_app_from_release_archive(archive_location: str) -> bool:
         "--source",
         "/tmp/pioreactorui_archive",
     ]  # this /tmp location is added during `pio update app`, kinda gross
-    run(update_ui_on_leader)
-    cache.evict("app")
+    check_call(update_ui_on_leader)
 
-    # remove bits
+    # remove bits if success
+    cache.evict("app")
     run(["rm", f"/tmp/{archive_location}", "/tmp/pioreactorui_archive"])
     return True
 

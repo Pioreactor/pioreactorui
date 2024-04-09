@@ -572,7 +572,7 @@ def create_or_update_new_calibrations() -> ResponseReturnValue:
 @app.route("/api/installed_plugins", methods=["GET"])
 @cache.memoize(expire=15, tag="plugins")
 def get_installed_plugins() -> ResponseReturnValue:
-    result = background_tasks.pio("list-plugins", "--json")
+    result = background_tasks.pio("plugins", "list", "--json")
     try:
         status, msg = result(blocking=True, timeout=120)
     except HueyException:
