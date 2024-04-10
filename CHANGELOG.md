@@ -1,3 +1,9 @@
+### Upcoming
+ - updates for the latest app release
+ - some accessibility improvements
+ - adding RPi model to inventory page
+ - log when a pioreactor changes experiment or active status
+
 ### 24.4.4
  - Fix log table not showing entries
  - Fix button not showing up in UI
