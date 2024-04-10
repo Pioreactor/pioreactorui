@@ -1,4 +1,4 @@
-### Upcoming
+### 24.4.10
  - updates for the latest app release
  - some accessibility improvements
  - adding RPi model to inventory page
