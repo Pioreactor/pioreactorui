@@ -48,13 +48,14 @@ def update_app() -> bool:
     update_app_on_leader = ["pio", "update", "app"]
     check_call(update_app_on_leader)
 
-    logger.info("Updating app on workers")
-    update_app_across_all_workers = ["pios", "update", "-y"]
-    check_call(update_app_across_all_workers)
-
     logger.info("Updating UI on leader")
     update_ui_on_leader = ["pio", "update", "ui"]
     check_call(update_ui_on_leader)
+
+    logger.info("Updating app on workers")
+    update_app_across_all_workers = ["pios", "update", "-y"]
+    run(update_app_across_all_workers)
+
     cache.evict("app")
     return True
 
@@ -65,13 +66,14 @@ def update_app_to_develop() -> bool:
     update_app_on_leader = ["pio", "update", "app", "-b", "develop"]
     check_call(update_app_on_leader)
 
-    logger.info("Updating app to development on workers")
-    update_app_across_all_workers = ["pios", "update", "-y", "-b", "develop"]
-    check_call(update_app_across_all_workers)
-
     logger.info("Updating UI to development on leader")
     update_ui_on_leader = ["pio", "update", "ui", "-b", "develop"]
     check_call(update_ui_on_leader)
+
+    logger.info("Updating app to development on workers")
+    update_app_across_all_workers = ["pios", "update", "-y", "-b", "develop"]
+    run(update_app_across_all_workers)
+
     cache.evict("app")
     return True
 
@@ -82,12 +84,6 @@ def update_app_from_release_archive(archive_location: str) -> bool:
     update_app_on_leader = ["pio", "update", "app", "--source", archive_location]
     check_call(update_app_on_leader)
 
-    logger.info("Updating app to development on workers")
-    distribute_archive_to_workers = ["pios", "cp", archive_location, "-y"]
-    check_call(distribute_archive_to_workers)
-    update_app_across_all_workers = ["pios", "update", "--source", archive_location, "-y"]
-    check_call(update_app_across_all_workers)
-
     logger.info("Updating UI to development on leader")
     update_ui_on_leader = [
         "pio",
@@ -97,6 +93,12 @@ def update_app_from_release_archive(archive_location: str) -> bool:
         "/tmp/pioreactorui_archive",
     ]  # this /tmp location is added during `pio update app`, kinda gross
     check_call(update_ui_on_leader)
+
+    logger.info("Updating app to development on workers")
+    distribute_archive_to_workers = ["pios", "cp", archive_location, "-y"]
+    run(distribute_archive_to_workers)
+    update_app_across_all_workers = ["pios", "update", "--source", archive_location, "-y"]
+    run(update_app_across_all_workers)
 
     # remove bits if success
     cache.evict("app")
