@@ -1114,9 +1114,13 @@ def update_experiment(experiment: str) -> ResponseReturnValue:
 
 @app.route("/api/setup_worker_pioreactor", methods=["POST"])
 def setup_worker_pioreactor() -> ResponseReturnValue:
-    new_name = request.get_json()["newPioreactorName"]
+    data = request.get_json()
+    new_name = data["name"]
+    version = data["version"]
+    model = data["model"]
+
     try:
-        result = background_tasks.add_new_pioreactor(new_name)
+        result = background_tasks.add_new_pioreactor(new_name, version, model)
     except Exception as e:
         publish_to_error_log(str(e), "setup_worker_pioreactor")
         return {"msg": str(e)}, 500
