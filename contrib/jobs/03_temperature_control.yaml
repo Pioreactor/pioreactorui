@@ -1,5 +1,5 @@
 ---
-display_name: Temperature automation
+display_name: Temp. automation
 job_name: temperature_control
 subtext: automation_name
 display: true
