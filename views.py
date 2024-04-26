@@ -1167,10 +1167,30 @@ def get_config(filename: str) -> ResponseReturnValue:
 @app.route("/api/configs", methods=["GET"])
 @cache.memoize(expire=60, tag="config")
 def get_configs() -> ResponseReturnValue:
-    """get a list of all config.ini files in the .pioreactor folder"""
+    """get a list of all config.ini files in the .pioreactor folder, _and_ are part of the inventory"""
+
+    all_workers = query_db("SELECT pioreactor_unit FROM workers ORDER BY added_at;")
+    all_workers_bucket = {worker["pioreactor_unit"] for worker in all_workers}
+
+    def strip_worker_name_from_config(file_name):
+        return file_name.removeprefix("config_").removesuffix(".ini")
+
+    def allow_file_through(file_name):
+        if file_name == "config.ini":
+            return True
+        else:
+            # return True
+            return strip_worker_name_from_config(file_name) in all_workers_bucket
+
     try:
         config_path = Path(env["DOT_PIOREACTOR"])
-        return jsonify([file.name for file in sorted(config_path.glob("config*.ini"))])
+        return jsonify(
+            [
+                file.name
+                for file in sorted(config_path.glob("config*.ini"))
+                if allow_file_through(file.name)
+            ]
+        )
 
     except Exception as e:
         publish_to_error_log(str(e), "get_configs")
