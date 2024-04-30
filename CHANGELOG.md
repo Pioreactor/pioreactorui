@@ -1,3 +1,10 @@
+### 24.4.30
+ - Support for Pioreactor 20ml v1.1
+ - Lots of small UI interactions:
+   - better default states
+   - better "loading" screens
+   - a11y improvements
+
 
 ### 24.4.11
  - first update ui, before other things.
