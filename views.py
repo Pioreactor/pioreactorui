@@ -180,7 +180,7 @@ def get_logs(experiment: str) -> ResponseReturnValue:
 
     try:
         recent_logs = query_db(
-            f"""SELECT l.timestamp, level=='ERROR'as is_error, level=='WARNING' as is_warning, level=='NOTICE' as is_notice, l.pioreactor_unit, message, task
+            f"""SELECT l.timestamp, level, l.pioreactor_unit, message, task
                 FROM logs AS l
                 WHERE (l.experiment=? OR l.experiment=?)
                     AND {level_string}
