@@ -1426,7 +1426,7 @@ def delete_experiment_profile(filename: str) -> ResponseReturnValue:
 def get_list_of_workers() -> ResponseReturnValue:
     # Get a list of all workers
     all_workers = query_db(
-        "SELECT pioreactor_unit, added_at, is_active FROM workers ORDER BY added_at;"
+        "SELECT pioreactor_unit, added_at, is_active FROM workers ORDER BY pioreactor_unit;"
     )
     return jsonify(all_workers)
 
@@ -1514,7 +1514,7 @@ def get_workers_and_experiment_assignments() -> ResponseReturnValue:
         FROM workers w
         LEFT JOIN experiment_worker_assignments a
           on w.pioreactor_unit = a.pioreactor_unit
-        ORDER BY added_at
+        ORDER BY w.pioreactor_unit
         """,
     )
     if result:
@@ -1552,7 +1552,7 @@ def get_list_of_workers_for_experiment(experiment_id: str) -> ResponseReturnValu
         JOIN workers w
           on w.pioreactor_unit = a.pioreactor_unit
         WHERE experiment = ?
-        ORDER BY assigned_at DESC
+        ORDER BY w.pioreactor_unit
         """,
         (experiment_id,),
     )
