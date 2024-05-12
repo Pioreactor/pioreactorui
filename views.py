@@ -635,7 +635,7 @@ def get_plugin(filename: str) -> ResponseReturnValue:
         return Response(status=500)
 
 
-@app.route("/api/alllow_ui_installs", methods=["GET"])
+@app.route("/api/allow_ui_installs", methods=["GET"])
 @cache.memoize(expire=10_000)
 def able_to_install_plugins_from_ui() -> ResponseReturnValue:
     if os.path.isfile(Path(env["DOT_PIOREACTOR"]) / "DISALLOW_UI_INSTALLS"):
@@ -668,7 +668,6 @@ def uninstall_plugin() -> ResponseReturnValue:
 
 
 @app.route("/api/contrib/automations/<automation_type>", methods=["GET"])
-@cache.memoize(expire=20, tag="plugins")
 def get_automation_contrib(automation_type: str) -> ResponseReturnValue:
     # security to prevent possibly reading arbitrary file
     if automation_type not in {"temperature", "dosing", "led"}:
@@ -703,7 +702,7 @@ def get_automation_contrib(automation_type: str) -> ResponseReturnValue:
             response=json_encode(list(parsed_yaml.values())),
             status=200,
             mimetype="application/json",
-            headers={"Cache-Control": "public,max-age=6"},
+            headers={"Cache-Control": "public,max-age=10"},
         )
     except Exception as e:
         publish_to_error_log(str(e), "get_automation_contrib")
@@ -711,7 +710,6 @@ def get_automation_contrib(automation_type: str) -> ResponseReturnValue:
 
 
 @app.route("/api/contrib/jobs", methods=["GET"])
-@cache.memoize(expire=20, tag="plugins")
 def get_job_contrib() -> ResponseReturnValue:
     try:
         job_path_default = Path(env["WWW"]) / "contrib" / "jobs"
@@ -732,7 +730,7 @@ def get_job_contrib() -> ResponseReturnValue:
             response=json_encode(list(parsed_yaml.values())),
             status=200,
             mimetype="application/json",
-            headers={"Cache-Control": "public,max-age=6"},
+            headers={"Cache-Control": "public,max-age=10"},
         )
     except Exception as e:
         publish_to_error_log(str(e), "get_job_contrib")
@@ -740,7 +738,6 @@ def get_job_contrib() -> ResponseReturnValue:
 
 
 @app.route("/api/contrib/charts", methods=["GET"])
-@cache.memoize(expire=20, tag="plugins")
 def get_charts_contrib() -> ResponseReturnValue:
     try:
         chart_path_default = Path(env["WWW"]) / "contrib" / "charts"
@@ -762,7 +759,7 @@ def get_charts_contrib() -> ResponseReturnValue:
             response=json_encode(list(parsed_yaml.values())),
             status=200,
             mimetype="application/json",
-            headers={"Cache-Control": "public,max-age=6"},
+            headers={"Cache-Control": "public,max-age=10"},
         )
     except Exception as e:
         publish_to_error_log(str(e), "get_charts_contrib")
@@ -791,7 +788,6 @@ def update_app_from_release_archive() -> ResponseReturnValue:
 
 
 @app.route("/api/versions/app", methods=["GET"])
-@cache.memoize(expire=60, tag="app")
 def get_app_version() -> ResponseReturnValue:
     result = subprocess.run(
         ["python", "-c", "import pioreactor; print(pioreactor.__version__)"],
@@ -806,7 +802,7 @@ def get_app_version() -> ResponseReturnValue:
         response=result.stdout.strip(),
         status=200,
         mimetype="text/plain",
-        headers={"Cache-Control": "public,max-age=6"},
+        headers={"Cache-Control": "public,max-age=60"},
     )
 
 
@@ -985,7 +981,6 @@ def get_latest_experiment() -> ResponseReturnValue:
 
 
 @app.route("/api/experiments/<experiment>/unit_labels", methods=["GET"])
-@cache.memoize(expire=30, tag="unit_labels")
 def get_unit_labels(experiment: str) -> ResponseReturnValue:
     try:
         if experiment == "current":
@@ -1005,7 +1000,7 @@ def get_unit_labels(experiment: str) -> ResponseReturnValue:
         return Response(
             response=json_encode(keyed_by_unit),
             status=200,
-            headers={"Cache-Control": "public,max-age=6"},
+            headers={"Cache-Control": "public,max-age=10"},
             mimetype="application/json",
         )
 
@@ -1045,7 +1040,6 @@ def upsert_unit_labels(experiment: str) -> ResponseReturnValue:
     Raises:
     Exception: Any error encountered during the database operation is published to the error log.
     """
-    cache.evict("unit_labels")
 
     body = request.get_json()
 
@@ -1292,7 +1286,6 @@ def update_config(filename: str) -> ResponseReturnValue:
 
 
 @app.route("/api/historical_configs/<filename>", methods=["GET"])
-@cache.memoize(expire=60, tag="config")
 def get_historical_config_for(filename: str) -> ResponseReturnValue:
     try:
         configs_for_filename = query_db(
@@ -1330,7 +1323,7 @@ def create_experiment_profile() -> ResponseReturnValue:
         yaml_decode(experiment_profile_body, type=structs.Profile)
     except Exception as e:
         msg = f"{e}"
-        publish_to_error_log(msg, "create_experiment_profile")
+        # publish_to_error_log(msg, "create_experiment_profile")
         return {"msg": msg}, 400
 
     # verify file
@@ -1341,7 +1334,7 @@ def create_experiment_profile() -> ResponseReturnValue:
         ) or experiment_profile_filename.endswith(".yml")
     except Exception:
         msg = "Invalid filename"
-        publish_to_error_log(msg, "create_experiment_profile")
+        # publish_to_error_log(msg, "create_experiment_profile")
         return {"msg": msg}, 400
 
     # save file to disk
@@ -1426,7 +1419,7 @@ def delete_experiment_profile(filename: str) -> ResponseReturnValue:
 def get_list_of_workers() -> ResponseReturnValue:
     # Get a list of all workers
     all_workers = query_db(
-        "SELECT pioreactor_unit, added_at, is_active FROM workers ORDER BY pioreactor_unit;"
+        "SELECT pioreactor_unit, added_at, is_active FROM workers ORDER BY added_at;"
     )
     return jsonify(all_workers)
 
@@ -1514,7 +1507,7 @@ def get_workers_and_experiment_assignments() -> ResponseReturnValue:
         FROM workers w
         LEFT JOIN experiment_worker_assignments a
           on w.pioreactor_unit = a.pioreactor_unit
-        ORDER BY w.pioreactor_unit
+        ORDER BY w.added_at
         """,
     )
     if result:
@@ -1552,7 +1545,7 @@ def get_list_of_workers_for_experiment(experiment_id: str) -> ResponseReturnValu
         JOIN workers w
           on w.pioreactor_unit = a.pioreactor_unit
         WHERE experiment = ?
-        ORDER BY w.pioreactor_unit
+        ORDER BY w.added_at
         """,
         (experiment_id,),
     )
