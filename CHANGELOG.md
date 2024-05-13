@@ -1,3 +1,12 @@
+### 24.5.13
+ - major upgrade of packages, including MUI, react, victory and more.
+ - removed unused packages
+ - UI's code sections use syntax-highlighting and other nicer features for editing yaml and ini files.
+ - UI chart legend's will support more than 8 Pioreactors.
+ - UI chart colors are consistent across charts in the Overview.
+ - fix "Manage all" not sending the correct dosing command to workers.
+
+
 ### 24.4.30
  - Support for Pioreactor 20ml v1.1
  - Lots of small UI interactions:
