@@ -13,6 +13,7 @@ from logging import handlers
 import paho.mqtt.client as mqtt
 from flask import Flask
 from flask import g
+from paho.mqtt.enums import CallbackAPIVersion
 
 from config import env
 from version import __version__
@@ -45,7 +46,7 @@ app = Flask(NAME)
 # connect to MQTT server
 logger.debug("Starting MQTT client")
 
-client = mqtt.Client()
+client = mqtt.Client(callback_api_version=CallbackAPIVersion.VERSION2)
 client.username_pw_set("pioreactor", "raspberry")
 client.connect("localhost")
 client.loop_start()
