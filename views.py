@@ -910,6 +910,8 @@ def create_experiment() -> ResponseReturnValue:
         return Response(status=404)
     elif proposed_experiment_name.lower() == "current":  # too much API rework
         return Response(status=404)
+    elif proposed_experiment_name.startswith("_testing_"):  # jobs won't run as expected
+        return Response(status=404)
     elif (
         ("#" in proposed_experiment_name)
         or ("+" in proposed_experiment_name)
@@ -1116,7 +1118,6 @@ def setup_worker_pioreactor() -> ResponseReturnValue:
     try:
         result = background_tasks.add_new_pioreactor(new_name, version, model)
     except Exception as e:
-        publish_to_error_log(str(e), "setup_worker_pioreactor")
         return {"msg": str(e)}, 500
 
     try:
@@ -1443,6 +1444,14 @@ def delete_worker(pioreactor_unit: str) -> ResponseReturnValue:
     row_count = modify_db("DELETE FROM workers WHERE pioreactor_unit=?;", (pioreactor_unit,))
     if row_count > 0:
         background_tasks.pios("kill", "--all-jobs", "--units", pioreactor_unit)
+
+        publish_to_experiment_log(
+            f"Removed {pioreactor_unit} from cluster.",
+            experiment="$experiment",
+            level="INFO",
+            task="assignment",
+        )
+
         return Response(status=204)
     else:
         return Response(status=404)

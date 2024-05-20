@@ -3,7 +3,6 @@ display_name: self test
 job_name: self_test
 display: false
 source: app
-is_testing: true
 published_settings:
   - key: test_detect_heating_pcb
     display: false

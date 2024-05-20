@@ -33,6 +33,7 @@ def initialized():
 
 @huey.task()
 def add_new_pioreactor(new_pioreactor_name: str, version: str, model: str) -> tuple[bool, str]:
+    # CPU heavy
     logger.info(f"Adding new pioreactor {new_pioreactor_name}, {model} {version}")
     result = run(
         ["pio", "workers", "add", new_pioreactor_name, "-v", version, "-m", model],
@@ -48,6 +49,7 @@ def add_new_pioreactor(new_pioreactor_name: str, version: str, model: str) -> tu
 
 @huey.task()
 def update_app() -> bool:
+    # CPU heavy / IO heavy
     logger.info("Updating app on leader")
     update_app_on_leader = ["pio", "update", "app"]
     check_call(update_app_on_leader)
