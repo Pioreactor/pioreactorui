@@ -28,7 +28,7 @@ class BackgroundJobDescriptor(Struct, forbid_unknown_fields=True):  # type: igno
     source: t.Optional[str] = None  # what plugin / app created this job? Usually `app`
     description: t.Optional[str] = None  # if display is false, this isn't needed
     subtext: t.Optional[str] = None
-    is_testing: bool = False
+    is_testing: bool = False  # DEPRECATED
 
 
 #### Automations
