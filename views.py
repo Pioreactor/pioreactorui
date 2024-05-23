@@ -176,7 +176,6 @@ def get_logs(experiment: str) -> ResponseReturnValue:
         return " or ".join(f'level == "{level}"' for level in selected_levels)
 
     min_level = request.args.get("min_level", "INFO")
-    level_string = "(" + get_level_string(min_level) + ")"
 
     try:
         recent_logs = query_db(
@@ -185,7 +184,7 @@ def get_logs(experiment: str) -> ResponseReturnValue:
                 JOIN experiments e
                   on l.experiment = e.experiment
                 WHERE (l.experiment=? OR l.experiment='$experiment')
-                    AND {level_string}
+                    AND ({get_level_string(min_level)})
                     AND l.timestamp >= MAX( strftime('%Y-%m-%dT%H:%M:%S', datetime('now', '-24 hours')), (SELECT created_at FROM experiments where experiment=?) )
                 ORDER BY l.timestamp DESC LIMIT 50;""",
             (experiment, experiment),
