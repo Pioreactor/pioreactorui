@@ -182,14 +182,13 @@ def get_logs(experiment: str) -> ResponseReturnValue:
         recent_logs = query_db(
             f"""SELECT l.timestamp, level, l.pioreactor_unit, message, task
                 FROM logs AS l
-                WHERE (l.experiment=? OR l.experiment=?)
+                JOIN experiments e
+                  on l.experiment = e.experiment
+                WHERE (l.experiment=? OR l.experiment='$experiment')
                     AND {level_string}
-                    AND l.timestamp >= strftime('%Y-%m-%dT%H:%M:%S', datetime('now', '-24 hours'))
+                    AND l.timestamp >= MAX( strftime('%Y-%m-%dT%H:%M:%S', datetime('now', '-24 hours')), (SELECT created_at FROM experiments where experiment=?) )
                 ORDER BY l.timestamp DESC LIMIT 50;""",
-            (
-                experiment,
-                "$experiment",
-            ),
+            (experiment, experiment),
         )
     except Exception as e:
         publish_to_error_log(str(e), "get_logs")
@@ -1522,7 +1521,7 @@ def get_workers_and_experiment_assignments() -> ResponseReturnValue:
     if result:
         return jsonify(result)
     else:
-        return jsonify({"error": "No workers"}), 404
+        return jsonify([])
 
 
 @app.route("/api/workers/<pioreactor_unit>/experiment", methods=["GET"])
