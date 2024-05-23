@@ -181,14 +181,13 @@ def get_logs(experiment: str) -> ResponseReturnValue:
         recent_logs = query_db(
             f"""SELECT l.timestamp, level, l.pioreactor_unit, message, task
                 FROM logs AS l
-                JOIN experiments e
-                  on l.experiment = e.experiment
                 WHERE (l.experiment=? OR l.experiment='$experiment')
                     AND ({get_level_string(min_level)})
                     AND l.timestamp >= MAX( strftime('%Y-%m-%dT%H:%M:%S', datetime('now', '-24 hours')), (SELECT created_at FROM experiments where experiment=?) )
                 ORDER BY l.timestamp DESC LIMIT 50;""",
             (experiment, experiment),
         )
+
     except Exception as e:
         publish_to_error_log(str(e), "get_logs")
         return Response(status=500)
