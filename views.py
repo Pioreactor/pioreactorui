@@ -885,7 +885,10 @@ def get_experiments() -> ResponseReturnValue:
     try:
         response = jsonify(
             query_db(
-                'SELECT experiment, created_at, description, round( (strftime("%s","now") - strftime("%s", created_at))/60/60, 0) as delta_hours FROM experiments ORDER BY created_at DESC;'
+                """SELECT experiment, created_at, description, round( (strftime("%s","now") - strftime("%s", created_at))/60/60, 0) as delta_hours
+                FROM experiments
+                ORDER BY created_at
+                DESC;"""
             )
         )
         return response
@@ -1046,10 +1049,16 @@ def upsert_unit_labels(experiment: str) -> ResponseReturnValue:
     label = body["label"]
 
     try:
-        modify_db(
-            "INSERT OR REPLACE INTO pioreactor_unit_labels (label, experiment, pioreactor_unit, created_at) VALUES ((?), (?), (?), strftime('%Y-%m-%dT%H:%M:%S', datetime('now')) ) ON CONFLICT(experiment, pioreactor_unit) DO UPDATE SET label=excluded.label, created_at=strftime('%Y-%m-%dT%H:%M:%S', datetime('now'))",
-            (label, experiment, unit),
-        )
+        if label == "": # empty string, eg they are removing the label. We can't use the upsert below since then multiple pios are assigned "" and our unique constraint prevents that.
+            modify_db(
+                "DELETE FROM pioreactor_unit_labels WHERE experiment=(?) AND pioreactor_unit = (?)",
+                (experiment, unit),
+            )
+        else:
+            modify_db(
+                "INSERT OR REPLACE INTO pioreactor_unit_labels (label, experiment, pioreactor_unit, created_at) VALUES ((?), (?), (?), strftime('%Y-%m-%dT%H:%M:%S', datetime('now')) ) ON CONFLICT(experiment, pioreactor_unit) DO UPDATE SET label=excluded.label, created_at=strftime('%Y-%m-%dT%H:%M:%S', datetime('now'))",
+                (label, experiment, unit),
+            )
 
     except Exception as e:
         publish_to_error_log(str(e), "upsert_current_unit_labels")
@@ -1426,6 +1435,10 @@ def get_list_of_workers() -> ResponseReturnValue:
 def add_worker() -> ResponseReturnValue:
     data = request.json
     pioreactor_unit = data.get("pioreactor_unit")
+
+    if not pioreactor_unit:
+        return Response(status=400)
+
     nrows = modify_db(
         "INSERT OR REPLACE INTO workers (pioreactor_unit, added_at, is_active) VALUES (?, STRFTIME('%Y-%m-%dT%H:%M:%f000Z', 'NOW'), 1);",
         (pioreactor_unit,),
@@ -1514,6 +1527,24 @@ def get_workers_and_experiment_assignments() -> ResponseReturnValue:
         LEFT JOIN experiment_worker_assignments a
           on w.pioreactor_unit = a.pioreactor_unit
         ORDER BY w.added_at
+        """,
+    )
+    if result:
+        return jsonify(result)
+    else:
+        return jsonify([])
+
+@app.route("/api/experiment/assignment_count", methods=["GET"])
+def get_experiments_worker_assignments() -> ResponseReturnValue:
+    # Get the number of pioreactors assigned to an experiment.
+    result = query_db(
+        """
+        SELECT e.experiment, count(a.pioreactor_unit)
+        FROM experiments e
+        LEFT JOIN experiment_worker_assignments a
+          on e.experiment = a.experiment
+        GROUP BY 1
+        HAVING count(a.pioreactor_unit) > 0
         """,
     )
     if result:

@@ -16,6 +16,7 @@ from flask import g
 from paho.mqtt.enums import CallbackAPIVersion
 
 from config import env
+from config import config
 from version import __version__
 
 NAME = "pioreactorui"
@@ -47,8 +48,14 @@ app = Flask(NAME)
 logger.debug("Starting MQTT client")
 
 client = mqtt.Client(callback_api_version=CallbackAPIVersion.VERSION2)
-client.username_pw_set("pioreactor", "raspberry")
-client.connect("localhost")
+client.username_pw_set(
+    config.get("mqtt", "username", fallback="pioreactor"),
+    config.get("mqtt", "password", fallback="raspberry"),
+)
+client.connect(
+        host=config.get("mqtt", "broker_address", fallback="localhost"),
+        port=config.getint("mqtt", "broker_port", fallback=1883)
+)
 client.loop_start()
 
 ## UTILS
@@ -89,7 +96,7 @@ def _make_dicts(cursor, row) -> dict:
 def _get_db_connection():
     db = getattr(g, "_database", None)
     if db is None:
-        db = g._database = sqlite3.connect(env["DB_LOCATION"])
+        db = g._database = sqlite3.connect(config['storage']["database"])
         db.row_factory = _make_dicts
         db.execute("PRAGMA foreign_keys = 1")
 
