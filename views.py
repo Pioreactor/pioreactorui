@@ -88,6 +88,20 @@ def stop_all_in_experiment(experiment: str) -> ResponseReturnValue:
     return Response(status=202)
 
 
+@app.route("/api/experiments/<experiment>/workers/<worker>/stop", methods=["POST"])
+def stop_worker_in_experiment(experiment: str, worker: str) -> ResponseReturnValue:
+    """Kills all jobs for worker assigned to experiment"""
+    workers = query_db(
+        "SELECT pioreactor_unit FROM experiment_worker_assignments WHERE experiment = ? and pioreactor_unit = ?",
+        (experiment, worker),
+    )
+
+    units = sum([("--units", w["pioreactor_unit"]) for w in workers], ())
+    background_tasks.pios("kill", "--all-jobs", *units)
+
+    return Response(status=202)
+
+
 @app.route("/api/workers/<unit>/jobs/<job>/stop", methods=["PATCH"])
 def stop_job_on_unit(unit: str, job: str) -> ResponseReturnValue:
     """Kills specified job on unit"""
@@ -1049,7 +1063,9 @@ def upsert_unit_labels(experiment: str) -> ResponseReturnValue:
     label = body["label"]
 
     try:
-        if label == "": # empty string, eg they are removing the label. We can't use the upsert below since then multiple pios are assigned "" and our unique constraint prevents that.
+        if (
+            label == ""
+        ):  # empty string, eg they are removing the label. We can't use the upsert below since then multiple pios are assigned "" and our unique constraint prevents that.
             modify_db(
                 "DELETE FROM pioreactor_unit_labels WHERE experiment=(?) AND pioreactor_unit = (?)",
                 (experiment, unit),
@@ -1534,7 +1550,8 @@ def get_workers_and_experiment_assignments() -> ResponseReturnValue:
     else:
         return jsonify([])
 
-@app.route("/api/experiment/assignment_count", methods=["GET"])
+
+@app.route("/api/experiments/assignment_count", methods=["GET"])
 def get_experiments_worker_assignments() -> ResponseReturnValue:
     # Get the number of pioreactors assigned to an experiment.
     result = query_db(
