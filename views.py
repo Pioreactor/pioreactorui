@@ -1167,8 +1167,8 @@ def get_config(filename: str) -> ResponseReturnValue:
 
     try:
         assert Path(filename).suffix == ".ini"
+        specific_config_path = Path(env["CONFIG_PATH"])
 
-        specific_config_path = Path(env["DOT_PIOREACTOR"]) / filename
         return Response(
             response=specific_config_path.read_text(),
             status=200,
