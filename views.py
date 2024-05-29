@@ -1442,7 +1442,7 @@ def delete_experiment_profile(filename: str) -> ResponseReturnValue:
 def get_list_of_workers() -> ResponseReturnValue:
     # Get a list of all workers
     all_workers = query_db(
-        "SELECT pioreactor_unit, added_at, is_active FROM workers ORDER BY added_at;"
+        "SELECT pioreactor_unit, added_at, is_active FROM workers ORDER BY pioreactor_unit;"
     )
     return jsonify(all_workers)
 
