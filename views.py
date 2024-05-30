@@ -78,6 +78,7 @@ def stop_all_in_experiment(experiment: str) -> ResponseReturnValue:
         "SELECT pioreactor_unit FROM experiment_worker_assignments WHERE experiment = ?",
         (experiment,),
     )
+    assert isinstance(workers, list)
 
     units = sum([("--units", w["pioreactor_unit"]) for w in workers], ())
     background_tasks.pios("kill", "--all-jobs", *units)
@@ -95,6 +96,7 @@ def stop_worker_in_experiment(experiment: str, worker: str) -> ResponseReturnVal
         "SELECT pioreactor_unit FROM experiment_worker_assignments WHERE experiment = ? and pioreactor_unit = ?",
         (experiment, worker),
     )
+    assert isinstance(workers, list)
 
     units = sum([("--units", w["pioreactor_unit"]) for w in workers], ())
     background_tasks.pios("kill", "--all-jobs", *units)
@@ -390,16 +392,17 @@ def get_media_rates(experiment: str) -> ResponseReturnValue:
             """,
             (experiment,),
         )
+        assert isinstance(rows, list)
         json_result: dict[str, dict[str, float]] = {}
         aggregate: dict[str, float] = {"altMediaRate": 0.0, "mediaRate": 0.0}
 
         for row in rows:
             json_result[row["pioreactor_unit"]] = {
-                "altMediaRate": row["altMediaRate"],
-                "mediaRate": row["mediaRate"],
+                "altMediaRate": float(row["altMediaRate"]),
+                "mediaRate": float(row["mediaRate"]),
             }
-            aggregate["mediaRate"] = aggregate["mediaRate"] + row["mediaRate"]
-            aggregate["altMediaRate"] = aggregate["altMediaRate"] + row["altMediaRate"]
+            aggregate["mediaRate"] = aggregate["mediaRate"] + float(row["mediaRate"])
+            aggregate["altMediaRate"] = aggregate["altMediaRate"] + float(row["altMediaRate"])
 
         json_result["all"] = aggregate
         return jsonify(json_result)
@@ -961,11 +964,11 @@ def create_experiment() -> ResponseReturnValue:
         return Response(status=500)
 
 
-@app.route("/api/experiments/<experiment_id>", methods=["DELETE"])
-def delete_experiment(experiment_id: str) -> ResponseReturnValue:
+@app.route("/api/experiments/<experiment>", methods=["DELETE"])
+def delete_experiment(experiment: str) -> ResponseReturnValue:
     cache.evict("experiments")
-    row_count = modify_db("DELETE FROM experiments WHERE experiment=?;", (experiment_id,))
-    background_tasks.pios("kill", "--experiment", experiment_id)
+    row_count = modify_db("DELETE FROM experiments WHERE experiment=?;", (experiment,))
+    background_tasks.pios("kill", "--experiment", experiment)
     if row_count > 0:
         return Response(status=204)
     else:
@@ -1187,6 +1190,7 @@ def get_configs() -> ResponseReturnValue:
     """get a list of all config.ini files in the .pioreactor folder, _and_ are part of the inventory"""
 
     all_workers = query_db("SELECT pioreactor_unit FROM workers ORDER BY added_at;")
+    assert isinstance(all_workers, list)
     all_workers_bucket = {worker["pioreactor_unit"] for worker in all_workers}
 
     def strip_worker_name_from_config(file_name):
@@ -1243,10 +1247,10 @@ def update_config(filename: str) -> ResponseReturnValue:
 
     # is the user editing a worker config or the global config?
     regex = re.compile(r"config_?(.*)?\.ini")
-    result = regex.match(filename)
-    assert regex.match(filename) is not None
-    if regex.match(filename)[1] != "":
-        units = regex.match(filename)[1]
+    is_unit_specific = regex.match(filename)
+    assert is_unit_specific is not None
+    if is_unit_specific[1] != "":
+        units = is_unit_specific[1]
         flags = "--specific"
     else:
         units = "$broadcast"
@@ -1584,14 +1588,15 @@ def get_experiment_assignment_for_worker(pioreactor_unit: str) -> ResponseReturn
         (pioreactor_unit,),
         one=True,
     )
+    assert isinstance(result, dict)
     if result:
         return jsonify({"experiment": result["experiment"]})
     else:
         return jsonify({"error": "Worker not found"}), 404
 
 
-@app.route("/api/experiments/<experiment_id>/workers", methods=["GET"])
-def get_list_of_workers_for_experiment(experiment_id: str) -> ResponseReturnValue:
+@app.route("/api/experiments/<experiment>/workers", methods=["GET"])
+def get_list_of_workers_for_experiment(experiment: str) -> ResponseReturnValue:
     workers = query_db(
         """
         SELECT w.pioreactor_unit, is_active
@@ -1601,7 +1606,7 @@ def get_list_of_workers_for_experiment(experiment_id: str) -> ResponseReturnValu
         WHERE experiment = ?
         ORDER BY w.added_at
         """,
-        (experiment_id,),
+        (experiment,),
     )
     return jsonify(workers)
 
@@ -1632,17 +1637,17 @@ def add_worker_to_experiment(experiment: str) -> ResponseReturnValue:
         return Response(status=404)
 
 
-@app.route("/api/experiments/<experiment_id>/workers/<pioreactor_unit>", methods=["DELETE"])
-def remove_worker_from_experiment(experiment_id: str, pioreactor_unit: str) -> ResponseReturnValue:
+@app.route("/api/experiments/<experiment>/workers/<pioreactor_unit>", methods=["DELETE"])
+def remove_worker_from_experiment(experiment: str, pioreactor_unit: str) -> ResponseReturnValue:
     # unassign
     modify_db(
         "DELETE FROM experiment_worker_assignments WHERE pioreactor_unit = ? AND experiment = ?",
-        (pioreactor_unit, experiment_id),
+        (pioreactor_unit, experiment),
     )
-    background_tasks.pios("kill", "--experiment", experiment_id, "--units", pioreactor_unit)
+    background_tasks.pios("kill", "--experiment", experiment, "--units", pioreactor_unit)
     publish_to_experiment_log(
-        f"Removed {pioreactor_unit} from {experiment_id}.",
-        experiment=experiment_id,
+        f"Removed {pioreactor_unit} from {experiment}.",
+        experiment=experiment,
         level="INFO",
         task="assignment",
     )
@@ -1650,17 +1655,17 @@ def remove_worker_from_experiment(experiment_id: str, pioreactor_unit: str) -> R
     return Response(status=204)
 
 
-@app.route("/api/experiments/<experiment_id>/workers", methods=["DELETE"])
-def remove_workers_from_experiment(experiment_id: str) -> ResponseReturnValue:
+@app.route("/api/experiments/<experiment>/workers", methods=["DELETE"])
+def remove_workers_from_experiment(experiment: str) -> ResponseReturnValue:
     # unassign all from experiment
     modify_db(
         "DELETE FROM experiment_worker_assignments WHERE experiment = ?",
-        (experiment_id,),
+        (experiment,),
     )
-    background_tasks.pios("kill", "--experiment", experiment_id)
+    background_tasks.pios("kill", "--experiment", experiment)
     publish_to_experiment_log(
-        f"Removed all workers from {experiment_id}.",
-        experiment=experiment_id,
+        f"Removed all workers from {experiment}.",
+        experiment=experiment,
         level="INFO",
         task="assignment",
     )

@@ -188,7 +188,7 @@ def save_file(path: str, content: str):
 
 
 @huey.task()
-def write_config_and_sync(config_path: str, text: str, units: str, flags: str) -> tuple[bool, str]:
+def write_config_and_sync(config_path: str, text: str, units: str, flags: str):
     try:
         with open(config_path, "w") as f:
             f.write(text)

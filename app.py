@@ -15,8 +15,8 @@ from flask import Flask
 from flask import g
 from paho.mqtt.enums import CallbackAPIVersion
 
-from config import env
 from config import config
+from config import env
 from version import __version__
 
 NAME = "pioreactorui"
@@ -53,8 +53,8 @@ client.username_pw_set(
     config.get("mqtt", "password", fallback="raspberry"),
 )
 client.connect(
-        host=config.get("mqtt", "broker_address", fallback="localhost"),
-        port=config.getint("mqtt", "broker_port", fallback=1883)
+    host=config.get("mqtt", "broker_address", fallback="localhost"),
+    port=config.getint("mqtt", "broker_port", fallback=1883),
 )
 client.loop_start()
 
@@ -96,7 +96,7 @@ def _make_dicts(cursor, row) -> dict:
 def _get_db_connection():
     db = getattr(g, "_database", None)
     if db is None:
-        db = g._database = sqlite3.connect(config['storage']["database"])
+        db = g._database = sqlite3.connect(config["storage"]["database"])
         db.row_factory = _make_dicts
         db.execute("PRAGMA foreign_keys = 1")
 
@@ -105,7 +105,7 @@ def _get_db_connection():
 
 def query_db(
     query: str, args=(), one: bool = False
-) -> t.Optional[list[dict[str, t.Any]] | dict[str, t.Any]]:
+) -> dict[str, t.Any] | list[dict[str, t.Any]] | None:
     cur = _get_db_connection().execute(query, args)
     rv = cur.fetchall()
     cur.close()
