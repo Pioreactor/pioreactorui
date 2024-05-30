@@ -1165,12 +1165,16 @@ def setup_worker_pioreactor() -> ResponseReturnValue:
 def get_config(filename: str) -> ResponseReturnValue:
     """get a specific config.ini file in the .pioreactor folder"""
 
+    if os.environ.get("TESTING"):
+        if filename == "config.ini":
+            filename = "config.dev.ini"
+
     # security bit: strip out any paths that may be attached, ex: ../../../root/bad
     filename = Path(filename).name
 
     try:
         assert Path(filename).suffix == ".ini"
-        specific_config_path = Path(env["CONFIG_PATH"])
+        specific_config_path = Path(env["DOT_PIOREACTOR"]) / filename
 
         return Response(
             response=specific_config_path.read_text(),
