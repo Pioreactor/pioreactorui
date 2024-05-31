@@ -36,6 +36,7 @@ from app import query_db
 from app import VERSION
 from config import cache
 from config import env
+from config import is_testing_env
 
 
 def scrub_to_valid(value: str) -> str:
@@ -1165,9 +1166,8 @@ def setup_worker_pioreactor() -> ResponseReturnValue:
 def get_config(filename: str) -> ResponseReturnValue:
     """get a specific config.ini file in the .pioreactor folder"""
 
-    if os.environ.get("TESTING"):
-        if filename == "config.ini":
-            filename = "config.dev.ini"
+    if filename == "config.ini" and is_testing_env():
+        filename = "config.dev.ini"
 
     # security bit: strip out any paths that may be attached, ex: ../../../root/bad
     filename = Path(filename).name
@@ -1594,7 +1594,7 @@ def get_experiment_assignment_for_worker(pioreactor_unit: str) -> ResponseReturn
     )
     assert isinstance(result, dict)
     if result:
-        return jsonify({"experiment": result["experiment"]})
+        return jsonify(result)
     else:
         return jsonify({"error": "Worker not found"}), 404
 

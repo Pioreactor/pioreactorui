@@ -5,6 +5,7 @@ this contains shared data for both huey and the flask app
 """
 from __future__ import annotations
 
+import os
 import tempfile
 from configparser import ConfigParser
 from pathlib import Path
@@ -14,13 +15,22 @@ from dotenv import dotenv_values
 from huey import SqliteHuey
 
 
+def is_testing_env():
+    return os.environ.get("TESTING") == "1"
+
+
 CACHE_DIR = Path(tempfile.gettempdir()) / "pioreactorui_cache"
 
 env = dotenv_values(".env", verbose=True)
 huey = SqliteHuey(filename=CACHE_DIR / "huey.db")
 config = ConfigParser()
 
-config.read(Path(env["CONFIG_PATH"]))
+if is_testing_env():
+    config_filename = "config.dev.ini"
+else:
+    config_filename = "config.ini"
+
+config.read(Path(env["DOT_PIOREACTOR"]) / config_filename)
 
 cache = dc.Cache(
     directory=CACHE_DIR,
