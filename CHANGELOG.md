@@ -1,4 +1,4 @@
-### 24.5.31
+### 24.5.31 && 24.5.32
  - New /pioreactor/`worker` page
  - New MQTT topic for logs
 
