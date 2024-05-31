@@ -74,11 +74,13 @@ def msg_to_JSON(msg: str, task: str, level: str) -> str:
 
 
 def publish_to_log(msg: str, task: str, level="DEBUG") -> None:
-    client.publish(LOG_TOPIC, msg_to_JSON(msg, task, level))
+    client.publish(f"{LOG_TOPIC}/{level.lower()}", msg_to_JSON(msg, task, level))
 
 
 def publish_to_experiment_log(msg: str, experiment: str, task: str, level="DEBUG") -> None:
-    client.publish(f"pioreactor/{HOSTNAME}/{experiment}/logs/ui", msg_to_JSON(msg, task, level))
+    client.publish(
+        f"pioreactor/{HOSTNAME}/{experiment}/logs/ui/{level.lower()}", msg_to_JSON(msg, task, level)
+    )
 
 
 def publish_to_error_log(msg, task: str) -> None:

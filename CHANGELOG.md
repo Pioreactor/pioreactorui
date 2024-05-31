@@ -1,5 +1,5 @@
 ### 24.5.31
- - New /pioreactor/<worker> page
+ - New /pioreactor/`worker` page
  - New MQTT topic for logs
 
 ### 24.5.20 & 24.5.21
