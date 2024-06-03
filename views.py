@@ -232,7 +232,8 @@ def get_logs_for_unit_and_experiment(experiment: str, unit: str) -> ResponseRetu
         recent_logs = query_db(
             f"""SELECT l.timestamp, level, l.pioreactor_unit, message, task
                 FROM logs AS l
-                WHERE (l.experiment=? AND l.pioreactor_unit=?)
+                WHERE (l.experiment=? OR l.experiment='$experiment')
+                    AND l.pioreactor_unit=?
                     AND ({get_level_string(min_level)})
                     AND l.timestamp >= MAX( strftime('%Y-%m-%dT%H:%M:%S', datetime('now', '-24 hours')), (SELECT created_at FROM experiments where experiment=?) )
                 ORDER BY l.timestamp DESC LIMIT 50;""",
