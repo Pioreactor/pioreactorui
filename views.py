@@ -160,21 +160,21 @@ def run_job_on_unit(unit: str, experiment: str, job: str) -> ResponseReturnValue
     return Response(status=202)
 
 
-@app.route("/api/reboot/<unit>", methods=["POST"])
+@app.route("/api/units/<unit>/reboot", methods=["POST"])
 def reboot_unit(unit: str) -> ResponseReturnValue:
     """Reboots unit"""
     background_tasks.pios("reboot", "--units", unit)
     return Response(status=202)
 
 
-@app.route("/api/shutdown/<unit>", methods=["POST"])
+@app.route("/api/units/<unit>/shutdown", methods=["POST"])
 def shutdown_unit(unit: str) -> ResponseReturnValue:
     """Shutdown unit"""
     background_tasks.pios("shutdown", "--units", unit)
     return Response(status=202)
 
 
-## DATA FOR CARDS ON OVERVIEW
+## Logs
 
 
 @app.route("/api/experiments/<experiment>/logs", methods=["GET"])
@@ -212,7 +212,44 @@ def get_logs(experiment: str) -> ResponseReturnValue:
     return jsonify(recent_logs)
 
 
-@app.route("/api/time_series/growth_rates/<experiment>", methods=["GET"])
+@app.route("/api/experiments/<experiment>/units/<unit>/logs", methods=["GET"])
+def get_logs_for_unit_and_experiment(experiment: str, unit: str) -> ResponseReturnValue:
+    """Shows event logs for a specific unit within an experiment"""
+
+    def get_level_string(min_level: str) -> str:
+        levels = {
+            "DEBUG": ["ERROR", "WARNING", "NOTICE", "INFO", "DEBUG"],
+            "INFO": ["ERROR", "NOTICE", "INFO", "WARNING"],
+            "WARNING": ["ERROR", "WARNING"],
+            "ERROR": ["ERROR"],
+        }
+        selected_levels = levels.get(min_level, levels["INFO"])
+        return " or ".join(f'level == "{level}"' for level in selected_levels)
+
+    min_level = request.args.get("min_level", "INFO")
+
+    try:
+        recent_logs = query_db(
+            f"""SELECT l.timestamp, level, l.pioreactor_unit, message, task
+                FROM logs AS l
+                WHERE (l.experiment=? AND l.pioreactor_unit=?)
+                    AND ({get_level_string(min_level)})
+                    AND l.timestamp >= MAX( strftime('%Y-%m-%dT%H:%M:%S', datetime('now', '-24 hours')), (SELECT created_at FROM experiments where experiment=?) )
+                ORDER BY l.timestamp DESC LIMIT 50;""",
+            (experiment, unit, experiment),
+        )
+
+    except Exception as e:
+        publish_to_error_log(str(e), "get_logs_for_unit_and_experiment")
+        return Response(status=500)
+
+    return jsonify(recent_logs)
+
+
+## Time series data
+
+
+@app.route("/api/experiments/<experiment>/time_series/growth_rates", methods=["GET"])
 def get_growth_rates(experiment: str) -> ResponseReturnValue:
     """Gets growth rates for all units"""
     args = request.args
@@ -246,7 +283,7 @@ def get_growth_rates(experiment: str) -> ResponseReturnValue:
     return growth_rates["result"]
 
 
-@app.route("/api/time_series/temperature_readings/<experiment>", methods=["GET"])
+@app.route("/api/experiments/<experiment>/time_series/temperature_readings", methods=["GET"])
 def get_temperature_readings(experiment: str) -> ResponseReturnValue:
     """Gets temperature readings for all units"""
     args = request.args
@@ -280,7 +317,7 @@ def get_temperature_readings(experiment: str) -> ResponseReturnValue:
     return temperature_readings["result"]
 
 
-@app.route("/api/time_series/od_readings_filtered/<experiment>", methods=["GET"])
+@app.route("/api/experiments/<experiment>/time_series/od_readings_filtered", methods=["GET"])
 def get_od_readings_filtered(experiment: str) -> ResponseReturnValue:
     """Gets normalized od for all units"""
     args = request.args
@@ -315,7 +352,7 @@ def get_od_readings_filtered(experiment: str) -> ResponseReturnValue:
     return filtered_od_readings["result"]
 
 
-@app.route("/api/time_series/od_readings/<experiment>", methods=["GET"])
+@app.route("/api/experiments/<experiment>/time_series/od_readings", methods=["GET"])
 def get_od_readings(experiment: str) -> ResponseReturnValue:
     """Gets raw od for all units"""
     args = request.args
@@ -348,7 +385,7 @@ def get_od_readings(experiment: str) -> ResponseReturnValue:
     return raw_od_readings["result"]
 
 
-@app.route("/api/time_series/<data_source>/<experiment>/<column>", methods=["GET"])
+@app.route("/api/experiments/<experiment>/time_series/<data_source>/<column>", methods=["GET"])
 def get_fallback_time_series(data_source: str, experiment: str, column: str) -> ResponseReturnValue:
     args = request.args
     try:
@@ -584,7 +621,7 @@ def create_or_update_new_calibrations() -> ResponseReturnValue:
 ## PLUGINS
 
 
-@app.route("/api/installed_plugins", methods=["GET"])
+@app.route("/api/plugins/installed", methods=["GET"])
 @cache.memoize(expire=15, tag="plugins")
 def get_installed_plugins() -> ResponseReturnValue:
     result = background_tasks.pio("plugins", "list", "--json")
@@ -602,31 +639,7 @@ def get_installed_plugins() -> ResponseReturnValue:
         return plugins_as_json
 
 
-@app.route("/api/upload", methods=["POST"])
-def upload() -> ResponseReturnValue:
-    if os.path.isfile(Path(env["DOT_PIOREACTOR"]) / "DISALLOW_UI_UPLOADS"):
-        return Response(status=403)
-
-    if "file" not in request.files:
-        return jsonify({"error": "No file part"}), 400
-
-    file = request.files["file"]
-
-    # If the user does not select a file, the browser submits an
-    # empty file without a filename.
-    if file.filename == "":
-        return jsonify({"error": "No selected file"}), 400
-    if file.content_length >= 30_000_000:  # 30mb?
-        return jsonify({"error": "Too large"}), 400
-
-    if file:
-        filename = secure_filename(file.filename)
-        save_path = os.path.join(tempfile.gettempdir(), filename)
-        file.save(save_path)
-        return jsonify({"message": "File successfully uploaded", "save_path": save_path}), 200
-
-
-@app.route("/api/installed_plugins/<filename>", methods=["GET"])
+@app.route("/api/plugins/installed/<filename>", methods=["GET"])
 def get_plugin(filename: str) -> ResponseReturnValue:
     """get a specific Python file in the .pioreactor/plugin folder"""
     # security bit: strip out any paths that may be attached, ex: ../../../root/bad
@@ -659,7 +672,7 @@ def able_to_install_plugins_from_ui() -> ResponseReturnValue:
         return "true"
 
 
-@app.route("/api/install_plugin", methods=["POST"])
+@app.route("/api/plugins/install", methods=["POST"])
 def install_plugin() -> ResponseReturnValue:
     # there is a security problem here. See https://github.com/Pioreactor/pioreactor/issues/421
     if os.path.isfile(Path(env["DOT_PIOREACTOR"]) / "DISALLOW_UI_INSTALLS"):
@@ -672,7 +685,7 @@ def install_plugin() -> ResponseReturnValue:
     return Response(status=202)
 
 
-@app.route("/api/uninstall_plugin", methods=["POST"])
+@app.route("/api/plugins/uninstall", methods=["POST"])
 def uninstall_plugin() -> ResponseReturnValue:
     body = request.get_json()
     background_tasks.pios_uninstall_plugin(body["plugin_name"])
@@ -680,6 +693,33 @@ def uninstall_plugin() -> ResponseReturnValue:
 
 
 ## MISC
+
+
+## UPLOADS
+
+
+@app.route("/api/upload", methods=["POST"])
+def upload() -> ResponseReturnValue:
+    if os.path.isfile(Path(env["DOT_PIOREACTOR"]) / "DISALLOW_UI_UPLOADS"):
+        return Response(status=403)
+
+    if "file" not in request.files:
+        return jsonify({"error": "No file part"}), 400
+
+    file = request.files["file"]
+
+    # If the user does not select a file, the browser submits an
+    # empty file without a filename.
+    if file.filename == "":
+        return jsonify({"error": "No selected file"}), 400
+    if file.content_length >= 30_000_000:  # 30mb?
+        return jsonify({"error": "Too large"}), 400
+
+    if file:
+        filename = secure_filename(file.filename)
+        save_path = os.path.join(tempfile.gettempdir(), filename)
+        file.save(save_path)
+        return jsonify({"message": "File successfully uploaded", "save_path": save_path}), 200
 
 
 @app.route("/api/contrib/automations/<automation_type>", methods=["GET"])
