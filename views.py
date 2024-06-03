@@ -509,10 +509,13 @@ def get_current_calibrations_of_type(
             (calibration_type, pioreactor_unit),
             one=True,
         )
-        assert isinstance(r, dict)
 
-        r["data"] = json_decode(r["data"])
-        return jsonify(r)
+        if r is not None:
+            assert isinstance(r, dict)
+            r["data"] = json_decode(r["data"])
+            return jsonify(r)
+        else:
+            return Response(status=404)
 
     except Exception as e:
         publish_to_error_log(str(e), "get_current_calibrations_of_type")
@@ -534,11 +537,12 @@ def get_calibration_by_name(
             (calibration_type, pioreactor_unit, calibration_name),
             one=True,
         )
-        assert isinstance(r, dict)
-
-        r["data"] = json_decode(r["data"])
-        return jsonify(r)
-
+        if r is not None:
+            assert isinstance(r, dict)
+            r["data"] = json_decode(r["data"])
+            return jsonify(r)
+        else:
+            return Response(status=404)
     except Exception as e:
         publish_to_error_log(str(e), "get_calibration_by_name")
         return Response(status=500)
@@ -1633,8 +1637,7 @@ def get_experiment_assignment_for_worker(pioreactor_unit: str) -> ResponseReturn
         (pioreactor_unit,),
         one=True,
     )
-    assert isinstance(result, dict)
-    if result:
+    if result is not None:
         return jsonify(result)
     else:
         return jsonify({"error": "Worker not found"}), 404
