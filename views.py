@@ -1640,7 +1640,7 @@ def get_experiment_assignment_for_worker(pioreactor_unit: str) -> ResponseReturn
     if result is not None:
         return jsonify(result)
     else:
-        return jsonify({"error": "Worker not found"}), 404
+        return jsonify({"error": "Worker not assigned to experiment"}), 404
 
 
 @app.route("/api/experiments/<experiment>/workers", methods=["GET"])
