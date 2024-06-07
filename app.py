@@ -37,9 +37,10 @@ ui_logs = handlers.WatchedFileHandler(env["UI_LOG_LOCATION"])
 ui_logs.setFormatter(logs_format)
 logger.addHandler(ui_logs)
 
-general_logs = handlers.WatchedFileHandler(config.get("logging", "log_file"))
-general_logs.setFormatter(logs_format)
-logger.addHandler(general_logs)
+# TODO: can't do this because of permissions: www-data can't write to this log file...
+# general_logs = handlers.WatchedFileHandler(config.get("logging", "log_file"))
+# general_logs.setFormatter(logs_format)
+# logger.addHandler(general_logs)
 
 
 logger.debug(f"Starting {NAME}={VERSION} on {HOSTNAME}...")
