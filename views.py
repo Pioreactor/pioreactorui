@@ -1267,20 +1267,8 @@ def get_configs() -> ResponseReturnValue:
         return Response(status=500)
 
 
-@app.route("/api/configs/<filename>", methods=["DELETE"])
-def delete_config(filename: str) -> ResponseReturnValue:
-    cache.evict("config")
-    filename = Path(filename).name  # remove any ../../ prefix stuff
-    config_path = Path(env["DOT_PIOREACTOR"]) / filename
-
-    background_tasks.rm(config_path)
-    publish_to_log(f"Deleted config {filename}.", "delete_config")
-    return Response(status=202)
-
-
 @app.route("/api/configs/<filename>", methods=["PATCH"])
 def update_config(filename: str) -> ResponseReturnValue:
-    """if the config file is unit specific, we only need to run sync-config on that unit."""
     cache.evict("config")
     body = request.get_json()
     code = body["code"]
@@ -1298,6 +1286,7 @@ def update_config(filename: str) -> ResponseReturnValue:
     regex = re.compile(r"config_?(.*)?\.ini")
     is_unit_specific = regex.match(filename)
     assert is_unit_specific is not None
+
     if is_unit_specific[1] != "":
         units = is_unit_specific[1]
         flags = "--specific"
@@ -1347,6 +1336,7 @@ def update_config(filename: str) -> ResponseReturnValue:
         msg = "Hm, something went wrong, check PioreactorUI logs."
         return {"msg": msg}, 500
 
+    # if the config file is unit specific, we only need to run sync-config on that unit.
     result = background_tasks.write_config_and_sync(config_path, code, units, flags)
 
     try:
@@ -1521,12 +1511,23 @@ def add_worker() -> ResponseReturnValue:
 @app.route("/api/workers/<pioreactor_unit>", methods=["DELETE"])
 def delete_worker(pioreactor_unit: str) -> ResponseReturnValue:
     row_count = modify_db("DELETE FROM workers WHERE pioreactor_unit=?;", (pioreactor_unit,))
+
     if row_count > 0:
         background_tasks.pios("kill", "--all-jobs", "--units", pioreactor_unit)
 
-        publish_to_experiment_log(
+        filename = f"config_{pioreactor_unit}.ini"
+
+        # delete config on disk
+        config_path = Path(env["DOT_PIOREACTOR"]) / filename
+        background_tasks.rm(config_path)
+
+        # delete from histories
+        modify_db("DELETE FROM config_files_histories WHERE filename=?;", (filename,))
+
+        publish_to_log(f"Deleted config {filename}.", level="DEBUG", task="delete_worker")
+
+        publish_to_log(
             f"Removed {pioreactor_unit} from cluster.",
-            experiment="$experiment",
             level="INFO",
             task="assignment",
         )
