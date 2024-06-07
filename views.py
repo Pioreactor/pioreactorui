@@ -1524,8 +1524,6 @@ def delete_worker(pioreactor_unit: str) -> ResponseReturnValue:
         # delete from histories
         modify_db("DELETE FROM config_files_histories WHERE filename=?;", (filename,))
 
-        publish_to_log(f"Deleted config {filename}.", level="DEBUG", task="delete_worker")
-
         publish_to_log(
             f"Removed {pioreactor_unit} from cluster.",
             level="INFO",

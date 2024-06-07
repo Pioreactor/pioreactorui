@@ -22,21 +22,24 @@ from version import __version__
 NAME = "pioreactorui"
 VERSION = __version__
 HOSTNAME = socket.gethostname()
-LOG_TOPIC = f"pioreactor/{HOSTNAME}/$experiment/logs/ui"
 
 
 # set up logging
 logger = logging.getLogger(NAME)
 logger.setLevel(logging.DEBUG)
 
-file_handler = handlers.WatchedFileHandler(env["UI_LOG_LOCATION"])
-file_handler.setFormatter(
-    logging.Formatter(
-        "%(asctime)s [%(name)s] %(levelname)-2s %(message)s",
-        datefmt="%Y-%m-%dT%H:%M:%S%z",
-    )
+logs_format = logging.Formatter(
+    "%(asctime)s [%(name)s] %(levelname)-2s %(message)s",
+    datefmt="%Y-%m-%dT%H:%M:%S%z",
 )
-logger.addHandler(file_handler)
+
+ui_logs = handlers.WatchedFileHandler(env["UI_LOG_LOCATION"])
+ui_logs.setFormatter(logs_format)
+logger.addHandler(ui_logs)
+
+general_logs = handlers.WatchedFileHandler(config.get("logging", "log_file"))
+general_logs.setFormatter(logs_format)
+logger.addHandler(general_logs)
 
 
 logger.debug(f"Starting {NAME}={VERSION} on {HOSTNAME}...")
@@ -74,21 +77,22 @@ def msg_to_JSON(msg: str, task: str, level: str) -> str:
 
 
 def publish_to_log(msg: str, task: str, level="DEBUG") -> None:
-    client.publish(f"{LOG_TOPIC}/{level.lower()}", msg_to_JSON(msg, task, level))
+    publish_to_experiment_log(msg, "$experiment", task, level)
 
 
-def publish_to_experiment_log(msg: str, experiment: str, task: str, level="DEBUG") -> None:
-    client.publish(
-        f"pioreactor/{HOSTNAME}/{experiment}/logs/ui/{level.lower()}", msg_to_JSON(msg, task, level)
-    )
+def publish_to_experiment_log(msg: str | t.Any, experiment: str, task: str, level="DEBUG") -> None:
+    if not isinstance(msg, str):
+        # attempt to serialize
+        msg = json.dumps(msg)
+
+    getattr(logger, level.lower())(msg)
+
+    topic = f"pioreactor/{HOSTNAME}/{experiment}/logs/ui/{level.lower()}"
+    client.publish(topic, msg_to_JSON(msg, task, level))
 
 
 def publish_to_error_log(msg, task: str) -> None:
-    logger.error(msg)
-    if isinstance(msg, str):
-        publish_to_log(msg, task, "ERROR")
-    else:
-        publish_to_log(json.dumps(msg), task, "ERROR")
+    publish_to_log(msg, task, "ERROR")
 
 
 def _make_dicts(cursor, row) -> dict:
