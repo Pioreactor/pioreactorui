@@ -1238,7 +1238,7 @@ def get_config(filename: str) -> ResponseReturnValue:
 def get_configs() -> ResponseReturnValue:
     """get a list of all config.ini files in the .pioreactor folder, _and_ are part of the inventory"""
 
-    all_workers = query_db("SELECT pioreactor_unit FROM workers ORDER BY added_at;")
+    all_workers = query_db("SELECT pioreactor_unit FROM workers;")
     assert isinstance(all_workers, list)
     all_workers_bucket = {worker["pioreactor_unit"] for worker in all_workers}
 
@@ -1594,7 +1594,7 @@ def get_workers_and_experiment_assignments() -> ResponseReturnValue:
         FROM workers w
         LEFT JOIN experiment_worker_assignments a
           on w.pioreactor_unit = a.pioreactor_unit
-        ORDER BY w.added_at
+        ORDER BY w.pioreactor_unit
         """,
     )
     if result:
@@ -1651,7 +1651,7 @@ def get_list_of_workers_for_experiment(experiment: str) -> ResponseReturnValue:
         JOIN workers w
           on w.pioreactor_unit = a.pioreactor_unit
         WHERE experiment = ?
-        ORDER BY w.added_at
+        ORDER BY w.pioreactor_unit
         """,
         (experiment,),
     )
