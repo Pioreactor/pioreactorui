@@ -1,3 +1,7 @@
+### 24.6.11
+- 24.6.10 was a bad release
+
+
 ### 24.6.10
 
  - more additions to the Pioreactor page
