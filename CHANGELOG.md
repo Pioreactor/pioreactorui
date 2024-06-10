@@ -1,3 +1,12 @@
+### 24.6.10
+
+ - more additions to the Pioreactor page
+ - fix performing an "undo" when editing the config.ini and experiment profiles.
+ - Changed the web backend API endpoints for time-series, logs, shutdown, reboot, and plugins to be more RESTful. See docs for updated rules in the docs.
+ - better clean up when a worker is removed from a cluster.
+ - Added a "retry failed tests" to the UI's self-test dialog.
+
+
 ### 24.5.31 && 24.5.32
  - New /pioreactor/`worker` page
  - New MQTT topic for logs
