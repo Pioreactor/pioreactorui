@@ -1179,30 +1179,6 @@ def update_experiment(experiment: str) -> ResponseReturnValue:
         return Response(status=500)
 
 
-@app.route("/api/setup_worker_pioreactor", methods=["POST"])
-def setup_worker_pioreactor() -> ResponseReturnValue:
-    data = request.get_json()
-    new_name = data["name"]
-    version = data["version"]
-    model = data["model"]
-
-    try:
-        result = background_tasks.add_new_pioreactor(new_name, version, model)
-    except Exception as e:
-        return {"msg": str(e)}, 500
-
-    try:
-        status, msg = result(blocking=True, timeout=250)
-    except HueyException:
-        status, msg = False, "Timed out, see logs."
-
-    if status:
-        return Response(status=202)
-    else:
-        publish_to_error_log(msg, "setup_worker_pioreactor")
-        return {"msg": msg}, 500
-
-
 ## CONFIG CONTROL
 
 
@@ -1488,6 +1464,30 @@ def get_list_of_workers() -> ResponseReturnValue:
         "SELECT pioreactor_unit, added_at, is_active FROM workers ORDER BY pioreactor_unit;"
     )
     return jsonify(all_workers)
+
+
+@app.route("/api/workers/setup", methods=["POST"])
+def setup_worker_pioreactor() -> ResponseReturnValue:
+    data = request.get_json()
+    new_name = data["name"]
+    version = data["version"]
+    model = data["model"]
+
+    try:
+        result = background_tasks.add_new_pioreactor(new_name, version, model)
+    except Exception as e:
+        return {"msg": str(e)}, 500
+
+    try:
+        status, msg = result(blocking=True, timeout=250)
+    except HueyException:
+        status, msg = False, "Timed out, see logs."
+
+    if status:
+        return Response(status=202)
+    else:
+        publish_to_error_log(msg, "setup_worker_pioreactor")
+        return {"msg": msg}, 500
 
 
 @app.route("/api/workers", methods=["PUT"])
