@@ -24,7 +24,7 @@ fields:
     label: Volume
     type: numeric
   - key: duration
-    default: 0.5
+    default: 0.25
     unit: min
     label: Time between check
     disabled: True

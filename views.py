@@ -1379,9 +1379,51 @@ def create_experiment_profile() -> ResponseReturnValue:
         # publish_to_error_log(msg, "create_experiment_profile")
         return {"msg": msg}, 400
 
+    filepath = Path(env["DOT_PIOREACTOR"]) / "experiment_profiles" / experiment_profile_filename
+
+    # check if exists
+    if filepath.exists():
+        return {"msg": "A profile already exists with that filename. Choose another."}, 400
+
     # save file to disk
     background_tasks.save_file(
-        Path(env["DOT_PIOREACTOR"]) / "experiment_profiles" / experiment_profile_filename,
+        filepath,
+        experiment_profile_body,
+    )
+
+    return Response(status=200)
+
+
+@app.route("/api/contrib/experiment_profiles", methods=["PATCH"])
+def edit_experiment_profile() -> ResponseReturnValue:
+    body = request.get_json()
+    experiment_profile_body = body["body"]
+    experiment_profile_filename = Path(body["filename"]).name
+
+    # verify content
+    try:
+        yaml_decode(experiment_profile_body, type=structs.Profile)
+    except Exception as e:
+        msg = f"{e}"
+        # publish_to_error_log(msg, "create_experiment_profile")
+        return {"msg": msg}, 400
+
+    # verify file - user could have provided a different filename so we still check this.
+    try:
+        assert is_valid_unix_filename(experiment_profile_filename)
+        assert experiment_profile_filename.endswith(
+            ".yaml"
+        ) or experiment_profile_filename.endswith(".yml")
+    except Exception:
+        msg = "Invalid filename"
+        # publish_to_error_log(msg, "create_experiment_profile")
+        return {"msg": msg}, 400
+
+    filepath = Path(env["DOT_PIOREACTOR"]) / "experiment_profiles" / experiment_profile_filename
+
+    # save file to disk
+    background_tasks.save_file(
+        filepath,
         experiment_profile_body,
     )
 
@@ -1492,6 +1534,7 @@ def setup_worker_pioreactor() -> ResponseReturnValue:
 
 @app.route("/api/workers", methods=["PUT"])
 def add_worker() -> ResponseReturnValue:
+    cache.evict("config")
     data = request.json
     pioreactor_unit = data.get("pioreactor_unit")
 
