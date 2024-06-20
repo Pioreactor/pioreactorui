@@ -105,34 +105,21 @@ def stop_worker_in_experiment(experiment: str, worker: str) -> ResponseReturnVal
     return Response(status=202)
 
 
-@app.route("/api/workers/<unit>/jobs/<job>/stop", methods=["PATCH"])
-def stop_job_on_unit(unit: str, job: str) -> ResponseReturnValue:
+@app.route("/api/workers/<unit>/experiments/<experiment>/jobs/<job>/stop", methods=["PATCH"])
+def stop_job_on_unit(unit: str, experiment: str, job: str) -> ResponseReturnValue:
     """Kills specified job on unit"""
-    # TODO: this is barely used, we should remove it / unify it.
 
-    jobs_to_kill_over_MQTT = {
-        "add_media",
-        "add_alt_media",
-        "remove_waste",
-        "circulate_media",
-        "circulate_alt_media",
-    }
-
-    if job in jobs_to_kill_over_MQTT:
-        msg = client.publish(
-            f"pioreactor/{unit}/$experiment/{job}/$state/set", b"disconnected", qos=1
-        )
-        try:
-            msg.wait_for_publish(timeout=2.0)
-        except Exception:
-            return Response(status=500)
-    else:
+    msg = client.publish(f"pioreactor/{unit}/{experiment}/{job}/$state/set", b"disconnected", qos=1)
+    try:
+        msg.wait_for_publish(timeout=2.0)
+    except Exception:
         background_tasks.pios("kill", "--name", job, "--units", unit)
+        return Response(status=500)
 
     return Response(status=202)
 
 
-@app.route("/api/workers/<unit>/experiments/<experiment>/jobs/<job>/run", methods=["PATCH"])
+@app.route("/api/workers/<unit>/experiments/<experiment>/jobs/<job>/run", methods=["PATCH", "POST"])
 def run_job_on_unit(unit: str, experiment: str, job: str) -> ResponseReturnValue:
     """
     Runs specified job on unit.
@@ -155,6 +142,49 @@ def run_job_on_unit(unit: str, experiment: str, job: str) -> ResponseReturnValue
         )
     except Exception as e:
         publish_to_error_log(e, "run_job_on_unit")
+        raise e
+
+    return Response(status=202)
+
+
+@app.route("/api/workers/<unit>/experiments/<experiment>/jobs/<job>/update", methods=["PATCH"])
+def update_job_on_unit(unit: str, experiment: str, job: str) -> ResponseReturnValue:
+    """
+    Update specified job on unit. Use $broadcast for everyone.
+
+    The body is passed to the CLI, and should look like:
+
+    {
+      "settings": {
+        <setting1>: <value1>,
+        <setting2>: <value2>
+      },
+    }
+
+    Example
+    ----------
+
+    ```
+     curl -X PATCH "http://localhost:4999/api/workers/pio01/experiments/Exp001/jobs/stirring/update" \
+     -H "Content-Type: application/json" \
+     -d '{
+           "settings": {
+             "target_rpm": "200"
+           }
+         }'
+    ```
+
+
+    """
+    try:
+        for setting, value in request.get_json()["settings"].items():
+            client.publish(
+                f"pioreactor/{unit}/{experiment}/{job}/{setting}/set",
+                value,
+                qos=1,
+            )
+    except Exception as e:
+        publish_to_error_log(e, "update_job_on_unit")
         raise e
 
     return Response(status=202)
@@ -640,7 +670,7 @@ def get_installed_plugins() -> ResponseReturnValue:
         return jsonify([])
     else:
         # sometimes an error from a plugin will be printed. We just want to last line, the json bit.
-        plugins_as_json = msg.split("\n")[-1]
+        _, _, plugins_as_json = msg.rpartition("\n")
         return plugins_as_json
 
 

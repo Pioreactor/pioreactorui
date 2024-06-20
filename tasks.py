@@ -203,4 +203,4 @@ def write_config_and_sync(config_path: str, text: str, units: str, flags: str):
 
     except Exception as e:
         logger.error(str(e))
-        return (False, "Hm, something went wrong, check PioreactorUI logs.")
+        return (False, "Could not sync configs to all Pioreactors.")

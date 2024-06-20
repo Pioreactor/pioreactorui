@@ -84,7 +84,10 @@ def publish_to_log(msg: str, task: str, level="DEBUG") -> None:
 def publish_to_experiment_log(msg: str | t.Any, experiment: str, task: str, level="DEBUG") -> None:
     if not isinstance(msg, str):
         # attempt to serialize
-        msg = json.dumps(msg)
+        try:
+            msg = json.dumps(msg)
+        except TypeError:
+            msg = str(msg)
 
     getattr(logger, level.lower())(msg)
 
