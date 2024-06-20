@@ -90,37 +90,38 @@ def stop_all_in_experiment(experiment: str) -> ResponseReturnValue:
     return Response(status=202)
 
 
-@app.route("/api/experiments/<experiment>/workers/<worker>/stop", methods=["POST"])
-def stop_worker_in_experiment(experiment: str, worker: str) -> ResponseReturnValue:
+@app.route("/api/workers/<pioreactor_unit>/experiments/<experiment>/stop", methods=["POST"])
+def stop_all_jobs_on_worker(pioreactor_unit: str, experiment: str) -> ResponseReturnValue:
     """Kills all jobs for worker assigned to experiment"""
-    workers = query_db(
-        "SELECT pioreactor_unit FROM experiment_worker_assignments WHERE experiment = ? and pioreactor_unit = ?",
-        (experiment, worker),
-    )
-    assert isinstance(workers, list)
 
-    units = sum([("--units", w["pioreactor_unit"]) for w in workers], ())
-    background_tasks.pios("kill", "--all-jobs", *units)
+    background_tasks.pios("kill", "--units", pioreactor_unit, "--experiment", experiment)
 
     return Response(status=202)
 
 
-@app.route("/api/workers/<unit>/experiments/<experiment>/jobs/<job>/stop", methods=["PATCH"])
-def stop_job_on_unit(unit: str, experiment: str, job: str) -> ResponseReturnValue:
+@app.route(
+    "/api/workers/<pioreactor_unit>/experiments/<experiment>/jobs/<job>/stop", methods=["PATCH"]
+)
+def stop_job_on_unit(pioreactor_unit: str, experiment: str, job: str) -> ResponseReturnValue:
     """Kills specified job on unit"""
 
-    msg = client.publish(f"pioreactor/{unit}/{experiment}/{job}/$state/set", b"disconnected", qos=1)
+    msg = client.publish(
+        f"pioreactor/{pioreactor_unit}/{experiment}/{job}/$state/set", b"disconnected", qos=1
+    )
     try:
         msg.wait_for_publish(timeout=2.0)
     except Exception:
-        background_tasks.pios("kill", "--name", job, "--units", unit)
+        background_tasks.pios("kill", "--name", job, "--units", pioreactor_unit)
         return Response(status=500)
 
     return Response(status=202)
 
 
-@app.route("/api/workers/<unit>/experiments/<experiment>/jobs/<job>/run", methods=["PATCH", "POST"])
-def run_job_on_unit(unit: str, experiment: str, job: str) -> ResponseReturnValue:
+@app.route(
+    "/api/workers/<pioreactor_unit>/experiments/<experiment>/jobs/<job>/run",
+    methods=["PATCH", "POST"],
+)
+def run_job_on_unit(pioreactor_unit: str, experiment: str, job: str) -> ResponseReturnValue:
     """
     Runs specified job on unit.
 
@@ -136,7 +137,7 @@ def run_job_on_unit(unit: str, experiment: str, job: str) -> ResponseReturnValue
     """
     try:
         client.publish(
-            f"pioreactor/{unit}/{experiment}/run/{job}",
+            f"pioreactor/{pioreactor_unit}/{experiment}/run/{job}",
             request.get_data() or r'{"options": {}, "args": []}',
             qos=1,
         )
@@ -147,8 +148,10 @@ def run_job_on_unit(unit: str, experiment: str, job: str) -> ResponseReturnValue
     return Response(status=202)
 
 
-@app.route("/api/workers/<unit>/experiments/<experiment>/jobs/<job>/update", methods=["PATCH"])
-def update_job_on_unit(unit: str, experiment: str, job: str) -> ResponseReturnValue:
+@app.route(
+    "/api/workers/<pioreactor_unit>/experiments/<experiment>/jobs/<job>/update", methods=["PATCH"]
+)
+def update_job_on_unit(pioreactor_unit: str, experiment: str, job: str) -> ResponseReturnValue:
     """
     Update specified job on unit. Use $broadcast for everyone.
 
@@ -179,7 +182,7 @@ def update_job_on_unit(unit: str, experiment: str, job: str) -> ResponseReturnVa
     try:
         for setting, value in request.get_json()["settings"].items():
             client.publish(
-                f"pioreactor/{unit}/{experiment}/{job}/{setting}/set",
+                f"pioreactor/{pioreactor_unit}/{experiment}/{job}/{setting}/set",
                 value,
                 qos=1,
             )
@@ -190,17 +193,17 @@ def update_job_on_unit(unit: str, experiment: str, job: str) -> ResponseReturnVa
     return Response(status=202)
 
 
-@app.route("/api/units/<unit>/reboot", methods=["POST"])
-def reboot_unit(unit: str) -> ResponseReturnValue:
+@app.route("/api/units/<pioreactor_unit>/reboot", methods=["POST"])
+def reboot_unit(pioreactor_unit: str) -> ResponseReturnValue:
     """Reboots unit"""
-    background_tasks.pios("reboot", "--units", unit)
+    background_tasks.pios("reboot", "--units", pioreactor_unit)
     return Response(status=202)
 
 
-@app.route("/api/units/<unit>/shutdown", methods=["POST"])
-def shutdown_unit(unit: str) -> ResponseReturnValue:
+@app.route("/api/units/<pioreactor_unit>/shutdown", methods=["POST"])
+def shutdown_unit(pioreactor_unit: str) -> ResponseReturnValue:
     """Shutdown unit"""
-    background_tasks.pios("shutdown", "--units", unit)
+    background_tasks.pios("shutdown", "--units", pioreactor_unit)
     return Response(status=202)
 
 
@@ -242,9 +245,9 @@ def get_logs(experiment: str) -> ResponseReturnValue:
     return jsonify(recent_logs)
 
 
-@app.route("/api/experiments/<experiment>/units/<unit>/logs", methods=["GET"])
-def get_logs_for_unit_and_experiment(experiment: str, unit: str) -> ResponseReturnValue:
-    """Shows event logs for a specific unit within an experiment"""
+@app.route("/api/workers/<pioreactor_unit>/experiments/<experiment>/logs", methods=["GET"])
+def get_logs_for_unit_and_experiment(experiment: str, pioreactor_unit: str) -> ResponseReturnValue:
+    """Shows event logs for a specific worker within an experiment"""
 
     def get_level_string(min_level: str) -> str:
         levels = {
@@ -267,7 +270,7 @@ def get_logs_for_unit_and_experiment(experiment: str, unit: str) -> ResponseRetu
                     AND ({get_level_string(min_level)})
                     AND l.timestamp >= MAX( strftime('%Y-%m-%dT%H:%M:%S', datetime('now', '-24 hours')), (SELECT created_at FROM experiments where experiment=?) )
                 ORDER BY l.timestamp DESC LIMIT 50;""",
-            (experiment, unit, experiment),
+            (experiment, pioreactor_unit, experiment),
         )
 
     except Exception as e:
