@@ -1712,10 +1712,10 @@ def get_experiment_assignment_for_worker(pioreactor_unit: str) -> ResponseReturn
         (pioreactor_unit,),
         one=True,
     )
-    assert isinstance(result, dict)
+    assert isinstance(result, dict | None)
     if result is None:
         return jsonify({"error": f"Worker {pioreactor_unit} does not exist in the cluster."}), 404
-    elif result["experiment"] is None:
+    elif result["experiment"] is None:  # type: ignore
         return (
             jsonify({"error": f"Worker {pioreactor_unit} is not assigned to any experiment."}),
             404,
