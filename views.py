@@ -1700,22 +1700,28 @@ def get_experiments_worker_assignments() -> ResponseReturnValue:
 
 @app.route("/api/workers/<pioreactor_unit>/experiment", methods=["GET"])
 def get_experiment_assignment_for_worker(pioreactor_unit: str) -> ResponseReturnValue:
-    # Get the experiment that a worker is assigned to along with its status
+    # Get the experiment that a worker is assigned to along with its active status
     result = query_db(
         """
-        SELECT experiment, is_active
-        FROM experiment_worker_assignments a
-        JOIN workers w
+        SELECT w.pioreactor_unit, w.is_active, a.experiment
+        FROM workers w
+        LEFT JOIN experiment_worker_assignments a
           on w.pioreactor_unit = a.pioreactor_unit
         WHERE w.pioreactor_unit = ?
         """,
         (pioreactor_unit,),
         one=True,
     )
-    if result is not None:
-        return jsonify(result)
+    assert isinstance(result, dict)
+    if result is None:
+        return jsonify({"error": f"Worker {pioreactor_unit} does not exist in the cluster."}), 404
+    elif result["experiment"] is None:
+        return (
+            jsonify({"error": f"Worker {pioreactor_unit} is not assigned to any experiment."}),
+            404,
+        )
     else:
-        return jsonify({"error": "Worker not assigned to experiment"}), 404
+        return jsonify(result)
 
 
 @app.route("/api/experiments/<experiment>/workers", methods=["GET"])
