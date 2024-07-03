@@ -1,3 +1,12 @@
+### 24.7.03
+ - significant web backend API changes! See list of rules in docs.
+ - A new live preview in the UI's experiment profile editor. This preview tool is useful for getting immediate feedback when writing a profile. We'll keep on adding to this to improve the edit-profile workflow - please send us feedback!
+ - Better user interaction on the Pioreactors page when the assigned experiment and "viewing" experiment are different.
+ - Select / Deselect all Pioreactors to assign to an experiment faster.
+ - Fix UI code editor from being unresponsive when all the text was removed.
+ - Experiment profiles won't be overwritten if providing the same filename as an existing profile.
+
+
 ### 24.6.11
 - 24.6.10 was a bad release
 
