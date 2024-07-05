@@ -188,7 +188,7 @@ def update_job_on_unit(pioreactor_unit: str, experiment: str, job: str) -> Respo
             )
     except Exception as e:
         publish_to_error_log(e, "update_job_on_unit")
-        raise e
+        return Response(status=400)
 
     return Response(status=202)
 

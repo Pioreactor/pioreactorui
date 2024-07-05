@@ -1,4 +1,4 @@
-### 24.7.03
+### 24.7.3
  - significant web backend API changes! See list of rules in docs.
  - A new live preview in the UI's experiment profile editor. This preview tool is useful for getting immediate feedback when writing a profile. We'll keep on adding to this to improve the edit-profile workflow - please send us feedback!
  - Better user interaction on the Pioreactors page when the assigned experiment and "viewing" experiment are different.
