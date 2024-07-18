@@ -1,4 +1,4 @@
-### 24.7.18
+### 24.7.18 & 24.7.19
  - The Chips release! Lots of chips
  - Support the removal of "controller" code. This includes new background job contrib files that reference `*_automations` instead of controllers.
 
