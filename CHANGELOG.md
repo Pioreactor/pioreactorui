@@ -1,3 +1,8 @@
+### 24.7.18
+ - The Chips release! Lots of chips
+ - Support the removal of "controller" code. This includes new background job contrib files that reference `*_automations` instead of controllers.
+
+
 ### 24.7.3
  - significant web backend API changes! See list of rules in docs.
  - A new live preview in the UI's experiment profile editor. This preview tool is useful for getting immediate feedback when writing a profile. We'll keep on adding to this to improve the edit-profile workflow - please send us feedback!
