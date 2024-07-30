@@ -33,10 +33,17 @@ config = ConfigParser()
 
 if is_testing_env():
     config_filename = "config.dev.ini"
+    config.read(Path(env["DOT_PIOREACTOR"]) / config_filename)
 else:
     config_filename = "config.ini"
+    unit_config_filename = "unit_config.ini"
+    config.read(
+        [
+            Path(env["DOT_PIOREACTOR"]) / config_filename,
+            Path(env["DOT_PIOREACTOR"]) / unit_config_filename,
+        ]
+    )
 
-config.read(Path(env["DOT_PIOREACTOR"]) / config_filename)
 
 cache = dc.Cache(
     directory=CACHE_DIR,

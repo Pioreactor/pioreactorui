@@ -139,11 +139,11 @@ def run_job_on_unit(pioreactor_unit: str, experiment: str, job: str) -> Response
         client.publish(
             f"pioreactor/{pioreactor_unit}/{experiment}/run/{job}",
             request.get_data() or r'{"options": {}, "args": []}',
-            qos=1,
+            qos=2,  # why 2? it's a bad idea to fire this multiple times, but we do want to fire it.
         )
     except Exception as e:
         publish_to_error_log(e, "run_job_on_unit")
-        raise e
+        return Response(status=500)
 
     return Response(status=202)
 
