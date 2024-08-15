@@ -9,13 +9,15 @@ from subprocess import run
 
 from config import cache
 from config import CACHE_DIR
-from config import env
+from config import config
 from config import huey
 
 logger = logging.getLogger("huey.consumer")
 logger.setLevel(logging.INFO)
 
-file_handler = handlers.WatchedFileHandler(env["UI_LOG_LOCATION"])
+file_handler = handlers.WatchedFileHandler(
+    config.get("logging", "ui_log_file", fallback="/var/log/pioreactor.log")
+)
 file_handler.setFormatter(
     logging.Formatter(
         "%(asctime)s [%(name)s] %(levelname)-2s %(message)s",

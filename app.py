@@ -34,7 +34,7 @@ logs_format = logging.Formatter(
 )
 
 ui_logs = handlers.WatchedFileHandler(
-    config.get("logging", "ui_log_file", fallback="/var/log/pioreactorui.log")
+    config.get("logging", "ui_log_file", fallback="/var/log/pioreactor.log")
 )
 ui_logs.setFormatter(logs_format)
 logger.addHandler(ui_logs)
