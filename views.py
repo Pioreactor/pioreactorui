@@ -28,6 +28,7 @@ import structs
 import tasks as background_tasks
 from app import app
 from app import client
+from app import HOSTNAME
 from app import modify_db
 from app import publish_to_error_log
 from app import publish_to_experiment_log
@@ -1245,11 +1246,13 @@ def get_config(filename: str) -> ResponseReturnValue:
 @app.route("/api/configs", methods=["GET"])
 @cache.memoize(expire=60, tag="config")
 def get_configs() -> ResponseReturnValue:
-    """get a list of all config.ini files in the .pioreactor folder, _and_ are part of the inventory"""
+    """get a list of all config.ini files in the .pioreactor folder, _and_ are part of the inventory _or_ are leader"""
 
     all_workers = query_db("SELECT pioreactor_unit FROM workers;")
     assert isinstance(all_workers, list)
-    all_workers_bucket = {worker["pioreactor_unit"] for worker in all_workers}
+    workers_bucket = {worker["pioreactor_unit"] for worker in all_workers}
+    leader_bucket = {HOSTNAME}
+    pioreactors_bucket = workers_bucket | leader_bucket
 
     def strip_worker_name_from_config(file_name):
         return file_name.removeprefix("config_").removesuffix(".ini")
@@ -1259,7 +1262,7 @@ def get_configs() -> ResponseReturnValue:
             return True
         else:
             # return True
-            return strip_worker_name_from_config(file_name) in all_workers_bucket
+            return strip_worker_name_from_config(file_name) in pioreactors_bucket
 
     try:
         config_path = Path(env["DOT_PIOREACTOR"])

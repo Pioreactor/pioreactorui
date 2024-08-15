@@ -33,7 +33,9 @@ logs_format = logging.Formatter(
     datefmt="%Y-%m-%dT%H:%M:%S%z",
 )
 
-ui_logs = handlers.WatchedFileHandler(env["UI_LOG_LOCATION"])
+ui_logs = handlers.WatchedFileHandler(
+    config.get("logging", "ui_log_file", fallback="/var/log/pioreactorui.log")
+)
 ui_logs.setFormatter(logs_format)
 logger.addHandler(ui_logs)
 
@@ -106,7 +108,7 @@ def _make_dicts(cursor, row) -> dict:
 def _get_db_connection():
     db = getattr(g, "_database", None)
     if db is None:
-        db = g._database = sqlite3.connect(config["storage"]["database"])
+        db = g._database = sqlite3.connect(config.get("storage", "database"))
         db.row_factory = _make_dicts
         db.execute("PRAGMA foreign_keys = 1")
 
