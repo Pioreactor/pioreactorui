@@ -1,3 +1,12 @@
+### 24.8.18
+ - adding `inputs` to experiment profiles
+ - breaking up logs in log tables
+ - better empty state on Pioreactors
+ - make deleting an experiment more clear
+ - use new config `logging` `ui_log_file` location instead in the .env
+ - return new leader-only config.
+
+
 ### 24.7.18 & 24.7.19
  - The Chips release! Lots of chips
  - Support the removal of "controller" code. This includes new background job contrib files that reference `*_automations` instead of controllers.
