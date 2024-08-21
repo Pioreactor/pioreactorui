@@ -1,4 +1,4 @@
-### 24.8.18
+### 24.8.21
  - adding `inputs` to experiment profiles
  - breaking up logs in log tables
  - better empty state on Pioreactors
