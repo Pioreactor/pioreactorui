@@ -185,7 +185,7 @@ def update_job_on_unit(pioreactor_unit: str, experiment: str, job: str) -> Respo
             client.publish(
                 f"pioreactor/{pioreactor_unit}/{experiment}/{job}/{setting}/set",
                 value,
-                qos=1,
+                qos=2,
             )
     except Exception as e:
         publish_to_error_log(e, "update_job_on_unit")
