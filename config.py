@@ -8,7 +8,6 @@ from __future__ import annotations
 import os
 import sqlite3
 import tempfile
-from configparser import ConfigParser
 from pathlib import Path
 
 import diskcache as dc
@@ -28,21 +27,6 @@ try:
     huey = SqliteHuey(filename=CACHE_DIR / "huey.db")
 except sqlite3.OperationalError:
     raise IOError(f'Unable to open huey.db at {CACHE_DIR / "huey.db"}')
-
-config = ConfigParser()
-
-if is_testing_env():
-    config_filename = "config.dev.ini"
-    config.read(Path(env["DOT_PIOREACTOR"]) / config_filename)
-else:
-    config_filename = "config.ini"
-    unit_config_filename = "unit_config.ini"
-    config.read(
-        [
-            Path(env["DOT_PIOREACTOR"]) / config_filename,
-            Path(env["DOT_PIOREACTOR"]) / unit_config_filename,
-        ]
-    )
 
 
 cache = dc.Cache(

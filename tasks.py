@@ -7,9 +7,10 @@ from shlex import join
 from subprocess import check_call
 from subprocess import run
 
+from pioreactor.gconfig import config
+
 from config import cache
 from config import CACHE_DIR
-from config import config
 from config import huey
 
 logger = logging.getLogger("huey.consumer")
@@ -61,9 +62,9 @@ def update_app() -> bool:
     run(update_app_across_all_workers)
 
     # do this last as this update will kill huey
-    logger.info("Updating UI on leader")
-    update_ui_on_leader = ["pio", "update", "ui"]
-    check_call(update_ui_on_leader)
+    logger.info("Updating UIs")
+    update_ui = ["pios", "update", "ui"]
+    check_call(update_ui)
     cache.evict("app")
     return True
 
@@ -80,8 +81,8 @@ def update_app_to_develop() -> bool:
 
     # do this last as this update will kill huey
     logger.info("Updating UI to development on leader")
-    update_ui_on_leader = ["pio", "update", "ui", "-b", "develop"]
-    check_call(update_ui_on_leader)
+    update_ui = ["pios", "update", "ui", "-b", "develop"]
+    check_call(update_ui)
     cache.evict("app")
     return True
 
@@ -103,15 +104,15 @@ def update_app_from_release_archive(archive_location: str) -> bool:
     run(["rm", f"/tmp/{archive_location}"])
 
     # do this last as this update will kill huey
-    logger.info("Updating UI to development on leader")
-    update_ui_on_leader = [
-        "pio",
+    logger.info("Updating UI")
+    update_ui = [
+        "pios",
         "update",
         "ui",
         "--source",
         "/tmp/pioreactorui_archive",
     ]  # this /tmp location is added during `pio update app`, kinda gross
-    check_call(update_ui_on_leader)
+    check_call(update_ui)
 
     return True
 

@@ -3,8 +3,8 @@ from __future__ import annotations
 
 import json
 import logging
-import socket
 import sqlite3
+import tempfile
 import typing as t
 from datetime import datetime
 from datetime import timezone
@@ -14,14 +14,16 @@ import paho.mqtt.client as mqtt
 from flask import Flask
 from flask import g
 from paho.mqtt.enums import CallbackAPIVersion
+from pioreactor.config import config
+from pioreactor.config import get_leader_hostname
+from pioreactor.whoami import am_I_leader
+from pioreactor.whoami import get_unit_name
 
-from config import config
 from config import env
 from version import __version__
 
 NAME = "pioreactorui"
 VERSION = __version__
-HOSTNAME = socket.gethostname()
 
 
 # set up logging
@@ -39,30 +41,27 @@ ui_logs = handlers.WatchedFileHandler(
 ui_logs.setFormatter(logs_format)
 logger.addHandler(ui_logs)
 
-# TODO: can't do this because of permissions: www-data can't write to this log file...
-# general_logs = handlers.WatchedFileHandler(config.get("logging", "log_file"))
-# general_logs.setFormatter(logs_format)
-# logger.addHandler(general_logs)
 
-
-logger.debug(f"Starting {NAME}={VERSION} on {HOSTNAME}...")
+logger.debug(f"Starting {NAME}={VERSION} on {get_unit_name()}...")
 logger.debug(f".env={dict(env)}")
 
 app = Flask(NAME)
 
-# connect to MQTT server
-logger.debug("Starting MQTT client")
+# connect to MQTT server, only if leader. workers don't need to.
 
-client = mqtt.Client(callback_api_version=CallbackAPIVersion.VERSION2)
-client.username_pw_set(
-    config.get("mqtt", "username", fallback="pioreactor"),
-    config.get("mqtt", "password", fallback="raspberry"),
-)
-client.connect(
-    host=config.get("mqtt", "broker_address", fallback="localhost"),
-    port=config.getint("mqtt", "broker_port", fallback=1883),
-)
-client.loop_start()
+if am_I_leader():
+    logger.debug("Starting MQTT client")
+
+    client = mqtt.Client(callback_api_version=CallbackAPIVersion.VERSION2)
+    client.username_pw_set(
+        config.get("mqtt", "username", fallback="pioreactor"),
+        config.get("mqtt", "password", fallback="raspberry"),
+    )
+    client.connect(
+        host=config.get("mqtt", "broker_address", fallback="localhost"),
+        port=config.getint("mqtt", "broker_port", fallback=1883),
+    )
+    client.loop_start()
 
 ## UTILS
 
@@ -93,7 +92,7 @@ def publish_to_experiment_log(msg: str | t.Any, experiment: str, task: str, leve
 
     getattr(logger, level.lower())(msg)
 
-    topic = f"pioreactor/{HOSTNAME}/{experiment}/logs/ui/{level.lower()}"
+    topic = f"pioreactor/{get_leader_hostname()}/{experiment}/logs/ui/{level.lower()}"
     client.publish(topic, msg_to_JSON(msg, task, level))
 
 
@@ -105,27 +104,46 @@ def _make_dicts(cursor, row) -> dict:
     return dict((cursor.description[idx][0], value) for idx, value in enumerate(row))
 
 
-def _get_db_connection():
-    db = getattr(g, "_database", None)
+def _get_app_db_connection():
+    db = getattr(g, "_app_database", None)
     if db is None:
-        db = g._database = sqlite3.connect(config.get("storage", "database"))
+        db = g._app_database = sqlite3.connect(config.get("storage", "database"))
         db.row_factory = _make_dicts
         db.execute("PRAGMA foreign_keys = 1")
 
     return db
 
 
-def query_db(
+def _get_jobs_db_connection():
+    db = getattr(g, "_jobs_database", None)
+    if db is None:
+        db = g._jobs_database = sqlite3.connect(f"{tempfile.gettempdir()}/pio_jobs_metadata.db")
+        db.row_factory = _make_dicts
+    return db
+
+
+def query_app_db(
     query: str, args=(), one: bool = False
 ) -> dict[str, t.Any] | list[dict[str, t.Any]] | None:
-    cur = _get_db_connection().execute(query, args)
+    assert am_I_leader()
+    cur = _get_app_db_connection().execute(query, args)
     rv = cur.fetchall()
     cur.close()
     return (rv[0] if rv else None) if one else rv
 
 
-def modify_db(statement: str, args=()) -> int:
-    con = _get_db_connection()
+def query_jobs_db(
+    query: str, args=(), one: bool = False
+) -> dict[str, t.Any] | list[dict[str, t.Any]] | None:
+    cur = _get_jobs_db_connection().execute(query, args)
+    rv = cur.fetchall()
+    cur.close()
+    return (rv[0] if rv else None) if one else rv
+
+
+def modify_app_db(statement: str, args=()) -> int:
+    assert am_I_leader()
+    con = _get_app_db_connection()
     cur = con.cursor()
     try:
         cur.execute(statement, args)
