@@ -7,7 +7,7 @@ from shlex import join
 from subprocess import check_call
 from subprocess import run
 
-from pioreactor.gconfig import config
+from pioreactor.config import config
 
 from config import cache
 from config import CACHE_DIR
