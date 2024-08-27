@@ -49,18 +49,20 @@ app = Flask(NAME)
 
 # connect to MQTT server, only if leader. workers don't need to.
 
-if am_I_leader():
-    logger.debug("Starting MQTT client")
+logger.debug("Starting MQTT client")
 
-    client = mqtt.Client(callback_api_version=CallbackAPIVersion.VERSION2)
-    client.username_pw_set(
-        config.get("mqtt", "username", fallback="pioreactor"),
-        config.get("mqtt", "password", fallback="raspberry"),
-    )
-    client.connect(
-        host=config.get("mqtt", "broker_address", fallback="localhost"),
-        port=config.getint("mqtt", "broker_port", fallback=1883),
-    )
+client = mqtt.Client(callback_api_version=CallbackAPIVersion.VERSION2)
+client.username_pw_set(
+    config.get("mqtt", "username", fallback="pioreactor"),
+    config.get("mqtt", "password", fallback="raspberry"),
+)
+client.connect(
+    host=config.get("mqtt", "broker_address", fallback="localhost"),
+    port=config.getint("mqtt", "broker_port", fallback=1883),
+)
+
+if am_I_leader():
+    # we currently only need to communicate with MQTT for the leader.
     client.loop_start()
 
 ## UTILS

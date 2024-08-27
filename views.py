@@ -29,6 +29,7 @@ from werkzeug.utils import secure_filename
 import structs
 import tasks as background_tasks
 from app import app
+from app import client
 from app import modify_app_db
 from app import publish_to_error_log
 from app import publish_to_experiment_log
@@ -93,6 +94,9 @@ def get_jobs_on_this_unit() -> ResponseReturnValue:
     return jsonify(jobs)
 
 
+### PLUGINS
+
+
 @app.route("/api/plugins/installed", methods=["GET"])
 @cache.memoize(expire=15, tag="plugins")
 def get_installed_plugins() -> ResponseReturnValue:
@@ -135,9 +139,35 @@ def get_plugin(filename: str) -> ResponseReturnValue:
         return Response(status=500)
 
 
+### VERSIONS
+
+
+@app.route("/api/versions/app", methods=["GET"])
+def get_app_version() -> ResponseReturnValue:
+    result = subprocess.run(
+        ["python", "-c", "import pioreactor; print(pioreactor.__version__)"],
+        capture_output=True,
+        text=True,
+    )
+    if result.returncode != 0:
+        publish_to_error_log(result.stdout, "get_app_version")
+        publish_to_error_log(result.stderr, "get_app_version")
+        return Response(status=500)
+    return Response(
+        response=result.stdout.strip(),
+        status=200,
+        mimetype="text/plain",
+        headers={"Cache-Control": "public,max-age=60"},
+    )
+
+
+@app.route("/api/versions/ui", methods=["GET"])
+def get_ui_version() -> ResponseReturnValue:
+    return VERSION
+
+
 if am_I_leader():
     ## PIOREACTOR CONTROL
-    from app import client
 
     @app.route("/api/experiments/<experiment>/workers/stop", methods=["POST"])
     def stop_all_in_experiment(experiment: str) -> ResponseReturnValue:
@@ -902,28 +932,6 @@ if am_I_leader():
         assert release_archive_location.endswith(".zip")
         background_tasks.update_app_from_release_archive(release_archive_location)
         return Response(status=202)
-
-    @app.route("/api/versions/app", methods=["GET"])
-    def get_app_version() -> ResponseReturnValue:
-        result = subprocess.run(
-            ["python", "-c", "import pioreactor; print(pioreactor.__version__)"],
-            capture_output=True,
-            text=True,
-        )
-        if result.returncode != 0:
-            publish_to_error_log(result.stdout, "get_app_version")
-            publish_to_error_log(result.stderr, "get_app_version")
-            return Response(status=500)
-        return Response(
-            response=result.stdout.strip(),
-            status=200,
-            mimetype="text/plain",
-            headers={"Cache-Control": "public,max-age=60"},
-        )
-
-    @app.route("/api/versions/ui", methods=["GET"])
-    def get_ui_version() -> ResponseReturnValue:
-        return VERSION
 
     @app.route("/api/cluster_time", methods=["GET"])
     def get_custer_time() -> ResponseReturnValue:
