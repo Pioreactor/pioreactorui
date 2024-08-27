@@ -34,7 +34,7 @@ from app import publish_to_error_log
 from app import publish_to_experiment_log
 from app import publish_to_log
 from app import query_app_db
-from app import query_jobs_db
+from app import query_local_metadata_db
 from app import VERSION
 from config import cache
 from config import env
@@ -76,7 +76,7 @@ def is_valid_unix_filename(filename: str) -> bool:
 
 @app.route("/api/experiments/<experiment>/jobs/running", methods=["GET"])
 def get_jobs_on_this_unit_for_experiment(experiment: str) -> ResponseReturnValue:
-    jobs = query_jobs_db(
+    jobs = query_local_metadata_db(
         """
         SELECT * FROM pio_job_metadata where is_running=1 and experiment = (?)
     """,
@@ -88,7 +88,7 @@ def get_jobs_on_this_unit_for_experiment(experiment: str) -> ResponseReturnValue
 
 @app.route("/api/jobs/running", methods=["GET"])
 def get_jobs_on_this_unit() -> ResponseReturnValue:
-    jobs = query_jobs_db("""SELECT * FROM pio_job_metadata where is_running=1""")
+    jobs = query_local_metadata_db("""SELECT * FROM pio_job_metadata where is_running=1""")
 
     return jsonify(jobs)
 

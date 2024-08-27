@@ -114,10 +114,12 @@ def _get_app_db_connection():
     return db
 
 
-def _get_jobs_db_connection():
-    db = getattr(g, "_jobs_database", None)
+def _get_local_metadata_db_connection():
+    db = getattr(g, "_metadata_database", None)
     if db is None:
-        db = g._jobs_database = sqlite3.connect(f"{tempfile.gettempdir()}/pio_jobs_metadata.db")
+        db = g._local_metadata_database = sqlite3.connect(
+            f"{tempfile.gettempdir()}/local_intermittent_pioreactor_metadata.sqlite"
+        )
         db.row_factory = _make_dicts
     return db
 
@@ -132,10 +134,10 @@ def query_app_db(
     return (rv[0] if rv else None) if one else rv
 
 
-def query_jobs_db(
+def query_local_metadata_db(
     query: str, args=(), one: bool = False
 ) -> dict[str, t.Any] | list[dict[str, t.Any]] | None:
-    cur = _get_jobs_db_connection().execute(query, args)
+    cur = _get_local_metadata_db_connection().execute(query, args)
     rv = cur.fetchall()
     cur.close()
     return (rv[0] if rv else None) if one else rv
