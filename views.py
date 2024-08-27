@@ -29,7 +29,6 @@ from werkzeug.utils import secure_filename
 import structs
 import tasks as background_tasks
 from app import app
-from app import client
 from app import modify_app_db
 from app import publish_to_error_log
 from app import publish_to_experiment_log
@@ -138,6 +137,7 @@ def get_plugin(filename: str) -> ResponseReturnValue:
 
 if am_I_leader():
     ## PIOREACTOR CONTROL
+    from app import client
 
     @app.route("/api/experiments/<experiment>/workers/stop", methods=["POST"])
     def stop_all_in_experiment(experiment: str) -> ResponseReturnValue:
@@ -167,6 +167,9 @@ if am_I_leader():
     @app.route(
         "/api/workers/<pioreactor_unit>/experiments/<experiment>/jobs/<job>/stop", methods=["PATCH"]
     )
+    @app.route(
+        "/api/units/<pioreactor_unit>/experiments/<experiment>/jobs/<job>/stop", methods=["PATCH"]
+    )
     def stop_job_on_unit(pioreactor_unit: str, experiment: str, job: str) -> ResponseReturnValue:
         """Kills specified job on unit"""
 
@@ -183,6 +186,10 @@ if am_I_leader():
 
     @app.route(
         "/api/workers/<pioreactor_unit>/experiments/<experiment>/jobs/<job>/run",
+        methods=["PATCH", "POST"],
+    )
+    @app.route(
+        "/api/units/<pioreactor_unit>/experiments/<experiment>/jobs/<job>/run",
         methods=["PATCH", "POST"],
     )
     def run_job_on_unit(pioreactor_unit: str, experiment: str, job: str) -> ResponseReturnValue:
@@ -212,21 +219,28 @@ if am_I_leader():
         return Response(status=202)
 
     @app.route(
+        "/api/units/<pioreactor_unit>/experiments/<experiment>/jobs/running", methods=["GET"]
+    )
+    @app.route(
         "/api/workers/<pioreactor_unit>/experiments/<experiment>/jobs/running", methods=["GET"]
     )
     def get_jobs_on_unit(pioreactor_unit: str, experiment: str) -> ResponseReturnValue:
-        # TODO: GET the corresponding Pioreactor's server ?
+        # TODO: GET the corresponding Pioreactor's server
         return 500
 
     @app.route(
         "/api/workers/<pioreactor_unit>/experiments/<experiment>/jobs/<job>/update",
         methods=["PATCH"],
     )
+    @app.route(
+        "/api/units/<pioreactor_unit>/experiments/<experiment>/jobs/<job>/update",
+        methods=["PATCH"],
+    )
     def update_job_on_unit(pioreactor_unit: str, experiment: str, job: str) -> ResponseReturnValue:
         """
         Update specified job on unit. Use $broadcast for everyone.
 
-        The body is passed to the CLI, and should look like:
+        The body should look like:
 
         {
           "settings": {
@@ -1106,7 +1120,7 @@ if am_I_leader():
             publish_to_error_log(str(e), "get_unit_labels")
             return Response(status=500)
 
-    @app.route("/api/experiments/<experiment>/unit_labels", methods=["PUT"])
+    @app.route("/api/experiments/<experiment>/unit_labels", methods=["PUT", "PATCH"])
     def upsert_unit_labels(experiment: str) -> ResponseReturnValue:
         """
         Update or insert a new unit label for the current experiment.
