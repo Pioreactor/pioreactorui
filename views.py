@@ -7,8 +7,6 @@ import re
 import sqlite3
 import subprocess
 import tempfile
-from datetime import datetime
-from datetime import timezone
 from pathlib import Path
 
 from flask import g
@@ -23,6 +21,8 @@ from msgspec.json import decode as json_decode
 from msgspec.json import encode as json_encode
 from msgspec.yaml import decode as yaml_decode
 from pioreactor.config import get_leader_hostname
+from pioreactor.pubsub import get_from
+from pioreactor.utils.networking import add_local
 from pioreactor.whoami import am_I_leader
 from werkzeug.utils import secure_filename
 
@@ -40,37 +40,10 @@ from app import VERSION
 from config import cache
 from config import env
 from config import is_testing_env
-
-
-def scrub_to_valid(value: str) -> str:
-    if value is None:
-        raise ValueError()
-    elif value.startswith("sqlite_"):
-        raise ValueError()
-    return "".join(chr for chr in value if (chr.isalnum() or chr == "_"))
-
-
-def current_utc_datetime() -> datetime:
-    # this is timezone aware.
-    return datetime.now(timezone.utc)
-
-
-def to_iso_format(dt: datetime) -> str:
-    return dt.isoformat().replace("+00:00", "Z")
-
-
-def current_utc_timestamp() -> str:
-    # this is timezone aware.
-    return to_iso_format(current_utc_datetime())
-
-
-def is_valid_unix_filename(filename: str) -> bool:
-    return (
-        bool(re.fullmatch(r"[a-zA-Z0-9._-]+", filename))
-        and "/" not in filename
-        and "\0" not in filename
-    )
-
+from utils import current_utc_datetime
+from utils import current_utc_timestamp
+from utils import is_valid_unix_filename
+from utils import scrub_to_valid
 
 ## RUNNING JOBS VIEWS
 
@@ -254,9 +227,15 @@ if am_I_leader():
     @app.route(
         "/api/workers/<pioreactor_unit>/experiments/<experiment>/jobs/running", methods=["GET"]
     )
-    def get_jobs_on_unit(pioreactor_unit: str, experiment: str) -> ResponseReturnValue:
-        # TODO: GET the corresponding Pioreactor's server
-        return 500
+    def get_jobs_on_unit_for_experiment(
+        pioreactor_unit: str, experiment: str
+    ) -> ResponseReturnValue:
+        return get_from(add_local(pioreactor_unit), f"/api/experiments/{experiment}/jobs/running")
+
+    @app.route("/api/units/<pioreactor_unit>/jobs/running", methods=["GET"])
+    @app.route("/api/workers/<pioreactor_unit>/jobs/running", methods=["GET"])
+    def get_jobs_on_unit(pioreactor_unit: str) -> ResponseReturnValue:
+        return get_from(add_local(pioreactor_unit), "/api/jobs/running")
 
     @app.route(
         "/api/workers/<pioreactor_unit>/experiments/<experiment>/jobs/<job>/update",
@@ -965,7 +944,7 @@ if am_I_leader():
         )
         experiment_name = body["experimentSelection"]
 
-        timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+        timestamp = current_utc_datetime().strftime("%Y%m%d%H%M%S")
         if experiment_name == "<All experiments>":
             experiment_options = []
             filename = f"export_{timestamp}.zip"
