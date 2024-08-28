@@ -30,6 +30,7 @@ import structs
 import tasks as background_tasks
 from app import app
 from app import client
+from app import logger
 from app import modify_app_db
 from app import publish_to_error_log
 from app import publish_to_experiment_log
@@ -152,12 +153,13 @@ def install_plugin_on_this_unit() -> ResponseReturnValue:
     result = background_tasks.pio(*commands)
     try:
         status, _ = result(blocking=True, timeout=120)
+        logger.info(status, _)
         if status:
-            return Response(202)
+            return Response(status=200)
         else:
-            return Response(500)
+            return Response(status=500)
     except HueyException:
-        return Response(500)
+        return Response(status=500)
 
 
 @app.route("/unit_api/plugins/uninstall", methods=["POST"])
