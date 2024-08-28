@@ -64,8 +64,9 @@ def shutdown() -> ResponseReturnValue:
 
 @app.route("/unit_api/system/rm", methods=["POST"])
 def remove_file() -> ResponseReturnValue:
+    # use filepath in bbody
     body = request.get_json()
-    result = background_tasks.rm(body["path"])
+    result = background_tasks.rm(body["filepath"])
     try:
         status, msg = result(blocking=True, timeout=20)
     except HueyException:
@@ -80,8 +81,8 @@ def remove_file() -> ResponseReturnValue:
 ## RUNNING JOBS CONTROL
 
 
-@app.route("/unit_api/experiments/<experiment>/jobs/<job>/run", methods=["PATCH", "POST"])
-def run_job_for_experiment(experiment: str, job: str) -> ResponseReturnValue:
+@app.route("/unit_api/jobs/<job>/run", methods=["PATCH", "POST"])
+def run_job(job: str) -> ResponseReturnValue:
     """
     Body should look like:
     {
@@ -94,7 +95,7 @@ def run_job_for_experiment(experiment: str, job: str) -> ResponseReturnValue:
     """
     body = request.get_json()
 
-    commands: tuple[str, ...] = ("run",)
+    commands: tuple[str, ...] = ("run", job)
     commands += tuple(body.get("args", []))
     for option, value in body.get("options", {}).items():
         commands += (f"--{option}", value)
