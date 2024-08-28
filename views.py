@@ -145,7 +145,7 @@ def install_plugin_on_this_unit() -> ResponseReturnValue:
     body = request.get_json()
 
     commands: tuple[str, ...] = ("plugins", "install")
-    commands += tuple(body.get("args", default=[]))
+    commands += tuple(body.get("args", []))
     for option, value in body.get("options", {}).items():
         commands += (f"--{option}", value)
 
@@ -175,7 +175,7 @@ def uninstall_plugin_on_this_unit() -> ResponseReturnValue:
     body = request.get_json()
 
     commands: tuple[str, ...] = ("plugins", "uninstall")
-    commands += tuple(body.get("args", default=[]))
+    commands += tuple(body.get("args", []))
     for option, value in body.get("options", {}).items():
         commands += (f"--{option}", value)
 
@@ -214,7 +214,12 @@ def get_app_version() -> ResponseReturnValue:
 
 @app.route("/unit_api/versions/ui", methods=["GET"])
 def get_ui_version() -> ResponseReturnValue:
-    return VERSION
+    return Response(
+        response=VERSION,
+        status=200,
+        mimetype="text/plain",
+        headers={"Cache-Control": "public,max-age=60"},
+    )
 
 
 if am_I_leader():
