@@ -45,6 +45,23 @@ from utils import current_utc_timestamp
 from utils import is_valid_unix_filename
 from utils import scrub_to_valid
 
+###
+
+
+@app.route("/unit_api/reboot", methods=["POST"])
+def reboot_this_unit() -> ResponseReturnValue:
+    """Reboots unit"""
+    background_tasks.reboot()
+    return Response(status=202)
+
+
+@app.route("/unit_api/shutdown", methods=["POST"])
+def shutdown_this_unit() -> ResponseReturnValue:
+    """Shutdown unit"""
+    background_tasks.shutdown()
+    return Response(status=202)
+
+
 ## RUNNING JOBS CONTROL
 
 

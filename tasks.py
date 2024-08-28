@@ -138,9 +138,23 @@ def rm(path: str) -> tuple[bool, str]:
 
 
 @huey.task()
-def get_time(path: str) -> str:
-    result = run(["date"], capture_output=True, text=True)
-    return result.stdout.strip()
+def shutdown(path: str) -> tuple[bool, str]:
+    logger.info("Shutting down now")
+    result = run(["sudo", "shutdown", "-h", "now"], capture_output=True, text=True)
+    if result.returncode != 0:
+        return False, result.stderr.strip()
+    else:
+        return True, result.stdout.strip()
+
+
+@huey.task()
+def reboot(path: str) -> tuple[bool, str]:
+    logger.info("Rebooting now")
+    result = run(["sudo", "reboot"], capture_output=True, text=True)
+    if result.returncode != 0:
+        return False, result.stderr.strip()
+    else:
+        return True, result.stdout.strip()
 
 
 @huey.task()
