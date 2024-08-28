@@ -45,33 +45,66 @@ from utils import current_utc_timestamp
 from utils import is_valid_unix_filename
 from utils import scrub_to_valid
 
-###
+### SYSTEM
 
 
-@app.route("/unit_api/reboot", methods=["POST"])
-def reboot_this_unit() -> ResponseReturnValue:
+@app.route("/unit_api/system/reboot", methods=["POST"])
+def reboot() -> ResponseReturnValue:
     """Reboots unit"""
     background_tasks.reboot()
     return Response(status=202)
 
 
-@app.route("/unit_api/shutdown", methods=["POST"])
-def shutdown_this_unit() -> ResponseReturnValue:
+@app.route("/unit_api/system/shutdown", methods=["POST"])
+def shutdown() -> ResponseReturnValue:
     """Shutdown unit"""
     background_tasks.shutdown()
     return Response(status=202)
+
+
+@app.route("/unit_api/system/rm", methods=["POST"])
+def remove_file() -> ResponseReturnValue:
+    body = request.get_json()
+    result = background_tasks.rm(body["path"])
+    try:
+        status, msg = result(blocking=True, timeout=20)
+    except HueyException:
+        status, msg = False, "Timed out."
+
+    if status:
+        return Response(msg, status=200)
+    else:
+        return Response(msg, status=500)
 
 
 ## RUNNING JOBS CONTROL
 
 
 @app.route("/unit_api/experiments/<experiment>/jobs/<job>/run", methods=["PATCH", "POST"])
-def run_job_on_this_unit_for_experiment(experiment: str, job: str) -> ResponseReturnValue:
-    return 501
+def run_job_for_experiment(experiment: str, job: str) -> ResponseReturnValue:
+    """
+    Body should look like:
+    {
+      "options": {
+        "option1": "value1",
+        "option2": "value2"
+      },
+      "args": ["arg1", "arg2"]
+    }
+    """
+    body = request.get_json()
+
+    commands: tuple[str, ...] = ("run",)
+    commands += tuple(body.get("args", []))
+    for option, value in body.get("options", {}).items():
+        commands += (f"--{option}", value)
+
+    background_tasks.pio(*commands)
+    return Response(status=202)
 
 
 @app.route("/unit_api/experiments/<experiment>/jobs/running", methods=["GET"])
-def get_jobs_on_this_unit_for_experiment(experiment: str) -> ResponseReturnValue:
+def get_running_jobs_for_experiment(experiment: str) -> ResponseReturnValue:
     jobs = query_local_metadata_db(
         """SELECT * FROM pio_job_metadata where is_running=1 and experiment = (?)""",
         (experiment,),
@@ -81,7 +114,7 @@ def get_jobs_on_this_unit_for_experiment(experiment: str) -> ResponseReturnValue
 
 
 @app.route("/unit_api/jobs/running", methods=["GET"])
-def get_jobs_on_this_unit() -> ResponseReturnValue:
+def get_running_jobs() -> ResponseReturnValue:
     jobs = query_local_metadata_db("""SELECT * FROM pio_job_metadata where is_running=1""")
 
     return jsonify(jobs)
@@ -133,7 +166,7 @@ def get_plugin(filename: str) -> ResponseReturnValue:
 
 
 @app.route("/unit_api/plugins/install", methods=["POST"])
-def install_plugin_on_this_unit() -> ResponseReturnValue:
+def install_plugin() -> ResponseReturnValue:
     """
     runs `pio plugin install ....`
     Body should look like:
@@ -178,7 +211,7 @@ def install_plugin_on_this_unit() -> ResponseReturnValue:
 
 
 @app.route("/unit_api/plugins/uninstall", methods=["POST"])
-def uninstall_plugin_on_this_unit() -> ResponseReturnValue:
+def uninstall_plugin() -> ResponseReturnValue:
     """
     Body should look like:
     {
@@ -301,7 +334,9 @@ if am_I_leader():
         "/api/units/<pioreactor_unit>/experiments/<experiment>/jobs/<job>/run",
         methods=["PATCH", "POST"],
     )
-    def run_job_on_unit(pioreactor_unit: str, experiment: str, job: str) -> ResponseReturnValue:
+    def run_job_on_unit_in_experiment(
+        pioreactor_unit: str, experiment: str, job: str
+    ) -> ResponseReturnValue:
         """
         Runs specified job on unit.
 
@@ -327,20 +362,9 @@ if am_I_leader():
 
         return Response(status=202)
 
-    @app.route(
-        "/api/units/<pioreactor_unit>/experiments/<experiment>/jobs/running", methods=["GET"]
-    )
-    @app.route(
-        "/api/workers/<pioreactor_unit>/experiments/<experiment>/jobs/running", methods=["GET"]
-    )
-    def get_jobs_on_unit_for_experiment(
-        pioreactor_unit: str, experiment: str
-    ) -> ResponseReturnValue:
-        return get_from(add_local(pioreactor_unit), f"/api/experiments/{experiment}/jobs/running")
-
     @app.route("/api/units/<pioreactor_unit>/jobs/running", methods=["GET"])
     @app.route("/api/workers/<pioreactor_unit>/jobs/running", methods=["GET"])
-    def get_jobs_on_unit(pioreactor_unit: str) -> ResponseReturnValue:
+    def get_running_jobs_on_unit(pioreactor_unit: str) -> ResponseReturnValue:
         return get_from(add_local(pioreactor_unit), "/api/jobs/running")
 
     @app.route(
@@ -392,13 +416,13 @@ if am_I_leader():
 
         return Response(status=202)
 
-    @app.route("/api/units/<pioreactor_unit>/reboot", methods=["POST"])
+    @app.route("/api/units/<pioreactor_unit>/system/reboot", methods=["POST"])
     def reboot_unit(pioreactor_unit: str) -> ResponseReturnValue:
         """Reboots unit"""
         background_tasks.pios("reboot", "--units", pioreactor_unit)
         return Response(status=202)
 
-    @app.route("/api/units/<pioreactor_unit>/shutdown", methods=["POST"])
+    @app.route("/api/units/<pioreactor_unit>/system/shutdown", methods=["POST"])
     def shutdown_unit(pioreactor_unit: str) -> ResponseReturnValue:
         """Shutdown unit"""
         background_tasks.pios("shutdown", "--units", pioreactor_unit)
@@ -845,14 +869,14 @@ if am_I_leader():
 
     @app.route("/api/allow_ui_installs", methods=["GET"])
     @cache.memoize(expire=10_000)
-    def able_to_install_plugins_from_ui() -> ResponseReturnValue:
+    def get_ui_plugin_install_permission() -> ResponseReturnValue:
         if os.path.isfile(Path(env["DOT_PIOREACTOR"]) / "DISALLOW_UI_INSTALLS"):
             return "false"
         else:
             return "true"
 
     @app.route("/api/plugins/install", methods=["POST"])
-    def install_plugin() -> ResponseReturnValue:
+    def install_plugin_globally() -> ResponseReturnValue:
         # there is a security problem here. See https://github.com/Pioreactor/pioreactor/issues/421
         if os.path.isfile(Path(env["DOT_PIOREACTOR"]) / "DISALLOW_UI_INSTALLS"):
             return Response(status=403)
@@ -864,7 +888,7 @@ if am_I_leader():
         return Response(status=202)
 
     @app.route("/api/plugins/uninstall", methods=["POST"])
-    def uninstall_plugin() -> ResponseReturnValue:
+    def uninstall_plugin_globally() -> ResponseReturnValue:
         body = request.get_json()
         background_tasks.pios_uninstall_plugin(body["plugin_name"])
         return Response(status=202)
@@ -873,7 +897,7 @@ if am_I_leader():
 
     ## UPLOADS
 
-    @app.route("/api/upload", methods=["POST"])
+    @app.route("/api/system/upload", methods=["POST"])
     def upload() -> ResponseReturnValue:
         if os.path.isfile(Path(env["DOT_PIOREACTOR"]) / "DISALLOW_UI_UPLOADS"):
             return Response(status=403)
@@ -1508,7 +1532,7 @@ if am_I_leader():
         return Response(status=200)
 
     @app.route("/api/contrib/experiment_profiles", methods=["PATCH"])
-    def edit_experiment_profile() -> ResponseReturnValue:
+    def update_experiment_profile() -> ResponseReturnValue:
         body = request.get_json()
         experiment_profile_body = body["body"]
         experiment_profile_filename = Path(body["filename"]).name
