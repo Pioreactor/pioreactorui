@@ -138,7 +138,7 @@ def rm(path: str) -> tuple[bool, str]:
 
 
 @huey.task()
-def shutdown(path: str) -> tuple[bool, str]:
+def shutdown() -> tuple[bool, str]:
     logger.info("Shutting down now")
     result = run(["sudo", "shutdown", "-h", "now"], capture_output=True, text=True)
     if result.returncode != 0:
@@ -148,7 +148,7 @@ def shutdown(path: str) -> tuple[bool, str]:
 
 
 @huey.task()
-def reboot(path: str) -> tuple[bool, str]:
+def reboot() -> tuple[bool, str]:
     logger.info("Rebooting now")
     result = run(["sudo", "reboot"], capture_output=True, text=True)
     if result.returncode != 0:
