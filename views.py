@@ -153,7 +153,7 @@ def install_plugin_on_this_unit() -> ResponseReturnValue:
     result = background_tasks.pio(*commands)
     try:
         status, _ = result(blocking=True, timeout=120)
-        logger.info(status, _)
+        logger.info(status)
         if status:
             return Response(status=200)
         else:
