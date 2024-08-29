@@ -64,7 +64,7 @@ def update_target(target) -> ResponseReturnValue:
         else:
             commands += (f"--{option}",)
 
-    background_tasks.pio(commands)
+    background_tasks.pio(*commands)
     return Response(status=202)
 
 
