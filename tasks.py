@@ -4,7 +4,7 @@ from __future__ import annotations
 import logging
 from logging import handlers
 from shlex import join
-from subprocess import check_call
+from subprocess import check_call as run_and_check_call
 from subprocess import run
 
 from pioreactor.config import config
@@ -51,11 +51,11 @@ def add_new_pioreactor(new_pioreactor_name: str, version: str, model: str) -> tu
 
 
 @huey.task()
-def update_app() -> bool:
+def update_app_across_cluster() -> bool:
     # CPU heavy / IO heavy
     logger.info("Updating app on leader")
     update_app_on_leader = ["pio", "update", "app"]
-    check_call(update_app_on_leader)
+    run_and_check_call(update_app_on_leader)
 
     logger.info("Updating app on workers")
     update_app_across_all_workers = ["pios", "update", "-y"]
@@ -64,16 +64,16 @@ def update_app() -> bool:
     # do this last as this update will kill huey
     logger.info("Updating UIs")
     update_ui = ["pios", "update", "ui"]
-    check_call(update_ui)
+    run_and_check_call(update_ui)
     cache.evict("app")
     return True
 
 
 @huey.task()
-def update_app_to_develop() -> bool:
+def update_app_to_develop_across_cluster() -> bool:
     logger.info("Updating app to development on leader")
     update_app_on_leader = ["pio", "update", "app", "-b", "develop"]
-    check_call(update_app_on_leader)
+    run_and_check_call(update_app_on_leader)
 
     logger.info("Updating app to development on workers")
     update_app_across_all_workers = ["pios", "update", "-y", "-b", "develop"]
@@ -82,16 +82,16 @@ def update_app_to_develop() -> bool:
     # do this last as this update will kill huey
     logger.info("Updating UI to development on leader")
     update_ui = ["pios", "update", "ui", "-b", "develop"]
-    check_call(update_ui)
+    run_and_check_call(update_ui)
     cache.evict("app")
     return True
 
 
 @huey.task()
-def update_app_from_release_archive(archive_location: str) -> bool:
+def update_app_from_release_archive_across_cluster(archive_location: str) -> bool:
     logger.info(f"Updating app on leader from {archive_location}")
     update_app_on_leader = ["pio", "update", "app", "--source", archive_location]
-    check_call(update_app_on_leader)
+    run_and_check_call(update_app_on_leader)
 
     logger.info("Updating app to development on workers")
     distribute_archive_to_workers = ["pios", "cp", archive_location, "-y"]
@@ -112,7 +112,7 @@ def update_app_from_release_archive(archive_location: str) -> bool:
         "--source",
         "/tmp/pioreactorui_archive",
     ]  # this /tmp location is added during `pio update app`, kinda gross
-    check_call(update_ui)
+    run_and_check_call(update_ui)
 
     return True
 

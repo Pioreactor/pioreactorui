@@ -9,6 +9,7 @@ import subprocess
 import tempfile
 from pathlib import Path
 
+from flask import abort
 from flask import g
 from flask import jsonify
 from flask import request
@@ -48,21 +49,41 @@ from utils import scrub_to_valid
 ### SYSTEM
 
 
-@app.route("/unit_api/system/reboot", methods=["POST"])
+@app.route("/unit_api/system/update/<target>", methods=["POST", "PATCH"])
+def update_target(target) -> ResponseReturnValue:
+    if target not in ("app", "ui", "firmware"):
+        abort(404)
+
+    body = request.get_json()
+
+    commands: tuple[str, ...] = ("update", target)
+    commands += tuple(body.get("args", []))
+    for option, value in body.get("options", {}).items():
+        if value:
+            commands += (f"--{option}", value)
+        else:
+            commands += (f"--{option}",)
+
+    background_tasks.pio(commands)
+    return Response(status=202)
+
+
+@app.route("/unit_api/system/reboot", methods=["POST", "PATCH"])
 def reboot() -> ResponseReturnValue:
     """Reboots unit"""
+    # TODO: only let requests from the leader do this. Use lighttpd conf for this.
     background_tasks.reboot()
     return Response(status=202)
 
 
-@app.route("/unit_api/system/shutdown", methods=["POST"])
+@app.route("/unit_api/system/shutdown", methods=["POST", "PATCH"])
 def shutdown() -> ResponseReturnValue:
     """Shutdown unit"""
     background_tasks.shutdown()
     return Response(status=202)
 
 
-@app.route("/unit_api/system/rm", methods=["POST"])
+@app.route("/unit_api/system/rm", methods=["POST", "PATCH"])
 def remove_file() -> ResponseReturnValue:
     # use filepath in bbody
     body = request.get_json()
@@ -83,6 +104,7 @@ def remove_file() -> ResponseReturnValue:
 
 @app.route("/unit_api/jobs/<job>/run", methods=["PATCH", "POST"])
 def run_job(job: str) -> ResponseReturnValue:
+    # DONT USE YET
     """
     Body should look like:
     {
@@ -92,15 +114,52 @@ def run_job(job: str) -> ResponseReturnValue:
       },
       "args": ["arg1", "arg2"]
     }
+    Ex:
+
+    curl -X POST http://worker.local/unit_api/jobs/stirring/run -H "Content-Type: application/json" -d '{
+      "options": {},
+      "args": []
+    }'
     """
     body = request.get_json()
 
     commands: tuple[str, ...] = ("run", job)
     commands += tuple(body.get("args", []))
     for option, value in body.get("options", {}).items():
-        commands += (f"--{option}", value)
+        if value:
+            commands += (f"--{option}", value)
+        else:
+            commands += (f"--{option}",)
 
     background_tasks.pio(*commands)
+    return Response(status=202)
+
+
+@app.route("/unit_api/jobs/stop/all", methods=["PATCH", "POST"])
+def stop_all_jobs() -> ResponseReturnValue:
+    background_tasks.pio("kill", "--all-jobs")
+    return Response(status=202)
+
+
+@app.route("/unit_api/jobs/stop/job_name/<job_name>", methods=["PATCH", "POST"])
+def stop_job_by_name(job_name: str) -> ResponseReturnValue:
+    background_tasks.pio("kill", "--name", job_name)
+    return Response(status=202)
+
+
+@app.route(
+    "/unit_api/jobs/stop/experiment/<experiment>", methods=["PATCH", "POST"]
+)  # need an endpoint here
+def stop_all_jobs_by_experiment(experiment: str) -> ResponseReturnValue:
+    background_tasks.pio("kill", "--experiment", experiment)
+    return Response(status=202)
+
+
+@app.route(
+    "/unit_api/jobs/stop/job_source/<job_source>", methods=["PATCH", "POST"]
+)  # need an endpoint here
+def stop_all_jobs_by_source(job_source: str) -> ResponseReturnValue:
+    background_tasks.pio("kill", "--job-source", job_source)
     return Response(status=202)
 
 
@@ -198,7 +257,10 @@ def install_plugin() -> ResponseReturnValue:
     commands: tuple[str, ...] = ("plugins", "install")
     commands += tuple(body.get("args", []))
     for option, value in body.get("options", {}).items():
-        commands += (f"--{option}", value)
+        if value:
+            commands += (f"--{option}", value)
+        else:
+            commands += (f"--{option}",)
 
     result = background_tasks.pio(*commands)
     try:
@@ -228,7 +290,10 @@ def uninstall_plugin() -> ResponseReturnValue:
     commands: tuple[str, ...] = ("plugins", "uninstall")
     commands += tuple(body.get("args", []))
     for option, value in body.get("options", {}).items():
-        commands += (f"--{option}", value)
+        if value:
+            commands += (f"--{option}", value)
+        else:
+            commands += (f"--{option}",)
 
     result = background_tasks.pio(*commands)
     try:
@@ -1027,12 +1092,12 @@ if am_I_leader():
 
     @app.route("/api/update_app", methods=["POST"])
     def update_app() -> ResponseReturnValue:
-        background_tasks.update_app()
+        background_tasks.update_app_across_cluster()
         return Response(status=202)
 
     @app.route("/api/update_app_to_develop", methods=["POST"])
     def update_app_to_develop() -> ResponseReturnValue:
-        background_tasks.update_app_to_develop()
+        background_tasks.update_app_to_develop_across_cluster()
         return Response(status=202)
 
     @app.route("/api/update_app_from_release_archive", methods=["POST"])
@@ -1040,7 +1105,7 @@ if am_I_leader():
         body = request.get_json()
         release_archive_location = body["release_archive_location"]
         assert release_archive_location.endswith(".zip")
-        background_tasks.update_app_from_release_archive(release_archive_location)
+        background_tasks.update_app_from_release_archive_across_cluster(release_archive_location)
         return Response(status=202)
 
     @app.route("/api/export_datasets", methods=["POST"])
@@ -1335,7 +1400,9 @@ if am_I_leader():
         filename = Path(filename).name
 
         try:
-            assert Path(filename).suffix == ".ini"
+            if Path(filename).suffix != ".ini":
+                abort(404)
+
             specific_config_path = Path(env["DOT_PIOREACTOR"]) / filename
 
             return Response(
@@ -1509,10 +1576,15 @@ if am_I_leader():
 
         # verify file
         try:
-            assert is_valid_unix_filename(experiment_profile_filename)
-            assert experiment_profile_filename.endswith(
-                ".yaml"
-            ) or experiment_profile_filename.endswith(".yml")
+            if not is_valid_unix_filename(experiment_profile_filename):
+                abort(404)
+
+            if not (
+                experiment_profile_filename.endswith(".yaml")
+                or experiment_profile_filename.endswith(".yml")
+            ):
+                abort(404)
+
         except Exception:
             msg = "Invalid filename"
             # publish_to_error_log(msg, "create_experiment_profile")
@@ -1548,10 +1620,15 @@ if am_I_leader():
 
         # verify file - user could have provided a different filename so we still check this.
         try:
-            assert is_valid_unix_filename(experiment_profile_filename)
-            assert experiment_profile_filename.endswith(
-                ".yaml"
-            ) or experiment_profile_filename.endswith(".yml")
+            if not is_valid_unix_filename(experiment_profile_filename):
+                abort(404)
+
+            if not (
+                experiment_profile_filename.endswith(".yaml")
+                or experiment_profile_filename.endswith(".yml")
+            ):
+                abort(404)
+
         except Exception:
             msg = "Invalid filename"
             # publish_to_error_log(msg, "create_experiment_profile")
