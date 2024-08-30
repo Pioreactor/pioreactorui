@@ -24,6 +24,7 @@ from version import __version__
 
 NAME = "pioreactorui"
 VERSION = __version__
+HOSTNAME = get_unit_name()
 
 
 # set up logging
@@ -42,7 +43,7 @@ ui_logs.setFormatter(logs_format)
 logger.addHandler(ui_logs)
 
 
-logger.debug(f"Starting {NAME}={VERSION} on {get_unit_name()}...")
+logger.debug(f"Starting {NAME}={VERSION} on {HOSTNAME}...")
 logger.debug(f".env={dict(env)}")
 
 app = Flask(NAME)

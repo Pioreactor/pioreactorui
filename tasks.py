@@ -6,8 +6,11 @@ from logging import handlers
 from shlex import join
 from subprocess import check_call as run_and_check_call
 from subprocess import run
+from typing import Any
 
 from pioreactor.config import config
+from pioreactor.networking import add_local
+from pioreactor.pubsub import get_from
 
 from config import cache
 from config import CACHE_DIR
@@ -221,3 +224,16 @@ def write_config_and_sync(config_path: str, text: str, units: str, flags: str):
     except Exception as e:
         logger.error(str(e))
         return (False, "Could not sync configs to all Pioreactors.")
+
+
+@huey.task()
+def get_across_cluster(endpoint: str, workers: list[str]):
+    result: dict[str, Any] = {}
+    for worker in workers:
+        try:
+            r = get_from(add_local(worker), endpoint, timeout=1)
+            r.raise_for_status()
+            result[worker] = r.json()
+        except Exception as e:
+            logger.error(e)
+    return result

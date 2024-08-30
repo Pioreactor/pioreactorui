@@ -15,6 +15,7 @@ from flask import jsonify
 from flask import request
 from flask import Response
 from flask.typing import ResponseReturnValue
+from huey import result as get_huey_result
 from huey.exceptions import HueyException
 from msgspec import DecodeError
 from msgspec import ValidationError
@@ -45,6 +46,19 @@ from utils import current_utc_datetime
 from utils import current_utc_timestamp
 from utils import is_valid_unix_filename
 from utils import scrub_to_valid
+
+
+# Endpoint to check the status of the background task. Private.
+@app.route("/api/task_status/<task_id>", methods=["GET"])
+def task_status(task_id):
+    task = get_huey_result(task_id)
+    if task is None:
+        return jsonify({"status": "pending"}), 202
+    elif isinstance(task, Exception):
+        return jsonify({"status": "failed", "error": str(task)}), 500
+    else:
+        return jsonify({"status": "complete", "result": task}), 200
+
 
 ### SYSTEM
 
@@ -431,7 +445,7 @@ if am_I_leader():
     @app.route("/api/units/<pioreactor_unit>/jobs/running", methods=["GET"])
     @app.route("/api/workers/<pioreactor_unit>/jobs/running", methods=["GET"])
     def get_running_jobs_on_unit(pioreactor_unit: str) -> ResponseReturnValue:
-        return get_from(add_local(pioreactor_unit), "/api/jobs/running")
+        return get_from(add_local(pioreactor_unit), "/api/jobs/running").json()
 
     @app.route(
         "/api/workers/<pioreactor_unit>/experiments/<experiment>/jobs/<job>/update",
@@ -958,6 +972,38 @@ if am_I_leader():
         body = request.get_json()
         background_tasks.pios_uninstall_plugin(body["plugin_name"])
         return Response(status=202)
+
+    def handle_cluster_request(endpoint: str) -> ResponseReturnValue:
+        result = query_app_db(
+            """
+            SELECT w.pioreactor_unit as unit
+            FROM workers w
+            ORDER BY w.pioreactor_unit
+            """,
+        )
+        assert result is not None
+        assert isinstance(result, list)
+        list_of_workers = tuple(r["unit"] for r in result)
+
+        task = background_tasks.get_across_cluster(endpoint, list_of_workers)
+
+        return jsonify({"task_id": task.id}), 202
+
+    @app.route("/cluster_api/plugins/installed", methods=["GET"])
+    def get_plugins_across_cluster() -> ResponseReturnValue:
+        return handle_cluster_request("/unit_api/plugins/installed")
+
+    @app.route("/cluster_api/jobs/running", methods=["GET"])
+    def get_jobs_running_across_cluster() -> ResponseReturnValue:
+        return handle_cluster_request("/unit_api/jobs/running")
+
+    @app.route("/cluster_api/versions/app", methods=["GET"])
+    def get_app_versions_across_cluster() -> ResponseReturnValue:
+        return handle_cluster_request("/unit_api/versions/app")
+
+    @app.route("/cluster_api/versions/ui", methods=["GET"])
+    def get_ui_versions_across_cluster() -> ResponseReturnValue:
+        return handle_cluster_request("/unit_api/versions/ui")
 
     ## MISC
 
