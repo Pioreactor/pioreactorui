@@ -48,8 +48,8 @@ from utils import is_valid_unix_filename
 from utils import scrub_to_valid
 
 
-# Endpoint to check the status of the background task. Private.
-@app.route("/api/task_status/<task_id>", methods=["GET"])
+# Endpoint to check the status of the background task.
+@app.route("/api/task_status/<uuid:task_id>", methods=["GET"])
 def task_status(task_id):
     task = huey.result(task_id)
     if task is None:
@@ -78,28 +78,28 @@ def update_target(target) -> ResponseReturnValue:
         else:
             commands += (f"--{option}",)
 
-    background_tasks.pio(*commands)
-    return Response(status=202)
+    task = background_tasks.pio(*commands)
+    return jsonify({"task_id": task.id}), 202
 
 
 @app.route("/unit_api/system/reboot", methods=["POST", "PATCH"])
 def reboot() -> ResponseReturnValue:
     """Reboots unit"""
     # TODO: only let requests from the leader do this. Use lighttpd conf for this.
-    background_tasks.reboot()
-    return Response(status=202)
+    task = background_tasks.reboot()
+    return jsonify({"task_id": task.id}), 202
 
 
 @app.route("/unit_api/system/shutdown", methods=["POST", "PATCH"])
 def shutdown() -> ResponseReturnValue:
     """Shutdown unit"""
-    background_tasks.shutdown()
-    return Response(status=202)
+    task = background_tasks.shutdown()
+    return jsonify({"task_id": task.id}), 202
 
 
 @app.route("/unit_api/system/rm", methods=["POST", "PATCH"])
 def remove_file() -> ResponseReturnValue:
-    # use filepath in bbody
+    # use filepath in body
     body = request.get_json()
     task = background_tasks.rm(body["filepath"])
     return jsonify({"task_id": task.id}), 202
@@ -137,36 +137,36 @@ def run_job(job: str) -> ResponseReturnValue:
         else:
             commands += (f"--{option}",)
 
-    background_tasks.pio(*commands)
-    return Response(status=202)
+    task = background_tasks.pio(*commands)
+    return jsonify({"task_id": task.id}), 202
 
 
 @app.route("/unit_api/jobs/stop/all", methods=["PATCH", "POST"])
 def stop_all_jobs() -> ResponseReturnValue:
-    background_tasks.pio("kill", "--all-jobs")
-    return Response(status=202)
+    task = background_tasks.pio("kill", "--all-jobs")
+    return jsonify({"task_id": task.id}), 202
 
 
 @app.route("/unit_api/jobs/stop/job_name/<job_name>", methods=["PATCH", "POST"])
 def stop_job_by_name(job_name: str) -> ResponseReturnValue:
-    background_tasks.pio("kill", "--name", job_name)
-    return Response(status=202)
+    task = background_tasks.pio("kill", "--name", job_name)
+    return jsonify({"task_id": task.id}), 202
 
 
 @app.route(
     "/unit_api/jobs/stop/experiment/<experiment>", methods=["PATCH", "POST"]
 )  # need an endpoint here
 def stop_all_jobs_by_experiment(experiment: str) -> ResponseReturnValue:
-    background_tasks.pio("kill", "--experiment", experiment)
-    return Response(status=202)
+    task = background_tasks.pio("kill", "--experiment", experiment)
+    return jsonify({"task_id": task.id}), 202
 
 
 @app.route(
     "/unit_api/jobs/stop/job_source/<job_source>", methods=["PATCH", "POST"]
 )  # need an endpoint here
 def stop_all_jobs_by_source(job_source: str) -> ResponseReturnValue:
-    background_tasks.pio("kill", "--job-source", job_source)
-    return Response(status=202)
+    task = background_tasks.pio("kill", "--job-source", job_source)
+    return jsonify({"task_id": task.id}), 202
 
 
 @app.route("/unit_api/experiments/<experiment>/jobs/running", methods=["GET"])
@@ -346,9 +346,9 @@ if am_I_leader():
         background_tasks.pios("kill", "--all-jobs", *units)
 
         # also kill any jobs running on leader (this unit) that are associated to the experiment (like a profile)
-        background_tasks.pio("kill", "--experiment", experiment)
+        task = background_tasks.pio("kill", "--experiment", experiment)
 
-        return Response(status=202)
+        return jsonify({"task_id": task.id}), 202
 
     @app.route(
         "/api/workers/<pioreactor_unit>/experiments/<experiment>/stop", methods=["POST", "PATCH"]
@@ -358,9 +358,9 @@ if am_I_leader():
     ) -> ResponseReturnValue:
         """Kills all jobs for worker assigned to experiment"""
 
-        background_tasks.pios("kill", "--units", pioreactor_unit, "--experiment", experiment)
+        task = background_tasks.pios("kill", "--units", pioreactor_unit, "--experiment", experiment)
 
-        return Response(status=202)
+        return jsonify({"task_id": task.id}), 202
 
     @app.route(
         "/api/workers/<pioreactor_unit>/experiments/<experiment>/jobs/<job>/stop",
@@ -477,14 +477,14 @@ if am_I_leader():
     @app.route("/api/units/<pioreactor_unit>/system/reboot", methods=["POST"])
     def reboot_unit(pioreactor_unit: str) -> ResponseReturnValue:
         """Reboots unit"""
-        background_tasks.pios("reboot", "--units", pioreactor_unit)
-        return Response(status=202)
+        task = background_tasks.pios("reboot", "--units", pioreactor_unit)
+        return jsonify({"task_id": task.id}), 202
 
     @app.route("/api/units/<pioreactor_unit>/system/shutdown", methods=["POST"])
     def shutdown_unit(pioreactor_unit: str) -> ResponseReturnValue:
         """Shutdown unit"""
-        background_tasks.pios("shutdown", "--units", pioreactor_unit)
-        return Response(status=202)
+        task = background_tasks.pios("shutdown", "--units", pioreactor_unit)
+        return jsonify({"task_id": task.id}), 202
 
     ## Logs
 
@@ -925,14 +925,6 @@ if am_I_leader():
 
     ## PLUGINS
 
-    @app.route("/api/allow_ui_installs", methods=["GET"])
-    @cache.memoize(expire=10_000)
-    def get_ui_plugin_install_permission() -> ResponseReturnValue:
-        if os.path.isfile(Path(env["DOT_PIOREACTOR"]) / "DISALLOW_UI_INSTALLS"):
-            return "false"
-        else:
-            return "true"
-
     @app.route("/api/plugins/install", methods=["POST"])
     def install_plugin_globally() -> ResponseReturnValue:
         # there is a security problem here. See https://github.com/Pioreactor/pioreactor/issues/421
@@ -942,22 +934,22 @@ if am_I_leader():
         body = request.get_json()
         plugin_name = body["plugin_name"]
 
-        background_tasks.pios_install_plugin(plugin_name)
-        return Response(status=202)
+        task = background_tasks.pios_install_plugin(plugin_name)
+        return jsonify({"task_id": task.id}), 202
 
     @app.route("/api/plugins/uninstall", methods=["POST"])
     def uninstall_plugin_globally() -> ResponseReturnValue:
         body = request.get_json()
-        background_tasks.pios_uninstall_plugin(body["plugin_name"])
-        return Response(status=202)
+        task = background_tasks.pios_uninstall_plugin(body["plugin_name"])
+        return jsonify({"task_id": task.id}), 202
 
-    def handle_cluster_request(endpoint: str) -> ResponseReturnValue:
+    def handle_cluster_get_request(endpoint: str) -> ResponseReturnValue:
         result = query_app_db(
             """
             SELECT w.pioreactor_unit as unit
             FROM workers w
             ORDER BY w.pioreactor_unit
-            """,
+            """
         )
         assert result is not None
         assert isinstance(result, list)
@@ -969,19 +961,19 @@ if am_I_leader():
 
     @app.route("/cluster_api/plugins/installed", methods=["GET"])
     def get_plugins_across_cluster() -> ResponseReturnValue:
-        return handle_cluster_request("/unit_api/plugins/installed")
+        return handle_cluster_get_request("/unit_api/plugins/installed")
 
     @app.route("/cluster_api/jobs/running", methods=["GET"])
     def get_jobs_running_across_cluster() -> ResponseReturnValue:
-        return handle_cluster_request("/unit_api/jobs/running")
+        return handle_cluster_get_request("/unit_api/jobs/running")
 
     @app.route("/cluster_api/versions/app", methods=["GET"])
     def get_app_versions_across_cluster() -> ResponseReturnValue:
-        return handle_cluster_request("/unit_api/versions/app")
+        return handle_cluster_get_request("/unit_api/versions/app")
 
     @app.route("/cluster_api/versions/ui", methods=["GET"])
     def get_ui_versions_across_cluster() -> ResponseReturnValue:
-        return handle_cluster_request("/unit_api/versions/ui")
+        return handle_cluster_get_request("/unit_api/versions/ui")
 
     ## MISC
 
@@ -1116,21 +1108,23 @@ if am_I_leader():
 
     @app.route("/api/update_app", methods=["POST"])
     def update_app() -> ResponseReturnValue:
-        background_tasks.update_app_across_cluster()
-        return Response(status=202)
+        task = background_tasks.update_app_across_cluster()
+        return jsonify({"task_id": task.id}), 202
 
     @app.route("/api/update_app_to_develop", methods=["POST"])
     def update_app_to_develop() -> ResponseReturnValue:
-        background_tasks.update_app_to_develop_across_cluster()
-        return Response(status=202)
+        task = background_tasks.update_app_to_develop_across_cluster()
+        return jsonify({"task_id": task.id}), 202
 
     @app.route("/api/update_app_from_release_archive", methods=["POST"])
     def update_app_from_release_archive() -> ResponseReturnValue:
         body = request.get_json()
         release_archive_location = body["release_archive_location"]
         assert release_archive_location.endswith(".zip")
-        background_tasks.update_app_from_release_archive_across_cluster(release_archive_location)
-        return Response(status=202)
+        task = background_tasks.update_app_from_release_archive_across_cluster(
+            release_archive_location
+        )
+        return jsonify({"task_id": task.id}), 202
 
     @app.route("/api/export_datasets", methods=["POST"])
     def export_datasets() -> ResponseReturnValue:
@@ -1558,7 +1552,7 @@ if am_I_leader():
             publish_to_error_log(msg_or_exception, "save_new_config")
             return {"msg": str(msg_or_exception)}, 500
 
-        return Response(status=202)
+        return Response(status=200)
 
     @app.route("/api/historical_configs/<filename>", methods=["GET"])
     def get_historical_config_for(filename: str) -> ResponseReturnValue:
@@ -1638,9 +1632,8 @@ if am_I_leader():
         try:
             yaml_decode(experiment_profile_body, type=structs.Profile)
         except Exception as e:
-            msg = f"{e}"
             # publish_to_error_log(msg, "create_experiment_profile")
-            return {"msg": msg}, 400
+            return {"msg": str(e)}, 400
 
         # verify file - user could have provided a different filename so we still check this.
         try:
@@ -1654,9 +1647,8 @@ if am_I_leader():
                 abort(404)
 
         except Exception:
-            msg = "Invalid filename"
             # publish_to_error_log(msg, "create_experiment_profile")
-            return {"msg": msg}, 400
+            return {"msg": "Invalid filename"}, 400
 
         filepath = Path(env["DOT_PIOREACTOR"]) / "experiment_profiles" / experiment_profile_filename
 
@@ -1759,7 +1751,7 @@ if am_I_leader():
             status, msg = False, "Timed out, see logs."
 
         if status:
-            return Response(status=202)
+            return Response(status=200)
         else:
             publish_to_error_log(msg, "setup_worker_pioreactor")
             return {"msg": msg}, 500
