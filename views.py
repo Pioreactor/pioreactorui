@@ -53,7 +53,7 @@ from utils import scrub_to_valid
 def task_status(task_id):
     task = huey.result(task_id)
     if task is None:
-        return jsonify({"status": "pending"}), 202
+        return jsonify({"status": "pending or not present"}), 202
     elif isinstance(task, Exception):
         return jsonify({"status": "failed", "error": str(task)}), 500
     else:

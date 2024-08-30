@@ -231,7 +231,7 @@ def get_across_cluster(endpoint: str, workers: list[str]):
     result: dict[str, Any] = {}
     for worker in workers:
         try:
-            r = get_from(add_local(worker), endpoint, timeout=1)
+            r = get_from(add_local(worker), endpoint, timeout=5)
             r.raise_for_status()
             result[worker] = r.json()
         except Exception as e:
