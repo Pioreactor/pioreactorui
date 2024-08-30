@@ -15,7 +15,6 @@ from flask import jsonify
 from flask import request
 from flask import Response
 from flask.typing import ResponseReturnValue
-from huey import result as get_huey_result
 from huey.exceptions import HueyException
 from msgspec import DecodeError
 from msgspec import ValidationError
@@ -41,6 +40,7 @@ from app import query_local_metadata_db
 from app import VERSION
 from config import cache
 from config import env
+from config import huey
 from config import is_testing_env
 from utils import current_utc_datetime
 from utils import current_utc_timestamp
@@ -51,7 +51,7 @@ from utils import scrub_to_valid
 # Endpoint to check the status of the background task. Private.
 @app.route("/api/task_status/<task_id>", methods=["GET"])
 def task_status(task_id):
-    task = get_huey_result(task_id)
+    task = huey.result(task_id)
     if task is None:
         return jsonify({"status": "pending"}), 202
     elif isinstance(task, Exception):

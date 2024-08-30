@@ -9,8 +9,8 @@ from subprocess import run
 from typing import Any
 
 from pioreactor.config import config
-from pioreactor.networking import add_local
 from pioreactor.pubsub import get_from
+from pioreactor.utils.networking import add_local
 
 from config import cache
 from config import CACHE_DIR
