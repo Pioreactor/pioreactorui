@@ -101,16 +101,8 @@ def shutdown() -> ResponseReturnValue:
 def remove_file() -> ResponseReturnValue:
     # use filepath in bbody
     body = request.get_json()
-    result = background_tasks.rm(body["filepath"])
-    try:
-        status, msg = result(blocking=True, timeout=20)
-    except HueyException:
-        status, msg = False, "Timed out."
-
-    if status:
-        return Response(msg, status=200)
-    else:
-        return Response(msg, status=500)
+    task = background_tasks.rm(body["filepath"])
+    return jsonify({"task_id": task.id}), 202
 
 
 ## RUNNING JOBS CONTROL
@@ -276,15 +268,8 @@ def install_plugin() -> ResponseReturnValue:
         else:
             commands += (f"--{option}",)
 
-    result = background_tasks.pio(*commands)
-    try:
-        status, _ = result(blocking=True, timeout=120)
-        if status:
-            return Response(status=200)
-        else:
-            return Response(status=500)
-    except HueyException:
-        return Response(status=500)
+    task = background_tasks.pio(*commands)
+    return jsonify({"task_id": task.id}), 202
 
 
 @app.route("/unit_api/plugins/uninstall", methods=["POST"])
@@ -309,15 +294,8 @@ def uninstall_plugin() -> ResponseReturnValue:
         else:
             commands += (f"--{option}",)
 
-    result = background_tasks.pio(*commands)
-    try:
-        status, _ = result(blocking=True, timeout=120)
-        if status:
-            return Response(status=202)
-        else:
-            return Response(status=500)
-    except HueyException:
-        return Response(status=500)
+    task = background_tasks.pio(*commands)
+    return jsonify({"task_id": task.id}), 202
 
 
 ### VERSIONS
