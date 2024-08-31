@@ -23,7 +23,7 @@ from msgspec.json import encode as json_encode
 from msgspec.yaml import decode as yaml_decode
 from pioreactor.config import get_leader_hostname
 from pioreactor.pubsub import get_from
-from pioreactor.utils.networking import add_local
+from pioreactor.utils.networking import resolve_to_address
 from pioreactor.whoami import am_I_leader
 from werkzeug.utils import secure_filename
 
@@ -108,7 +108,7 @@ def remove_file() -> ResponseReturnValue:
 ## RUNNING JOBS CONTROL
 
 
-@app.route("/unit_api/jobs/<job>/run", methods=["PATCH", "POST"])
+@app.route("/unit_api/jobs/run/job_name/<job>", methods=["PATCH", "POST"])
 def run_job(job: str) -> ResponseReturnValue:
     # DONT USE YET
     """
@@ -122,7 +122,7 @@ def run_job(job: str) -> ResponseReturnValue:
     }
     Ex:
 
-    curl -X POST http://worker.local/unit_api/jobs/stirring/run -H "Content-Type: application/json" -d '{
+    curl -X POST http://worker.local/unit_api/jobs/run/job_name/stirring -H "Content-Type: application/json" -d '{
       "options": {},
       "args": []
     }'
@@ -139,6 +139,23 @@ def run_job(job: str) -> ResponseReturnValue:
 
     task = background_tasks.pio(*commands)
     return jsonify({"task_id": task.id}), 202
+
+
+@app.route("/unit_api/jobs/update/job_name/<job>", methods=["PATCH"])
+def update_job(job: str) -> ResponseReturnValue:
+    # DONT USE YET
+    """
+    The body should look like:
+
+    {
+      "settings": {
+        <setting1>: <value1>,
+        <setting2>: <value2>
+      },
+    }
+    """
+    body = request.get_json()
+    return 503
 
 
 @app.route("/unit_api/jobs/stop/all", methods=["PATCH", "POST"])
@@ -333,8 +350,8 @@ def get_ui_version() -> ResponseReturnValue:
 if am_I_leader():
     ## PIOREACTOR CONTROL
 
-    @app.route("/api/experiments/<experiment>/workers/stop", methods=["POST", "PATCH"])
-    def stop_all_in_experiment(experiment: str) -> ResponseReturnValue:
+    @app.route("/api/workers/jobs/stop/experiments/<experiment>", methods=["POST", "PATCH"])
+    def stop_all_jobs_in_experiment(experiment: str) -> ResponseReturnValue:
         """Kills all jobs for workers assigned to experiment"""
         workers = query_app_db(
             "SELECT pioreactor_unit FROM experiment_worker_assignments WHERE experiment = ?",
@@ -343,15 +360,16 @@ if am_I_leader():
         assert isinstance(workers, list)
 
         units = sum([("--units", w["pioreactor_unit"]) for w in workers], ())
-        background_tasks.pios("kill", "--all-jobs", *units)
+        task = background_tasks.pios("kill", "--all-jobs", *units)
 
         # also kill any jobs running on leader (this unit) that are associated to the experiment (like a profile)
-        task = background_tasks.pio("kill", "--experiment", experiment)
+        background_tasks.pio("kill", "--experiment", experiment)
 
         return jsonify({"task_id": task.id}), 202
 
     @app.route(
-        "/api/workers/<pioreactor_unit>/experiments/<experiment>/stop", methods=["POST", "PATCH"]
+        "/api/workers/<pioreactor_unit>/jobs/stop/experiments/<experiment>",
+        methods=["POST", "PATCH"],
     )
     def stop_all_jobs_on_worker_for_experiment(
         pioreactor_unit: str, experiment: str
@@ -363,11 +381,11 @@ if am_I_leader():
         return jsonify({"task_id": task.id}), 202
 
     @app.route(
-        "/api/workers/<pioreactor_unit>/experiments/<experiment>/jobs/<job>/stop",
+        "/api/workers/<pioreactor_unit>/jobs/stop/job_name/<job>/experiments/<experiment>",
         methods=["PATCH", "POST"],
     )
     @app.route(
-        "/api/units/<pioreactor_unit>/experiments/<experiment>/jobs/<job>/stop",
+        "/api/units/<pioreactor_unit>/jobs/stop/job_name/<job>/experiments/<experiment>",
         methods=["PATCH", "POST"],
     )
     def stop_job_on_unit(pioreactor_unit: str, experiment: str, job: str) -> ResponseReturnValue:
@@ -385,11 +403,11 @@ if am_I_leader():
         return Response(status=202)
 
     @app.route(
-        "/api/workers/<pioreactor_unit>/experiments/<experiment>/jobs/<job>/run",
+        "/api/workers/<pioreactor_unit>/jobs/run/job_name/<job>/experiments/<experiment>",
         methods=["PATCH", "POST"],
     )
     @app.route(
-        "/api/units/<pioreactor_unit>/experiments/<experiment>/jobs/<job>/run",
+        "/api/units/<pioreactor_unit>/jobs/run/job_name/<job>/experiments/<experiment>",
         methods=["PATCH", "POST"],
     )
     def run_job_on_unit_in_experiment(
@@ -423,14 +441,14 @@ if am_I_leader():
     @app.route("/api/units/<pioreactor_unit>/jobs/running", methods=["GET"])
     @app.route("/api/workers/<pioreactor_unit>/jobs/running", methods=["GET"])
     def get_running_jobs_on_unit(pioreactor_unit: str) -> ResponseReturnValue:
-        return get_from(add_local(pioreactor_unit), "/api/jobs/running").json()
+        return get_from(resolve_to_address(pioreactor_unit), "/api/jobs/running").json()
 
     @app.route(
-        "/api/workers/<pioreactor_unit>/experiments/<experiment>/jobs/<job>/update",
+        "/api/workers/<pioreactor_unit>/jobs/update/job_name/<job>/experiments/<experiment>",
         methods=["PATCH"],
     )
     @app.route(
-        "/api/units/<pioreactor_unit>/experiments/<experiment>/jobs/<job>/update",
+        "/api/units/<pioreactor_unit>/jobs/update/job_name/<job>/experiments/<experiment>",
         methods=["PATCH"],
     )
     def update_job_on_unit(pioreactor_unit: str, experiment: str, job: str) -> ResponseReturnValue:
@@ -477,13 +495,13 @@ if am_I_leader():
     @app.route("/api/units/<pioreactor_unit>/system/reboot", methods=["POST"])
     def reboot_unit(pioreactor_unit: str) -> ResponseReturnValue:
         """Reboots unit"""
-        task = background_tasks.pios("reboot", "--units", pioreactor_unit)
+        task = background_tasks.post_across_cluster([pioreactor_unit], "/system/reboot")
         return jsonify({"task_id": task.id}), 202
 
     @app.route("/api/units/<pioreactor_unit>/system/shutdown", methods=["POST"])
     def shutdown_unit(pioreactor_unit: str) -> ResponseReturnValue:
         """Shutdown unit"""
-        task = background_tasks.pios("shutdown", "--units", pioreactor_unit)
+        task = background_tasks.post_across_cluster([pioreactor_unit], "/system/shutdown")
         return jsonify({"task_id": task.id}), 202
 
     ## Logs
@@ -925,24 +943,6 @@ if am_I_leader():
 
     ## PLUGINS
 
-    @app.route("/api/plugins/install", methods=["POST"])
-    def install_plugin_globally() -> ResponseReturnValue:
-        # there is a security problem here. See https://github.com/Pioreactor/pioreactor/issues/421
-        if os.path.isfile(Path(env["DOT_PIOREACTOR"]) / "DISALLOW_UI_INSTALLS"):
-            return Response(status=403)
-
-        body = request.get_json()
-        plugin_name = body["plugin_name"]
-
-        task = background_tasks.pios_install_plugin(plugin_name)
-        return jsonify({"task_id": task.id}), 202
-
-    @app.route("/api/plugins/uninstall", methods=["POST"])
-    def uninstall_plugin_globally() -> ResponseReturnValue:
-        body = request.get_json()
-        task = background_tasks.pios_uninstall_plugin(body["plugin_name"])
-        return jsonify({"task_id": task.id}), 202
-
     def handle_cluster_get_request(endpoint: str) -> ResponseReturnValue:
         result = query_app_db(
             """
@@ -959,19 +959,47 @@ if am_I_leader():
 
         return jsonify({"task_id": task.id}), 202
 
-    @app.route("/cluster_api/plugins/installed", methods=["GET"])
+    def handle_cluster_post_request(endpoint: str, body: bytes | None) -> ResponseReturnValue:
+        result = query_app_db(
+            """
+            SELECT w.pioreactor_unit as unit
+            FROM workers w
+            ORDER BY w.pioreactor_unit
+            """
+        )
+        assert result is not None
+        assert isinstance(result, list)
+        list_of_workers = tuple(r["unit"] for r in result)
+
+        task = background_tasks.post_across_cluster(endpoint, list_of_workers, body=body)
+
+        return jsonify({"task_id": task.id}), 202
+
+    @app.route("/api/plugins/installed", methods=["GET"])
     def get_plugins_across_cluster() -> ResponseReturnValue:
         return handle_cluster_get_request("/unit_api/plugins/installed")
 
-    @app.route("/cluster_api/jobs/running", methods=["GET"])
+    @app.route("/api/plugins/install", methods=["GET"])
+    def install_plugixn_across_cluster() -> ResponseReturnValue:
+        # there is a security problem here. See https://github.com/Pioreactor/pioreactor/issues/421
+        if os.path.isfile(Path(env["DOT_PIOREACTOR"]) / "DISALLOW_UI_INSTALLS"):
+            return Response(status=403)
+
+        return handle_cluster_post_request("/unit_api/plugins/install", request.body)
+
+    @app.route("/api/plugins/uninstall", methods=["GET"])
+    def uninstall_plugin_across_cluster() -> ResponseReturnValue:
+        return handle_cluster_post_request("/unit_api/plugins/uninstall", request.body)
+
+    @app.route("/api/jobs/running", methods=["GET"])
     def get_jobs_running_across_cluster() -> ResponseReturnValue:
         return handle_cluster_get_request("/unit_api/jobs/running")
 
-    @app.route("/cluster_api/versions/app", methods=["GET"])
+    @app.route("/api/versions/app", methods=["GET"])
     def get_app_versions_across_cluster() -> ResponseReturnValue:
         return handle_cluster_get_request("/unit_api/versions/app")
 
-    @app.route("/cluster_api/versions/ui", methods=["GET"])
+    @app.route("/api/versions/ui", methods=["GET"])
     def get_ui_versions_across_cluster() -> ResponseReturnValue:
         return handle_cluster_get_request("/unit_api/versions/ui")
 

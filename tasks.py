@@ -10,7 +10,8 @@ from typing import Any
 
 from pioreactor.config import config
 from pioreactor.pubsub import get_from
-from pioreactor.utils.networking import add_local
+from pioreactor.pubsub import post_into
+from pioreactor.utils.networking import resolve_to_address
 
 from config import cache
 from config import CACHE_DIR
@@ -231,7 +232,20 @@ def get_across_cluster(endpoint: str, workers: list[str]):
     result: dict[str, Any] = {}
     for worker in workers:
         try:
-            r = get_from(add_local(worker), endpoint, timeout=6)
+            r = get_from(resolve_to_address(worker), endpoint, timeout=6)
+            r.raise_for_status()
+            result[worker] = r.json()
+        except Exception as e:
+            logger.error(e)
+    return result
+
+
+@huey.task()
+def post_across_cluster(endpoint: str, workers: list[str], body: bytes | None = None):
+    result: dict[str, Any] = {}
+    for worker in workers:
+        try:
+            r = post_into(resolve_to_address(worker), endpoint, body=body, timeout=6)
             r.raise_for_status()
             result[worker] = r.json()
         except Exception as e:
