@@ -48,7 +48,7 @@ from utils import is_valid_unix_filename
 from utils import scrub_to_valid
 
 
-# Endpoint to check the status of the background task.
+# Endpoint to check the status of a background task.
 @app.route("/api/task_status/<uuid:task_id>", methods=["GET"])
 def task_status(task_id):
     task = huey.result(task_id)
@@ -154,7 +154,7 @@ def update_job(job: str) -> ResponseReturnValue:
       },
     }
     """
-    body = request.get_json()
+    # body = request.get_json()
     return 503
 
 
@@ -353,19 +353,21 @@ if am_I_leader():
     @app.route("/api/workers/jobs/stop/experiments/<experiment>", methods=["POST", "PATCH"])
     def stop_all_jobs_in_experiment(experiment: str) -> ResponseReturnValue:
         """Kills all jobs for workers assigned to experiment"""
-        workers = query_app_db(
+        r = query_app_db(
             "SELECT pioreactor_unit FROM experiment_worker_assignments WHERE experiment = ?",
             (experiment,),
         )
-        assert isinstance(workers, list)
+        assert isinstance(r, list)
 
-        units = sum([("--units", w["pioreactor_unit"]) for w in workers], ())
-        task = background_tasks.pios("kill", "--all-jobs", *units)
+        workers = [worker["pioreactor_unit"] for worker in r]
+        background_tasks.post_across_cluster(workers, "/unit_api/jobs/stop/all")
 
         # also kill any jobs running on leader (this unit) that are associated to the experiment (like a profile)
-        background_tasks.pio("kill", "--experiment", experiment)
+        background_tasks.post_across_cluster(
+            [get_leader_hostname()], f"/unit_api/jobs/stop/experiment/{experiment}"
+        )
 
-        return jsonify({"task_id": task.id}), 202
+        return 202
 
     @app.route(
         "/api/workers/<pioreactor_unit>/jobs/stop/experiments/<experiment>",
@@ -375,10 +377,11 @@ if am_I_leader():
         pioreactor_unit: str, experiment: str
     ) -> ResponseReturnValue:
         """Kills all jobs for worker assigned to experiment"""
+        background_tasks.post_across_cluster(
+            [pioreactor_unit], f"/unit_api/jobs/stop/experiment/{experiment}"
+        )
 
-        task = background_tasks.pios("kill", "--units", pioreactor_unit, "--experiment", experiment)
-
-        return jsonify({"task_id": task.id}), 202
+        return Response(status=202)
 
     @app.route(
         "/api/workers/<pioreactor_unit>/jobs/stop/job_name/<job>/experiments/<experiment>",
@@ -1276,7 +1279,7 @@ if am_I_leader():
         row_count = modify_app_db("DELETE FROM experiments WHERE experiment=?;", (experiment,))
         background_tasks.pios("kill", "--experiment", experiment)
         if row_count > 0:
-            return Response(status=204)
+            return Response(status=200)
         else:
             return Response(status=404)
         pass
@@ -1826,7 +1829,7 @@ if am_I_leader():
                 task="assignment",
             )
 
-            return Response(status=204)
+            return Response(status=200)
         else:
             return Response(status=404)
 
@@ -1852,8 +1855,8 @@ if am_I_leader():
                 level="INFO",
             )
             if new_status == 0:
-                background_tasks.pios("kill", "--all-jobs", "--units", pioreactor_unit)
-            return Response(status=204)
+                background_tasks.post_across_cluster([pioreactor_unit], "/unit_api/jobs/stop/all")
+            return Response(status=200)
         else:
             return Response(status=404)
 
@@ -1975,7 +1978,7 @@ if am_I_leader():
                 level="INFO",
             )
 
-            return Response(status=204)
+            return Response(status=200)
         else:
             # probably an integrity error
             return Response(status=404)
@@ -1987,7 +1990,9 @@ if am_I_leader():
             "DELETE FROM experiment_worker_assignments WHERE pioreactor_unit = ? AND experiment = ?",
             (pioreactor_unit, experiment),
         )
-        background_tasks.pios("kill", "--experiment", experiment, "--units", pioreactor_unit)
+        task = background_tasks.post_across_cluster(
+            [pioreactor_unit], f"/unit_api/jobs/stop/experiment/{experiment}"
+        )
         publish_to_experiment_log(
             f"Removed {pioreactor_unit} from {experiment}.",
             experiment=experiment,
@@ -1995,7 +2000,7 @@ if am_I_leader():
             task="assignment",
         )
 
-        return Response(status=204)
+        return jsonify({"task_id": task.id}), 202
 
     @app.route("/api/experiments/<experiment>/workers", methods=["DELETE"])
     def remove_workers_from_experiment(experiment: str) -> ResponseReturnValue:
@@ -2004,7 +2009,7 @@ if am_I_leader():
             "DELETE FROM experiment_worker_assignments WHERE experiment = ?",
             (experiment,),
         )
-        background_tasks.pios("kill", "--experiment", experiment)
+        task = background_tasks.pios("kill", "--experiment", experiment)
         publish_to_experiment_log(
             f"Removed all workers from {experiment}.",
             experiment=experiment,
@@ -2012,7 +2017,7 @@ if am_I_leader():
             task="assignment",
         )
 
-        return Response(status=204)
+        return jsonify({"task_id": task.id}), 202
 
 
 ### FLASK META VIEWS
