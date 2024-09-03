@@ -1,3 +1,8 @@
+### Upcoming
+ - lots of backend changes to support new worker web APIs. Too numerous to list, so see our docs.
+ - remove updating to development version. This was confusing and error prone for users. If a user wants development version, they can "pay the toll" of SSHing in to do it.
+
+
 ### 24.8.21
  - adding `inputs` to experiment profiles
  - breaking up logs in log tables

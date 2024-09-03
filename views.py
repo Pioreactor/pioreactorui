@@ -1142,11 +1142,6 @@ if am_I_leader():
         task = background_tasks.update_app_across_cluster()
         return jsonify({"task_id": task.id}), 202
 
-    @app.route("/api/update_app_to_develop", methods=["POST"])
-    def update_app_to_develop() -> ResponseReturnValue:
-        task = background_tasks.update_app_to_develop_across_cluster()
-        return jsonify({"task_id": task.id}), 202
-
     @app.route("/api/update_app_from_release_archive", methods=["POST"])
     def update_app_from_release_archive() -> ResponseReturnValue:
         body = request.get_json()

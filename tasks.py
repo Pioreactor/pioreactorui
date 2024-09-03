@@ -74,24 +74,6 @@ def update_app_across_cluster() -> bool:
 
 
 @huey.task()
-def update_app_to_develop_across_cluster() -> bool:
-    logger.info("Updating app to development on leader")
-    update_app_on_leader = ["pio", "update", "app", "-b", "develop"]
-    run_and_check_call(update_app_on_leader)
-
-    logger.info("Updating app to development on workers")
-    update_app_across_all_workers = ["pios", "update", "-y", "-b", "develop"]
-    run(update_app_across_all_workers)
-
-    # do this last as this update will kill huey
-    logger.info("Updating UI to development on leader")
-    update_ui = ["pios", "update", "ui", "-b", "develop"]
-    run_and_check_call(update_ui)
-    cache.evict("app")
-    return True
-
-
-@huey.task()
 def update_app_from_release_archive_across_cluster(archive_location: str) -> bool:
     logger.info(f"Updating app on leader from {archive_location}")
     update_app_on_leader = ["pio", "update", "app", "--source", archive_location]
