@@ -22,6 +22,8 @@ from msgspec.json import decode as json_decode
 from msgspec.json import encode as json_encode
 from msgspec.yaml import decode as yaml_decode
 from pioreactor.config import get_leader_hostname
+from pioreactor.config import leader_address
+from pioreactor.pubsub import create_webserver_path
 from pioreactor.pubsub import get_from
 from pioreactor.utils.networking import resolve_to_address
 from pioreactor.whoami import am_I_leader
@@ -48,8 +50,13 @@ from utils import is_valid_unix_filename
 from utils import scrub_to_valid
 
 
+def return_task_response(task) -> ResponseReturnValue:
+    address = create_webserver_path(leader_address, f"api/task_status/{task.id}")
+    return jsonify({"task_id": task.id, "result_url": address}), 202
+
+
 # Endpoint to check the status of a background task.
-@app.route("/api/task_status/<uuid:task_id>", methods=["GET"])
+@app.route("/api/task_results/<task_id>", methods=["GET"])
 def task_status(task_id):
     task = huey.result(task_id)
     if task is None:
@@ -79,7 +86,7 @@ def update_target(target) -> ResponseReturnValue:
             commands += (f"--{option}",)
 
     task = background_tasks.pio(*commands)
-    return jsonify({"task_id": task.id}), 202
+    return return_task_response(task)
 
 
 @app.route("/unit_api/system/reboot", methods=["POST", "PATCH"])
@@ -87,14 +94,14 @@ def reboot() -> ResponseReturnValue:
     """Reboots unit"""
     # TODO: only let requests from the leader do this. Use lighttpd conf for this.
     task = background_tasks.reboot()
-    return jsonify({"task_id": task.id}), 202
+    return return_task_response(task)
 
 
 @app.route("/unit_api/system/shutdown", methods=["POST", "PATCH"])
 def shutdown() -> ResponseReturnValue:
     """Shutdown unit"""
     task = background_tasks.shutdown()
-    return jsonify({"task_id": task.id}), 202
+    return return_task_response(task)
 
 
 @app.route("/unit_api/system/rm", methods=["POST", "PATCH"])
@@ -102,7 +109,7 @@ def remove_file() -> ResponseReturnValue:
     # use filepath in body
     body = request.get_json()
     task = background_tasks.rm(body["filepath"])
-    return jsonify({"task_id": task.id}), 202
+    return return_task_response(task)
 
 
 ## RUNNING JOBS CONTROL
@@ -138,7 +145,7 @@ def run_job(job: str) -> ResponseReturnValue:
             commands += (f"--{option}",)
 
     task = background_tasks.pio(*commands)
-    return jsonify({"task_id": task.id}), 202
+    return return_task_response(task)
 
 
 @app.route("/unit_api/jobs/update/job_name/<job>", methods=["PATCH"])
@@ -161,13 +168,13 @@ def update_job(job: str) -> ResponseReturnValue:
 @app.route("/unit_api/jobs/stop/all", methods=["PATCH", "POST"])
 def stop_all_jobs() -> ResponseReturnValue:
     task = background_tasks.pio("kill", "--all-jobs")
-    return jsonify({"task_id": task.id}), 202
+    return return_task_response(task)
 
 
 @app.route("/unit_api/jobs/stop/job_name/<job_name>", methods=["PATCH", "POST"])
 def stop_job_by_name(job_name: str) -> ResponseReturnValue:
     task = background_tasks.pio("kill", "--name", job_name)
-    return jsonify({"task_id": task.id}), 202
+    return return_task_response(task)
 
 
 @app.route(
@@ -175,7 +182,7 @@ def stop_job_by_name(job_name: str) -> ResponseReturnValue:
 )  # need an endpoint here
 def stop_all_jobs_by_experiment(experiment: str) -> ResponseReturnValue:
     task = background_tasks.pio("kill", "--experiment", experiment)
-    return jsonify({"task_id": task.id}), 202
+    return return_task_response(task)
 
 
 @app.route(
@@ -183,7 +190,7 @@ def stop_all_jobs_by_experiment(experiment: str) -> ResponseReturnValue:
 )  # need an endpoint here
 def stop_all_jobs_by_source(job_source: str) -> ResponseReturnValue:
     task = background_tasks.pio("kill", "--job-source", job_source)
-    return jsonify({"task_id": task.id}), 202
+    return return_task_response(task)
 
 
 @app.route("/unit_api/experiments/<experiment>/jobs/running", methods=["GET"])
@@ -286,7 +293,7 @@ def install_plugin() -> ResponseReturnValue:
             commands += (f"--{option}",)
 
     task = background_tasks.pio(*commands)
-    return jsonify({"task_id": task.id}), 202
+    return return_task_response(task)
 
 
 @app.route("/unit_api/plugins/uninstall", methods=["POST"])
@@ -312,7 +319,7 @@ def uninstall_plugin() -> ResponseReturnValue:
             commands += (f"--{option}",)
 
     task = background_tasks.pio(*commands)
-    return jsonify({"task_id": task.id}), 202
+    return return_task_response(task)
 
 
 ### VERSIONS
@@ -499,13 +506,13 @@ if am_I_leader():
     def reboot_unit(pioreactor_unit: str) -> ResponseReturnValue:
         """Reboots unit"""
         task = background_tasks.post_across_cluster([pioreactor_unit], "/system/reboot")
-        return jsonify({"task_id": task.id}), 202
+        return return_task_response(task)
 
     @app.route("/api/units/<pioreactor_unit>/system/shutdown", methods=["POST"])
     def shutdown_unit(pioreactor_unit: str) -> ResponseReturnValue:
         """Shutdown unit"""
         task = background_tasks.post_across_cluster([pioreactor_unit], "/system/shutdown")
-        return jsonify({"task_id": task.id}), 202
+        return return_task_response(task)
 
     ## Logs
 
@@ -960,7 +967,7 @@ if am_I_leader():
 
         task = background_tasks.get_across_cluster(endpoint, list_of_workers)
 
-        return jsonify({"task_id": task.id}), 202
+        return return_task_response(task)
 
     def handle_cluster_post_request(endpoint: str, body: bytes | None) -> ResponseReturnValue:
         result = query_app_db(
@@ -976,7 +983,7 @@ if am_I_leader():
 
         task = background_tasks.post_across_cluster(endpoint, list_of_workers, body=body)
 
-        return jsonify({"task_id": task.id}), 202
+        return return_task_response(task)
 
     @app.route("/api/plugins/installed", methods=["GET"])
     def get_plugins_across_cluster() -> ResponseReturnValue:
@@ -1140,7 +1147,7 @@ if am_I_leader():
     @app.route("/api/update_app", methods=["POST"])
     def update_app() -> ResponseReturnValue:
         task = background_tasks.update_app_across_cluster()
-        return jsonify({"task_id": task.id}), 202
+        return return_task_response(task)
 
     @app.route("/api/update_app_from_release_archive", methods=["POST"])
     def update_app_from_release_archive() -> ResponseReturnValue:
@@ -1150,7 +1157,7 @@ if am_I_leader():
         task = background_tasks.update_app_from_release_archive_across_cluster(
             release_archive_location
         )
-        return jsonify({"task_id": task.id}), 202
+        return return_task_response(task)
 
     @app.route("/api/export_datasets", methods=["POST"])
     def export_datasets() -> ResponseReturnValue:
@@ -2014,7 +2021,7 @@ if am_I_leader():
             task="assignment",
         )
 
-        return jsonify({"task_id": task.id}), 202
+        return return_task_response(task)
 
     @app.route("/api/experiments/<experiment>/workers", methods=["DELETE"])
     def remove_workers_from_experiment(experiment: str) -> ResponseReturnValue:
@@ -2031,7 +2038,7 @@ if am_I_leader():
             task="assignment",
         )
 
-        return jsonify({"task_id": task.id}), 202
+        return return_task_response(task)
 
 
 ### FLASK META VIEWS
