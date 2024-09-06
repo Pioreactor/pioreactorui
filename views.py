@@ -1430,6 +1430,25 @@ if am_I_leader():
             publish_to_error_log(str(e), "update_experiment")
             return Response(status=500)
 
+    @app.route("/api/experiments/<experiment>", methods=["GET"])
+    def get_experiment(experiment: str) -> ResponseReturnValue:
+        try:
+            response = jsonify(
+                query_app_db(
+                    """SELECT experiment, created_at, description, round( (strftime("%s","now") - strftime("%s", created_at))/60/60, 0) as delta_hours
+                    FROM experiments
+                    WHERE experiment=(?)
+                    ;
+                    """,
+                    (experiment,),
+                )
+            )
+            return response
+
+        except Exception as e:
+            publish_to_error_log(str(e), "get_experiments")
+            return Response(status=500)
+
     ## CONFIG CONTROL
 
     @app.route("/api/configs/<filename>", methods=["GET"])
