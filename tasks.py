@@ -4,6 +4,7 @@ from __future__ import annotations
 import logging
 from logging import handlers
 from shlex import join
+from shlex import quote
 from subprocess import check_call as run_and_check_call
 from subprocess import run
 from typing import Any
@@ -197,7 +198,9 @@ def write_config_and_sync(config_path: str, text: str, units: str, flags: str):
             f.write(text)
 
         result = run(
-            ("pios", "sync-configs", "--units", units, flags), capture_output=True, text=True
+            ("pios", "sync-configs", "--units", quote(units), quote(flags)),
+            capture_output=True,
+            text=True,
         )
         if result.returncode != 0:
             raise Exception(result.stderr.strip())
@@ -217,8 +220,8 @@ def get_across_cluster(endpoint: str, workers: list[str]):
             r = get_from(resolve_to_address(worker), endpoint, timeout=6)
             r.raise_for_status()
             result[worker] = r.json()
-        except Exception as e:
-            logger.error(e)
+        except Exception:
+            logger.error(f"Could not get from {worker}. Check connection?")
     return result
 
 
@@ -230,6 +233,6 @@ def post_across_cluster(endpoint: str, workers: list[str], body: bytes | None = 
             r = post_into(resolve_to_address(worker), endpoint, body=body, timeout=6)
             r.raise_for_status()
             result[worker] = r.json()
-        except Exception as e:
-            logger.error(e)
+        except Exception:
+            logger.error(f"Could not post to {worker}. Check connection?")
     return result

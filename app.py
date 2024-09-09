@@ -22,9 +22,9 @@ from pioreactor.whoami import get_unit_name
 from config import env
 from version import __version__
 
-NAME = "pioreactorui"
 VERSION = __version__
 HOSTNAME = get_unit_name()
+NAME = f"pioreactorui-{HOSTNAME}"
 
 
 # set up logging

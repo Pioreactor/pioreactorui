@@ -22,8 +22,6 @@ from msgspec.json import decode as json_decode
 from msgspec.json import encode as json_encode
 from msgspec.yaml import decode as yaml_decode
 from pioreactor.config import get_leader_hostname
-from pioreactor.config import leader_address
-from pioreactor.pubsub import create_webserver_path
 from pioreactor.pubsub import get_from
 from pioreactor.utils.networking import resolve_to_address
 from pioreactor.whoami import am_I_leader
@@ -51,8 +49,7 @@ from utils import scrub_to_valid
 
 
 def return_task_response(task) -> ResponseReturnValue:
-    address = create_webserver_path(leader_address, f"api/task_status/{task.id}")
-    return jsonify({"task_id": task.id, "result_url": address}), 202
+    return jsonify({"task_id": task.id, "result_url_path": f"/api/task_results/{task.id}"}), 202
 
 
 # Endpoint to check the status of a background task.
@@ -407,7 +404,9 @@ if am_I_leader():
         try:
             msg.wait_for_publish(timeout=2.0)
         except Exception:
-            background_tasks.pios("kill", "--name", job, "--units", pioreactor_unit)
+            background_tasks.post_across_cluster(
+                [pioreactor_unit], f"/unit_api/jobs/stop/job_name/{job}"
+            )
             return Response(status=500)
 
         return Response(status=202)
@@ -1440,7 +1439,7 @@ if am_I_leader():
     @app.route("/api/experiments/<experiment>", methods=["GET"])
     def get_experiment(experiment: str) -> ResponseReturnValue:
         try:
-            response = jsonify(
+            return jsonify(
                 query_app_db(
                     """SELECT experiment, created_at, description, round( (strftime("%s","now") - strftime("%s", created_at))/60/60, 0) as delta_hours
                     FROM experiments
@@ -1448,9 +1447,9 @@ if am_I_leader():
                     ;
                     """,
                     (experiment,),
+                    one=True,
                 )
             )
-            return response
 
         except Exception as e:
             publish_to_error_log(str(e), "get_experiments")
@@ -1811,11 +1810,11 @@ if am_I_leader():
     @app.route("/api/workers", methods=["PUT"])
     def add_worker() -> ResponseReturnValue:
         cache.evict("config")
-        data = request.json
+        data = request.get_json()
         pioreactor_unit = data.get("pioreactor_unit")
 
         if not pioreactor_unit:
-            return Response(status=400)
+            return jsonify({"error": "Missing pioreactor_unit"}), 400
 
         nrows = modify_app_db(
             "INSERT OR REPLACE INTO workers (pioreactor_unit, added_at, is_active) VALUES (?, STRFTIME('%Y-%m-%dT%H:%M:%f000Z', 'NOW'), 1);",
@@ -1833,7 +1832,7 @@ if am_I_leader():
         )
 
         if row_count > 0:
-            background_tasks.pios("kill", "--all-jobs", "--units", pioreactor_unit)
+            background_tasks.post_across_cluster([pioreactor_unit], "/unit_api/jobs/stop/all")
 
             filename = f"config_{pioreactor_unit}.ini"
 
