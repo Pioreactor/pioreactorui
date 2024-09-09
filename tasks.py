@@ -105,9 +105,9 @@ def update_app_from_release_archive_across_cluster(archive_location: str) -> boo
 
 
 @huey.task()
-def pio(*args) -> tuple[bool, str]:
+def pio(*args, env=None) -> tuple[bool, str]:
     logger.info(f'Executing `{join(("pio",) + args)}`')
-    result = run(("pio",) + args, capture_output=True, text=True)
+    result = run(("pio",) + args, capture_output=True, text=True, env=env)
     if result.returncode != 0:
         return False, result.stderr.strip()
     else:
@@ -145,9 +145,9 @@ def reboot() -> tuple[bool, str]:
 
 
 @huey.task()
-def pios(*args) -> tuple[bool, str]:
+def pios(*args, env=None) -> tuple[bool, str]:
     logger.info(f'Executing `{join(("pios",) + args + ("-y",))}`')
-    result = run(("pios",) + args + ("-y",), capture_output=True, text=True)
+    result = run(("pios",) + args + ("-y",), capture_output=True, text=True, env=env)
     if result.returncode != 0:
         return False, result.stderr.strip()
     else:

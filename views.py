@@ -7,6 +7,7 @@ import re
 import sqlite3
 import subprocess
 import tempfile
+import time
 from pathlib import Path
 
 from flask import abort
@@ -48,7 +49,7 @@ from utils import is_valid_unix_filename
 from utils import scrub_to_valid
 
 
-def return_task_response(task) -> ResponseReturnValue:
+def create_task_response(task) -> ResponseReturnValue:
     return jsonify({"task_id": task.id, "result_url_path": f"/api/task_results/{task.id}"}), 202
 
 
@@ -77,13 +78,13 @@ def update_target(target) -> ResponseReturnValue:
     commands: tuple[str, ...] = ("update", target)
     commands += tuple(body.get("args", []))
     for option, value in body.get("options", {}).items():
-        if value:
-            commands += (f"--{option}", value)
+        if value is not None:
+            commands += (f"--{option}", str(value))
         else:
             commands += (f"--{option}",)
 
     task = background_tasks.pio(*commands)
-    return return_task_response(task)
+    return create_task_response(task)
 
 
 @app.route("/unit_api/system/reboot", methods=["POST", "PATCH"])
@@ -91,14 +92,14 @@ def reboot() -> ResponseReturnValue:
     """Reboots unit"""
     # TODO: only let requests from the leader do this. Use lighttpd conf for this.
     task = background_tasks.reboot()
-    return return_task_response(task)
+    return create_task_response(task)
 
 
 @app.route("/unit_api/system/shutdown", methods=["POST", "PATCH"])
 def shutdown() -> ResponseReturnValue:
     """Shutdown unit"""
     task = background_tasks.shutdown()
-    return return_task_response(task)
+    return create_task_response(task)
 
 
 @app.route("/unit_api/system/rm", methods=["POST", "PATCH"])
@@ -106,10 +107,25 @@ def remove_file() -> ResponseReturnValue:
     # use filepath in body
     body = request.get_json()
     task = background_tasks.rm(body["filepath"])
-    return return_task_response(task)
+    return create_task_response(task)
 
 
 ## RUNNING JOBS CONTROL
+
+
+def is_debounced(job: str):
+    """
+    Check if the user has made a request within the debounce duration.
+    """
+    last_call = cache.get(f"debounce:{job}")
+    current_time = time.time()
+
+    if last_call and current_time - last_call < 1:
+        return True
+
+    # Update last call time
+    cache.set(f"debounce:{job}", current_time, expire=1)
+    return False
 
 
 @app.route("/unit_api/jobs/run/job_name/<job>", methods=["PATCH", "POST"])
@@ -131,18 +147,25 @@ def run_job(job: str) -> ResponseReturnValue:
       "args": []
     }'
     """
+    if is_debounced(job):
+        return jsonify({"error": "Too many requests, please try again later."}), 429
+
     body = request.get_json()
+    args = body.get("args", [])
+    options = body.get("options", {})
+
+    env = {"JOB_SOURCE": options.pop("job_source", "user")}
 
     commands: tuple[str, ...] = ("run", job)
-    commands += tuple(body.get("args", []))
-    for option, value in body.get("options", {}).items():
-        if value:
-            commands += (f"--{option}", value)
+    commands += tuple(args)
+    for option, value in options.items():
+        if value is not None:
+            commands += (f"--{option}", str(value))
         else:
             commands += (f"--{option}",)
 
-    task = background_tasks.pio(*commands)
-    return return_task_response(task)
+    task = background_tasks.pio(*commands, env=env)
+    return create_task_response(task)
 
 
 @app.route("/unit_api/jobs/update/job_name/<job>", methods=["PATCH"])
@@ -165,13 +188,13 @@ def update_job(job: str) -> ResponseReturnValue:
 @app.route("/unit_api/jobs/stop/all", methods=["PATCH", "POST"])
 def stop_all_jobs() -> ResponseReturnValue:
     task = background_tasks.pio("kill", "--all-jobs")
-    return return_task_response(task)
+    return create_task_response(task)
 
 
 @app.route("/unit_api/jobs/stop/job_name/<job_name>", methods=["PATCH", "POST"])
 def stop_job_by_name(job_name: str) -> ResponseReturnValue:
     task = background_tasks.pio("kill", "--name", job_name)
-    return return_task_response(task)
+    return create_task_response(task)
 
 
 @app.route(
@@ -179,7 +202,7 @@ def stop_job_by_name(job_name: str) -> ResponseReturnValue:
 )  # need an endpoint here
 def stop_all_jobs_by_experiment(experiment: str) -> ResponseReturnValue:
     task = background_tasks.pio("kill", "--experiment", experiment)
-    return return_task_response(task)
+    return create_task_response(task)
 
 
 @app.route(
@@ -187,7 +210,7 @@ def stop_all_jobs_by_experiment(experiment: str) -> ResponseReturnValue:
 )  # need an endpoint here
 def stop_all_jobs_by_source(job_source: str) -> ResponseReturnValue:
     task = background_tasks.pio("kill", "--job-source", job_source)
-    return return_task_response(task)
+    return create_task_response(task)
 
 
 @app.route("/unit_api/experiments/<experiment>/jobs/running", methods=["GET"])
@@ -284,13 +307,13 @@ def install_plugin() -> ResponseReturnValue:
     commands: tuple[str, ...] = ("plugins", "install")
     commands += tuple(body.get("args", []))
     for option, value in body.get("options", {}).items():
-        if value:
-            commands += (f"--{option}", value)
+        if value is not None:
+            commands += (f"--{option}", str(value))
         else:
             commands += (f"--{option}",)
 
     task = background_tasks.pio(*commands)
-    return return_task_response(task)
+    return create_task_response(task)
 
 
 @app.route("/unit_api/plugins/uninstall", methods=["POST"])
@@ -310,13 +333,13 @@ def uninstall_plugin() -> ResponseReturnValue:
     commands: tuple[str, ...] = ("plugins", "uninstall")
     commands += tuple(body.get("args", []))
     for option, value in body.get("options", {}).items():
-        if value:
-            commands += (f"--{option}", value)
+        if value is not None:
+            commands += (f"--{option}", str(value))
         else:
             commands += (f"--{option}",)
 
     task = background_tasks.pio(*commands)
-    return return_task_response(task)
+    return create_task_response(task)
 
 
 ### VERSIONS
@@ -505,13 +528,13 @@ if am_I_leader():
     def reboot_unit(pioreactor_unit: str) -> ResponseReturnValue:
         """Reboots unit"""
         task = background_tasks.post_across_cluster([pioreactor_unit], "/system/reboot")
-        return return_task_response(task)
+        return create_task_response(task)
 
     @app.route("/api/units/<pioreactor_unit>/system/shutdown", methods=["POST"])
     def shutdown_unit(pioreactor_unit: str) -> ResponseReturnValue:
         """Shutdown unit"""
         task = background_tasks.post_across_cluster([pioreactor_unit], "/system/shutdown")
-        return return_task_response(task)
+        return create_task_response(task)
 
     ## Logs
 
@@ -966,7 +989,7 @@ if am_I_leader():
 
         task = background_tasks.get_across_cluster(endpoint, list_of_workers)
 
-        return return_task_response(task)
+        return create_task_response(task)
 
     def handle_cluster_post_request(endpoint: str, body: bytes | None) -> ResponseReturnValue:
         result = query_app_db(
@@ -982,7 +1005,7 @@ if am_I_leader():
 
         task = background_tasks.post_across_cluster(endpoint, list_of_workers, body=body)
 
-        return return_task_response(task)
+        return create_task_response(task)
 
     @app.route("/api/plugins/installed", methods=["GET"])
     def get_plugins_across_cluster() -> ResponseReturnValue:
@@ -1146,7 +1169,7 @@ if am_I_leader():
     @app.route("/api/update_app", methods=["POST"])
     def update_app() -> ResponseReturnValue:
         task = background_tasks.update_app_across_cluster()
-        return return_task_response(task)
+        return create_task_response(task)
 
     @app.route("/api/update_app_from_release_archive", methods=["POST"])
     def update_app_from_release_archive() -> ResponseReturnValue:
@@ -1156,7 +1179,7 @@ if am_I_leader():
         task = background_tasks.update_app_from_release_archive_across_cluster(
             release_archive_location
         )
-        return return_task_response(task)
+        return create_task_response(task)
 
     @app.route("/api/export_datasets", methods=["POST"])
     def export_datasets() -> ResponseReturnValue:
@@ -2020,7 +2043,7 @@ if am_I_leader():
             task="assignment",
         )
 
-        return return_task_response(task)
+        return create_task_response(task)
 
     @app.route("/api/experiments/<experiment>/workers", methods=["DELETE"])
     def remove_workers_from_experiment(experiment: str) -> ResponseReturnValue:
@@ -2037,7 +2060,7 @@ if am_I_leader():
             task="assignment",
         )
 
-        return return_task_response(task)
+        return create_task_response(task)
 
 
 ### FLASK META VIEWS
