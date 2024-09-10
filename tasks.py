@@ -105,7 +105,7 @@ def update_app_from_release_archive_across_cluster(archive_location: str) -> boo
 
 
 @huey.task()
-def pio(*args, env=None) -> tuple[bool, str]:
+def pio(*args: str, env: dict[str, str] | None = None) -> tuple[bool, str]:
     logger.info(f'Executing `{join(("pio",) + args)}`')
     result = run(("pio",) + args, capture_output=True, text=True, env=env)
     if result.returncode != 0:
@@ -145,7 +145,7 @@ def reboot() -> tuple[bool, str]:
 
 
 @huey.task()
-def pios(*args, env=None) -> tuple[bool, str]:
+def pios(*args: str, env: dict[str, str] | None = None) -> tuple[bool, str]:
     logger.info(f'Executing `{join(("pios",) + args + ("-y",))}`')
     result = run(("pios",) + args + ("-y",), capture_output=True, text=True, env=env)
     if result.returncode != 0:
@@ -214,6 +214,8 @@ def write_config_and_sync(config_path: str, text: str, units: str, flags: str):
 
 @huey.task()
 def get_across_cluster(endpoint: str, workers: list[str]):
+    assert endpoint.startswith("/unit_api")
+
     result: dict[str, Any] = {}
     for worker in workers:
         try:
@@ -227,6 +229,8 @@ def get_across_cluster(endpoint: str, workers: list[str]):
 
 @huey.task()
 def post_across_cluster(endpoint: str, workers: list[str], body: bytes | None = None):
+    assert endpoint.startswith("/unit_api")
+
     result: dict[str, Any] = {}
     for worker in workers:
         try:

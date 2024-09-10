@@ -113,7 +113,7 @@ def remove_file() -> ResponseReturnValue:
 ## RUNNING JOBS CONTROL
 
 
-def is_debounced(job: str):
+def is_rate_limited(job: str):
     """
     Check if the user has made a request within the debounce duration.
     """
@@ -147,7 +147,7 @@ def run_job(job: str) -> ResponseReturnValue:
       "args": []
     }'
     """
-    if is_debounced(job):
+    if is_rate_limited(job):
         return jsonify({"error": "Too many requests, please try again later."}), 429
 
     body = request.get_json()
@@ -182,7 +182,7 @@ def update_job(job: str) -> ResponseReturnValue:
     }
     """
     # body = request.get_json()
-    return 503
+    return Response(status=503)
 
 
 @app.route("/unit_api/jobs/stop/all", methods=["PATCH", "POST"])
@@ -225,7 +225,7 @@ def get_running_jobs_for_experiment(experiment: str) -> ResponseReturnValue:
 
 @app.route("/unit_api/jobs/running", methods=["GET"])
 def get_running_jobs() -> ResponseReturnValue:
-    jobs = query_local_metadata_db("""SELECT * FROM pio_job_metadata where is_running=1""")
+    jobs = query_local_metadata_db("SELECT * FROM pio_job_metadata where is_running=1")
 
     return jsonify(jobs)
 
@@ -234,7 +234,6 @@ def get_running_jobs() -> ResponseReturnValue:
 
 
 @app.route("/unit_api/plugins/installed", methods=["GET"])
-@cache.memoize(expire=15, tag="plugins")
 def get_installed_plugins() -> ResponseReturnValue:
     result = background_tasks.pio("plugins", "list", "--json")
     try:
@@ -387,11 +386,12 @@ if am_I_leader():
         assert isinstance(r, list)
 
         workers = [worker["pioreactor_unit"] for worker in r]
-        background_tasks.post_across_cluster(workers, "/unit_api/jobs/stop/all")
+        background_tasks.post_across_cluster("/unit_api/jobs/stop/all", workers)
 
         # also kill any jobs running on leader (this unit) that are associated to the experiment (like a profile)
         background_tasks.post_across_cluster(
-            [get_leader_hostname()], f"/unit_api/jobs/stop/experiment/{experiment}"
+            f"/unit_api/jobs/stop/experiment/{experiment}",
+            [get_leader_hostname()],
         )
 
         return 202
@@ -405,7 +405,7 @@ if am_I_leader():
     ) -> ResponseReturnValue:
         """Kills all jobs for worker assigned to experiment"""
         background_tasks.post_across_cluster(
-            [pioreactor_unit], f"/unit_api/jobs/stop/experiment/{experiment}"
+            f"/unit_api/jobs/stop/experiment/{experiment}", [pioreactor_unit]
         )
 
         return Response(status=202)
@@ -428,7 +428,7 @@ if am_I_leader():
             msg.wait_for_publish(timeout=2.0)
         except Exception:
             background_tasks.post_across_cluster(
-                [pioreactor_unit], f"/unit_api/jobs/stop/job_name/{job}"
+                f"/unit_api/jobs/stop/job_name/{job}", [pioreactor_unit]
             )
             return Response(status=500)
 
@@ -527,14 +527,24 @@ if am_I_leader():
     @app.route("/api/units/<pioreactor_unit>/system/reboot", methods=["POST"])
     def reboot_unit(pioreactor_unit: str) -> ResponseReturnValue:
         """Reboots unit"""
-        task = background_tasks.post_across_cluster([pioreactor_unit], "/system/reboot")
+        task = background_tasks.post_across_cluster("/unit_api/system/reboot", [pioreactor_unit])
         return create_task_response(task)
 
     @app.route("/api/units/<pioreactor_unit>/system/shutdown", methods=["POST"])
     def shutdown_unit(pioreactor_unit: str) -> ResponseReturnValue:
         """Shutdown unit"""
-        task = background_tasks.post_across_cluster([pioreactor_unit], "/system/shutdown")
+        task = background_tasks.post_across_cluster("/unit_api/system/shutdown", [pioreactor_unit])
         return create_task_response(task)
+
+    @app.route("/api/workers/system/reboot", methods=["POST"])
+    def reboot_units() -> ResponseReturnValue:
+        """Reboots workers"""
+        return broadcast_cluster_post_request("/unit_api/system/reboot")
+
+    @app.route("/api/workers/system/shutdown", methods=["POST"])
+    def shutdown_units() -> ResponseReturnValue:
+        """Shutdown workers"""
+        return broadcast_cluster_post_request("/unit_api/system/shutdown")
 
     ## Logs
 
@@ -975,14 +985,9 @@ if am_I_leader():
 
     ## PLUGINS
 
-    def handle_cluster_get_request(endpoint: str) -> ResponseReturnValue:
-        result = query_app_db(
-            """
-            SELECT w.pioreactor_unit as unit
-            FROM workers w
-            ORDER BY w.pioreactor_unit
-            """
-        )
+    def broadcast_cluster_get_request(endpoint: str) -> ResponseReturnValue:
+        assert endpoint.startswith("/unit_api")
+        result = query_app_db("SELECT w.pioreactor_unit as unit FROM workers w")
         assert result is not None
         assert isinstance(result, list)
         list_of_workers = tuple(r["unit"] for r in result)
@@ -991,12 +996,16 @@ if am_I_leader():
 
         return create_task_response(task)
 
-    def handle_cluster_post_request(endpoint: str, body: bytes | None) -> ResponseReturnValue:
+    def broadcast_cluster_post_request(
+        endpoint: str, body: bytes | None = None
+    ) -> ResponseReturnValue:
+        assert endpoint.startswith("/unit_api")
+        # order by desc so that the leader-worker, if exists, is done last. This is important for tasks like /reboot
         result = query_app_db(
             """
             SELECT w.pioreactor_unit as unit
             FROM workers w
-            ORDER BY w.pioreactor_unit
+            ORDER BY w.added_at DESC
             """
         )
         assert result is not None
@@ -1009,7 +1018,7 @@ if am_I_leader():
 
     @app.route("/api/plugins/installed", methods=["GET"])
     def get_plugins_across_cluster() -> ResponseReturnValue:
-        return handle_cluster_get_request("/unit_api/plugins/installed")
+        return broadcast_cluster_get_request("/unit_api/plugins/installed")
 
     @app.route("/api/plugins/install", methods=["GET"])
     def install_plugixn_across_cluster() -> ResponseReturnValue:
@@ -1017,23 +1026,23 @@ if am_I_leader():
         if os.path.isfile(Path(env["DOT_PIOREACTOR"]) / "DISALLOW_UI_INSTALLS"):
             return Response(status=403)
 
-        return handle_cluster_post_request("/unit_api/plugins/install", request.body)
+        return broadcast_cluster_post_request("/unit_api/plugins/install", request.body)
 
     @app.route("/api/plugins/uninstall", methods=["GET"])
     def uninstall_plugin_across_cluster() -> ResponseReturnValue:
-        return handle_cluster_post_request("/unit_api/plugins/uninstall", request.body)
+        return broadcast_cluster_post_request("/unit_api/plugins/uninstall", request.body)
 
     @app.route("/api/jobs/running", methods=["GET"])
     def get_jobs_running_across_cluster() -> ResponseReturnValue:
-        return handle_cluster_get_request("/unit_api/jobs/running")
+        return broadcast_cluster_get_request("/unit_api/jobs/running")
 
     @app.route("/api/versions/app", methods=["GET"])
     def get_app_versions_across_cluster() -> ResponseReturnValue:
-        return handle_cluster_get_request("/unit_api/versions/app")
+        return broadcast_cluster_get_request("/unit_api/versions/app")
 
     @app.route("/api/versions/ui", methods=["GET"])
     def get_ui_versions_across_cluster() -> ResponseReturnValue:
-        return handle_cluster_get_request("/unit_api/versions/ui")
+        return broadcast_cluster_get_request("/unit_api/versions/ui")
 
     ## MISC
 
@@ -1056,11 +1065,10 @@ if am_I_leader():
         if file.content_length >= 30_000_000:  # 30mb?
             return jsonify({"error": "Too large"}), 400
 
-        if file:
-            filename = secure_filename(file.filename)
-            save_path = os.path.join(tempfile.gettempdir(), filename)
-            file.save(save_path)
-            return jsonify({"message": "File successfully uploaded", "save_path": save_path}), 200
+        filename = secure_filename(file.filename)
+        save_path = os.path.join(tempfile.gettempdir(), filename)
+        file.save(save_path)
+        return jsonify({"message": "File successfully uploaded", "save_path": save_path}), 200
 
     @app.route("/api/contrib/automations/<automation_type>", methods=["GET"])
     def get_automation_contrib(automation_type: str) -> ResponseReturnValue:
@@ -1855,7 +1863,7 @@ if am_I_leader():
         )
 
         if row_count > 0:
-            background_tasks.post_across_cluster([pioreactor_unit], "/unit_api/jobs/stop/all")
+            background_tasks.post_across_cluster("/unit_api/jobs/stop/all", [pioreactor_unit])
 
             filename = f"config_{pioreactor_unit}.ini"
 
@@ -1898,7 +1906,7 @@ if am_I_leader():
                 level="INFO",
             )
             if new_status == 0:
-                background_tasks.post_across_cluster([pioreactor_unit], "/unit_api/jobs/stop/all")
+                background_tasks.post_across_cluster("/unit_api/jobs/stop/all", [pioreactor_unit])
             return Response(status=200)
         else:
             return Response(status=404)
@@ -1939,6 +1947,21 @@ if am_I_leader():
             return jsonify(result)
         else:
             return jsonify([])
+
+    @app.route("/api/workers/assignments", methods=["DELETE"])
+    def remove_all_workers_from_experiments() -> ResponseReturnValue:
+        # unassign all
+        modify_app_db(
+            "DELETE FROM experiment_worker_assignments",
+        )
+        task = background_tasks.pios("kill", "--all-jobs")
+        publish_to_log(
+            "Removed all worker assignments.",
+            level="INFO",
+            task="unassignment",
+        )
+
+        return create_task_response(task)
 
     @app.route("/api/experiments/assignment_count", methods=["GET"])
     def get_experiments_worker_assignments() -> ResponseReturnValue:
@@ -2034,7 +2057,7 @@ if am_I_leader():
             (pioreactor_unit, experiment),
         )
         task = background_tasks.post_across_cluster(
-            [pioreactor_unit], f"/unit_api/jobs/stop/experiment/{experiment}"
+            f"/unit_api/jobs/stop/experiment/{experiment}", [pioreactor_unit]
         )
         publish_to_experiment_log(
             f"Removed {pioreactor_unit} from {experiment}.",
