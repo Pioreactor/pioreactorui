@@ -1026,11 +1026,11 @@ if am_I_leader():
         if os.path.isfile(Path(env["DOT_PIOREACTOR"]) / "DISALLOW_UI_INSTALLS"):
             return Response(status=403)
 
-        return broadcast_cluster_post_request("/unit_api/plugins/install", request.body)
+        return broadcast_cluster_post_request("/unit_api/plugins/install", request.get_data())
 
     @app.route("/api/plugins/uninstall", methods=["POST", "PATCH"])
     def uninstall_plugin_across_cluster() -> ResponseReturnValue:
-        return broadcast_cluster_post_request("/unit_api/plugins/uninstall", request.body)
+        return broadcast_cluster_post_request("/unit_api/plugins/uninstall", request.get_data())
 
     @app.route("/api/jobs/running", methods=["GET"])
     def get_jobs_running_across_cluster() -> ResponseReturnValue:
