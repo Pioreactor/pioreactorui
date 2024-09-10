@@ -997,7 +997,7 @@ if am_I_leader():
         return create_task_response(task)
 
     def broadcast_cluster_post_request(
-        endpoint: str, body: bytes | None = None
+        endpoint: str, json: dict | None = None
     ) -> ResponseReturnValue:
         assert endpoint.startswith("/unit_api")
         # order by desc so that the leader-worker, if exists, is done last. This is important for tasks like /reboot
@@ -1012,7 +1012,7 @@ if am_I_leader():
         assert isinstance(result, list)
         list_of_workers = tuple(r["unit"] for r in result)
 
-        task = background_tasks.post_across_cluster(endpoint, list_of_workers, body=body)
+        task = background_tasks.post_across_cluster(endpoint, list_of_workers, json=json)
 
         return create_task_response(task)
 
@@ -1023,14 +1023,15 @@ if am_I_leader():
     @app.route("/api/plugins/install", methods=["POST", "PATCH"])
     def install_plugin_across_cluster() -> ResponseReturnValue:
         # there is a security problem here. See https://github.com/Pioreactor/pioreactor/issues/421
+        print(request.get_data())
         if os.path.isfile(Path(env["DOT_PIOREACTOR"]) / "DISALLOW_UI_INSTALLS"):
             return Response(status=403)
 
-        return broadcast_cluster_post_request("/unit_api/plugins/install", request.get_data())
+        return broadcast_cluster_post_request("/unit_api/plugins/install", request.get_json())
 
     @app.route("/api/plugins/uninstall", methods=["POST", "PATCH"])
     def uninstall_plugin_across_cluster() -> ResponseReturnValue:
-        return broadcast_cluster_post_request("/unit_api/plugins/uninstall", request.get_data())
+        return broadcast_cluster_post_request("/unit_api/plugins/uninstall", request.get_json())
 
     @app.route("/api/jobs/running", methods=["GET"])
     def get_jobs_running_across_cluster() -> ResponseReturnValue:

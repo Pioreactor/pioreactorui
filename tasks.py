@@ -228,13 +228,13 @@ def get_across_cluster(endpoint: str, workers: list[str]):
 
 
 @huey.task()
-def post_across_cluster(endpoint: str, workers: list[str], body: bytes | None = None):
+def post_across_cluster(endpoint: str, workers: list[str], json: dict | None = None):
     assert endpoint.startswith("/unit_api")
 
     result: dict[str, Any] = {}
     for worker in workers:
         try:
-            r = post_into(resolve_to_address(worker), endpoint, body=body, timeout=6)
+            r = post_into(resolve_to_address(worker), endpoint, json=json, timeout=6)
             r.raise_for_status()
             result[worker] = r.json()
         except Exception:
