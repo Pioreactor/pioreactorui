@@ -1020,15 +1020,15 @@ if am_I_leader():
     def get_plugins_across_cluster() -> ResponseReturnValue:
         return broadcast_cluster_get_request("/unit_api/plugins/installed")
 
-    @app.route("/api/plugins/install", methods=["GET"])
-    def install_plugixn_across_cluster() -> ResponseReturnValue:
+    @app.route("/api/plugins/install", methods=["POST", "PATCH"])
+    def install_plugin_across_cluster() -> ResponseReturnValue:
         # there is a security problem here. See https://github.com/Pioreactor/pioreactor/issues/421
         if os.path.isfile(Path(env["DOT_PIOREACTOR"]) / "DISALLOW_UI_INSTALLS"):
             return Response(status=403)
 
         return broadcast_cluster_post_request("/unit_api/plugins/install", request.body)
 
-    @app.route("/api/plugins/uninstall", methods=["GET"])
+    @app.route("/api/plugins/uninstall", methods=["POST", "PATCH"])
     def uninstall_plugin_across_cluster() -> ResponseReturnValue:
         return broadcast_cluster_post_request("/unit_api/plugins/uninstall", request.body)
 
