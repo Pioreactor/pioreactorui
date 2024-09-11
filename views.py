@@ -53,7 +53,7 @@ def create_task_response(task) -> ResponseReturnValue:
     return jsonify({"task_id": task.id, "result_url_path": f"/api/task_results/{task.id}"}), 202
 
 
-# Endpoint to check the status of a background task.
+# Endpoint to check the status of a background task. Everyone exposes this!
 @app.route("/api/task_results/<task_id>", methods=["GET"])
 def task_status(task_id):
     task = huey.result(task_id)
@@ -102,7 +102,7 @@ def shutdown() -> ResponseReturnValue:
     return create_task_response(task)
 
 
-@app.route("/unit_api/system/rm", methods=["POST", "PATCH"])
+@app.route("/unit_api/system/remove_file", methods=["POST", "PATCH"])
 def remove_file() -> ResponseReturnValue:
     # use filepath in body
     body = request.get_json()
@@ -213,7 +213,7 @@ def stop_all_jobs_by_source(job_source: str) -> ResponseReturnValue:
     return create_task_response(task)
 
 
-@app.route("/unit_api/experiments/<experiment>/jobs/running", methods=["GET"])
+@app.route("/unit_api/jobs/running/experiments/<experiment>", methods=["GET"])
 def get_running_jobs_for_experiment(experiment: str) -> ResponseReturnValue:
     jobs = query_local_metadata_db(
         """SELECT * FROM pio_job_metadata where is_running=1 and experiment = (?)""",
@@ -224,7 +224,7 @@ def get_running_jobs_for_experiment(experiment: str) -> ResponseReturnValue:
 
 
 @app.route("/unit_api/jobs/running", methods=["GET"])
-def get_running_jobs() -> ResponseReturnValue:
+def get_all_running_jobs() -> ResponseReturnValue:
     jobs = query_local_metadata_db("SELECT * FROM pio_job_metadata where is_running=1")
 
     return jsonify(jobs)
@@ -274,7 +274,7 @@ def get_plugin(filename: str) -> ResponseReturnValue:
         return Response(status=500)
 
 
-@app.route("/unit_api/plugins/install", methods=["POST"])
+@app.route("/unit_api/plugins/install", methods=["POST", "PATCH"])
 def install_plugin() -> ResponseReturnValue:
     """
     runs `pio plugin install ....`
@@ -315,7 +315,7 @@ def install_plugin() -> ResponseReturnValue:
     return create_task_response(task)
 
 
-@app.route("/unit_api/plugins/uninstall", methods=["POST"])
+@app.route("/unit_api/plugins/uninstall", methods=["POST", "PATCH"])
 def uninstall_plugin() -> ResponseReturnValue:
     """
     Body should look like:
@@ -1023,7 +1023,6 @@ if am_I_leader():
     @app.route("/api/plugins/install", methods=["POST", "PATCH"])
     def install_plugin_across_cluster() -> ResponseReturnValue:
         # there is a security problem here. See https://github.com/Pioreactor/pioreactor/issues/421
-        print(request.get_data())
         if os.path.isfile(Path(env["DOT_PIOREACTOR"]) / "DISALLOW_UI_INSTALLS"):
             return Response(status=403)
 
