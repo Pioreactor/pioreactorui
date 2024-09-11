@@ -4,7 +4,6 @@ from __future__ import annotations
 import logging
 from logging import handlers
 from shlex import join
-from shlex import quote
 from subprocess import check_call as run_and_check_call
 from subprocess import run
 from typing import Any
@@ -198,7 +197,7 @@ def write_config_and_sync(config_path: str, text: str, units: str, flags: str):
             f.write(text)
 
         result = run(
-            ("pios", "sync-configs", "--units", quote(units), quote(flags)),
+            ("pios", "sync-configs", "--units", units, flags),
             capture_output=True,
             text=True,
         )
