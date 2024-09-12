@@ -5,7 +5,6 @@ import json
 import logging
 import sqlite3
 import tempfile
-import time
 import typing as t
 from datetime import datetime
 from datetime import timezone
@@ -108,6 +107,16 @@ def _make_dicts(cursor, row) -> dict:
     return dict((cursor.description[idx][0], value) for idx, value in enumerate(row))
 
 
+def _get_app_db_connection():
+    db = getattr(g, "_app_database", None)
+    if db is None:
+        db = g._app_database = sqlite3.connect(config.get("storage", "database"))
+        db.row_factory = _make_dicts
+        db.execute("PRAGMA foreign_keys = 1")
+
+    return db
+
+
 def _get_local_metadata_db_connection():
     db = getattr(g, "_metadata_database", None)
     if db is None:
@@ -137,53 +146,20 @@ def query_local_metadata_db(
     return (rv[0] if rv else None) if one else rv
 
 
-def _get_app_db_connection():
-    db = getattr(g, "_app_database", None)
-    if db is None:
-        db = g._app_database = sqlite3.connect(config.get("storage", "database"), timeout=30)
-        db.row_factory = _make_dicts
-        db.execute("PRAGMA foreign_keys = 1")
-    return db
-
-
-def modify_app_db(statement: str, args=(), retries=5, retry_delay=1) -> int:
-    """
-    Executes a modifying SQL statement (INSERT, UPDATE, DELETE).
-
-    Args:
-        statement: SQL statement to execute.
-        args: Arguments for SQL placeholders.
-        retries: Number of retries if the database is locked.
-        retry_delay: Delay between retries in seconds.
-
-    Returns:
-        Number of rows modified, or 0 in case of IntegrityError.
-    """
-    assert am_I_leader()  # Ensure the leader-only operation is enforced
-    for attempt in range(retries):
-        con = _get_app_db_connection()
-        try:
-            with con:  # Context manager for the connection (commits automatically)
-                with con.cursor() as cur:  # Context manager for the cursor
-                    cur.execute(statement, args)
-                    row_changes = cur.rowcount
-            return row_changes
-
-        except sqlite3.IntegrityError:
-            return 0  # Return 0 on integrity error (e.g., foreign key constraint violation)
-
-        except sqlite3.OperationalError as e:
-            if "database is locked" in str(e):
-                time.sleep(retry_delay)  # Delay before retrying
-            else:
-                raise e  # Reraise other operational errors
-
-        except Exception as e:
-            logging.error(f"Unexpected error in query: {statement}, args: {args}, error: {e}")
-            con.rollback()  # Rollback on generic error
-            raise e  # Reraise unexpected exceptions
-
-    publish_to_error_log(
-        f"Failed to execute query after {retries} attempts: {statement}, args: {args}", "query"
-    )
-    raise sqlite3.OperationalError("Failed to execute query after retries")
+def modify_app_db(statement: str, args=()) -> int:
+    assert am_I_leader()
+    con = _get_app_db_connection()
+    cur = con.cursor()
+    try:
+        cur.execute(statement, args)
+        con.commit()
+    except sqlite3.IntegrityError:
+        return 0
+    except Exception as e:
+        print(e)
+        con.rollback()  # TODO: test
+        raise e
+    finally:
+        row_changes = cur.rowcount
+        cur.close()
+    return row_changes
