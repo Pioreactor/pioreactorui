@@ -163,3 +163,10 @@ def modify_app_db(statement: str, args=()) -> int:
         row_changes = cur.rowcount
         cur.close()
     return row_changes
+
+
+@app.teardown_appcontext
+def close_connection(exception):
+    db = getattr(g, "_database", None)
+    if db is not None:
+        db.close()
