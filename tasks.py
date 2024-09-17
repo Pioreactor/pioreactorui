@@ -124,7 +124,7 @@ def pio_run(*args: str, env: dict[str, str] | None = None) -> bool:
     command = ("pio", "run") + args
     logger.info(f"Executing `{join(command)}`")
     result = Popen(command, env=env, start_new_session=True)
-    print(result)
+    logger.info(result)
     return True
 
 
