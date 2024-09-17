@@ -5,6 +5,7 @@ import logging
 from logging import handlers
 from shlex import join
 from subprocess import check_call as run_and_check_call
+from subprocess import Popen
 from subprocess import run
 from time import sleep
 from typing import Any
@@ -120,9 +121,9 @@ def pio(*args: str, env: dict[str, str] | None = None) -> tuple[bool, str]:
 @huey.task()
 def pio_run(*args: str, env: dict[str, str] | None = None) -> bool:
     # for long running pio run jobs
-    command = join(("nohup", "pio", "run") + args) + " >/dev/null 2>&1 &"
-    logger.info(f"Executing `{command}`")
-    result = run(command, env=env, shell=True, start_new_session=True)
+    command = ("pio", "run") + args
+    logger.info(f"Executing `{join(command)}`")
+    result = Popen(command, env=env, start_new_session=True)
     return result.returncode == 0
 
 
