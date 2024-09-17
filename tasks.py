@@ -45,7 +45,7 @@ def add_new_pioreactor(new_pioreactor_name: str, version: str, model: str) -> tu
     # CPU heavy
     logger.info(f"Adding new pioreactor {new_pioreactor_name}, {model} {version}")
     result = run(
-        ["pio", "workers", "add", new_pioreactor_name, "-v", version, "-m", model],
+        ["/usr/local/bin/pio", "workers", "add", new_pioreactor_name, "-v", version, "-m", model],
         capture_output=True,
         text=True,
     )
@@ -111,7 +111,7 @@ def update_app_from_release_archive_across_cluster(archive_location: str) -> boo
 @huey.task()
 def pio(*args: str, env: dict[str, str] | None = None) -> tuple[bool, str]:
     logger.info(f'Executing `{join(("pio",) + args)}`')
-    result = run(("pio",) + args, capture_output=True, text=True, env=env)
+    result = run(("/usr/local/bin/pio",) + args, capture_output=True, text=True, env=env)
     if result.returncode != 0:
         return False, result.stderr.strip()
     else:
@@ -121,7 +121,7 @@ def pio(*args: str, env: dict[str, str] | None = None) -> tuple[bool, str]:
 @huey.task()
 def pio_run(*args: str, env: dict[str, str] | None = None) -> bool:
     # for long running pio run jobs
-    command = ("/usr/local/bin/pio", "run") + args
+    command = ("/usr/local/bin/pio", "run") + args  # TODO: why /usr///
     logger.info(f"Executing `{join(command)}`")
     result = Popen(command, env=env, start_new_session=True)
     logger.info(result)
@@ -135,7 +135,10 @@ def pio_run_export_experiment_data(
 ) -> tuple[bool, str]:
     logger.info(f'Executing `{join(("pio", "run", "export_experiment_data") + args)}`')
     result = run(
-        ("pio", "run", "export_experiment_data") + args, capture_output=True, text=True, env=env
+        ("/usr/local/bin/pio", "run", "export_experiment_data") + args,
+        capture_output=True,
+        text=True,
+        env=env,
     )
     if result.returncode != 0:
         return False, result.stderr.strip()
@@ -146,7 +149,7 @@ def pio_run_export_experiment_data(
 @huey.task()
 def pio_kill(*args: str, env: dict[str, str] | None = None) -> bool:
     logger.info(f'Executing `{join(("pio", "kill") + args)}`')
-    result = run(("pio", "kill") + args, env=env)
+    result = run(("/usr/local/bin/pio", "kill") + args, env=env)
     return result.returncode == 0
 
 
@@ -154,7 +157,7 @@ def pio_kill(*args: str, env: dict[str, str] | None = None) -> bool:
 def pio_plugins(*args: str, env: dict[str, str] | None = None) -> bool:
     # install / uninstall only
     logger.info(f'Executing `{join(("pio", "plugins") + args)}`')
-    result = run(("pio", "plugins") + args, env=env)
+    result = run(("/usr/local/bin/pio", "plugins") + args, env=env)
     return result.returncode == 0
 
 
@@ -162,7 +165,7 @@ def pio_plugins(*args: str, env: dict[str, str] | None = None) -> bool:
 @huey.lock_task("update-lock")
 def pio_update_app(*args: str, env: dict[str, str] | None = None) -> bool:
     logger.info(f'Executing `{join(("pio", "update", "app") + args)}`')
-    result = run(("pio", "update", "app") + args, env=env)
+    result = run(("/usr/local/bin/pio", "update", "app") + args, env=env)
     return result.returncode == 0
 
 
@@ -170,7 +173,7 @@ def pio_update_app(*args: str, env: dict[str, str] | None = None) -> bool:
 @huey.lock_task("update-lock")
 def pio_update_ui(*args: str, env: dict[str, str] | None = None) -> bool:
     logger.info(f'Executing `{join(("pio", "update", "ui") + args)}`')
-    run(("pio", "update", "ui") + args, env=env)
+    run(("/usr/local/bin/pio", "update", "ui") + args, env=env)
     # this always returns !0 because it kills huey, I think, so just return true
     return True
 
@@ -199,7 +202,7 @@ def reboot() -> bool:
 @huey.task()
 def pios(*args: str, env: dict[str, str] | None = None) -> tuple[bool, str]:
     logger.info(f'Executing `{join(("pios",) + args + ("-y",))}`')
-    result = run(("pios",) + args + ("-y",), capture_output=True, text=True, env=env)
+    result = run(("/usr/local/bin/pios",) + args + ("-y",), capture_output=True, text=True, env=env)
     if result.returncode != 0:
         return False, result.stderr.strip()
     else:
@@ -224,7 +227,7 @@ def write_config_and_sync(config_path: str, text: str, units: str, flags: str):
             f.write(text)
 
         result = run(
-            ("pios", "sync-configs", "--units", units, flags),
+            ("/usr/local/bin/pios", "sync-configs", "--units", units, flags),
             capture_output=True,
             text=True,
         )
