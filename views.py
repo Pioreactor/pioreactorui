@@ -80,7 +80,7 @@ def task_status(task_id):
 
 @app.route("/unit_api/system/update/<target>", methods=["POST", "PATCH"])
 def update_target(target) -> ResponseReturnValue:
-    if target not in ("app", "ui", "firmware"):
+    if target not in ("app", "ui"):  # todo: firmware
         abort(404)
 
     body = request.get_json()
@@ -93,7 +93,13 @@ def update_target(target) -> ResponseReturnValue:
         else:
             commands += (f"--{option}",)
 
-    task = background_tasks.pio_update(target, *commands)
+    if target == "app":
+        task = background_tasks.pio_update_app(target, *commands)
+    elif target == "ui":
+        task = background_tasks.pio_update_ui(target, *commands)
+    else:
+        raise ValueError()
+
     return create_task_response(task)
 
 

@@ -119,7 +119,7 @@ def pio(*args: str, env: dict[str, str] | None = None) -> tuple[bool, str]:
 @huey.task()
 def pio_kill(*args: str, env: dict[str, str] | None = None) -> bool:
     logger.info(f'Executing `{join(("pio", "kill") + args)}`')
-    result = run(("pio", "kill") + args, capture_output=True, text=True, env=env)
+    result = run(("pio", "kill") + args, env=env)
     return result.returncode == 0
 
 
@@ -127,19 +127,25 @@ def pio_kill(*args: str, env: dict[str, str] | None = None) -> bool:
 def pio_plugins(*args: str, env: dict[str, str] | None = None) -> bool:
     # install / uninstall only
     logger.info(f'Executing `{join(("pio", "plugins") + args)}`')
-    result = run(("pio", "plugins") + args, capture_output=True, text=True, env=env)
+    result = run(("pio", "plugins") + args, env=env)
     return result.returncode == 0
 
 
 @huey.task()
-def pio_update(target, *args: str, env: dict[str, str] | None = None) -> bool:
-    logger.info(f'Executing `{join(("pio", "update") + (target,) + args)}`')
-    result = run(("pio", "update") + (target,) + args, capture_output=True, text=True, env=env)
-    if target == "ui":
-        # this always returns !0 because it kills huey, I think, so just return true
-        return True
-    else:
-        return result.returncode == 0
+@huey.lock_task("update-lock")
+def pio_update_app(*args: str, env: dict[str, str] | None = None) -> bool:
+    logger.info(f'Executing `{join(("pio", "update", "app") + args)}`')
+    result = run(("pio", "update", "app") + args, env=env)
+    return result.returncode == 0
+
+
+@huey.task()
+@huey.lock_task("update-lock")
+def pio_update_ui(*args: str, env: dict[str, str] | None = None) -> bool:
+    logger.info(f'Executing `{join(("pio", "update", "ui") + args)}`')
+    run(("pio", "update", "ui") + args, env=env)
+    # this always returns !0 because it kills huey, I think, so just return true
+    return True
 
 
 @huey.task()
