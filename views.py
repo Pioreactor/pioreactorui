@@ -94,9 +94,9 @@ def update_target(target) -> ResponseReturnValue:
             commands += (f"--{option}",)
 
     if target == "app":
-        task = background_tasks.pio_update_app(target, *commands)
+        task = background_tasks.pio_update_app(*commands)
     elif target == "ui":
-        task = background_tasks.pio_update_ui(target, *commands)
+        task = background_tasks.pio_update_ui(*commands)
     else:
         raise ValueError()
 
