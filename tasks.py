@@ -91,7 +91,7 @@ def update_app_from_release_archive_across_cluster(archive_location: str) -> boo
     update_app_across_all_workers = ["pios", "update", "--source", archive_location, "-y"]
     run(update_app_across_all_workers)
 
-    sleep(20)  # wait for app to finish installing?
+    sleep(20)  # wait for app to finish installing? This sucks TODO
 
     # do this last as this update will kill huey
     logger.info("Updating UI")
@@ -115,6 +115,15 @@ def pio(*args: str, env: dict[str, str] | None = None) -> tuple[bool, str]:
         return False, result.stderr.strip()
     else:
         return True, result.stdout.strip()
+
+
+@huey.task()
+def pio_run(*args: str, env: dict[str, str] | None = None) -> bool:
+    # for long running pio run jobs
+    command = ("nohup", "pio", "run") + args + ("&",)
+    logger.info(f"Executing `{join(command)}`")
+    result = run(command, env=env)
+    return result.returncode == 0
 
 
 @huey.task()

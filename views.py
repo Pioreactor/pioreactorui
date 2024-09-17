@@ -172,7 +172,7 @@ def run_job(job: str) -> ResponseReturnValue:
 
     env = {"JOB_SOURCE": options.pop("job_source", "user")}
 
-    commands: tuple[str, ...] = ("run", job)
+    commands: tuple[str, ...] = (job,)
     commands += tuple(args)
     for option, value in options.items():
         if value is not None:
@@ -180,7 +180,7 @@ def run_job(job: str) -> ResponseReturnValue:
         else:
             commands += (f"--{option}",)
 
-    task = background_tasks.pio(*commands, env=env)
+    task = background_tasks.pio_run(*commands, env=env)
     return create_task_response(task)
 
 
