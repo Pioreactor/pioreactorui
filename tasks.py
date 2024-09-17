@@ -122,7 +122,7 @@ def pio_run(*args: str, env: dict[str, str] | None = None) -> bool:
     # for long running pio run jobs
     command = join(("nohup", "pio", "run") + args) + " >/dev/null 2>&1 &"
     logger.info(f"Executing `{command}`")
-    result = run(command, env=env, shell=True)
+    result = run(command, env=env, shell=True, start_new_session=True)
     return result.returncode == 0
 
 
