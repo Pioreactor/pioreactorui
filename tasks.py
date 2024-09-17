@@ -6,6 +6,7 @@ from logging import handlers
 from shlex import join
 from subprocess import check_call as run_and_check_call
 from subprocess import run
+from time import sleep
 from typing import Any
 
 from pioreactor.config import config
@@ -78,16 +79,18 @@ def update_app_from_release_archive_across_cluster(archive_location: str) -> boo
     logger.info(f"Updating app on leader from {archive_location}")
     update_app_on_leader = ["pio", "update", "app", "--source", archive_location]
     run_and_check_call(update_app_on_leader)
+    # remove bits if success
+    cache.evict("app")
 
-    logger.info("Updating app to development on workers")
+    logger.info(f"Updating app on workers from {archive_location}")
     distribute_archive_to_workers = ["pios", "cp", archive_location, "-y"]
     run(distribute_archive_to_workers)
+
+    # run pio update app --source .. -y on workers
     update_app_across_all_workers = ["pios", "update", "--source", archive_location, "-y"]
     run(update_app_across_all_workers)
 
-    # remove bits if success
-    cache.evict("app")
-    run(["rm", f"/tmp/{archive_location}"])
+    sleep(20)  # wait for app to finish installing?
 
     # do this last as this update will kill huey
     logger.info("Updating UI")

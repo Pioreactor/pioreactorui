@@ -32,6 +32,7 @@ import structs
 import tasks as background_tasks
 from app import app
 from app import client
+from app import HOSTNAME
 from app import modify_app_db
 from app import publish_to_error_log
 from app import publish_to_experiment_log
@@ -50,7 +51,16 @@ from utils import scrub_to_valid
 
 
 def create_task_response(task) -> ResponseReturnValue:
-    return jsonify({"task_id": task.id, "result_url_path": f"/api/task_results/{task.id}"}), 202
+    return (
+        jsonify(
+            {
+                "task_id": task.id,
+                "result_url_path": f"/api/task_results/{task.id}",
+                "unit": HOSTNAME,
+            }
+        ),
+        202,
+    )
 
 
 # Endpoint to check the status of a background task. Everyone exposes this!
