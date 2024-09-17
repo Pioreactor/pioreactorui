@@ -55,7 +55,7 @@ def create_task_response(task) -> ResponseReturnValue:
         jsonify(
             {
                 "task_id": task.id,
-                "result_url_path": f"/api/task_results/{task.id}",
+                "result_url_path": f"/unit_api/task_results/{task.id}",
                 "unit": HOSTNAME,
             }
         ),
@@ -63,8 +63,8 @@ def create_task_response(task) -> ResponseReturnValue:
     )
 
 
-# Endpoint to check the status of a background task. Everyone exposes this!
-@app.route("/api/task_results/<task_id>", methods=["GET"])
+# Endpoint to check the status of a background task. unit_api is required to ping workers (who only expose unit_api)
+@app.route("/unit_api/task_results/<task_id>", methods=["GET"])
 def task_status(task_id):
     task = huey.result(task_id)
     if task is None:
