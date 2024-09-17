@@ -122,9 +122,9 @@ def pio(*args: str, env: dict[str, str] | None = None) -> tuple[bool, str]:
 def pio_run_export_experiment_data(
     *args: str, env: dict[str, str] | None = None
 ) -> tuple[bool, str]:
-    logger.info(f'Executing `{join(("pio", "run", "export_experment_data") + args)}`')
+    logger.info(f'Executing `{join(("pio", "run", "export_experiment_data") + args)}`')
     result = run(
-        ("pio", "run", "export_experment_data") + args, capture_output=True, text=True, env=env
+        ("pio", "run", "export_experiment_data") + args, capture_output=True, text=True, env=env
     )
     if result.returncode != 0:
         return False, result.stderr.strip()
