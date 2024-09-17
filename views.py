@@ -1230,9 +1230,7 @@ if am_I_leader():
             filename = f"export_{_experiment_name}_{timestamp}.zip"
 
         filename_with_path = Path("/var/www/pioreactorui/static/exports") / filename
-        result = background_tasks.pio(
-            "run",
-            "export_experiment_data",
+        result = background_tasks.pio_run_export_experiment_data(  # uses a lock so multiple exports can't happen simultaneously.
             "--output",
             filename_with_path.as_posix(),
             *cmd_tables,

@@ -66,6 +66,7 @@ def update_app_across_cluster() -> bool:
     update_app_across_all_workers = ["pios", "update", "-y"]
     run(update_app_across_all_workers)
 
+    sleep(20)
     # do this last as this update will kill huey
     logger.info("Updating UIs")
     update_ui = ["pios", "update", "ui"]
@@ -110,6 +111,21 @@ def update_app_from_release_archive_across_cluster(archive_location: str) -> boo
 def pio(*args: str, env: dict[str, str] | None = None) -> tuple[bool, str]:
     logger.info(f'Executing `{join(("pio",) + args)}`')
     result = run(("pio",) + args, capture_output=True, text=True, env=env)
+    if result.returncode != 0:
+        return False, result.stderr.strip()
+    else:
+        return True, result.stdout.strip()
+
+
+@huey.task()
+@huey.lock("export-data-lock")
+def pio_run_export_experiment_data(
+    *args: str, env: dict[str, str] | None = None
+) -> tuple[bool, str]:
+    logger.info(f'Executing `{join(("pio", "run", "export_experment_data") + args)}`')
+    result = run(
+        ("pio", "run", "export_experment_data") + args, capture_output=True, text=True, env=env
+    )
     if result.returncode != 0:
         return False, result.stderr.strip()
     else:
