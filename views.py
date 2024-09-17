@@ -103,6 +103,22 @@ def update_target(target) -> ResponseReturnValue:
     return create_task_response(task)
 
 
+@app.route("/unit_api/system/update", methods=["POST", "PATCH"])
+def update_app_and_ui() -> ResponseReturnValue:
+    body = request.get_json()
+
+    commands: tuple[str, ...] = tuple()
+    commands += tuple(body.get("args", []))
+    for option, value in body.get("options", {}).items():
+        if value is not None:
+            commands += (f"--{option}", str(value))
+        else:
+            commands += (f"--{option}",)
+
+    task = background_tasks.pio_update(*commands)
+    return create_task_response(task)
+
+
 @app.route("/unit_api/system/reboot", methods=["POST", "PATCH"])
 def reboot() -> ResponseReturnValue:
     """Reboots unit"""
