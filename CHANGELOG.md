@@ -1,3 +1,6 @@
+### 24.9.17
+ - fixes for pumping dialogs
+
 ### 24.9.16
  - lots of backend changes to support new worker web APIs. Too numerous to list, so see our docs.
  - remove updating to development version. This was confusing and error prone for users. If a user wants development version, they can "pay the toll" of SSHing in to do it.

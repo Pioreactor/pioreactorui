@@ -197,17 +197,13 @@ def stop_job_by_name(job_name: str) -> ResponseReturnValue:
     return create_task_response(task)
 
 
-@app.route(
-    "/unit_api/jobs/stop/experiment/<experiment>", methods=["PATCH", "POST"]
-)  # need an endpoint here
+@app.route("/unit_api/jobs/stop/experiment/<experiment>", methods=["PATCH", "POST"])
 def stop_all_jobs_by_experiment(experiment: str) -> ResponseReturnValue:
     task = background_tasks.pio("kill", "--experiment", experiment)
     return create_task_response(task)
 
 
-@app.route(
-    "/unit_api/jobs/stop/job_source/<job_source>", methods=["PATCH", "POST"]
-)  # need an endpoint here
+@app.route("/unit_api/jobs/stop/job_source/<job_source>", methods=["PATCH", "POST"])
 def stop_all_jobs_by_source(job_source: str) -> ResponseReturnValue:
     task = background_tasks.pio("kill", "--job-source", job_source)
     return create_task_response(task)
