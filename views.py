@@ -85,7 +85,7 @@ def update_target(target) -> ResponseReturnValue:
 
     body = request.get_json()
 
-    commands: tuple[str, ...] = ("update", target)
+    commands: tuple[str, ...] = tuple()
     commands += tuple(body.get("args", []))
     for option, value in body.get("options", {}).items():
         if value is not None:
@@ -93,7 +93,7 @@ def update_target(target) -> ResponseReturnValue:
         else:
             commands += (f"--{option}",)
 
-    task = background_tasks.pio(*commands)
+    task = background_tasks.pio_update(target, *commands)
     return create_task_response(task)
 
 
@@ -197,25 +197,25 @@ def update_job(job: str) -> ResponseReturnValue:
 
 @app.route("/unit_api/jobs/stop/all", methods=["PATCH", "POST"])
 def stop_all_jobs() -> ResponseReturnValue:
-    task = background_tasks.pio("kill", "--all-jobs")
+    task = background_tasks.pio_kill("--all-jobs")
     return create_task_response(task)
 
 
 @app.route("/unit_api/jobs/stop/job_name/<job_name>", methods=["PATCH", "POST"])
 def stop_job_by_name(job_name: str) -> ResponseReturnValue:
-    task = background_tasks.pio("kill", "--name", job_name)
+    task = background_tasks.pio_kill("--name", job_name)
     return create_task_response(task)
 
 
 @app.route("/unit_api/jobs/stop/experiment/<experiment>", methods=["PATCH", "POST"])
 def stop_all_jobs_by_experiment(experiment: str) -> ResponseReturnValue:
-    task = background_tasks.pio("kill", "--experiment", experiment)
+    task = background_tasks.pio_kill("--experiment", experiment)
     return create_task_response(task)
 
 
 @app.route("/unit_api/jobs/stop/job_source/<job_source>", methods=["PATCH", "POST"])
 def stop_all_jobs_by_source(job_source: str) -> ResponseReturnValue:
-    task = background_tasks.pio("kill", "--job-source", job_source)
+    task = background_tasks.pio_kill("--job-source", job_source)
     return create_task_response(task)
 
 
@@ -309,7 +309,7 @@ def install_plugin() -> ResponseReturnValue:
 
     body = request.get_json()
 
-    commands: tuple[str, ...] = ("plugins", "install")
+    commands: tuple[str, ...] = ("install",)
     commands += tuple(body.get("args", []))
     for option, value in body.get("options", {}).items():
         if value is not None:
@@ -317,7 +317,7 @@ def install_plugin() -> ResponseReturnValue:
         else:
             commands += (f"--{option}",)
 
-    task = background_tasks.pio(*commands)
+    task = background_tasks.pio_plugins(*commands)
     return create_task_response(task)
 
 
@@ -335,7 +335,7 @@ def uninstall_plugin() -> ResponseReturnValue:
     """
     body = request.get_json()
 
-    commands: tuple[str, ...] = ("plugins", "uninstall")
+    commands: tuple[str, ...] = ("uninstall",)
     commands += tuple(body.get("args", []))
     for option, value in body.get("options", {}).items():
         if value is not None:
@@ -343,7 +343,7 @@ def uninstall_plugin() -> ResponseReturnValue:
         else:
             commands += (f"--{option}",)
 
-    task = background_tasks.pio(*commands)
+    task = background_tasks.pio_plugins(*commands)
     return create_task_response(task)
 
 

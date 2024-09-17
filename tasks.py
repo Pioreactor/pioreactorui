@@ -117,65 +117,56 @@ def pio(*args: str, env: dict[str, str] | None = None) -> tuple[bool, str]:
 
 
 @huey.task()
-def rm(path: str) -> tuple[bool, str]:
+def pio_kill(*args: str, env: dict[str, str] | None = None) -> bool:
+    logger.info(f'Executing `{join(("pio", "kill") + args)}`')
+    result = run(("pio", "kill") + args, capture_output=True, text=True, env=env)
+    return result.returncode == 0
+
+
+@huey.task()
+def pio_plugins(*args: str, env: dict[str, str] | None = None) -> bool:
+    # install / uninstall only
+    logger.info(f'Executing `{join(("pio", "plugins") + args)}`')
+    result = run(("pio", "plugins") + args, capture_output=True, text=True, env=env)
+    return result.returncode == 0
+
+
+@huey.task()
+def pio_update(target, *args: str, env: dict[str, str] | None = None) -> bool:
+    logger.info(f'Executing `{join(("pio", "update") + (target,) + args)}`')
+    result = run(("pio", "update") + (target,) + args, capture_output=True, text=True, env=env)
+    if target == "ui":
+        # this always returns !0 because it kills huey, I think, so just return true
+        return True
+    else:
+        return result.returncode == 0
+
+
+@huey.task()
+def rm(path: str) -> bool:
     logger.info(f"Deleting {path}.")
-    result = run(["rm", path], capture_output=True, text=True)
-    if result.returncode != 0:
-        return False, result.stderr.strip()
-    else:
-        return True, result.stdout.strip()
+    result = run(["rm", path])
+    return result.returncode == 0
 
 
 @huey.task()
-def shutdown() -> tuple[bool, str]:
+def shutdown() -> bool:
     logger.info("Shutting down now")
-    result = run(["sudo", "shutdown", "-h", "now"], capture_output=True, text=True)
-    if result.returncode != 0:
-        return False, result.stderr.strip()
-    else:
-        return True, result.stdout.strip()
+    result = run(["sudo", "shutdown", "-h", "now"])
+    return result.returncode == 0
 
 
 @huey.task()
-def reboot() -> tuple[bool, str]:
+def reboot() -> bool:
     logger.info("Rebooting now")
-    result = run(["sudo", "reboot"], capture_output=True, text=True)
-    if result.returncode != 0:
-        return False, result.stderr.strip()
-    else:
-        return True, result.stdout.strip()
+    result = run(["sudo", "reboot"])
+    return result.returncode == 0
 
 
 @huey.task()
 def pios(*args: str, env: dict[str, str] | None = None) -> tuple[bool, str]:
     logger.info(f'Executing `{join(("pios",) + args + ("-y",))}`')
     result = run(("pios",) + args + ("-y",), capture_output=True, text=True, env=env)
-    if result.returncode != 0:
-        return False, result.stderr.strip()
-    else:
-        return True, result.stdout.strip()
-
-
-@huey.task()
-def pios_install_plugin(plugin_name: str) -> tuple[bool, str]:
-    logger.info(f"Executing `pios plugins install {plugin_name} -y`")
-    result = run(("pios", "plugins", "install", plugin_name, "-y"), capture_output=True, text=True)
-    cache.evict("plugins")
-    cache.evict("config")
-    if result.returncode != 0:
-        return False, result.stderr.strip()
-    else:
-        return True, result.stdout.strip()
-
-
-@huey.task()
-def pios_uninstall_plugin(plugin_name: str) -> tuple[bool, str]:
-    logger.info(f"Executing `pios plugins uninstall {plugin_name} -y`")
-    result = run(
-        ("pios", "plugins", "uninstall", plugin_name, "-y"), capture_output=True, text=True
-    )
-    cache.evict("plugins")
-    cache.evict("config")
     if result.returncode != 0:
         return False, result.stderr.strip()
     else:
