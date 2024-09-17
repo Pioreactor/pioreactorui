@@ -118,7 +118,7 @@ def pio(*args: str, env: dict[str, str] | None = None) -> tuple[bool, str]:
 
 
 @huey.task()
-@huey.lock("export-data-lock")
+@huey.lock_task("export-data-lock")
 def pio_run_export_experiment_data(
     *args: str, env: dict[str, str] | None = None
 ) -> tuple[bool, str]:
