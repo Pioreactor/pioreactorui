@@ -1,3 +1,6 @@
+### 24.9.18
+ - API changes for update routines (and lots more).
+
 ### 24.9.17
  - fixes for pumping dialogs
 
