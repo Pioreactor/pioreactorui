@@ -384,9 +384,9 @@ def get_app_version() -> ResponseReturnValue:
         publish_to_error_log(result.stderr, "get_app_version")
         return Response(status=500)
     return Response(
-        response=result.stdout.strip(),
+        response=json_encode({"version": result.stdout.strip()}),
         status=200,
-        mimetype="text/plain",
+        mimetype="text/json",
         headers={"Cache-Control": "public,max-age=60"},
     )
 
@@ -394,9 +394,9 @@ def get_app_version() -> ResponseReturnValue:
 @app.route("/unit_api/versions/ui", methods=["GET"])
 def get_ui_version() -> ResponseReturnValue:
     return Response(
-        response=VERSION,
+        response=json_encode({"version": VERSION}),
         status=200,
-        mimetype="text/plain",
+        mimetype="text/json",
         headers={"Cache-Control": "public,max-age=60"},
     )
 
