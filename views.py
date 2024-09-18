@@ -413,16 +413,16 @@ if am_I_leader():
         )
         assert isinstance(r, list)
 
-        workers = [worker["pioreactor_unit"] for worker in r]
-        background_tasks.post_across_cluster("/unit_api/jobs/stop/all", workers)
-
-        # also kill any jobs running on leader (this unit) that are associated to the experiment (like a profile)
+        # kill all jobs on workers
+        workers_in_experiment = [worker["pioreactor_unit"] for worker in r]
         background_tasks.post_across_cluster(
-            f"/unit_api/jobs/stop/experiment/{experiment}",
-            [get_leader_hostname()],
+            f"/unit_api/jobs/stop/experiment/{experiment}", workers_in_experiment
         )
 
-        return 202
+        # sometimes the leader-worker isn't part of the experiment, but a profile associated with the experiment is running:
+        background_tasks.pio_kill("--experiment", experiment)
+
+        return Response(status=202)
 
     @app.route(
         "/api/workers/<pioreactor_unit>/jobs/stop/experiments/<experiment>",
