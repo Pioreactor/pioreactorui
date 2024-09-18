@@ -54,9 +54,9 @@ def create_task_response(task) -> ResponseReturnValue:
     return (
         jsonify(
             {
+                "unit": HOSTNAME,
                 "task_id": task.id,
                 "result_url_path": f"/unit_api/task_results/{task.id}",
-                "unit": HOSTNAME,
             }
         ),
         202,
