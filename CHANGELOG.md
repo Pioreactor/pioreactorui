@@ -1,4 +1,7 @@
 ### 24.9.17
+ - improvements to kill jobs
+
+### 24.9.17
  - fixes for pumping dialogs
 
 ### 24.9.16
