@@ -1,8 +1,8 @@
+### 24.9.19
+ - improvements to kill jobs
+
 ### 24.9.18
  - API changes for update routines (and lots more).
-
-### 24.9.17
- - improvements to kill jobs
 
 ### 24.9.17
  - fixes for pumping dialogs
