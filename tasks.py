@@ -242,7 +242,7 @@ def get_across_cluster(endpoint: str, workers: list[str]):
             r.raise_for_status()
             result[worker] = r.json()
         except Exception:
-            logger.error(f"Could not get from {worker}. Check connection?")
+            logger.error(f"Could not get from {worker}'s endpoint {endpoint}. Check connection?")
     return result
 
 
@@ -257,5 +257,5 @@ def post_across_cluster(endpoint: str, workers: list[str], json: dict | None = N
             r.raise_for_status()
             result[worker] = r.json()
         except Exception:
-            logger.error(f"Could not post to {worker}. Check connection?")
+            logger.error(f"Could not post to {worker}'s endpoint {endpoint}. Check connection?")
     return result
