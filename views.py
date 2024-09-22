@@ -26,6 +26,7 @@ from pioreactor.config import get_leader_hostname
 from pioreactor.pubsub import get_from
 from pioreactor.utils.networking import resolve_to_address
 from pioreactor.whoami import am_I_leader
+from pioreactor.experiment_profiles.profile_struct import Profile
 from werkzeug.utils import secure_filename
 
 import structs
@@ -88,10 +89,9 @@ def update_target(target) -> ResponseReturnValue:
     commands: tuple[str, ...] = tuple()
     commands += tuple(body.get("args", []))
     for option, value in body.get("options", {}).items():
+        commands += (f"--{option}",)
         if value is not None:
-            commands += (f"--{option}", str(value))
-        else:
-            commands += (f"--{option}",)
+            commands += (str(value),)
 
     if target == "app":
         task = background_tasks.pio_update_app(*commands)
@@ -110,10 +110,9 @@ def update_app_and_ui() -> ResponseReturnValue:
     commands: tuple[str, ...] = tuple()
     commands += tuple(body.get("args", []))
     for option, value in body.get("options", {}).items():
+        commands += (f"--{option}",)
         if value is not None:
-            commands += (f"--{option}", str(value))
-        else:
-            commands += (f"--{option}",)
+            commands += (str(value),)
 
     task = background_tasks.pio_update(*commands)
     return create_task_response(task)
@@ -191,10 +190,9 @@ def run_job(job: str) -> ResponseReturnValue:
     commands: tuple[str, ...] = (job,)
     commands += tuple(args)
     for option, value in options.items():
+        commands += (f"--{option}",)
         if value is not None:
-            commands += (f"--{option}", str(value))
-        else:
-            commands += (f"--{option}",)
+            commands += (str(value),)
 
     task = background_tasks.pio_run(*commands, env=env)
     return create_task_response(task)
@@ -334,10 +332,9 @@ def install_plugin() -> ResponseReturnValue:
     commands: tuple[str, ...] = ("install",)
     commands += tuple(body.get("args", []))
     for option, value in body.get("options", {}).items():
+        commands += (f"--{option}",)
         if value is not None:
-            commands += (f"--{option}", str(value))
-        else:
-            commands += (f"--{option}",)
+            commands += (str(value),)
 
     task = background_tasks.pio_plugins(*commands)
     return create_task_response(task)
@@ -360,10 +357,9 @@ def uninstall_plugin() -> ResponseReturnValue:
     commands: tuple[str, ...] = ("uninstall",)
     commands += tuple(body.get("args", []))
     for option, value in body.get("options", {}).items():
+        commands += (f"--{option}",)
         if value is not None:
-            commands += (f"--{option}", str(value))
-        else:
-            commands += (f"--{option}",)
+            commands += (str(value),)
 
     task = background_tasks.pio_plugins(*commands)
     return create_task_response(task)
@@ -384,9 +380,9 @@ def get_app_version() -> ResponseReturnValue:
         publish_to_error_log(result.stderr, "get_app_version")
         return Response(status=500)
     return Response(
-        response=result.stdout.strip(),
+        response=json_encode({"version": result.stdout.strip()}),
         status=200,
-        mimetype="text/plain",
+        mimetype="text/json",
         headers={"Cache-Control": "public,max-age=60"},
     )
 
@@ -394,9 +390,9 @@ def get_app_version() -> ResponseReturnValue:
 @app.route("/unit_api/versions/ui", methods=["GET"])
 def get_ui_version() -> ResponseReturnValue:
     return Response(
-        response=VERSION,
+        response=json_encode({"version": VERSION}),
         status=200,
-        mimetype="text/plain",
+        mimetype="text/json",
         headers={"Cache-Control": "public,max-age=60"},
     )
 
@@ -413,16 +409,16 @@ if am_I_leader():
         )
         assert isinstance(r, list)
 
-        workers = [worker["pioreactor_unit"] for worker in r]
-        background_tasks.post_across_cluster("/unit_api/jobs/stop/all", workers)
-
-        # also kill any jobs running on leader (this unit) that are associated to the experiment (like a profile)
+        # kill all jobs on workers
+        workers_in_experiment = [worker["pioreactor_unit"] for worker in r]
         background_tasks.post_across_cluster(
-            f"/unit_api/jobs/stop/experiment/{experiment}",
-            [get_leader_hostname()],
+            f"/unit_api/jobs/stop/experiment/{experiment}", workers_in_experiment
         )
 
-        return 202
+        # sometimes the leader-worker isn't part of the experiment, but a profile associated with the experiment is running:
+        background_tasks.pio_kill("--experiment", experiment)
+
+        return Response(status=202)
 
     @app.route(
         "/api/workers/<pioreactor_unit>/jobs/stop/experiments/<experiment>",
@@ -1554,7 +1550,7 @@ if am_I_leader():
         workers_bucket = {worker["pioreactor_unit"] for worker in all_workers}
         leader_bucket = {
             get_leader_hostname()
-        }  # should be same as current hostname since this runs on the leader.
+        }  # should be same as current HOSTNAME since this runs on the leader.
         pioreactors_bucket = workers_bucket | leader_bucket
 
         def strip_worker_name_from_config(file_name):

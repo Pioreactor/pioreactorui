@@ -1,3 +1,9 @@
+### 24.9.20
+ - fixes to the UI for new json version api
+
+### 24.9.19
+ - improvements to kill jobs
+
 ### 24.9.18
  - API changes for update routines (and lots more).
 
