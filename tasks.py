@@ -12,6 +12,7 @@ from typing import Any
 from pioreactor.config import config
 from pioreactor.pubsub import get_from
 from pioreactor.pubsub import post_into
+from pioreactor.mureq import HTTPException
 from pioreactor.utils.networking import resolve_to_address
 
 from config import cache
@@ -32,7 +33,7 @@ file_handler.setFormatter(
 )
 logger.addHandler(file_handler)
 
-# not is_testing_env()
+# if not is_testing_env():
 PIO_EXECUTABLE = "/usr/local/bin/pio"
 PIOS_EXECUTABLE = "/usr/local/bin/pios"
 
@@ -136,8 +137,10 @@ def pio_kill(*args: str, env: dict[str, str] | None = None) -> bool:
 
 
 @huey.task()
+@huey.lock_task("plugins-lock")
 def pio_plugins(*args: str, env: dict[str, str] | None = None) -> bool:
     # install / uninstall only
+    assert args[0] in ('install', 'uninstall')
     logger.info(f'Executing `{join(("pio", "plugins") + args)}`')
     result = run((PIO_EXECUTABLE, "plugins") + args, env=env)
     return result.returncode == 0
@@ -241,7 +244,7 @@ def get_across_cluster(endpoint: str, workers: list[str]):
             r = get_from(resolve_to_address(worker), endpoint, timeout=6)
             r.raise_for_status()
             result[worker] = r.json()
-        except Exception:
+        except HTTPException:
             logger.error(f"Could not get from {worker}'s endpoint {endpoint}. Check connection?")
     return result
 
@@ -256,6 +259,6 @@ def post_across_cluster(endpoint: str, workers: list[str], json: dict | None = N
             r = post_into(resolve_to_address(worker), endpoint, json=json, timeout=6)
             r.raise_for_status()
             result[worker] = r.json()
-        except Exception:
+        except HTTPException:
             logger.error(f"Could not post to {worker}'s endpoint {endpoint}. Check connection?")
     return result
