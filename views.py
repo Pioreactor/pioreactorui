@@ -1496,17 +1496,19 @@ if am_I_leader():
     @app.route("/api/experiments/<experiment>", methods=["GET"])
     def get_experiment(experiment: str) -> ResponseReturnValue:
         try:
-            return jsonify(
-                query_app_db(
-                    """SELECT experiment, created_at, description, round( (strftime("%s","now") - strftime("%s", created_at))/60/60, 0) as delta_hours
-                    FROM experiments
-                    WHERE experiment=(?)
-                    ;
-                    """,
-                    (experiment,),
-                    one=True,
-                )
+            result = query_app_db(
+                """SELECT experiment, created_at, description, round( (strftime("%s","now") - strftime("%s", created_at))/60/60, 0) as delta_hours
+                FROM experiments
+                WHERE experiment=(?)
+                ;
+                """,
+                (experiment,),
+                one=True,
             )
+            if result is not None:
+                return jsonify(result)
+            else:
+                return Response(status=404)
 
         except Exception as e:
             publish_to_error_log(str(e), "get_experiments")
