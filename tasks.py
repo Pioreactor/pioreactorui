@@ -16,6 +16,7 @@ from pioreactor.pubsub import post_into
 from pioreactor.utils.networking import resolve_to_address
 from pioreactor.whoami import is_testing_env
 
+from app import query_app_db
 from config import cache
 from config import CACHE_DIR
 from config import env
@@ -111,7 +112,6 @@ def pio(*args: str, env: dict[str, str] | None = None) -> tuple[bool, str]:
 def pio_run(*args: str, env: dict[str, str] | None = None) -> bool:
     # for long running pio run jobs where we don't care about the output / status
     command = (PIO_EXECUTABLE, "run") + args
-    # env['TESTING'] = str(int(is_testing_env()))
     logger.info(f"Executing `{join(command)}`")
     Popen(command, env=env, start_new_session=True)
     return True
@@ -241,7 +241,7 @@ def write_config_and_sync(config_path: str, text: str, units: str, flags: str):
 
 
 @huey.task()
-def get_across_cluster(endpoint: str, workers: list[str]):
+def multicast_get_across_cluster(endpoint: str, workers: list[str]):
     assert endpoint.startswith("/unit_api")
 
     result: dict[str, Any] = {}
@@ -256,7 +256,7 @@ def get_across_cluster(endpoint: str, workers: list[str]):
 
 
 @huey.task()
-def post_across_cluster(endpoint: str, workers: list[str], json: dict | None = None):
+def multicast_post_across_cluster(endpoint: str, workers: list[str], json: dict | None = None):
     assert endpoint.startswith("/unit_api")
 
     result: dict[str, Any] = {}
@@ -268,3 +268,30 @@ def post_across_cluster(endpoint: str, workers: list[str], json: dict | None = N
         except HTTPException:
             logger.error(f"Could not post to {worker}'s endpoint {endpoint}. Check connection?")
     return result
+
+
+def broadcast_get_across_cluster(endpoint: str):
+    assert endpoint.startswith("/unit_api")
+    result = query_app_db("SELECT w.pioreactor_unit as unit FROM workers w")
+    assert result is not None
+    assert isinstance(result, list)
+    list_of_workers = tuple(r["unit"] for r in result)
+
+    return multicast_get_across_cluster(endpoint, list_of_workers)
+
+
+def broadcast_post_across_cluster(endpoint: str, json: dict | None = None):
+    assert endpoint.startswith("/unit_api")
+    # order by desc so that the leader-worker, if exists, is done last. This is important for tasks like /reboot
+    result = query_app_db(
+        """
+        SELECT w.pioreactor_unit as unit
+        FROM workers w
+        ORDER BY w.added_at DESC
+        """
+    )
+    assert result is not None
+    assert isinstance(result, list)
+    list_of_workers = tuple(r["unit"] for r in result)
+
+    return multicast_post_across_cluster(endpoint, list_of_workers, json=json)
