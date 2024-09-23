@@ -166,7 +166,11 @@ def modify_app_db(statement: str, args=()) -> int:
 
 
 @app.teardown_appcontext
-def close_connection(exception):
+def close_connection(exception) -> None:
     db = getattr(g, "_app_database", None)
+    if db is not None:
+        db.close()
+
+    db = getattr(g, "_metadata_database", None)
     if db is not None:
         db.close()

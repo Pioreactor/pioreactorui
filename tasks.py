@@ -10,13 +10,15 @@ from subprocess import run
 from typing import Any
 
 from pioreactor.config import config
+from pioreactor.mureq import HTTPException
 from pioreactor.pubsub import get_from
 from pioreactor.pubsub import post_into
-from pioreactor.mureq import HTTPException
 from pioreactor.utils.networking import resolve_to_address
+from pioreactor.whoami import is_testing_env
 
 from config import cache
 from config import CACHE_DIR
+from config import env
 from config import huey
 
 logger = logging.getLogger("huey.consumer")
@@ -33,9 +35,12 @@ file_handler.setFormatter(
 )
 logger.addHandler(file_handler)
 
-# if not is_testing_env():
-PIO_EXECUTABLE = "/usr/local/bin/pio"
-PIOS_EXECUTABLE = "/usr/local/bin/pios"
+if not is_testing_env():
+    PIO_EXECUTABLE = "/usr/local/bin/pio"
+    PIOS_EXECUTABLE = "/usr/local/bin/pios"
+else:
+    PIO_EXECUTABLE = env["PIO_EXECUTABLE"]
+    PIOS_EXECUTABLE = env["PIOS_EXECUTABLE"]
 
 
 @huey.on_startup()
@@ -106,6 +111,7 @@ def pio(*args: str, env: dict[str, str] | None = None) -> tuple[bool, str]:
 def pio_run(*args: str, env: dict[str, str] | None = None) -> bool:
     # for long running pio run jobs where we don't care about the output / status
     command = (PIO_EXECUTABLE, "run") + args
+    # env['TESTING'] = str(int(is_testing_env()))
     logger.info(f"Executing `{join(command)}`")
     Popen(command, env=env, start_new_session=True)
     return True
@@ -140,7 +146,7 @@ def pio_kill(*args: str, env: dict[str, str] | None = None) -> bool:
 @huey.lock_task("plugins-lock")
 def pio_plugins(*args: str, env: dict[str, str] | None = None) -> bool:
     # install / uninstall only
-    assert args[0] in ('install', 'uninstall')
+    assert args[0] in ("install", "uninstall")
     logger.info(f'Executing `{join(("pio", "plugins") + args)}`')
     result = run((PIO_EXECUTABLE, "plugins") + args, env=env)
     return result.returncode == 0

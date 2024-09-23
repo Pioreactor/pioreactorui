@@ -7,11 +7,9 @@ import re
 import sqlite3
 import subprocess
 import tempfile
-import time
 from pathlib import Path
 
 from flask import abort
-from flask import g
 from flask import jsonify
 from flask import request
 from flask import Response
@@ -23,10 +21,10 @@ from msgspec.json import decode as json_decode
 from msgspec.json import encode as json_encode
 from msgspec.yaml import decode as yaml_decode
 from pioreactor.config import get_leader_hostname
+from pioreactor.experiment_profiles.profile_struct import Profile
 from pioreactor.pubsub import get_from
 from pioreactor.utils.networking import resolve_to_address
 from pioreactor.whoami import am_I_leader
-from pioreactor.experiment_profiles.profile_struct import Profile
 from werkzeug.utils import secure_filename
 
 import structs
@@ -144,19 +142,15 @@ def remove_file() -> ResponseReturnValue:
 ## RUNNING JOBS CONTROL
 
 
-def is_rate_limited(job: str):
+def is_rate_limited(job: str, expire_time_seconds=1.0) -> bool:
     """
     Check if the user has made a request within the debounce duration.
     """
-    last_call = cache.get(f"debounce:{job}")
-    current_time = time.time()
-
-    if last_call and current_time - last_call < 1:
+    if cache.get(f"debounce:{job}") is None:
+        cache.set(f"debounce:{job}", b"dummy-key", expire=expire_time_seconds)
+        return False
+    else:
         return True
-
-    # Update last call time
-    cache.set(f"debounce:{job}", current_time, expire=1)
-    return False
 
 
 @app.route("/unit_api/jobs/run/job_name/<job>", methods=["PATCH", "POST"])
@@ -1692,7 +1686,7 @@ if am_I_leader():
 
         # verify content
         try:
-            yaml_decode(experiment_profile_body, type=structs.Profile)
+            yaml_decode(experiment_profile_body, type=Profile)
         except Exception as e:
             msg = f"{e}"
             # publish_to_error_log(msg, "create_experiment_profile")
@@ -1736,7 +1730,7 @@ if am_I_leader():
 
         # verify content
         try:
-            yaml_decode(experiment_profile_body, type=structs.Profile)
+            yaml_decode(experiment_profile_body, type=Profile)
         except Exception as e:
             # publish_to_error_log(msg, "create_experiment_profile")
             return {"msg": str(e)}, 400
@@ -1775,7 +1769,7 @@ if am_I_leader():
             parsed_yaml = []
             for file in files:
                 try:
-                    profile = yaml_decode(file.read_bytes(), type=structs.Profile)
+                    profile = yaml_decode(file.read_bytes(), type=Profile)
                     parsed_yaml.append({"experimentProfile": profile, "file": str(file)})
                 except (ValidationError, DecodeError) as e:
                     publish_to_error_log(
@@ -2119,10 +2113,3 @@ def not_found(e):
         return app.send_static_file("index.html")
     except Exception:
         return Response(status=404)
-
-
-@app.teardown_appcontext
-def close_connection(exception):
-    db = getattr(g, "_database", None)
-    if db is not None:
-        db.close()
