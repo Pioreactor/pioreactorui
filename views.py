@@ -8,6 +8,7 @@ import sqlite3
 import subprocess
 import tempfile
 from pathlib import Path
+from typing import Any
 
 from flask import abort
 from flask import jsonify
@@ -47,6 +48,33 @@ from utils import current_utc_datetime
 from utils import current_utc_timestamp
 from utils import is_valid_unix_filename
 from utils import scrub_to_valid
+
+
+def broadcast_get_across_cluster(endpoint: str) -> dict[str, Any]:
+    assert endpoint.startswith("/unit_api")
+    result = query_app_db("SELECT w.pioreactor_unit as unit FROM workers w")
+    assert result is not None
+    assert isinstance(result, list)
+    list_of_workers = tuple(r["unit"] for r in result)
+
+    return tasks.multicast_get_across_cluster(endpoint, list_of_workers)
+
+
+def broadcast_post_across_cluster(endpoint: str, json: dict | None = None) -> dict[str, Any]:
+    assert endpoint.startswith("/unit_api")
+    # order by desc so that the leader-worker, if exists, is done last. This is important for tasks like /reboot
+    result = query_app_db(
+        """
+        SELECT w.pioreactor_unit as unit
+        FROM workers w
+        ORDER BY w.added_at DESC
+        """
+    )
+    assert result is not None
+    assert isinstance(result, list)
+    list_of_workers = tuple(r["unit"] for r in result)
+
+    return tasks.multicast_post_across_cluster(endpoint, list_of_workers, json=json)
 
 
 def create_task_response(task) -> ResponseReturnValue:
@@ -425,9 +453,12 @@ if am_I_leader():
         pioreactor_unit: str, experiment: str
     ) -> ResponseReturnValue:
         """Kills all jobs for worker assigned to experiment"""
-        tasks.multicast_post_across_cluster(
-            f"/unit_api/jobs/stop/experiment/{experiment}", [pioreactor_unit]
-        )
+        if pioreactor_unit == "$broadcast":
+            broadcast_post_across_cluster(f"/unit_api/jobs/stop/experiment/{experiment}")
+        else:
+            tasks.multicast_post_across_cluster(
+                f"/unit_api/jobs/stop/experiment/{experiment}", [pioreactor_unit]
+            )
 
         return Response(status=202)
 
@@ -482,22 +513,13 @@ if am_I_leader():
         """
         json = request.get_json()
 
-        if json.get("env"):
-            env = json["env"]
-            assert isinstance(env, dict)
+        if pioreactor_unit == "$broadcast":
+            broadcast_post_across_cluster(f"/unit_api/jobs/run/job_name/{job}", json=json)
+
         else:
-            env = {}
-
-        # env["EXPERIMENT"] = experiment
-
-        if env.get("JOB_SOURCE") is None:
-            env["JOB_SOURCE"] = "user"
-
-        json["env"] = env
-
-        tasks.multicast_post_across_cluster(
-            f"/unit_api/jobs/run/job_name/{job}", [pioreactor_unit], json=json
-        )
+            tasks.multicast_post_across_cluster(
+                f"/unit_api/jobs/run/job_name/{job}", [pioreactor_unit], json=json
+            )
         return Response(status=202)
 
     @app.route("/api/units/<pioreactor_unit>/jobs/running", methods=["GET"])
@@ -557,26 +579,32 @@ if am_I_leader():
     @app.route("/api/units/<pioreactor_unit>/system/reboot", methods=["POST"])
     def reboot_unit(pioreactor_unit: str) -> ResponseReturnValue:
         """Reboots unit"""
-        task = tasks.multicast_post_across_cluster("/unit_api/system/reboot", [pioreactor_unit])
+        if pioreactor_unit == "$broadcast":
+            task = broadcast_post_across_cluster("/unit_api/system/reboot")
+        else:
+            task = tasks.multicast_post_across_cluster("/unit_api/system/reboot", [pioreactor_unit])
         return create_task_response(task)
 
     @app.route("/api/units/<pioreactor_unit>/system/shutdown", methods=["POST"])
     def shutdown_unit(pioreactor_unit: str) -> ResponseReturnValue:
         """Shutdown unit"""
-        task = tasks.multicast_post_across_cluster("/unit_api/system/shutdown", [pioreactor_unit])
+        if pioreactor_unit == "$broadcast":
+            task = broadcast_post_across_cluster("/unit_api/system/shutdown")
+        else:
+            task = tasks.multicast_post_across_cluster(
+                "/unit_api/system/shutdown", [pioreactor_unit]
+            )
         return create_task_response(task)
 
     @app.route("/api/workers/system/reboot", methods=["POST"])
     def reboot_units() -> ResponseReturnValue:
         """Reboots workers"""
-        return create_task_response(tasks.broadcast_post_across_cluster("/unit_api/system/reboot"))
+        return create_task_response(broadcast_post_across_cluster("/unit_api/system/reboot"))
 
     @app.route("/api/workers/system/shutdown", methods=["POST"])
     def shutdown_units() -> ResponseReturnValue:
         """Shutdown workers"""
-        return create_task_response(
-            tasks.broadcast_post_across_cluster("/unit_api/system/shutdown")
-        )
+        return create_task_response(broadcast_post_across_cluster("/unit_api/system/shutdown"))
 
     ## Logs
 
@@ -1019,9 +1047,7 @@ if am_I_leader():
 
     @app.route("/api/plugins/installed", methods=["GET"])
     def get_plugins_across_cluster() -> ResponseReturnValue:
-        return create_task_response(
-            tasks.broadcast_get_across_cluster("/unit_api/plugins/installed")
-        )
+        return create_task_response(broadcast_get_across_cluster("/unit_api/plugins/installed"))
 
     @app.route("/api/plugins/install", methods=["POST", "PATCH"])
     def install_plugin_across_cluster() -> ResponseReturnValue:
@@ -1029,25 +1055,23 @@ if am_I_leader():
         if os.path.isfile(Path(env["DOT_PIOREACTOR"]) / "DISALLOW_UI_INSTALLS"):
             return Response(status=403)
 
-        return tasks.broadcast_post_across_cluster("/unit_api/plugins/install", request.get_json())
+        return broadcast_post_across_cluster("/unit_api/plugins/install", request.get_json())
 
     @app.route("/api/plugins/uninstall", methods=["POST", "PATCH"])
     def uninstall_plugin_across_cluster() -> ResponseReturnValue:
-        return tasks.broadcast_post_across_cluster(
-            "/unit_api/plugins/uninstall", request.get_json()
-        )
+        return broadcast_post_across_cluster("/unit_api/plugins/uninstall", request.get_json())
 
     @app.route("/api/jobs/running", methods=["GET"])
     def get_jobs_running_across_cluster() -> ResponseReturnValue:
-        return create_task_response(tasks.broadcast_get_across_cluster("/unit_api/jobs/running"))
+        return create_task_response(broadcast_get_across_cluster("/unit_api/jobs/running"))
 
     @app.route("/api/versions/app", methods=["GET"])
     def get_app_versions_across_cluster() -> ResponseReturnValue:
-        return create_task_response(tasks.broadcast_get_across_cluster("/unit_api/versions/app"))
+        return create_task_response(broadcast_get_across_cluster("/unit_api/versions/app"))
 
     @app.route("/api/versions/ui", methods=["GET"])
     def get_ui_versions_across_cluster() -> ResponseReturnValue:
-        return create_task_response(tasks.broadcast_get_across_cluster("/unit_api/versions/ui"))
+        return create_task_response(broadcast_get_across_cluster("/unit_api/versions/ui"))
 
     ## MISC
 

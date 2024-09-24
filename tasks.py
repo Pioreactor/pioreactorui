@@ -18,7 +18,6 @@ from pioreactor.pubsub import post_into
 from pioreactor.utils.networking import resolve_to_address
 from pioreactor.whoami import is_testing_env
 
-from app import query_app_db
 from config import cache
 from config import CACHE_DIR
 from config import env
@@ -272,30 +271,3 @@ def multicast_post_across_cluster(
         except HTTPException:
             logger.error(f"Could not post to {worker}'s endpoint {endpoint}. Check connection?")
     return result
-
-
-def broadcast_get_across_cluster(endpoint: str) -> dict[str, Any]:
-    assert endpoint.startswith("/unit_api")
-    result = query_app_db("SELECT w.pioreactor_unit as unit FROM workers w")
-    assert result is not None
-    assert isinstance(result, list)
-    list_of_workers = tuple(r["unit"] for r in result)
-
-    return multicast_get_across_cluster(endpoint, list_of_workers)
-
-
-def broadcast_post_across_cluster(endpoint: str, json: dict | None = None) -> dict[str, Any]:
-    assert endpoint.startswith("/unit_api")
-    # order by desc so that the leader-worker, if exists, is done last. This is important for tasks like /reboot
-    result = query_app_db(
-        """
-        SELECT w.pioreactor_unit as unit
-        FROM workers w
-        ORDER BY w.added_at DESC
-        """
-    )
-    assert result is not None
-    assert isinstance(result, list)
-    list_of_workers = tuple(r["unit"] for r in result)
-
-    return multicast_post_across_cluster(endpoint, list_of_workers, json=json)
