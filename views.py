@@ -488,7 +488,7 @@ if am_I_leader():
         else:
             env = {}
 
-        env["EXPERIMENT"] = experiment
+        # env["EXPERIMENT"] = experiment
 
         if env.get("JOB_SOURCE") is None:
             env["JOB_SOURCE"] = "user"
