@@ -5,8 +5,10 @@ import logging
 from logging import handlers
 from shlex import join
 from subprocess import check_call as run_and_check_call
+from subprocess import DEVNULL
 from subprocess import Popen
 from subprocess import run
+from subprocess import STDOUT
 from typing import Any
 
 from pioreactor.config import config
@@ -113,7 +115,7 @@ def pio_run(*args: str, env: dict[str, str] | None = None) -> bool:
     # for long running pio run jobs where we don't care about the output / status
     command = (PIO_EXECUTABLE, "run") + args
     logger.info(f"Executing `{join(command)}`")
-    Popen(command, env=env, start_new_session=True)
+    Popen(command, env=env, start_new_session=True, stdout=DEVNULL, stderr=STDOUT)
     return True
 
 
@@ -173,7 +175,7 @@ def pio_update(*args: str, env: dict[str, str] | None = None) -> bool:
 def pio_update_ui(*args: str, env: dict[str, str] | None = None) -> bool:
     logger.info(f'Executing `{join(("pio", "update", "ui") + args)}`')
     run((PIO_EXECUTABLE, "update", "ui") + args, env=env)
-    # this always returns !0 because it kills huey, I think, so just return true
+    # this always returns >0 because it kills huey, I think, so just return true
     return True
 
 

@@ -87,7 +87,7 @@ def update_target(target) -> ResponseReturnValue:
     commands: tuple[str, ...] = tuple()
     commands += tuple(body.get("args", []))
     for option, value in body.get("options", {}).items():
-        commands += (f"--{option}",)
+        commands += (f"--{option.replace('_', '-')}",)
         if value is not None:
             commands += (str(value),)
 
@@ -108,7 +108,7 @@ def update_app_and_ui() -> ResponseReturnValue:
     commands: tuple[str, ...] = tuple()
     commands += tuple(body.get("args", []))
     for option, value in body.get("options", {}).items():
-        commands += (f"--{option}",)
+        commands += (f"--{option.replace('_', '-')}",)
         if value is not None:
             commands += (str(value),)
 
@@ -187,7 +187,7 @@ def run_job(job: str) -> ResponseReturnValue:
     commands: tuple[str, ...] = (job,)
     commands += tuple(args)
     for option, value in options.items():
-        commands += (f"--{option}",)
+        commands += (f"--{option.replace('_', '-')}",)
         if value is not None:
             commands += (str(value),)
 
@@ -329,7 +329,7 @@ def install_plugin() -> ResponseReturnValue:
     commands: tuple[str, ...] = ("install",)
     commands += tuple(body.get("args", []))
     for option, value in body.get("options", {}).items():
-        commands += (f"--{option}",)
+        commands += (f"--{option.replace('_', '-')}",)
         if value is not None:
             commands += (str(value),)
 
@@ -354,7 +354,7 @@ def uninstall_plugin() -> ResponseReturnValue:
     commands: tuple[str, ...] = ("uninstall",)
     commands += tuple(body.get("args", []))
     for option, value in body.get("options", {}).items():
-        commands += (f"--{option}",)
+        commands += (f"--{option.replace('_', '-')}",)
         if value is not None:
             commands += (str(value),)
 
