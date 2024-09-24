@@ -211,7 +211,7 @@ def pios(*args: str, env: dict[str, str] | None = None) -> tuple[bool, str]:
 
 
 @huey.task()
-def save_file(path: str, content: str):
+def save_file(path: str, content: str) -> bool:
     try:
         with open(path, "w") as f:
             f.write(content)
@@ -222,7 +222,7 @@ def save_file(path: str, content: str):
 
 
 @huey.task()
-def write_config_and_sync(config_path: str, text: str, units: str, flags: str):
+def write_config_and_sync(config_path: str, text: str, units: str, flags: str) -> tuple[bool, str]:
     try:
         with open(config_path, "w") as f:
             f.write(text)
@@ -243,7 +243,7 @@ def write_config_and_sync(config_path: str, text: str, units: str, flags: str):
 
 
 @huey.task()
-def multicast_get_across_cluster(endpoint: str, workers: list[str]):
+def multicast_get_across_cluster(endpoint: str, workers: list[str]) -> dict[str, Any]:
     assert endpoint.startswith("/unit_api")
 
     result: dict[str, Any] = {}
@@ -258,7 +258,9 @@ def multicast_get_across_cluster(endpoint: str, workers: list[str]):
 
 
 @huey.task()
-def multicast_post_across_cluster(endpoint: str, workers: list[str], json: dict | None = None):
+def multicast_post_across_cluster(
+    endpoint: str, workers: list[str], json: dict | None = None
+) -> dict[str, Any]:
     assert endpoint.startswith("/unit_api")
 
     result: dict[str, Any] = {}
@@ -272,7 +274,7 @@ def multicast_post_across_cluster(endpoint: str, workers: list[str], json: dict 
     return result
 
 
-def broadcast_get_across_cluster(endpoint: str):
+def broadcast_get_across_cluster(endpoint: str) -> dict[str, Any]:
     assert endpoint.startswith("/unit_api")
     result = query_app_db("SELECT w.pioreactor_unit as unit FROM workers w")
     assert result is not None
@@ -282,7 +284,7 @@ def broadcast_get_across_cluster(endpoint: str):
     return multicast_get_across_cluster(endpoint, list_of_workers)
 
 
-def broadcast_post_across_cluster(endpoint: str, json: dict | None = None):
+def broadcast_post_across_cluster(endpoint: str, json: dict | None = None) -> dict[str, Any]:
     assert endpoint.startswith("/unit_api")
     # order by desc so that the leader-worker, if exists, is done last. This is important for tasks like /reboot
     result = query_app_db(

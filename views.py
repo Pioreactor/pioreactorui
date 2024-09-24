@@ -1179,12 +1179,12 @@ if am_I_leader():
             publish_to_error_log(str(e), "get_charts_contrib")
             return Response(status=400)
 
-    @app.route("/api/update_app", methods=["POST"])
+    @app.route("/api/system/update_next_version", methods=["POST"])
     def update_app() -> ResponseReturnValue:
         task = tasks.update_app_across_cluster()
         return create_task_response(task)
 
-    @app.route("/api/update_app_from_release_archive", methods=["POST"])
+    @app.route("/api/system/update_from_archive", methods=["POST"])
     def update_app_from_release_archive() -> ResponseReturnValue:
         body = request.get_json()
         release_archive_location = body["release_archive_location"]
