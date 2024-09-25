@@ -1904,12 +1904,12 @@ if am_I_leader():
             tasks.multicast_post_across_cluster(
                 "/unit_api/system/remove_file",
                 [pioreactor_unit],
-                json={"filepath": Path(env["DOT_PIOREACTOR"]) / "config.ini"},
+                json={"filepath": str(Path(env["DOT_PIOREACTOR"]) / "config.ini")},
             )
             tasks.multicast_post_across_cluster(
                 "/unit_api/system/remove_file",
                 [pioreactor_unit],
-                json={"filepath": Path(env["DOT_PIOREACTOR"]) / "unit_config.ini"},
+                json={"filepath": str(Path(env["DOT_PIOREACTOR"]) / "unit_config.ini")},
             )
 
             publish_to_log(
