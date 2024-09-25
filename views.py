@@ -1334,7 +1334,8 @@ if am_I_leader():
     def delete_experiment(experiment: str) -> ResponseReturnValue:
         cache.evict("experiments")
         row_count = modify_app_db("DELETE FROM experiments WHERE experiment=?;", (experiment,))
-        tasks.pios("kill", "--experiment", experiment)
+        broadcast_post_across_cluster(f"/unit_api/jobs/stop/experiment/{experiment}")
+
         if row_count > 0:
             return Response(status=200)
         else:
@@ -1431,7 +1432,7 @@ if am_I_leader():
         try:
             if (
                 label == ""
-            ):  # empty string, eg they are removing the label. We can't use the upsert below since then multiple pios are assigned "" and our unique constraint prevents that.
+            ):  # empty string, eg they are removing the label. We can't use the upsert below since then multiple workers are assigned "" and our unique constraint prevents that.
                 modify_app_db(
                     "DELETE FROM pioreactor_unit_labels WHERE experiment=(?) AND pioreactor_unit = (?)",
                     (experiment, unit),
@@ -1887,33 +1888,36 @@ if am_I_leader():
         row_count = modify_app_db(
             "DELETE FROM workers WHERE pioreactor_unit=?;", (pioreactor_unit,)
         )
-
         if row_count > 0:
             tasks.multicast_post_across_cluster("/unit_api/jobs/stop/all", [pioreactor_unit])
 
-            unit_config = f"config_{pioreactor_unit}.ini"
+            # only delete configs if not the leader...
+            if pioreactor_unit != HOSTNAME:
+                unit_config = f"config_{pioreactor_unit}.ini"
 
-            # delete config on disk
-            config_path = Path(env["DOT_PIOREACTOR"]) / unit_config
-            tasks.rm(config_path)
+                # delete config on disk
+                config_path = Path(env["DOT_PIOREACTOR"]) / unit_config
+                tasks.rm(config_path)
 
-            # delete from histories
-            modify_app_db("DELETE FROM config_files_histories WHERE filename=?;", (unit_config,))
+                # delete from histories
+                modify_app_db(
+                    "DELETE FROM config_files_histories WHERE filename=?;", (unit_config,)
+                )
 
-            # delete configs on worker
-            tasks.multicast_post_across_cluster(
-                "/unit_api/system/remove_file",
-                [pioreactor_unit],
-                json={"filepath": str(Path(env["DOT_PIOREACTOR"]) / "config.ini")},
-            )
-            tasks.multicast_post_across_cluster(
-                "/unit_api/system/remove_file",
-                [pioreactor_unit],
-                json={"filepath": str(Path(env["DOT_PIOREACTOR"]) / "unit_config.ini")},
-            )
+                # delete configs on worker
+                tasks.multicast_post_across_cluster(
+                    "/unit_api/system/remove_file",
+                    [pioreactor_unit],
+                    json={"filepath": str(Path(env["DOT_PIOREACTOR"]) / "config.ini")},
+                )
+                tasks.multicast_post_across_cluster(
+                    "/unit_api/system/remove_file",
+                    [pioreactor_unit],
+                    json={"filepath": str(Path(env["DOT_PIOREACTOR"]) / "unit_config.ini")},
+                )
 
             publish_to_log(
-                f"Removed {pioreactor_unit} from cluster.",
+                f"Removed {pioreactor_unit} from inventory.",
                 level="INFO",
                 task="assignment",
             )
@@ -1987,12 +1991,12 @@ if am_I_leader():
             return jsonify([])
 
     @app.route("/api/workers/assignments", methods=["DELETE"])
-    def remove_all_workers_from_experiments() -> ResponseReturnValue:
+    def remove_all_workers_from_all_experiments() -> ResponseReturnValue:
         # unassign all
         modify_app_db(
             "DELETE FROM experiment_worker_assignments",
         )
-        task = tasks.pios("kill", "--all-jobs")
+        task = broadcast_post_across_cluster("/unit_api/jobs/stop/all")
         publish_to_log(
             "Removed all worker assignments.",
             level="INFO",
@@ -2108,12 +2112,12 @@ if am_I_leader():
 
     @app.route("/api/experiments/<experiment>/workers", methods=["DELETE"])
     def remove_workers_from_experiment(experiment: str) -> ResponseReturnValue:
-        # unassign all from experiment
+        # unassign all from specific experiment
         modify_app_db(
             "DELETE FROM experiment_worker_assignments WHERE experiment = ?",
             (experiment,),
         )
-        task = tasks.pios("kill", "--experiment", experiment)
+        task = broadcast_post_across_cluster(f"/unit_api/jobs/stop/experiment/{experiment}")
         publish_to_experiment_log(
             f"Removed all workers from {experiment}.",
             experiment=experiment,
