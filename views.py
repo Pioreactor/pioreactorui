@@ -1902,12 +1902,12 @@ if am_I_leader():
 
             # delete configs on worker
             tasks.multicast_post_across_cluster(
-                "/unit_api/systems/remove_file",
+                "/unit_api/system/remove_file",
                 [pioreactor_unit],
                 json={"filepath": Path(env["DOT_PIOREACTOR"]) / "config.ini"},
             )
             tasks.multicast_post_across_cluster(
-                "/unit_api/systems/remove_file",
+                "/unit_api/system/remove_file",
                 [pioreactor_unit],
                 json={"filepath": Path(env["DOT_PIOREACTOR"]) / "unit_config.ini"},
             )
