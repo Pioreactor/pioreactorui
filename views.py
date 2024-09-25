@@ -1641,8 +1641,7 @@ if am_I_leader():
             publish_to_error_log(msg, "update_config")
             return {"msg": msg}, 400
         except ValueError as e:
-            msg = f"Error: {e}"
-            publish_to_error_log(msg, "update_config")
+            publish_to_error_log(str(e), "update_config")
             return {"msg": msg}, 400
         except Exception as e:
             publish_to_error_log(str(e), "update_config")
@@ -1892,14 +1891,26 @@ if am_I_leader():
         if row_count > 0:
             tasks.multicast_post_across_cluster("/unit_api/jobs/stop/all", [pioreactor_unit])
 
-            filename = f"config_{pioreactor_unit}.ini"
+            unit_config = f"config_{pioreactor_unit}.ini"
 
             # delete config on disk
-            config_path = Path(env["DOT_PIOREACTOR"]) / filename
+            config_path = Path(env["DOT_PIOREACTOR"]) / unit_config
             tasks.rm(config_path)
 
             # delete from histories
-            modify_app_db("DELETE FROM config_files_histories WHERE filename=?;", (filename,))
+            modify_app_db("DELETE FROM config_files_histories WHERE filename=?;", (unit_config,))
+
+            # delete configs on worker
+            tasks.multicast_post_across_cluster(
+                "/unit_api/systems/remove_file",
+                [pioreactor_unit],
+                json={"filepath": Path(env["DOT_PIOREACTOR"]) / "config.ini"},
+            )
+            tasks.multicast_post_across_cluster(
+                "/unit_api/systems/remove_file",
+                [pioreactor_unit],
+                json={"filepath": Path(env["DOT_PIOREACTOR"]) / "unit_config.ini"},
+            )
 
             publish_to_log(
                 f"Removed {pioreactor_unit} from cluster.",
@@ -1907,7 +1918,7 @@ if am_I_leader():
                 task="assignment",
             )
 
-            return Response(status=200)
+            return Response(status=202)
         else:
             return Response(status=404)
 
