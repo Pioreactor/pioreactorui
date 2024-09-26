@@ -2,6 +2,8 @@
 from __future__ import annotations
 
 import logging
+from concurrent.futures import as_completed
+from concurrent.futures import ThreadPoolExecutor
 from logging import handlers
 from shlex import join
 from subprocess import check_call as run_and_check_call
@@ -247,13 +249,23 @@ def multicast_get_across_cluster(endpoint: str, workers: list[str]) -> dict[str,
     assert endpoint.startswith("/unit_api")
 
     result: dict[str, Any] = {}
-    for worker in workers:
+
+    def get_worker(worker: str) -> tuple[str, Any]:
         try:
             r = get_from(resolve_to_address(worker), endpoint, timeout=6)
             r.raise_for_status()
-            result[worker] = r.json()
+            return worker, r.json()
         except HTTPException:
             logger.error(f"Could not get from {worker}'s endpoint {endpoint}. Check connection?")
+            return worker, None
+
+    with ThreadPoolExecutor() as executor:
+        futures = {executor.submit(get_worker, worker): worker for worker in workers}
+        for future in as_completed(futures):
+            worker, response = future.result()
+            if response is not None:
+                result[worker] = response
+
     return result
 
 
@@ -264,11 +276,21 @@ def multicast_post_across_cluster(
     assert endpoint.startswith("/unit_api")
 
     result: dict[str, Any] = {}
-    for worker in workers:
+
+    def post_worker(worker: str) -> tuple[str, Any]:
         try:
             r = post_into(resolve_to_address(worker), endpoint, json=json, timeout=6)
             r.raise_for_status()
-            result[worker] = r.json()
+            return worker, r.json()
         except HTTPException:
             logger.error(f"Could not post to {worker}'s endpoint {endpoint}. Check connection?")
+            return worker, None
+
+    with ThreadPoolExecutor() as executor:
+        futures = {executor.submit(post_worker, worker): worker for worker in workers}
+        for future in as_completed(futures):
+            worker, response = future.result()
+            if response is not None:
+                result[worker] = response
+
     return result
