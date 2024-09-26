@@ -8,6 +8,7 @@ import sqlite3
 import subprocess
 import tempfile
 from pathlib import Path
+from time import sleep
 from typing import Any
 
 from flask import abort
@@ -159,6 +160,10 @@ def update_app_and_ui() -> ResponseReturnValue:
 def reboot() -> ResponseReturnValue:
     """Reboots unit"""
     # TODO: only let requests from the leader do this. Use lighttpd conf for this.
+
+    # don't reboot the leader right away, give time for any other posts/gets to occur.
+    if HOSTNAME == get_leader_hostname():
+        sleep(5)
     task = tasks.reboot()
     return create_task_response(task)
 
