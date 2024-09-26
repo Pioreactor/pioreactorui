@@ -15,6 +15,7 @@ from flask import jsonify
 from flask import request
 from flask import Response
 from flask.typing import ResponseReturnValue
+from huey.api import Result
 from huey.exceptions import HueyException
 from msgspec import DecodeError
 from msgspec import ValidationError
@@ -60,7 +61,7 @@ def broadcast_get_across_cluster(endpoint: str) -> dict[str, Any]:
     return tasks.multicast_get_across_cluster(endpoint, list_of_workers)
 
 
-def broadcast_post_across_cluster(endpoint: str, json: dict | None = None) -> dict[str, Any]:
+def broadcast_post_across_cluster(endpoint: str, json: dict | None = None) -> Result:
     assert endpoint.startswith("/unit_api")
     # order by desc so that the leader-worker, if exists, is done last. This is important for tasks like /reboot
     result = query_app_db(
@@ -1055,11 +1056,15 @@ if am_I_leader():
         if os.path.isfile(Path(env["DOT_PIOREACTOR"]) / "DISALLOW_UI_INSTALLS"):
             return Response(status=403)
 
-        return broadcast_post_across_cluster("/unit_api/plugins/install", request.get_json())
+        return create_task_response(
+            broadcast_post_across_cluster("/unit_api/plugins/install", request.get_json())
+        )
 
     @app.route("/api/plugins/uninstall", methods=["POST", "PATCH"])
     def uninstall_plugin_across_cluster() -> ResponseReturnValue:
-        return broadcast_post_across_cluster("/unit_api/plugins/uninstall", request.get_json())
+        return create_task_response(
+            broadcast_post_across_cluster("/unit_api/plugins/uninstall", request.get_json())
+        )
 
     @app.route("/api/jobs/running", methods=["GET"])
     def get_jobs_running_across_cluster() -> ResponseReturnValue:
