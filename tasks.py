@@ -259,7 +259,7 @@ def multicast_get_across_cluster(endpoint: str, workers: list[str]) -> dict[str,
             logger.error(f"Could not get from {worker}'s endpoint {endpoint}. Check connection?")
             return worker, None
 
-    with ThreadPoolExecutor() as executor:
+    with ThreadPoolExecutor(max_workers=len(workers)) as executor:
         futures = {executor.submit(get_worker, worker): worker for worker in workers}
         for future in as_completed(futures):
             worker, response = future.result()
@@ -286,7 +286,7 @@ def multicast_post_across_cluster(
             logger.error(f"Could not post to {worker}'s endpoint {endpoint}. Check connection?")
             return worker, None
 
-    with ThreadPoolExecutor() as executor:
+    with ThreadPoolExecutor(max_workers=len(workers)) as executor:
         futures = {executor.submit(post_worker, worker): worker for worker in workers}
         for future in as_completed(futures):
             worker, response = future.result()
