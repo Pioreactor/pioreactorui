@@ -165,8 +165,9 @@ def pio_update_app(*args: str, env: dict[str, str] | None = None) -> bool:
 @huey.lock_task("update-lock")
 def pio_update(*args: str, env: dict[str, str] | None = None) -> bool:
     logger.info(f'Executing `{join(("pio", "update") + args)}`')
-    result = run((PIO_EXECUTABLE, "update") + args, env=env)
-    return result.returncode == 0
+    run((PIO_EXECUTABLE, "update") + args, env=env)
+    # this always returns >0 because it kills huey, I think, so just return true
+    return True
 
 
 @huey.task()

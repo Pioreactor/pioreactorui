@@ -1960,7 +1960,8 @@ if am_I_leader():
             """
             SELECT pioreactor_unit, added_at, is_active
             FROM workers
-            WHERE pioreactor_unit = ?""",
+            WHERE pioreactor_unit = ?
+            """,
             (pioreactor_unit,),
             one=True,
         )
