@@ -1,3 +1,8 @@
+### 24.9.25
+ - Better experiment selection dropdown
+ - replace momentjs with dayjs
+ - reduce the list of supported browsers
+
 ### 24.9.20
  - fixes to the UI for new json version api
 
