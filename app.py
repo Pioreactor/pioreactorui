@@ -56,14 +56,15 @@ client.username_pw_set(
     config.get("mqtt", "username", fallback="pioreactor"),
     config.get("mqtt", "password", fallback="raspberry"),
 )
-client.connect(
-    host=config.get("mqtt", "broker_address", fallback="localhost"),
-    port=config.getint("mqtt", "broker_port", fallback=1883),
-)
 
 if am_I_leader():
-    logger.debug("Starting MQTT client")
     # we currently only need to communicate with MQTT for the leader.
+    # don't even connect if a worker - if the leader is down, this will crash and restart the server over and over.
+    client.connect(
+        host=config.get("mqtt", "broker_address", fallback="localhost"),
+        port=config.getint("mqtt", "broker_port", fallback=1883),
+    )
+    logger.debug("Starting MQTT client")
     client.loop_start()
 
 ## UTILS
