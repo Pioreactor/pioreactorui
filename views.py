@@ -17,6 +17,7 @@ from flask import Response
 from flask.typing import ResponseReturnValue
 from huey.api import Result
 from huey.exceptions import HueyException
+from huey.exceptions import TaskException
 from msgspec import DecodeError
 from msgspec import ValidationError
 from msgspec.json import decode as json_decode
@@ -94,9 +95,18 @@ def create_task_response(task) -> ResponseReturnValue:
 # Endpoint to check the status of a background task. unit_api is required to ping workers (who only expose unit_api)
 @app.route("/unit_api/task_results/<task_id>", methods=["GET"])
 def task_status(task_id):
-    task = huey.result(task_id)
+    try:
+        task = huey.result(task_id)
+    except TaskException:
+        return (
+            jsonify(
+                {"status": "failed", "error": "task was prevented from completing due to a lock."}
+            ),
+            500,
+        )
+
     if task is None:
-        return jsonify({"status": "pending or not present"}), 202
+        return jsonify({"status": "pending or not present"}), 102
     elif isinstance(task, Exception):
         return jsonify({"status": "failed", "error": str(task)}), 500
     else:
