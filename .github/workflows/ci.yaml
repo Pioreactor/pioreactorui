@@ -37,7 +37,7 @@ jobs:
 
       - name: Run tests
         run:  |
-          pytest tests/ -vv --timeout 600 --random-order --durations 15
+          pytest  -vv --timeout 600 --random-order --durations 15
         env:
           TESTING: 1
           TMPDIR: /tmp/

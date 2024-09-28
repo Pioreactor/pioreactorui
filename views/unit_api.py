@@ -14,6 +14,7 @@ from flask import Response
 from flask.typing import ResponseReturnValue
 from huey.exceptions import HueyException
 from huey.exceptions import TaskException
+from msgspec.json import encode as dumps
 from pioreactor.config import get_leader_hostname
 
 import tasks
@@ -352,7 +353,7 @@ def get_app_version() -> ResponseReturnValue:
     if result.returncode != 0:
         return Response(status=500)
     return Response(
-        response=jsonify({"version": result.stdout.strip()}),
+        response=dumps({"version": result.stdout.strip()}),
         status=200,
         mimetype="text/json",
         headers={"Cache-Control": "public,max-age=60"},
@@ -362,7 +363,7 @@ def get_app_version() -> ResponseReturnValue:
 @unit_api.route("/versions/ui", methods=["GET"])
 def get_ui_version() -> ResponseReturnValue:
     return Response(
-        response=jsonify({"version": VERSION}),
+        response=dumps({"version": VERSION}),
         status=200,
         mimetype="text/json",
         headers={"Cache-Control": "public,max-age=60"},

@@ -99,7 +99,7 @@ def stop_all_jobs_in_experiment(experiment: str) -> ResponseReturnValue:
 
 
 @api.route(
-    "/api/workers/<pioreactor_unit>/jobs/stop/experiments/<experiment>",
+    "/workers/<pioreactor_unit>/jobs/stop/experiments/<experiment>",
     methods=["POST", "PATCH"],
 )
 def stop_all_jobs_on_worker_for_experiment(
@@ -117,11 +117,11 @@ def stop_all_jobs_on_worker_for_experiment(
 
 
 @api.route(
-    "/api/workers/<pioreactor_unit>/jobs/stop/job_name/<job>/experiments/<experiment>",
+    "/workers/<pioreactor_unit>/jobs/stop/job_name/<job>/experiments/<experiment>",
     methods=["PATCH", "POST"],
 )
 @api.route(
-    "/api/units/<pioreactor_unit>/jobs/stop/job_name/<job>/experiments/<experiment>",
+    "/units/<pioreactor_unit>/jobs/stop/job_name/<job>/experiments/<experiment>",
     methods=["PATCH", "POST"],
 )
 def stop_job_on_unit(pioreactor_unit: str, experiment: str, job: str) -> ResponseReturnValue:
@@ -142,11 +142,11 @@ def stop_job_on_unit(pioreactor_unit: str, experiment: str, job: str) -> Respons
 
 
 @api.route(
-    "/api/workers/<pioreactor_unit>/jobs/run/job_name/<job>/experiments/<experiment>",
+    "/workers/<pioreactor_unit>/jobs/run/job_name/<job>/experiments/<experiment>",
     methods=["PATCH", "POST"],
 )
 @api.route(
-    "/api/units/<pioreactor_unit>/jobs/run/job_name/<job>/experiments/<experiment>",
+    "/units/<pioreactor_unit>/jobs/run/job_name/<job>/experiments/<experiment>",
     methods=["PATCH", "POST"],
 )
 def run_job_on_unit_in_experiment(
@@ -181,15 +181,15 @@ def run_job_on_unit_in_experiment(
 @api.route("/units/<pioreactor_unit>/jobs/running", methods=["GET"])
 @api.route("/workers/<pioreactor_unit>/jobs/running", methods=["GET"])
 def get_running_jobs_on_unit(pioreactor_unit: str) -> ResponseReturnValue:
-    return get_from(resolve_to_address(pioreactor_unit), "/api/jobs/running").json()
+    return get_from(resolve_to_address(pioreactor_unit), "/unit_api/jobs/running").json()
 
 
 @api.route(
-    "/api/workers/<pioreactor_unit>/jobs/update/job_name/<job>/experiments/<experiment>",
+    "/workers/<pioreactor_unit>/jobs/update/job_name/<job>/experiments/<experiment>",
     methods=["PATCH"],
 )
 @api.route(
-    "/api/units/<pioreactor_unit>/jobs/update/job_name/<job>/experiments/<experiment>",
+    "/units/<pioreactor_unit>/jobs/update/job_name/<job>/experiments/<experiment>",
     methods=["PATCH"],
 )
 def update_job_on_unit(pioreactor_unit: str, experiment: str, job: str) -> ResponseReturnValue:
@@ -614,9 +614,7 @@ def get_current_calibrations_of_type(
         return Response(status=500)
 
 
-@api.route(
-    "/api/calibrations/<pioreactor_unit>/<calibration_type>/<calibration_name>", methods=["GET"]
-)
+@api.route("/calibrations/<pioreactor_unit>/<calibration_type>/<calibration_name>", methods=["GET"])
 def get_calibration_by_name(
     pioreactor_unit: str, calibration_type: str, calibration_name: str
 ) -> ResponseReturnValue:
@@ -641,7 +639,7 @@ def get_calibration_by_name(
 
 
 @api.route(
-    "/api/calibrations/<pioreactor_unit>/<calibration_type>/<calibration_name>",
+    "/calibrations/<pioreactor_unit>/<calibration_type>/<calibration_name>",
     methods=["PATCH"],
 )
 def patch_calibrations(
@@ -973,21 +971,25 @@ def create_experiment() -> ResponseReturnValue:
     cache.evict("unit_labels")
 
     body = request.get_json()
-    proposed_experiment_name = body["experiment"]
+    proposed_experiment_name = body.get("experiment")
 
     if not proposed_experiment_name:
-        return Response(status=404)
+        return Response(status=400)
+    elif len(proposed_experiment_name) >= 200:  # just too big
+        return Response(status=400)
     elif proposed_experiment_name.lower() == "current":  # too much API rework
-        return Response(status=404)
+        return Response(status=400)
     elif proposed_experiment_name.startswith("_testing_"):  # jobs won't run as expected
-        return Response(status=404)
+        return Response(status=400)
     elif (
         ("#" in proposed_experiment_name)
         or ("+" in proposed_experiment_name)
+        or ("$" in proposed_experiment_name)
         or ("/" in proposed_experiment_name)
+        or ("%" in proposed_experiment_name)
         or ("\\" in proposed_experiment_name)
     ):
-        return Response(status=404)
+        return Response(status=400)
 
     try:
         row_count = modify_app_db(
@@ -1174,12 +1176,17 @@ def update_experiment(experiment: str) -> ResponseReturnValue:
     body = request.get_json()
     try:
         if "description" in body:
-            modify_app_db(
+            row_count = modify_app_db(
                 "UPDATE experiments SET description = (?) WHERE experiment=(?)",
                 (body["description"], experiment),
             )
 
-        return Response(status=200)
+            if row_count == 1:
+                return Response(status=200)
+            else:
+                return Response(status=404)
+        else:
+            return Response(status=400)
 
     except Exception as e:
         publish_to_error_log(str(e), "update_experiment")
@@ -1812,21 +1819,23 @@ def add_worker_to_experiment(experiment: str) -> ResponseReturnValue:
 @api.route("/experiments/<experiment>/workers/<pioreactor_unit>", methods=["DELETE"])
 def remove_worker_from_experiment(experiment: str, pioreactor_unit: str) -> ResponseReturnValue:
     # unassign
-    modify_app_db(
+    row_count = modify_app_db(
         "DELETE FROM experiment_worker_assignments WHERE pioreactor_unit = ? AND experiment = ?",
         (pioreactor_unit, experiment),
     )
-    task = tasks.multicast_post_across_cluster(
-        f"/unit_api/jobs/stop/experiment/{experiment}", [pioreactor_unit]
-    )
-    publish_to_experiment_log(
-        f"Removed {pioreactor_unit} from {experiment}.",
-        experiment=experiment,
-        level="INFO",
-        task="assignment",
-    )
-
-    return create_task_response(task)
+    if row_count > 0:
+        tasks.multicast_post_across_cluster(
+            f"/unit_api/jobs/stop/experiment/{experiment}", [pioreactor_unit]
+        )
+        publish_to_experiment_log(
+            f"Removed {pioreactor_unit} from {experiment}.",
+            experiment=experiment,
+            level="INFO",
+            task="assignment",
+        )
+        return Response(status=200)
+    else:
+        return Response(status=404)
 
 
 @api.route("/experiments/<experiment>/workers", methods=["DELETE"])
