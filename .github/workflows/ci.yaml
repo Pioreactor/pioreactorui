@@ -22,15 +22,8 @@ jobs:
 
       - name: Install python libraries
         run: |
-          pip install -e .
           pip install -r requirements.txt
           pip install pyyaml
-
-          wget https://github.com/Gadgetoid/PY_LGPIO/releases/download/0.2.2.0/lgpio-0.2.2.0.tar.gz -O lgpio-0.2.2.0.tar.gz
-          tar -xvzf lgpio-0.2.2.0.tar.gz
-          cd lgpio-0.2.2.0
-          python setup.py develop
-
           pip list
 
       - name: Mosquitto MQTT Broker in GitHub Actions

@@ -46,6 +46,17 @@ else:
     PIO_EXECUTABLE = env["PIO_EXECUTABLE"]
     PIOS_EXECUTABLE = env["PIOS_EXECUTABLE"]
 
+ALLOWED_ENV = (
+    "EXPERIMENT",
+    "JOB_SOURCE",
+    "TESTING",
+    "HOSTNAME",
+    "HARDWARE",
+    "ACTIVE",
+    "PIO_VERSION",
+    "FIRMWARE",
+)
+
 
 @huey.on_startup()
 def initialized():
@@ -115,7 +126,7 @@ def pio(*args: str, env: dict[str, str] | None = None) -> tuple[bool, str]:
 def pio_run(*args: str, env: dict[str, str] | None = None) -> bool:
     # for long running pio run jobs where we don't care about the output / status
     command = (PIO_EXECUTABLE, "run") + args
-    env = {k: v for k, v in (env or {}).items() if k in ("EXPERIMENT", "JOB_SOURCE")}
+    env = {k: v for k, v in (env or {}).items() if k in ALLOWED_ENV}
     logger.info(f"Executing `{join(command)}`")
     Popen(command, env=env, start_new_session=True, stdout=DEVNULL, stderr=STDOUT)
     return True
