@@ -46,28 +46,43 @@ logger.addHandler(ui_logs)
 logger.debug(f"Starting {NAME}={VERSION} on {HOSTNAME}...")
 logger.debug(f".env={dict(env)}")
 
-app = Flask(NAME)
-
-# connect to MQTT server, only if leader. workers don't need to.
-
-
 client = mqtt.Client(callback_api_version=CallbackAPIVersion.VERSION2)
 client.username_pw_set(
     config.get("mqtt", "username", fallback="pioreactor"),
     config.get("mqtt", "password", fallback="raspberry"),
 )
 
-if am_I_leader():
-    # we currently only need to communicate with MQTT for the leader.
-    # don't even connect if a worker - if the leader is down, this will crash and restart the server over and over.
-    client.connect(
-        host=config.get("mqtt", "broker_address", fallback="localhost"),
-        port=config.getint("mqtt", "broker_port", fallback=1883),
-    )
-    logger.debug("Starting MQTT client")
-    client.loop_start()
 
-## UTILS
+def create_app():
+    from views.unit_api import unit_api
+    from views.api import api
+
+    app = Flask(NAME)
+
+    app.register_blueprint(unit_api)
+
+    if am_I_leader():
+        app.register_blueprint(api)
+        # we currently only need to communicate with MQTT for the leader.
+        # don't even connect if a worker - if the leader is down, this will crash and restart the server over and over.
+        client.connect(
+            host=config.get("mqtt", "broker_address", fallback="localhost"),
+            port=config.getint("mqtt", "broker_port", fallback=1883),
+        )
+        logger.debug("Starting MQTT client")
+        client.loop_start()
+
+    @app.teardown_appcontext
+    def close_connection(exception) -> None:
+        db = getattr(g, "_app_database", None)
+        if db is not None:
+            db.close()
+
+        db = getattr(g, "_metadata_database", None)
+        if db is not None:
+            db.close()
+
+    return app
 
 
 def msg_to_JSON(msg: str, task: str, level: str) -> str:
@@ -164,14 +179,3 @@ def modify_app_db(statement: str, args=()) -> int:
         row_changes = cur.rowcount
         cur.close()
     return row_changes
-
-
-@app.teardown_appcontext
-def close_connection(exception) -> None:
-    db = getattr(g, "_app_database", None)
-    if db is not None:
-        db.close()
-
-    db = getattr(g, "_metadata_database", None)
-    if db is not None:
-        db.close()
