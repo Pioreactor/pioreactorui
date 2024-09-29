@@ -31,10 +31,11 @@ jobs:
         with:
           version: '1.6'
 
-      - name: Create pioreactor folders
+      - name: Create pioreactor folders and env
         run: |
            mkdir -p .pioreactor/storage
            mkdir -p /tmp/pioreactorui_cache/
+           mv .env.example .env
 
       - name: Run tests
         run:  |
