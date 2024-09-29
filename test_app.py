@@ -233,8 +233,6 @@ def test_create_duplicate_experiment(client):
             "experiment": "exp1",
             "created_at": "2023-10-05T12:00:00Z",
             "description": "Duplicate experiment",
-            "media_used": "LB broth",
-            "organism_used": "E. coli",
         },
     )
     assert response.status_code == 409
