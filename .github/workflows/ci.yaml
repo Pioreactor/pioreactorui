@@ -31,9 +31,10 @@ jobs:
         with:
           version: '1.6'
 
-      - name: Create dot_pioreactor folder
+      - name: Create pioreactor folders
         run: |
            mkdir -p .pioreactor/storage
+           mkdir -p /tmp/pioreactorui_cache/
 
       - name: Run tests
         run:  |
