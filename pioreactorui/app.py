@@ -11,7 +11,6 @@ from datetime import timezone
 from logging import handlers
 
 import paho.mqtt.client as mqtt
-from config import env
 from flask import Flask
 from flask import g
 from paho.mqtt.enums import CallbackAPIVersion
@@ -19,7 +18,9 @@ from pioreactor.config import config
 from pioreactor.config import get_leader_hostname
 from pioreactor.whoami import am_I_leader
 from pioreactor.whoami import get_unit_name
-from version import __version__
+
+from pioreactorui.config import env
+from pioreactorui.version import __version__
 
 VERSION = __version__
 HOSTNAME = get_unit_name()
@@ -53,8 +54,8 @@ client.username_pw_set(
 
 
 def create_app():
-    from views.unit_api import unit_api
-    from views.api import api
+    from pioreactorui.views.unit_api import unit_api
+    from pioreactorui.views.api import api
 
     app = Flask(NAME)
 

@@ -1,10 +1,8 @@
 # -*- coding: utf-8 -*-
 from __future__ import annotations
 
-import tasks  # noqa: F401,F403 # Import tasks so they are registered with Huey instance.
-from app import create_app
-
-import views  # noqa: F401,F403 # Import views so they are registered with Flask app.
+import pioreactorui.tasks  # noqa: F401,F403 # Import tasks so they are registered with Huey instance.
+from pioreactorui.app import create_app
 
 
 if __name__ == "__main__":
