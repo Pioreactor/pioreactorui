@@ -3,7 +3,6 @@ from __future__ import annotations
 
 import typing as t
 
-from msgspec import field
 from msgspec import Struct
 
 
@@ -81,4 +80,3 @@ class ChartDescriptor(Struct, forbid_unknown_fields=True):  # type: ignore
         "stepAfter",
         "stepBefore",
     ] = "stepAfter"
-

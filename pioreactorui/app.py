@@ -11,6 +11,7 @@ from datetime import timezone
 from logging import handlers
 
 import paho.mqtt.client as mqtt
+from config import env
 from flask import Flask
 from flask import g
 from paho.mqtt.enums import CallbackAPIVersion
@@ -18,8 +19,6 @@ from pioreactor.config import config
 from pioreactor.config import get_leader_hostname
 from pioreactor.whoami import am_I_leader
 from pioreactor.whoami import get_unit_name
-
-from config import env
 from version import __version__
 
 VERSION = __version__

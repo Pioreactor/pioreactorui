@@ -4,11 +4,10 @@ from __future__ import annotations
 import sqlite3
 
 import pytest
-from flask import g
-from pioreactor.mureq import get
-
 from app import _make_dicts
 from app import create_app
+from flask import g
+from pioreactor.mureq import get
 
 
 @pytest.fixture()

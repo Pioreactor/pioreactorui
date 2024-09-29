@@ -13,17 +13,16 @@ from subprocess import run
 from subprocess import STDOUT
 from typing import Any
 
+from config import cache
+from config import CACHE_DIR
+from config import env
+from config import huey
 from pioreactor.config import config
 from pioreactor.mureq import HTTPException
 from pioreactor.pubsub import get_from
 from pioreactor.pubsub import post_into
 from pioreactor.utils.networking import resolve_to_address
 from pioreactor.whoami import is_testing_env
-
-from config import cache
-from config import CACHE_DIR
-from config import env
-from config import huey
 
 logger = logging.getLogger("huey.consumer")
 logger.setLevel(logging.INFO)
