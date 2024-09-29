@@ -3,19 +3,19 @@
 
 ### Starting development
 
-`python3 -m flask --app main --debug run`. Test by going to `localhost:5000/api/get_latest_experiment` in a browser.
+```
+TESTING=1 python3 -m flask --debug --app pioreactorui/main run -p 4999
+```
 
 Run background workers with:
 
-`huey_consumer.py tasks.huey`
+```
+TESTING=1 huey_consumer pioreactorui.tasks.huey -n -b 1.0 -w 2 -f -C
+```
 
 ### Production
 
-This is behind a lighttp web server on the RPi. See [our lighttp config]().
-
-#### Deployment
-
-??
+This is behind a lighttpd web server on the RPi.
 
 
 ### Contributions
