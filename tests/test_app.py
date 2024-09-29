@@ -4,10 +4,11 @@ from __future__ import annotations
 import sqlite3
 
 import pytest
-from app import _make_dicts
-from app import create_app
 from flask import g
 from pioreactor.mureq import get
+
+from pioreactorui.app import _make_dicts
+from pioreactorui.app import create_app
 
 
 @pytest.fixture()
@@ -30,7 +31,7 @@ def app():
             db = g._app_database = sqlite3.connect(":memory:")
             db.row_factory = _make_dicts
             db.executescript(table_statements)  # Set up schema
-            with app.open_resource("test_data.sql") as f:
+            with app.open_resource("tests/test_data.sql") as f:
                 db.executescript(f.read().decode("utf8"))
 
             db.commit()
