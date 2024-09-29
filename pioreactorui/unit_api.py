@@ -17,14 +17,14 @@ from huey.exceptions import TaskException
 from msgspec.json import encode as dumps
 from pioreactor.config import get_leader_hostname
 
-import pioreactorui.tasks as tasks
-from pioreactorui.app import HOSTNAME
-from pioreactorui.app import query_local_metadata_db
-from pioreactorui.app import VERSION
-from pioreactorui.config import cache
-from pioreactorui.config import env
-from pioreactorui.config import huey
-from pioreactorui.utils import create_task_response
+from . import HOSTNAME
+from . import query_local_metadata_db
+from . import tasks
+from . import VERSION
+from .config import cache
+from .config import env
+from .config import huey
+from .utils import create_task_response
 
 
 unit_api = Blueprint("unit_api", __name__, url_prefix="/unit_api")

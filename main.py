@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import pioreactorui.tasks  # noqa: F401,F403 # Import tasks so they are registered with Huey instance.
-from pioreactorui.app import create_app
+from pioreactorui import create_app
 
 
 if __name__ == "__main__":

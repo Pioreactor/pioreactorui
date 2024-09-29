@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 from __future__ import annotations
 
-import tasks  # noqa: F401
 from flup.server.fcgi import WSGIServer
 
-from pioreactorui.app import create_app
+import pioreactorui.tasks  # noqa: F401
+from pioreactorui import create_app
 
 
 if __name__ == "__main__":

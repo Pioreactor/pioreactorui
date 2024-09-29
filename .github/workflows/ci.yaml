@@ -22,7 +22,6 @@ jobs:
 
       - name: Install python libraries
         run: |
-          pip install -e .
           pip install -r requirements_dev.txt
           pip install pyyaml
           pip list

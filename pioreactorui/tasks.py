@@ -18,12 +18,12 @@ from pioreactor.mureq import HTTPException
 from pioreactor.pubsub import get_from
 from pioreactor.pubsub import post_into
 from pioreactor.utils.networking import resolve_to_address
-from pioreactor.whoami import is_testing_env
 
-from pioreactorui.config import cache
-from pioreactorui.config import CACHE_DIR
-from pioreactorui.config import env
-from pioreactorui.config import huey
+from .config import cache
+from .config import CACHE_DIR
+from .config import env
+from .config import huey
+from .config import is_testing_env
 
 logger = logging.getLogger("huey.consumer")
 logger.setLevel(logging.INFO)
@@ -43,8 +43,8 @@ if not is_testing_env():
     PIO_EXECUTABLE = "/usr/local/bin/pio"
     PIOS_EXECUTABLE = "/usr/local/bin/pios"
 else:
-    PIO_EXECUTABLE = env["PIO_EXECUTABLE"]
-    PIOS_EXECUTABLE = env["PIOS_EXECUTABLE"]
+    PIO_EXECUTABLE = env.get("PIO_EXECUTABLE")
+    PIOS_EXECUTABLE = env.get("PIOS_EXECUTABLE")
 
 ALLOWED_ENV = (
     "EXPERIMENT",
