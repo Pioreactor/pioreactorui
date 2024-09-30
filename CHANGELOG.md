@@ -1,6 +1,7 @@
 ### Upcoming
  - fix for bug when clicking a legend element it not hiding
  - amount of data shown on charts is now a function of the OD sampling rate
+ - allow for showing more than 16 workers in a chart.
 
 ### 24.9.25
  - Better experiment selection dropdown
