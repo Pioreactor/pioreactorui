@@ -368,3 +368,9 @@ def get_ui_version() -> ResponseReturnValue:
         mimetype="text/json",
         headers={"Cache-Control": "public,max-age=60"},
     )
+
+
+@unit_api.errorhandler(404)
+def not_found(e):
+    # Return JSON for API requests
+    return jsonify({"error": "Not Found"}), 404

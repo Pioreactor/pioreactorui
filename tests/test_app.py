@@ -236,3 +236,14 @@ def test_create_experiment_missing_fields(client):
         },
     )
     assert response.status_code == 400  # Bad Request
+
+
+def test_404_for_unknown_api(client):
+    response = client.get("/api/this-doesnt-exist")
+    assert response.status_code == 404
+
+    response = client.get("/unit_api/this-doesnt-exist")
+    assert response.status_code == 404
+
+    response = client.get("/this-doesnt-exist")
+    assert response.status_code == 404

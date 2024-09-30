@@ -181,7 +181,19 @@ def run_job_on_unit_in_experiment(
 @api.route("/units/<pioreactor_unit>/jobs/running", methods=["GET"])
 @api.route("/workers/<pioreactor_unit>/jobs/running", methods=["GET"])
 def get_running_jobs_on_unit(pioreactor_unit: str) -> ResponseReturnValue:
-    return get_from(resolve_to_address(pioreactor_unit), "/unit_api/jobs/running").json()
+    try:
+        return get_from(resolve_to_address(pioreactor_unit), "/unit_api/jobs/running").json()
+    except Exception:
+        return Response(status=502)
+
+
+@api.route("/workers/<pioreactor_unit>/blink", methods=["POST"])
+def blink_worker(pioreactor_unit: str) -> ResponseReturnValue:
+    msg = client.publish(
+        f"pioreactor/{pioreactor_unit}/$experiment/monitor/flicker_led_response_okay", 1, qos=0
+    )
+    msg.wait_for_publish(timeout=2.0)
+    return
 
 
 @api.route(
@@ -1239,7 +1251,7 @@ def get_config(filename: str) -> ResponseReturnValue:
             response=specific_config_path.read_text(),
             status=200,
             mimetype="text/plain",
-            headers={"Cache-Control": "public,max-age=6"},
+            headers={"Cache-Control": "public,max-age=10"},
         )
 
     except Exception as e:
@@ -1856,12 +1868,7 @@ def remove_workers_from_experiment(experiment: str) -> ResponseReturnValue:
     return create_task_response(task)
 
 
-### FLASK META VIEWS
-
-
 @api.errorhandler(404)
 def not_found(e):
-    try:
-        return api.send_static_file("index.html")
-    except Exception:
-        return Response(status=404)
+    # Return JSON for API requests
+    return jsonify({"error": "Not Found"}), 404
