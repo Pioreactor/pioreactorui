@@ -170,7 +170,7 @@ def run_job_on_unit_in_experiment(
 
     if pioreactor_unit == "$broadcast":
         # we can do better: make sure the worker is active, too
-        # and we can include experiment in the env
+        # and we can include experiment in the env since we know these workers are in the experiment!
         workers = query_app_db(
             """
             SELECT pioreactor_unit as worker
