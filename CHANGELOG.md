@@ -5,6 +5,7 @@
  - amount of data shown on charts is now a function of the OD sampling rate
  - allow for showing more than 16 workers in a chart.
  - bug fix for "color" error when many workers on a chart.
+ - bug fix for leader starting when an experiment profile was started which referenced leader, even if the leader wasn't in the experiment.
 
 ### 24.9.25
  - Better experiment selection dropdown
