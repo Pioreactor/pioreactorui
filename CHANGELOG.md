@@ -1,6 +1,7 @@
 ### 24.10.1
  - bug fix for "Manage all" that would start activities in all Pioreactors, whether they were in the experiment or not.
  - fix for bug when clicking a legend element it not hiding
+ - fix
  - amount of data shown on charts is now a function of the OD sampling rate
  - allow for showing more than 16 workers in a chart.
 
