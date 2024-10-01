@@ -171,12 +171,9 @@ def run_job_on_unit_in_experiment(
     if pioreactor_unit == "$broadcast":
         workers = query_app_db(
             """
-            SELECT w.pioreactor_unit as worker
-            FROM experiment_worker_assignments a
-            JOIN workers w
-              on w.pioreactor_unit = a.pioreactor_unit
+            SELECT pioreactor_unit as worker
+            FROM experiment_worker_assignments
             WHERE experiment = ?
-            ORDER BY w.pioreactor_unit
             """,
             (experiment,),
         )
