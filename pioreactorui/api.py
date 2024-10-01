@@ -169,7 +169,22 @@ def run_job_on_unit_in_experiment(
     json = request.get_json()
 
     if pioreactor_unit == "$broadcast":
-        broadcast_post_across_cluster(f"/unit_api/jobs/run/job_name/{job}", json=json)
+        workers = query_app_db(
+            """
+            SELECT w.pioreactor_unit as worker
+            FROM experiment_worker_assignments a
+            JOIN workers w
+              on w.pioreactor_unit = a.pioreactor_unit
+            WHERE experiment = ?
+            ORDER BY w.pioreactor_unit
+            """,
+            (experiment,),
+        )
+        assert isinstance(workers, list)
+        assigned_workers = [w["worker"] for w in workers]
+        tasks.multicast_post_across_cluster(
+            f"/unit_api/jobs/run/job_name/{job}", assigned_workers, json=json
+        )
 
     else:
         tasks.multicast_post_across_cluster(
