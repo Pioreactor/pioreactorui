@@ -2,8 +2,6 @@
 from __future__ import annotations
 
 import logging
-from concurrent.futures import as_completed
-from concurrent.futures import ThreadPoolExecutor
 from logging import handlers
 from shlex import join
 from subprocess import check_call as run_and_check_call
@@ -257,58 +255,46 @@ def write_config_and_sync(config_path: str, text: str, units: str, flags: str) -
 
 
 @huey.task()
-def multicast_get_across_cluster(endpoint: str, workers: list[str]) -> dict[str, Any]:
-    assert endpoint.startswith("/unit_api")
-
-    result: dict[str, Any] = {}
-
-    def get_worker(worker: str) -> tuple[str, Any]:
-        try:
-            r = get_from(resolve_to_address(worker), endpoint, timeout=6)
-            r.raise_for_status()
-            return worker, r.json()
-        except HTTPException:
-            logger.error(f"Could not get from {worker}'s endpoint {endpoint}. Check connection?")
-            return worker, None
-
-    if len(workers) == 1:
-        result[workers[0]] = get_worker(workers[0])
-    else:
-        with ThreadPoolExecutor(max_workers=2) as executor:
-            futures = {executor.submit(get_worker, worker): worker for worker in workers}
-            for future in as_completed(futures):
-                worker, response = future.result()
-                if response is not None:
-                    result[worker] = response
-
-    return result
+def post_worker(worker: str, endpoint: str, json: dict | None = None) -> tuple[str, Any]:
+    try:
+        r = post_into(resolve_to_address(worker), endpoint, json=json, timeout=1)
+        r.raise_for_status()
+        return worker, r.json()
+    except HTTPException:
+        logger.error(f"Could not post to {worker}'s endpoint {endpoint}. Check connection?")
+        return worker, None
 
 
 @huey.task()
 def multicast_post_across_cluster(
     endpoint: str, workers: list[str], json: dict | None = None
 ) -> dict[str, Any]:
+    # this function "consumes" one huey thread waiting fyi
     assert endpoint.startswith("/unit_api")
 
-    result: dict[str, Any] = {}
+    tasks = post_worker.map(((worker, endpoint, json) for worker in workers))
 
-    def post_worker(worker: str) -> tuple[str, Any]:
-        try:
-            r = post_into(resolve_to_address(worker), endpoint, json=json, timeout=6)
-            r.raise_for_status()
-            return worker, r.json()
-        except HTTPException:
-            logger.error(f"Could not post to {worker}'s endpoint {endpoint}. Check connection?")
-            return worker, None
+    return {worker: response for (worker, response) in tasks.get(blocking=True)}
 
-    if len(workers) == 1:
-        result[workers[0]] = post_worker(workers[0])
-    else:
-        with ThreadPoolExecutor(max_workers=2) as executor:
-            futures = {executor.submit(post_worker, worker): worker for worker in workers}
-            for future in as_completed(futures):
-                worker, response = future.result()
-                if response is not None:
-                    result[worker] = response
 
-    return result
+@huey.task()
+def get_worker(worker: str, endpoint: str, json: dict | None = None) -> tuple[str, Any]:
+    try:
+        r = get_from(resolve_to_address(worker), endpoint, json=json, timeout=1)
+        r.raise_for_status()
+        return worker, r.json()
+    except HTTPException:
+        logger.error(f"Could not get from {worker}'s endpoint {endpoint}. Check connection?")
+        return worker, None
+
+
+@huey.task()
+def multicast_get_across_cluster(
+    endpoint: str, workers: list[str], json: dict | None = None
+) -> dict[str, Any]:
+    # this function "consumes" one huey thread waiting fyi
+    assert endpoint.startswith("/unit_api")
+
+    tasks = get_worker.map(((worker, endpoint, json) for worker in workers))
+
+    return {worker: response for (worker, response) in tasks.get(blocking=True)}
