@@ -3,6 +3,11 @@ from __future__ import annotations
 
 import pytest
 
+from .conftest import capture_requests
+from pioreactorui.config import huey
+
+huey.immediate = True
+
 
 def test_latest_experiment_endpoint(client):
     response = client.get("/api/experiments/latest")
@@ -247,3 +252,53 @@ def test_404_for_unknown_api(client):
 
     response = client.get("/this-doesnt-exist")
     assert response.status_code == 404
+
+
+def test_broadcasting(client):
+    response = client.get("/api/workers")
+    data = response.get_json()
+    count_of_workers = len(data)
+
+    with capture_requests() as bucket:
+        response = client.get("/api/versions/ui")
+
+    assert len(bucket) == count_of_workers
+
+
+def test_broadcast_in_manage_all(client):
+    # regression test
+    with capture_requests() as bucket:
+        client.post(
+            "/api/workers/$broadcast/jobs/run/job_name/stirring/experiments/exp1",
+            json={"options": {"target_rpm": 10}},
+        )
+    assert len(bucket) == 2
+    assert bucket[0].path == "/unit_api/jobs/run/job_name/stirring"
+    assert bucket[0].json == {"options": {"target_rpm": 10}, "env": {"EXPERIMENT": "exp1"}}
+
+    # Remove unit2 from exp1
+    client.delete("/api/experiments/exp1/workers/unit2")
+
+    with capture_requests() as bucket:
+        client.post("/api/workers/$broadcast/jobs/run/job_name/stirring/experiments/exp1", json={})
+    assert len(bucket) == 1
+
+
+def test_run_job(client):
+    # regression test
+    with capture_requests() as bucket:
+        client.post(
+            "/api/workers/unit1/jobs/run/job_name/stirring/experiments/exp1",
+            json={"options": {"target_rpm": 10}},
+        )
+    assert len(bucket) == 1
+    assert bucket[0].path == "/unit_api/jobs/run/job_name/stirring"
+    assert bucket[0].json == {"options": {"target_rpm": 10}, "env": {"EXPERIMENT": "exp1"}}
+
+    # wrong experiment!
+    with capture_requests() as bucket:
+        client.post(
+            "/api/workers/unit1/jobs/run/job_name/stirring/experiments/exp99",
+            json={"options": {"target_rpm": 10}},
+        )
+    assert len(bucket) == 0

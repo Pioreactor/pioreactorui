@@ -1,11 +1,15 @@
 # -*- coding: utf-8 -*-
 from __future__ import annotations
 
+import contextlib
 import sqlite3
+from unittest.mock import patch
+from urllib.parse import urlparse
 
 import pytest
 from flask import g
 from pioreactor.mureq import get
+from pioreactor.mureq import Response
 
 from pioreactorui import _make_dicts
 from pioreactorui import create_app
@@ -42,3 +46,37 @@ def app():
 @pytest.fixture
 def client(app):
     return app.test_client()
+
+
+class CapturedRequest:
+    def __init__(self, method, url, headers, body, json):
+        self.method = method
+        self.url = url
+        self.headers = headers
+        self.body = body
+        self.json = json
+
+        r = urlparse(url)
+
+        self.path = r.path
+
+    def __lt__(self, other):
+        return self.path < other.path
+
+
+@contextlib.contextmanager
+def capture_requests():
+    bucket = []
+
+    def mock_request(method, url, **kwargs):
+        # Capture the request details
+        headers = kwargs.get("headers")
+        body = kwargs.get("body", None)
+        json = kwargs.get("json", None)
+        bucket.append(CapturedRequest(method, url, headers, body, json))
+        # Return a mock response object
+        return Response(url, 200, {}, b'{"mocked": "response"}')
+
+    # Patch the mureq.request method
+    with patch("pioreactor.mureq.request", side_effect=mock_request):
+        yield bucket

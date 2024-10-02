@@ -271,12 +271,15 @@ def multicast_get_across_cluster(endpoint: str, workers: list[str]) -> dict[str,
             logger.error(f"Could not get from {worker}'s endpoint {endpoint}. Check connection?")
             return worker, None
 
-    with ThreadPoolExecutor(max_workers=len(workers)) as executor:
-        futures = {executor.submit(get_worker, worker): worker for worker in workers}
-        for future in as_completed(futures):
-            worker, response = future.result()
-            if response is not None:
-                result[worker] = response
+    if len(workers) == 1:
+        result[workers[0]] = get_worker(workers[0])
+    else:
+        with ThreadPoolExecutor(max_workers=2) as executor:
+            futures = {executor.submit(get_worker, worker): worker for worker in workers}
+            for future in as_completed(futures):
+                worker, response = future.result()
+                if response is not None:
+                    result[worker] = response
 
     return result
 
@@ -298,11 +301,14 @@ def multicast_post_across_cluster(
             logger.error(f"Could not post to {worker}'s endpoint {endpoint}. Check connection?")
             return worker, None
 
-    with ThreadPoolExecutor(max_workers=len(workers)) as executor:
-        futures = {executor.submit(post_worker, worker): worker for worker in workers}
-        for future in as_completed(futures):
-            worker, response = future.result()
-            if response is not None:
-                result[worker] = response
+    if len(workers) == 1:
+        result[workers[0]] = post_worker(workers[0])
+    else:
+        with ThreadPoolExecutor(max_workers=2) as executor:
+            futures = {executor.submit(post_worker, worker): worker for worker in workers}
+            for future in as_completed(futures):
+                worker, response = future.result()
+                if response is not None:
+                    result[worker] = response
 
     return result

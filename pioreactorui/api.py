@@ -167,10 +167,8 @@ def run_job_on_unit_in_experiment(
     }
     """
     json = request.get_json()
-
     if pioreactor_unit == "$broadcast":
         # we can do better: make sure the worker is active, too
-        # and we can include experiment in the env since we know these workers are in the experiment!
         workers = query_app_db(
             """
             SELECT pioreactor_unit as worker
@@ -181,14 +179,35 @@ def run_job_on_unit_in_experiment(
         )
         assert isinstance(workers, list)
         assigned_workers = [w["worker"] for w in workers]
-        tasks.multicast_post_across_cluster(
-            f"/unit_api/jobs/run/job_name/{job}", assigned_workers, json=json
-        )
 
     else:
-        tasks.multicast_post_across_cluster(
-            f"/unit_api/jobs/run/job_name/{job}", [pioreactor_unit], json=json
+        # check if worker is part of experiment
+
+        okay = query_app_db(
+            """
+            SELECT count(1) as count
+            FROM experiment_worker_assignments
+            WHERE experiment = ? AND pioreactor_unit = ?
+            """,
+            (experiment, pioreactor_unit),
+            one=True,
         )
+        assert isinstance(okay, dict)
+        if okay["count"] < 1:
+            assigned_workers = []
+        else:
+            assigned_workers = [pioreactor_unit]
+
+    if len(assigned_workers) == 0:
+        return Response(status=404)
+
+    # and we can include experiment in the env since we know these workers are in the experiment!
+    json["env"] = {"EXPERIMENT": experiment}
+
+    tasks.multicast_post_across_cluster(
+        f"/unit_api/jobs/run/job_name/{job}", assigned_workers, json=json
+    )
+
     return Response(status=202)
 
 
@@ -1022,7 +1041,7 @@ def create_experiment() -> ResponseReturnValue:
             "INSERT INTO experiments (created_at, experiment, description, media_used, organism_used) VALUES (?,?,?,?,?)",
             (
                 current_utc_timestamp(),
-                body["experiment"],
+                proposed_experiment_name,
                 body.get("description"),
                 body.get("mediaUsed"),
                 body.get("organismUsed"),
@@ -1032,8 +1051,11 @@ def create_experiment() -> ResponseReturnValue:
         if row_count == 0:
             raise sqlite3.IntegrityError()
 
-        publish_to_log(
-            f"New experiment created: {body['experiment']}", "create_experiment", level="INFO"
+        publish_to_experiment_log(
+            f"New experiment created: {body['experiment']}",
+            proposed_experiment_name,
+            "create_experiment",
+            level="INFO",
         )
         return Response(status=201)
 
