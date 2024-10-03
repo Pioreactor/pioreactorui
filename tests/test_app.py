@@ -274,7 +274,11 @@ def test_broadcast_in_manage_all(client):
         )
     assert len(bucket) == 2
     assert bucket[0].path == "/unit_api/jobs/run/job_name/stirring"
-    assert bucket[0].json == {"options": {"target_rpm": 10}, "env": {"EXPERIMENT": "exp1"}}
+    assert bucket[0].json == {
+        "args": [],
+        "options": {"target_rpm": 10},
+        "env": {"EXPERIMENT": "exp1", "ACTIVE": "1"},
+    }
 
     # Remove unit2 from exp1
     client.delete("/api/experiments/exp1/workers/unit2")
@@ -293,12 +297,24 @@ def test_run_job(client):
         )
     assert len(bucket) == 1
     assert bucket[0].path == "/unit_api/jobs/run/job_name/stirring"
-    assert bucket[0].json == {"options": {"target_rpm": 10}, "env": {"EXPERIMENT": "exp1"}}
+    assert bucket[0].json == {
+        "args": [],
+        "options": {"target_rpm": 10},
+        "env": {"EXPERIMENT": "exp1", "ACTIVE": "1"},
+    }
 
     # wrong experiment!
     with capture_requests() as bucket:
         client.post(
             "/api/workers/unit1/jobs/run/job_name/stirring/experiments/exp99",
+            json={"options": {"target_rpm": 10}},
+        )
+    assert len(bucket) == 0
+
+    # not active!
+    with capture_requests() as bucket:
+        client.post(
+            "/api/workers/unit4/jobs/run/job_name/stirring/experiments/exp3",
             json={"options": {"target_rpm": 10}},
         )
     assert len(bucket) == 0

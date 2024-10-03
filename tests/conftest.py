@@ -8,6 +8,8 @@ from urllib.parse import urlparse
 
 import pytest
 from flask import g
+from msgspec import Struct
+from msgspec import to_builtins
 from pioreactor.mureq import get
 from pioreactor.mureq import Response
 
@@ -73,6 +75,8 @@ def capture_requests():
         headers = kwargs.get("headers")
         body = kwargs.get("body", None)
         json = kwargs.get("json", None)
+        if isinstance(json, Struct):
+            json = to_builtins(json)
         bucket.append(CapturedRequest(method, url, headers, body, json))
         # Return a mock response object
         return Response(url, 200, {}, b'{"mocked": "response"}')

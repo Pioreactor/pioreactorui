@@ -53,6 +53,7 @@ ALLOWED_ENV = (
     "ACTIVE",
     "PIO_VERSION",
     "FIRMWARE",
+    "ACTIVE",
 )
 
 

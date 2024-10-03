@@ -171,9 +171,11 @@ def run_job_on_unit_in_experiment(
         # we can do better: make sure the worker is active, too
         workers = query_app_db(
             """
-            SELECT pioreactor_unit as worker
-            FROM experiment_worker_assignments
-            WHERE experiment = ?
+            SELECT a.pioreactor_unit as worker
+            FROM experiment_worker_assignments a
+            JOIN workers w
+               on w.pioreactor_unit = a.pioreactor_unit
+            WHERE experiment = ? and w.is_active = 1
             """,
             (experiment,),
         )
@@ -186,8 +188,10 @@ def run_job_on_unit_in_experiment(
         okay = query_app_db(
             """
             SELECT count(1) as count
-            FROM experiment_worker_assignments
-            WHERE experiment = ? AND pioreactor_unit = ?
+            FROM experiment_worker_assignments a
+            JOIN workers w
+               on w.pioreactor_unit = a.pioreactor_unit
+            WHERE a.experiment = ? AND w.pioreactor_unit = ? AND w.is_active = 1
             """,
             (experiment, pioreactor_unit),
             one=True,
@@ -202,7 +206,7 @@ def run_job_on_unit_in_experiment(
         return Response(status=404)
 
     # and we can include experiment in the env since we know these workers are in the experiment!
-    json.env = {"EXPERIMENT": experiment}
+    json.env = {"EXPERIMENT": experiment, "ACTIVE": "1"}
 
     t = tasks.multicast_post_across_cluster(
         f"/unit_api/jobs/run/job_name/{job}", assigned_workers, json=json
