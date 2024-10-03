@@ -23,25 +23,21 @@ INSERT INTO pioreactor_unit_labels (experiment, pioreactor_unit, label, created_
 ('exp3', 'unit4', 'Reactor 4', '2023-10-03T09:00:00Z');
 
 INSERT INTO logs (experiment, pioreactor_unit, timestamp, message, source, level, task) VALUES
-('exp1', 'unit1', '2023-10-01T12:10:00Z', 'Started mixing', 'mixer', 'INFO', 'mixing_task'),
-('exp1', 'unit2', '2023-10-01T12:15:00Z', 'OD reading taken', 'sensor', 'INFO', 'od_reading_task'),
-('exp2', 'unit3', '2023-10-02T15:45:00Z', 'Temperature set', 'heater', 'INFO', 'temperature_task'),
-('exp3', 'unit4', '2023-10-03T09:45:00Z', 'Experiment started', 'system', 'INFO', 'startup_task');
+('exp1', 'unit1', '2023-10-01T12:10:00Z', 'Started mixing', 'mixer', 'INFO', 'stirring'),
+('exp1', 'unit2', '2023-10-01T12:15:00Z', 'OD reading taken', 'sensor', 'INFO', 'od_reading'),
+('exp2', 'unit3', '2023-10-02T15:45:00Z', 'Temperature set', 'heater', 'INFO', 'temperature_automation'),
 
-INSERT INTO dosing_events (experiment, pioreactor_unit, timestamp, event, volume_change_ml, source_of_event) VALUES
-('exp1', 'unit1', '2023-10-01T12:20:00Z', 'Add media', 5.0, 'automated'),
-('exp1', 'unit2', '2023-10-01T12:25:00Z', 'Remove waste', -5.0, 'automated'),
-('exp2', 'unit3', '2023-10-02T16:00:00Z', 'Add media', 4.5, 'manual'),
-('exp3', 'unit4', '2023-10-03T10:00:00Z', 'Add media', 6.0, 'automated');
 
 INSERT INTO od_readings (experiment, pioreactor_unit, timestamp, od_reading, angle, channel) VALUES
-('exp1', 'unit1', '2023-10-01T12:15:00Z', 0.5, 180, 1),
-('exp1', 'unit2', '2023-10-01T12:15:00Z', 0.6, 180, 1),
-('exp2', 'unit3', '2023-10-02T15:50:00Z', 0.4, 180, 1),
-('exp3', 'unit4', '2023-10-03T09:50:00Z', 0.7, 180, 1);
+('exp1', 'unit1', '2023-10-01T12:15:00Z', 0.5, "90", "1"),
+('exp1', 'unit1', '2023-10-01T12:15:05Z', 0.5, "90", "1"),
+('exp1', 'unit1', '2023-10-01T12:15:10Z', 0.5, "90", "1"),
+('exp1', 'unit2', '2023-10-01T12:15:00Z', 0.6, "90", "1"),
+('exp1', 'unit2', '2023-10-01T12:15:05Z', 0.6, "90", "1"),
+('exp1', 'unit2', '2023-10-01T12:15:10Z', 0.6, "90", "1"),
 
 INSERT INTO growth_rates (experiment, pioreactor_unit, timestamp, rate) VALUES
-('exp1', 'unit1', '2023-10-01T13:00:00Z', 0.02),
-('exp1', 'unit2', '2023-10-01T13:00:00Z', 0.025),
-('exp2', 'unit3', '2023-10-02T16:00:00Z', 0.018),
-('exp3', 'unit4', '2023-10-03T10:30:00Z', 0.03);
+('exp1', 'unit1', '2023-10-01T13:00:00Z', 0.01),
+('exp1', 'unit1', '2023-10-01T13:05:00Z', 0.02),
+('exp1', 'unit2', '2023-10-01T13:00:00Z', 0.00),
+('exp1', 'unit2', '2023-10-01T13:05:00Z', 0.00),

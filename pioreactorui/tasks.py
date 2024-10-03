@@ -113,7 +113,7 @@ def update_app_from_release_archive_across_cluster(archive_location: str) -> boo
 
 @huey.task()
 def pio(*args: str, env: dict[str, str] | None = None) -> tuple[bool, str]:
-    logger.info(f'Executing `{join(("pio",) + args)}`')
+    logger.info(f'Executing `{join(("pio",) + args)}`, {env=}')
     result = run((PIO_EXECUTABLE,) + args, capture_output=True, text=True, env=env)
     if result.returncode != 0:
         return False, result.stderr.strip()
@@ -126,7 +126,7 @@ def pio_run(*args: str, env: dict[str, str] | None = None) -> bool:
     # for long running pio run jobs where we don't care about the output / status
     command = (PIO_EXECUTABLE, "run") + args
     env = {k: v for k, v in (env or {}).items() if k in ALLOWED_ENV}
-    logger.info(f"Executing `{join(command)}`")
+    logger.info(f"Executing `{join(command)}`, {env=}")
     Popen(command, env=env, start_new_session=True, stdout=DEVNULL, stderr=STDOUT)
     return True
 
@@ -136,7 +136,7 @@ def pio_run(*args: str, env: dict[str, str] | None = None) -> bool:
 def pio_run_export_experiment_data(
     *args: str, env: dict[str, str] | None = None
 ) -> tuple[bool, str]:
-    logger.info(f'Executing `{join(("pio", "run", "export_experiment_data") + args)}`')
+    logger.info(f'Executing `{join(("pio", "run", "export_experiment_data") + args)}`, {env=}')
     result = run(
         (PIO_EXECUTABLE, "run", "export_experiment_data") + args,
         capture_output=True,
@@ -151,7 +151,7 @@ def pio_run_export_experiment_data(
 
 @huey.task()
 def pio_kill(*args: str, env: dict[str, str] | None = None) -> bool:
-    logger.info(f'Executing `{join(("pio", "kill") + args)}`')
+    logger.info(f'Executing `{join(("pio", "kill") + args)}`, {env=}')
     result = run((PIO_EXECUTABLE, "kill") + args, env=env)
     return result.returncode == 0
 
@@ -161,7 +161,7 @@ def pio_kill(*args: str, env: dict[str, str] | None = None) -> bool:
 def pio_plugins(*args: str, env: dict[str, str] | None = None) -> bool:
     # install / uninstall only
     assert args[0] in ("install", "uninstall")
-    logger.info(f'Executing `{join(("pio", "plugins") + args)}`')
+    logger.info(f'Executing `{join(("pio", "plugins") + args)}`, {env=}')
     result = run((PIO_EXECUTABLE, "plugins") + args, env=env)
     return result.returncode == 0
 
@@ -169,7 +169,7 @@ def pio_plugins(*args: str, env: dict[str, str] | None = None) -> bool:
 @huey.task()
 @huey.lock_task("update-lock")
 def pio_update_app(*args: str, env: dict[str, str] | None = None) -> bool:
-    logger.info(f'Executing `{join(("pio", "update", "app") + args)}`')
+    logger.info(f'Executing `{join(("pio", "update", "app") + args)}`, {env=}')
     result = run((PIO_EXECUTABLE, "update", "app") + args, env=env)
     return result.returncode == 0
 
@@ -177,7 +177,7 @@ def pio_update_app(*args: str, env: dict[str, str] | None = None) -> bool:
 @huey.task()
 @huey.lock_task("update-lock")
 def pio_update(*args: str, env: dict[str, str] | None = None) -> bool:
-    logger.info(f'Executing `{join(("pio", "update") + args)}`')
+    logger.info(f'Executing `{join(("pio", "update") + args)}`, {env=}')
     run((PIO_EXECUTABLE, "update") + args, env=env)
     # this always returns >0 because it kills huey, I think, so just return true
     return True
@@ -186,7 +186,7 @@ def pio_update(*args: str, env: dict[str, str] | None = None) -> bool:
 @huey.task()
 @huey.lock_task("update-lock")
 def pio_update_ui(*args: str, env: dict[str, str] | None = None) -> bool:
-    logger.info(f'Executing `{join(("pio", "update", "ui") + args)}`')
+    logger.info(f'Executing `{join(("pio", "update", "ui") + args)}`, {env=}')
     run((PIO_EXECUTABLE, "update", "ui") + args, env=env)
     # this always returns >0 because it kills huey, I think, so just return true
     return True
@@ -215,7 +215,7 @@ def reboot() -> bool:
 
 @huey.task()
 def pios(*args: str, env: dict[str, str] | None = None) -> tuple[bool, str]:
-    logger.info(f'Executing `{join(("pios",) + args + ("-y",))}`')
+    logger.info(f'Executing `{join(("pios",) + args + ("-y",))}`, {env=}')
     result = run((PIOS_EXECUTABLE,) + args + ("-y",), capture_output=True, text=True, env=env)
     if result.returncode != 0:
         return False, result.stderr.strip()
