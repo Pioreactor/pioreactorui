@@ -302,3 +302,18 @@ def test_run_job(client):
             json={"options": {"target_rpm": 10}},
         )
     assert len(bucket) == 0
+
+
+def test_run_job_response(client):
+    # regression test
+    run_post_response = client.post(
+        "/api/workers/unit1/jobs/run/job_name/stirring/experiments/exp1",
+        json={"options": {"target_rpm": 10}},
+    )
+    assert run_post_response.status_code == 202
+    task_data = run_post_response.get_json()
+
+    multicast_task_query_response = client.get(task_data["result_url_path"])
+    assert multicast_task_query_response.status_code == 200
+    multicast_task_data = multicast_task_query_response.get_json()
+    assert multicast_task_data["status"] == "complete"

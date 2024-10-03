@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import annotations
 
-import json
 import logging
 import sqlite3
 import tempfile
@@ -13,6 +12,9 @@ from logging import handlers
 import paho.mqtt.client as mqtt
 from flask import Flask
 from flask import g
+from flask.json.provider import JSONProvider
+from msgspec.json import decode as loads
+from msgspec.json import encode as dumps
 from paho.mqtt.enums import CallbackAPIVersion
 from pioreactor.config import config as pioreactor_config
 from pioreactor.config import get_leader_hostname
@@ -82,11 +84,14 @@ def create_app():
         if db is not None:
             db.close()
 
+    app.json = MsgspecJsonProvider(app)
+    app.get_json = app.json.loads
+
     return app
 
 
-def msg_to_JSON(msg: str, task: str, level: str) -> str:
-    return json.dumps(
+def msg_to_JSON(msg: str, task: str, level: str) -> bytes:
+    return dumps(
         {
             "message": msg.strip(),
             "task": task,
@@ -105,7 +110,7 @@ def publish_to_experiment_log(msg: str | t.Any, experiment: str, task: str, leve
     if not isinstance(msg, str):
         # attempt to serialize
         try:
-            msg = json.dumps(msg)
+            msg = dumps(msg)
         except TypeError:
             msg = str(msg)
 
@@ -179,3 +184,14 @@ def modify_app_db(statement: str, args=()) -> int:
         row_changes = cur.rowcount
         cur.close()
     return row_changes
+
+
+class MsgspecJsonProvider(JSONProvider):
+    def dumps(self, obj, **kwargs):
+        return dumps(obj)
+
+    def loads(self, obj, type=None, **kwargs):
+        if type is not None:
+            return loads(obj, type=type)
+        else:
+            return loads(obj)

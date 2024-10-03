@@ -80,3 +80,9 @@ class ChartDescriptor(Struct, forbid_unknown_fields=True):  # type: ignore
         "stepAfter",
         "stepBefore",
     ] = "stepAfter"
+
+
+class ArgsOptionsEnvs(Struct):
+    options: dict[str, t.Any] = {}
+    env: dict[str, str] = {}
+    args: list[str] = []

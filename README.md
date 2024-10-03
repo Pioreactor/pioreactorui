@@ -10,7 +10,7 @@ TESTING=1 python3 -m flask --debug --app pioreactorui/main run -p 4999
 Run background workers with:
 
 ```
-TESTING=1 huey_consumer pioreactorui.tasks.huey -n -b 1.0 -w 2 -f -C
+TESTING=1 huey_consumer pioreactorui.tasks.huey -n -b 1.0 -w 6 -f -C -d 0.05
 ```
 
 ### Production

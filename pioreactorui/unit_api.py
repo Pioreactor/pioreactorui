@@ -8,13 +8,13 @@ from time import sleep
 
 from flask import abort
 from flask import Blueprint
+from flask import current_app
 from flask import jsonify
 from flask import request
 from flask import Response
 from flask.typing import ResponseReturnValue
 from huey.exceptions import HueyException
 from huey.exceptions import TaskException
-from msgspec.json import encode as dumps
 from pioreactor.config import get_leader_hostname
 
 from . import HOSTNAME
@@ -25,6 +25,7 @@ from .config import cache
 from .config import env
 from .config import huey
 from .utils import create_task_response
+from pioreactorui import structs
 
 
 unit_api = Blueprint("unit_api", __name__, url_prefix="/unit_api")
@@ -59,11 +60,11 @@ def update_target(target) -> ResponseReturnValue:
     if target not in ("app", "ui"):  # todo: firmware
         abort(404)
 
-    body = request.get_json()
+    body = current_app.get_json(request.data, type=structs.ArgsOptionsEnvs)
 
     commands: tuple[str, ...] = tuple()
-    commands += tuple(body.get("args", []))
-    for option, value in body.get("options", {}).items():
+    commands += tuple(body.args)
+    for option, value in body.options.items():
         commands += (f"--{option.replace('_', '-')}",)
         if value is not None:
             commands += (str(value),)
@@ -80,11 +81,11 @@ def update_target(target) -> ResponseReturnValue:
 
 @unit_api.route("/system/update", methods=["POST", "PATCH"])
 def update_app_and_ui() -> ResponseReturnValue:
-    body = request.get_json()
+    body = current_app.get_json(request.data, type=structs.ArgsOptionsEnvs)
 
     commands: tuple[str, ...] = tuple()
-    commands += tuple(body.get("args", []))
-    for option, value in body.get("options", {}).items():
+    commands += tuple(body.args)
+    for option, value in body.options.items():
         commands += (f"--{option.replace('_', '-')}",)
         if value is not None:
             commands += (str(value),)
@@ -160,10 +161,10 @@ def run_job(job: str) -> ResponseReturnValue:
     if is_rate_limited(job):
         return jsonify({"error": "Too many requests, please try again later."}), 429
 
-    body = request.get_json()
-    args = body.get("args", [])
-    options = body.get("options", {})
-    env = body.get("env", {})
+    body = current_app.get_json(request.data, type=structs.ArgsOptionsEnvs)
+    args = body.args
+    options = body.options
+    env = body.env
 
     commands: tuple[str, ...] = (job,)
     commands += tuple(args)
@@ -302,11 +303,11 @@ def install_plugin() -> ResponseReturnValue:
     if os.path.isfile(Path(env["DOT_PIOREACTOR"]) / "DISALLOW_UI_INSTALLS"):
         return Response(status=403)
 
-    body = request.get_json()
+    body = current_app.get_json(request.data, type=structs.ArgsOptionsEnvs)
 
     commands: tuple[str, ...] = ("install",)
-    commands += tuple(body.get("args", []))
-    for option, value in body.get("options", {}).items():
+    commands += tuple(body.args)
+    for option, value in body.options.items():
         commands += (f"--{option.replace('_', '-')}",)
         if value is not None:
             commands += (str(value),)
@@ -327,11 +328,11 @@ def uninstall_plugin() -> ResponseReturnValue:
       "args": ["arg1", "arg2"]
     }
     """
-    body = request.get_json()
+    body = current_app.get_json(request.data, type=structs.ArgsOptionsEnvs)
 
     commands: tuple[str, ...] = ("uninstall",)
-    commands += tuple(body.get("args", []))
-    for option, value in body.get("options", {}).items():
+    commands += tuple(body.args)
+    for option, value in body.options.items():
         commands += (f"--{option.replace('_', '-')}",)
         if value is not None:
             commands += (str(value),)
@@ -353,7 +354,7 @@ def get_app_version() -> ResponseReturnValue:
     if result.returncode != 0:
         return Response(status=500)
     return Response(
-        response=dumps({"version": result.stdout.strip()}),
+        response=current_app.json.dumps({"version": result.stdout.strip()}),
         status=200,
         mimetype="text/json",
         headers={"Cache-Control": "public,max-age=60"},
@@ -363,7 +364,7 @@ def get_app_version() -> ResponseReturnValue:
 @unit_api.route("/versions/ui", methods=["GET"])
 def get_ui_version() -> ResponseReturnValue:
     return Response(
-        response=dumps({"version": VERSION}),
+        response=current_app.json.dumps({"version": VERSION}),
         status=200,
         mimetype="text/json",
         headers={"Cache-Control": "public,max-age=60"},

@@ -11,6 +11,7 @@ from typing import Any
 
 from flask import abort
 from flask import Blueprint
+from flask import current_app
 from flask import jsonify
 from flask import request
 from flask import Response
@@ -19,8 +20,6 @@ from huey.api import Result
 from huey.exceptions import HueyException
 from msgspec import DecodeError
 from msgspec import ValidationError
-from msgspec.json import decode as json_decode
-from msgspec.json import encode as json_encode
 from msgspec.yaml import decode as yaml_decode
 from pioreactor.config import get_leader_hostname
 from pioreactor.experiment_profiles.profile_struct import Profile
@@ -166,7 +165,8 @@ def run_job_on_unit_in_experiment(
       "args": ["arg1", "arg2"]
     }
     """
-    json = request.get_json()
+    json = current_app.get_json(request.data, type=structs.ArgsOptionsEnvs)
+
     if pioreactor_unit == "$broadcast":
         # we can do better: make sure the worker is active, too
         workers = query_app_db(
@@ -202,13 +202,12 @@ def run_job_on_unit_in_experiment(
         return Response(status=404)
 
     # and we can include experiment in the env since we know these workers are in the experiment!
-    json["env"] = {"EXPERIMENT": experiment}
+    json.env = {"EXPERIMENT": experiment}
 
-    tasks.multicast_post_across_cluster(
+    t = tasks.multicast_post_across_cluster(
         f"/unit_api/jobs/run/job_name/{job}", assigned_workers, json=json
     )
-
-    return Response(status=202)
+    return create_task_response(t)
 
 
 @api.route("/units/<pioreactor_unit>/jobs/running", methods=["GET"])
@@ -226,7 +225,7 @@ def blink_worker(pioreactor_unit: str) -> ResponseReturnValue:
         f"pioreactor/{pioreactor_unit}/$experiment/monitor/flicker_led_response_okay", 1, qos=0
     )
     msg.wait_for_publish(timeout=2.0)
-    return
+    return Response(status=202)
 
 
 @api.route(
@@ -649,7 +648,7 @@ def get_current_calibrations_of_type(
 
         if r is not None:
             assert isinstance(r, dict)
-            r["data"] = json_decode(r["data"])
+            r["data"] = current_app.json.loads(r["data"])
             return jsonify(r)
         else:
             return Response(status=404)
@@ -674,7 +673,7 @@ def get_calibration_by_name(
         )
         if r is not None:
             assert isinstance(r, dict)
-            r["data"] = json_decode(r["data"])
+            r["data"] = current_app.json.loads(r["data"])
             return jsonify(r)
         else:
             return Response(status=404)
@@ -741,7 +740,7 @@ def create_or_update_new_calibrations() -> ResponseReturnValue:
                 body["pioreactor_unit"],
                 body["created_at"],
                 body["type"],
-                json_encode(
+                current_app.json.dumps(
                     body
                 ).decode(),  # keep it as a string, not bytes, probably equivalent to request.get_data(as_text=True)
                 body["name"],
@@ -860,7 +859,7 @@ def get_automation_contrib(automation_type: str) -> ResponseReturnValue:
                 )
 
         return Response(
-            response=json_encode(list(parsed_yaml.values())),
+            response=current_app.json.dumps(list(parsed_yaml.values())),
             status=200,
             mimetype="application/json",
             headers={"Cache-Control": "public,max-age=10"},
@@ -888,7 +887,7 @@ def get_job_contrib() -> ResponseReturnValue:
                 publish_to_error_log(f"Yaml error in {Path(file).name}: {e}", "get_job_contrib")
 
         return Response(
-            response=json_encode(list(parsed_yaml.values())),
+            response=current_app.json.dumps(list(parsed_yaml.values())),
             status=200,
             mimetype="application/json",
             headers={"Cache-Control": "public,max-age=10"},
@@ -917,7 +916,7 @@ def get_charts_contrib() -> ResponseReturnValue:
                 publish_to_error_log(f"Yaml error in {Path(file).name}: {e}", "get_charts_contrib")
 
         return Response(
-            response=json_encode(list(parsed_yaml.values())),
+            response=current_app.json.dumps(list(parsed_yaml.values())),
             status=200,
             mimetype="application/json",
             headers={"Cache-Control": "public,max-age=10"},
@@ -1084,7 +1083,7 @@ def delete_experiment(experiment: str) -> ResponseReturnValue:
 def get_latest_experiment() -> ResponseReturnValue:
     try:
         return Response(
-            response=json_encode(
+            response=current_app.json.dumps(
                 query_app_db(
                     "SELECT experiment, created_at, description, media_used, organism_used, delta_hours FROM latest_experiment",
                     one=True,
@@ -1120,7 +1119,7 @@ def get_unit_labels(experiment: str) -> ResponseReturnValue:
         keyed_by_unit = {d["unit"]: d["label"] for d in unit_labels}
 
         return Response(
-            response=json_encode(keyed_by_unit),
+            response=current_app.json.dumps(keyed_by_unit),
             status=200,
             headers={"Cache-Control": "public,max-age=10"},
             mimetype="application/json",
@@ -1544,7 +1543,7 @@ def get_experiment_profiles() -> ResponseReturnValue:
                 )
 
         return Response(
-            response=json_encode(parsed_yaml),
+            response=current_app.json.dumps(parsed_yaml),
             status=200,
             mimetype="application/json",
         )
