@@ -124,7 +124,7 @@ def pio(*args: str, env: dict[str, str] | None = None) -> tuple[bool, str]:
 @huey.task()
 def pio_run(*args: str, env: dict[str, str] | None = None) -> bool:
     # for long running pio run jobs where we don't care about the output / status
-    command = (PIO_EXECUTABLE, "run") + args
+    command = ("nohup", PIO_EXECUTABLE, "run") + args
     env = {k: v for k, v in (env or {}).items() if k in ALLOWED_ENV}
     logger.info(f"Executing `{join(command)}`, {env=}")
     Popen(command, env=env, start_new_session=True, stdout=DEVNULL, stderr=STDOUT)
