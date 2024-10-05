@@ -949,6 +949,7 @@ def update_app_from_release_archive() -> ResponseReturnValue:
 def export_datasets() -> ResponseReturnValue:
     body = request.get_json()
 
+    other_options: list[str] = []
     cmd_tables: list[str] = sum(
         [
             ["--tables", table_name]
@@ -957,7 +958,12 @@ def export_datasets() -> ResponseReturnValue:
         ],
         [],
     )
-    experiment_name = body["experimentSelection"]
+
+    experiment_name: str = body["experimentSelection"]
+    partition_by_unit: bool = body["partitionByUnitSelection"]
+
+    if partition_by_unit:
+        other_options += ["--partition-by-unit"]
 
     timestamp = current_utc_datetime().strftime("%Y%m%d%H%M%S")
     if experiment_name == "<All experiments>":
@@ -975,10 +981,7 @@ def export_datasets() -> ResponseReturnValue:
 
     filename_with_path = Path("/var/www/pioreactorui/static/exports") / filename
     result = tasks.pio_run_export_experiment_data(  # uses a lock so multiple exports can't happen simultaneously.
-        "--output",
-        filename_with_path.as_posix(),
-        *cmd_tables,
-        *experiment_options,
+        "--output", filename_with_path.as_posix(), *cmd_tables, *experiment_options, *other_options
     )
     try:
         status, msg = result(blocking=True, timeout=5 * 60)
