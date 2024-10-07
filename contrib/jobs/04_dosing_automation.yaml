@@ -26,7 +26,7 @@ published_settings:
     type: numeric
     default: null
     display: true
-    description: Change the target normalized optical density. Typical values are between 1.0 AU and 10.0 AU.
+    description: Change the target normalized optical density. Typical values are between 1.0 AU and 100.0 AU.
   - key: target_od
     unit: OD
     label: Target OD

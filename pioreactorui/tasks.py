@@ -54,6 +54,7 @@ ALLOWED_ENV = (
     "PIO_VERSION",
     "FIRMWARE",
     "ACTIVE",
+    "DEBUG",
 )
 
 

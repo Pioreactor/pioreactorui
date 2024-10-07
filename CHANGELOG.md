@@ -1,3 +1,12 @@
+### 24.10.7
+ - New dataset exports from the Export data page in the UI: calibrations and liquid-volumes.
+ - Added a "partition by unit" option to the Export data page that will create a csv per Pioreactor in the export, instead of grouping them all together.
+ - faster UI response times when starting jobs
+ - Because we are now storing `liquid_volume` in the database, you can add charts in the UI that track the volume over time:
+    1. Add the following yaml contents to `~/.pioreactor/plugins/contrib/charts/lqiuid_volume.yaml`: https://gist.github.com/CamDavidsonPilon/95eef30189101da69f706d02ef28d972
+    2. In your config.ini, under `ui.overview.charts`, add the line `liquid_volume=1`.
+
+
 ### 24.10.1
  - bug fix for "Manage all" that would start activities in all Pioreactors, whether they were in the experiment or not.
  - fix for bug when clicking a legend element it not hiding
