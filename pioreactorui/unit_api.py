@@ -177,23 +177,6 @@ def run_job(job: str) -> ResponseReturnValue:
     return create_task_response(task)
 
 
-@unit_api.route("/jobs/update/job_name/<job>", methods=["PATCH"])
-def update_job(job: str) -> ResponseReturnValue:
-    # DONT USE YET
-    """
-    The body should look like:
-
-    {
-      "settings": {
-        <setting1>: <value1>,
-        <setting2>: <value2>
-      },
-    }
-    """
-    # body = request.get_json()
-    return Response(status=503)
-
-
 @unit_api.route("/jobs/stop/all", methods=["PATCH", "POST"])
 def stop_all_jobs() -> ResponseReturnValue:
     task = tasks.pio_kill("--all-jobs")
@@ -202,7 +185,7 @@ def stop_all_jobs() -> ResponseReturnValue:
 
 @unit_api.route("/jobs/stop/job_name/<job_name>", methods=["PATCH", "POST"])
 def stop_job_by_name(job_name: str) -> ResponseReturnValue:
-    task = tasks.pio_kill("--name", job_name)
+    task = tasks.pio_kill("--job-name", job_name)
     return create_task_response(task)
 
 
@@ -233,6 +216,72 @@ def get_all_running_jobs() -> ResponseReturnValue:
     jobs = query_local_metadata_db("SELECT * FROM pio_job_metadata where is_running=1")
 
     return jsonify(jobs)
+
+
+### SETTINGS
+
+
+@unit_api.route("/jobs/settings/job_name/<job_name>", methods=["GET"])
+def get_settings_for_a_specific_job(job_name) -> ResponseReturnValue:
+    """
+    {
+      "settings": {
+        <setting1>: <value1>,
+        <setting2>: <value2>
+      }
+    }
+    """
+    settings = query_local_metadata_db(
+        """
+    SELECT s.setting, s.value FROM
+        pio_job_published_settings s
+        JOIN pio_job_metadata m
+            on m.id = s.job_id
+        WHERE m.is_running=1 AND m.job_name=(?);
+    """,
+        (job_name,),
+    )
+    assert isinstance(settings, list)
+    if settings:
+        return jsonify({"settings": {s["setting"]: s["value"] for s in settings}})
+    else:
+        return Response(status=404)
+
+
+@unit_api.route("/jobs/settings/job_name/<job_name>/setting/<setting>", methods=["GET"])
+def get_specific_setting_for_a_job(job_name, setting) -> ResponseReturnValue:
+    setting = query_local_metadata_db(
+        """
+    SELECT s.setting, s.value FROM
+        pio_job_published_settings s
+        JOIN pio_job_metadata m
+            on m.id = s.job_id
+        WHERE m.is_running=1 AND m.job_name=(?) AND setting = (?)
+    """,
+        (job_name, setting),
+        one=True,
+    )
+    if setting:
+        return jsonify({setting["setting"]: setting["value"]})
+    else:
+        return Response(status=404)
+
+
+@unit_api.route("/jobs/settings/job_name/<job_name>", methods=["PATCH"])
+def update_job(job: str) -> ResponseReturnValue:
+    # DONT USE YET
+    """
+    The body should look like:
+
+    {
+      "settings": {
+        <setting1>: <value1>,
+        <setting2>: <value2>
+      },
+    }
+    """
+    # body = request.get_json()
+    return Response(status=503)
 
 
 ### PLUGINS

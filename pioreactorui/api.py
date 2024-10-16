@@ -25,6 +25,8 @@ from pioreactor.config import get_leader_hostname
 from pioreactor.experiment_profiles.profile_struct import Profile
 from pioreactor.pubsub import get_from
 from pioreactor.utils.networking import resolve_to_address
+from pioreactor.whoami import UNIVERSAL_EXPERIMENT
+from pioreactor.whoami import UNIVERSAL_IDENTIFIER
 from werkzeug.utils import secure_filename
 
 from . import client
@@ -47,6 +49,18 @@ from .utils import scrub_to_valid
 
 
 api = Blueprint("api", __name__, url_prefix="/api")
+
+
+def get_workers_in_experiment(experiment: str) -> list[str]:
+    if experiment == UNIVERSAL_EXPERIMENT:
+        r = query_app_db("SELECT pioreactor_unit FROM workers")
+    else:
+        r = query_app_db(
+            "SELECT pioreactor_unit FROM experiment_worker_assignments WHERE experiment = ?",
+            (experiment,),
+        )
+    assert isinstance(r, list)
+    return [unit["pioreactor_unit"] for unit in r]
 
 
 def broadcast_get_across_cluster(endpoint: str) -> dict[str, Any]:
@@ -79,19 +93,12 @@ def broadcast_post_across_cluster(endpoint: str, json: dict | None = None) -> Re
 @api.route("/workers/jobs/stop/experiments/<experiment>", methods=["POST", "PATCH"])
 def stop_all_jobs_in_experiment(experiment: str) -> ResponseReturnValue:
     """Kills all jobs for workers assigned to experiment"""
-    r = query_app_db(
-        "SELECT pioreactor_unit FROM experiment_worker_assignments WHERE experiment = ?",
-        (experiment,),
-    )
-    assert isinstance(r, list)
-
-    # kill all jobs on workers
-    workers_in_experiment = [worker["pioreactor_unit"] for worker in r]
+    workers_in_experiment = get_workers_in_experiment(experiment)
     tasks.multicast_post_across_cluster(
         f"/unit_api/jobs/stop/experiment/{experiment}", workers_in_experiment
     )
 
-    # sometimes the leader-worker isn't part of the experiment, but a profile associated with the experiment is running:
+    # sometimes the leader isn't part of the experiment, but a profile associated with the experiment is running:
     tasks.pio_kill("--experiment", experiment)
 
     return Response(status=202)
@@ -105,7 +112,7 @@ def stop_all_jobs_on_worker_for_experiment(
     pioreactor_unit: str, experiment: str
 ) -> ResponseReturnValue:
     """Kills all jobs for worker assigned to experiment"""
-    if pioreactor_unit == "$broadcast":
+    if pioreactor_unit == UNIVERSAL_IDENTIFIER:
         broadcast_post_across_cluster(f"/unit_api/jobs/stop/experiment/{experiment}")
     else:
         tasks.multicast_post_across_cluster(
@@ -167,7 +174,7 @@ def run_job_on_unit_in_experiment(
     """
     json = current_app.get_json(request.data, type=structs.ArgsOptionsEnvs)
 
-    if pioreactor_unit == "$broadcast":
+    if pioreactor_unit == UNIVERSAL_IDENTIFIER:
         # we can do better: make sure the worker is active, too
         workers = query_app_db(
             """
@@ -265,8 +272,6 @@ def update_job_on_unit(pioreactor_unit: str, experiment: str, job: str) -> Respo
            }
          }'
     ```
-
-
     """
     try:
         for setting, value in request.get_json()["settings"].items():
@@ -285,7 +290,7 @@ def update_job_on_unit(pioreactor_unit: str, experiment: str, job: str) -> Respo
 @api.route("/units/<pioreactor_unit>/system/reboot", methods=["POST"])
 def reboot_unit(pioreactor_unit: str) -> ResponseReturnValue:
     """Reboots unit"""
-    if pioreactor_unit == "$broadcast":
+    if pioreactor_unit == UNIVERSAL_IDENTIFIER:
         task = broadcast_post_across_cluster("/unit_api/system/reboot")
     else:
         task = tasks.multicast_post_across_cluster("/unit_api/system/reboot", [pioreactor_unit])
@@ -295,7 +300,7 @@ def reboot_unit(pioreactor_unit: str) -> ResponseReturnValue:
 @api.route("/units/<pioreactor_unit>/system/shutdown", methods=["POST"])
 def shutdown_unit(pioreactor_unit: str) -> ResponseReturnValue:
     """Shutdown unit"""
-    if pioreactor_unit == "$broadcast":
+    if pioreactor_unit == UNIVERSAL_IDENTIFIER:
         task = broadcast_post_across_cluster("/unit_api/system/shutdown")
     else:
         task = tasks.multicast_post_across_cluster("/unit_api/system/shutdown", [pioreactor_unit])
@@ -791,6 +796,73 @@ def uninstall_plugin_across_cluster() -> ResponseReturnValue:
 @api.route("/jobs/running", methods=["GET"])
 def get_jobs_running_across_cluster() -> ResponseReturnValue:
     return create_task_response(broadcast_get_across_cluster("/unit_api/jobs/running"))
+
+
+@api.route("/jobs/running/experiments/<experiment>", methods=["GET"])
+def get_jobs_running_across_cluster_in_experiment(experiment) -> ResponseReturnValue:
+    list_of_assigned_workers = get_workers_in_experiment(experiment)
+
+    return create_task_response(
+        tasks.multicast_get_across_cluster("/unit_api/jobs/running", list_of_assigned_workers)
+    )
+
+
+### SETTINGS
+
+
+@api.route("/jobs/settings/job_name/<job_name>/experiments/<experiment>", methods=["GET"])
+def get_settings_for_job_across_cluster_in_experiment(job_name, experiment) -> ResponseReturnValue:
+    list_of_assigned_workers = get_workers_in_experiment(experiment)
+    return create_task_response(
+        tasks.multicast_get_across_cluster(
+            f"/unit_api/jobs/settings/job_name/{job_name}", list_of_assigned_workers
+        )
+    )
+
+
+@api.route(
+    "/jobs/settings/job_name/<job_name>/experiments/<experiment>/setting/<setting>", methods=["GET"]
+)
+def get_setting_for_job_across_cluster_in_experiment(
+    job_name, experiment, setting
+) -> ResponseReturnValue:
+    list_of_assigned_workers = get_workers_in_experiment(experiment)
+    return create_task_response(
+        tasks.multicast_get_across_cluster(
+            f"/unit_api/jobs/settings/job_name/{job_name}/setting/{setting}",
+            list_of_assigned_workers,
+        )
+    )
+
+
+@api.route("/jobs/settings/workers/<pioreactor_unit>/job_name/<job_name>", methods=["GET"])
+def get_job_settings_for_worker(pioreactor_unit, job_name) -> ResponseReturnValue:
+    return create_task_response(
+        tasks.multicast_get_across_cluster(
+            f"/unit_api/jobs/settings/job_name/{job_name}", [pioreactor_unit]
+        )
+    )
+
+
+@api.route(
+    "/api/jobs/settings/workers/<pioreactor_unit>/job_name/<job_name>/setting/<setting>>",
+    methods=["GET"],
+)
+def get_job_setting_for_worker(pioreactor_unit, job_name, setting) -> ResponseReturnValue:
+    return create_task_response(
+        tasks.multicast_get_across_cluster(
+            f"/unit_api/jobs/settings/job_name/{job_name}/setting/{setting}", [pioreactor_unit]
+        )
+    )
+
+
+@api.route("/jobs/settings/job_name/<job_name>/setting/<setting>", methods=["GET"])
+def get_setting_for_job_across_cluster(job_name, setting) -> ResponseReturnValue:
+    return create_task_response(
+        broadcast_get_across_cluster(
+            f"/unit_api/jobs/settings/job_name/{job_name}/setting/{setting}"
+        )
+    )
 
 
 @api.route("/versions/app", methods=["GET"])
@@ -1363,7 +1435,7 @@ def update_config(filename: str) -> ResponseReturnValue:
         units = is_unit_specific[1]
         flags = "--specific"
     else:
-        units = "$broadcast"
+        units = UNIVERSAL_IDENTIFIER
         flags = "--shared"
 
     # General security risk here to save arbitrary file to OS.
@@ -1422,7 +1494,7 @@ def update_config(filename: str) -> ResponseReturnValue:
     return Response(status=200)
 
 
-@api.route("/historical_configs/<filename>", methods=["GET"])
+@api.route("/configs/<filename>/history", methods=["GET"])
 def get_historical_config_for(filename: str) -> ResponseReturnValue:
     try:
         configs_for_filename = query_app_db(
@@ -1908,9 +1980,3 @@ def remove_workers_from_experiment(experiment: str) -> ResponseReturnValue:
     )
 
     return create_task_response(task)
-
-
-@api.errorhandler(404)
-def not_found(e):
-    # Return JSON for API requests
-    return jsonify({"error": "Not Found"}), 404

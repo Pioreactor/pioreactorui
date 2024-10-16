@@ -12,6 +12,7 @@ from logging import handlers
 import paho.mqtt.client as mqtt
 from flask import Flask
 from flask import g
+from flask import jsonify
 from flask.json.provider import JSONProvider
 from msgspec.json import decode as loads
 from msgspec.json import encode as dumps
@@ -83,6 +84,15 @@ def create_app():
         db = getattr(g, "_metadata_database", None)
         if db is not None:
             db.close()
+
+    @app.errorhandler(404)
+    def handle_not_found(e):
+        # Return JSON for API requests
+        return jsonify({"error": "Not Found"}), 404
+
+    @app.errorhandler(500)
+    def handle_server_error(e):
+        return jsonify({"error": "Internal server error. See logs."}), 500
 
     app.json = MsgspecJsonProvider(app)
     app.get_json = app.json.loads

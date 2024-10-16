@@ -25,7 +25,7 @@ INSERT INTO pioreactor_unit_labels (experiment, pioreactor_unit, label, created_
 INSERT INTO logs (experiment, pioreactor_unit, timestamp, message, source, level, task) VALUES
 ('exp1', 'unit1', '2023-10-01T12:10:00Z', 'Started mixing', 'mixer', 'INFO', 'stirring'),
 ('exp1', 'unit2', '2023-10-01T12:15:00Z', 'OD reading taken', 'sensor', 'INFO', 'od_reading'),
-('exp2', 'unit3', '2023-10-02T15:45:00Z', 'Temperature set', 'heater', 'INFO', 'temperature_automation'),
+('exp2', 'unit3', '2023-10-02T15:45:00Z', 'Temperature set', 'heater', 'INFO', 'temperature_automation');
 
 
 INSERT INTO od_readings (experiment, pioreactor_unit, timestamp, od_reading, angle, channel) VALUES
@@ -34,10 +34,10 @@ INSERT INTO od_readings (experiment, pioreactor_unit, timestamp, od_reading, ang
 ('exp1', 'unit1', '2023-10-01T12:15:10Z', 0.5, "90", "1"),
 ('exp1', 'unit2', '2023-10-01T12:15:00Z', 0.6, "90", "1"),
 ('exp1', 'unit2', '2023-10-01T12:15:05Z', 0.6, "90", "1"),
-('exp1', 'unit2', '2023-10-01T12:15:10Z', 0.6, "90", "1"),
+('exp1', 'unit2', '2023-10-01T12:15:10Z', 0.6, "90", "1");
 
 INSERT INTO growth_rates (experiment, pioreactor_unit, timestamp, rate) VALUES
 ('exp1', 'unit1', '2023-10-01T13:00:00Z', 0.01),
 ('exp1', 'unit1', '2023-10-01T13:05:00Z', 0.02),
 ('exp1', 'unit2', '2023-10-01T13:00:00Z', 0.00),
-('exp1', 'unit2', '2023-10-01T13:05:00Z', 0.00),
+('exp1', 'unit2', '2023-10-01T13:05:00Z', 0.00);
