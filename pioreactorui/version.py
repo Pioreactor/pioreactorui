@@ -3,4 +3,4 @@ from __future__ import annotations
 
 
 # pioreactorui version
-__version__ = "24.10.1.dev0"
+__version__ = "24.10.16"
