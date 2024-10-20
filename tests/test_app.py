@@ -1,10 +1,14 @@
 # -*- coding: utf-8 -*-
 from __future__ import annotations
 
+import os
+
 import pytest
 
 from .conftest import capture_requests
 from pioreactorui.config import huey
+
+IN_GITHUB_ACTIONS = os.getenv("GITHUB_ACTIONS") == "true"
 
 huey.immediate = True
 
@@ -320,6 +324,22 @@ def test_run_job(client):
     assert len(bucket) == 0
 
 
+def test_run_job_with_job_source(client):
+    # regression test
+    with capture_requests() as bucket:
+        client.post(
+            "/api/workers/unit1/jobs/run/job_name/stirring/experiments/exp1",
+            json={"options": {"target_rpm": 10}, "env": {"JOB_SOURCE": "experiment_profile"}},
+        )
+    assert len(bucket) == 1
+    assert bucket[0].path == "/unit_api/jobs/run/job_name/stirring"
+    assert bucket[0].json == {
+        "args": [],
+        "options": {"target_rpm": 10},
+        "env": {"EXPERIMENT": "exp1", "ACTIVE": "1", "JOB_SOURCE": "experiment_profile"},
+    }
+
+
 def test_run_job_response(client):
     # regression test
     run_post_response = client.post(
@@ -333,3 +353,42 @@ def test_run_job_response(client):
     assert multicast_task_query_response.status_code == 200
     multicast_task_data = multicast_task_query_response.get_json()
     assert multicast_task_data["status"] == "complete"
+
+
+@pytest.mark.skipif(IN_GITHUB_ACTIONS, reason="Requires a webserver running to handle huey pings.")
+def test_get_settings_unit_api(client):
+    from pioreactor.background_jobs.stirring import start_stirring
+
+    with start_stirring():
+        r = client.get(
+            "/unit_api/jobs/settings/job_name/stirring",
+        )
+        assert r.json["settings"]["$state"] == "ready"
+        assert r.json["settings"]["target_rpm"] == "500.0"
+
+        r = client.get(
+            "/unit_api/jobs/settings/job_name/stirring/setting/target_rpm",
+        )
+        r.json["target_rpm"] == "500.0"
+
+
+@pytest.mark.skipif(IN_GITHUB_ACTIONS, reason="Requires a webserver running to handle huey pings.")
+def test_get_settings_api(client):
+    from pioreactor.background_jobs.stirring import start_stirring
+
+    with start_stirring(unit="unit1", experiment="exp1"):
+        r = client.get(
+            "/api/jobs/settings/job_name/stirring/experiments/exp1",
+        )
+        # follow the task
+        r = client.get(r.json["result_url_path"])
+        settings_per_unit = r.json["result"]
+        assert settings_per_unit["unit2"] is None
+        assert settings_per_unit["unit1"]["settings"]["target_rpm"] == "500.0"
+
+        # next api
+        r = client.get("/api/jobs/settings/workers/unit1/job_name/stirring")
+        # follow the task
+        r = client.get(r.json["result_url_path"])
+        settings_per_unit = r.json["result"]
+        assert settings_per_unit["unit1"]["settings"]["target_rpm"] == "500.0"

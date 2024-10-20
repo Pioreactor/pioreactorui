@@ -213,7 +213,7 @@ def run_job_on_unit_in_experiment(
         return Response(status=404)
 
     # and we can include experiment in the env since we know these workers are in the experiment!
-    json.env = {"EXPERIMENT": experiment, "ACTIVE": "1"}
+    json.env = json.env | {"EXPERIMENT": experiment, "ACTIVE": "1"}
 
     t = tasks.multicast_post_across_cluster(
         f"/unit_api/jobs/run/job_name/{job}", assigned_workers, json=json
@@ -845,7 +845,7 @@ def get_job_settings_for_worker(pioreactor_unit, job_name) -> ResponseReturnValu
 
 
 @api.route(
-    "/api/jobs/settings/workers/<pioreactor_unit>/job_name/<job_name>/setting/<setting>>",
+    "/api/jobs/settings/workers/<pioreactor_unit>/job_name/<job_name>/setting/<setting>",
     methods=["GET"],
 )
 def get_job_setting_for_worker(pioreactor_unit, job_name, setting) -> ResponseReturnValue:
