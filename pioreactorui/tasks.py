@@ -154,7 +154,9 @@ def pio_run(*args: str, env: dict[str, str] = {}) -> bool:
     command = ("nohup", PIO_EXECUTABLE, "run") + args
     env = {k: v for k, v in (env or {}).items() if k in ALLOWED_ENV}
     logger.info(f"Executing `{join(command)}`, {env=}")
-    Popen(command, env=env, start_new_session=True, stdout=DEVNULL, stderr=STDOUT)
+    Popen(
+        command, env=dict(os.environ) | env, start_new_session=True, stdout=DEVNULL, stderr=STDOUT
+    )
     return True
 
 
@@ -166,7 +168,7 @@ def pio_run_export_experiment_data(*args: str, env: dict[str, str] = {}) -> tupl
         (PIO_EXECUTABLE, "run", "export_experiment_data") + args,
         capture_output=True,
         text=True,
-        env=env,
+        env=dict(os.environ) | env,
     )
     if result.returncode != 0:
         return False, result.stderr.strip()
