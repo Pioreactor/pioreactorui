@@ -154,9 +154,7 @@ def pio_run(*args: str, env: dict[str, str] = {}) -> bool:
     command = ("nohup", PIO_EXECUTABLE, "run") + args
     env = {k: v for k, v in (env or {}).items() if k in ALLOWED_ENV}
     logger.info(f"Executing `{join(command)}`, {env=}")
-    Popen(
-        command, env=dict(os.environ) | env, start_new_session=True, stdout=DEVNULL, stderr=STDOUT
-    )
+    Popen(command, env=dict(os.environ) | env, stdout=DEVNULL, stderr=STDOUT)
     return True
 
 
