@@ -7,7 +7,6 @@ from logging import handlers
 from shlex import join
 from subprocess import check_call as run_and_check_call
 from subprocess import DEVNULL
-from subprocess import Popen
 from subprocess import run
 from subprocess import STDOUT
 from typing import Any
