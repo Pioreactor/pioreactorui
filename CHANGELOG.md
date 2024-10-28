@@ -1,3 +1,7 @@
+### 24.10.28
+ - fix for env bug
+
+
 ### 24.10.16 and 24.10.20
  - New dataset exports from the Export data page in the UI: calibrations and liquid-volumes.
  - Added a "partition by unit" option to the Export data page that will create a csv per Pioreactor in the export, instead of grouping them all together.
