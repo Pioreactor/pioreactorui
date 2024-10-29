@@ -25,6 +25,9 @@ from .config import env
 from .config import huey
 from .config import is_testing_env
 
+# this is a hack to get around us not cleaning up / tracking Popen processes. We effectively ignore
+# what they do. Note that since this LOC is at the top of this module, PioreactorUI also is affected by
+# it. https://stackoverflow.com/questions/16807603/python-non-blocking-non-defunct-process and https://www.philipson.co.il/post/a-subprocess-bug-nah/
 signal.signal(signal.SIGCHLD, signal.SIG_IGN)
 
 logger = logging.getLogger("huey.consumer")
