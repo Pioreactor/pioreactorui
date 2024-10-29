@@ -3,10 +3,12 @@ from __future__ import annotations
 
 import logging
 import os
+import signal
 from logging import handlers
 from shlex import join
 from subprocess import check_call as run_and_check_call
 from subprocess import DEVNULL
+from subprocess import Popen
 from subprocess import run
 from subprocess import STDOUT
 from typing import Any
@@ -22,6 +24,8 @@ from .config import CACHE_DIR
 from .config import env
 from .config import huey
 from .config import is_testing_env
+
+signal.signal(signal.SIGCHLD, signal.SIG_IGN)
 
 logger = logging.getLogger("huey.consumer")
 logger.setLevel(logging.INFO)
@@ -62,6 +66,18 @@ ALLOWED_ENV = (
 def initialized():
     logger.info("Starting Huey consumer...")
     logger.info(f"Cache directory = {CACHE_DIR}")
+
+
+@huey.task()
+def pio_run(*args: str, env: dict[str, str] = {}) -> bool:
+    # for long running pio run jobs where we don't care about the output / status
+    command = ("nohup", PIO_EXECUTABLE, "run") + args
+    env = {k: v for k, v in (env or {}).items() if k in ALLOWED_ENV}
+    logger.info(f"Executing `{join(command)}`, {env=}")
+    Popen(
+        command, start_new_session=True, env=dict(os.environ) | env, stdout=DEVNULL, stderr=STDOUT
+    )
+    return True
 
 
 @huey.task()
@@ -145,16 +161,6 @@ def pio(*args: str, env: dict[str, str] = {}) -> tuple[bool, str]:
         return False, result.stderr.strip()
     else:
         return True, result.stdout.strip()
-
-
-@huey.task()
-def pio_run(*args: str, env: dict[str, str] = {}) -> bool:
-    # for long running pio run jobs where we don't care about the output / status
-    command = ("nohup", PIO_EXECUTABLE, "run") + args
-    env = {k: v for k, v in (env or {}).items() if k in ALLOWED_ENV}
-    logger.info(f"Executing `{join(command)}`, {env=}")
-    run(command, env=dict(os.environ) | env, stdout=DEVNULL, stderr=STDOUT)
-    return True
 
 
 @huey.task()
