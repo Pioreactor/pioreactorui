@@ -1,3 +1,6 @@
+### 24.10.30
+ - fix manual dosing updates in the UI not working.
+
 ### 24.10.29
  - fix for workers being locked up
 

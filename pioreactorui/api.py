@@ -845,7 +845,7 @@ def get_job_settings_for_worker(pioreactor_unit, job_name) -> ResponseReturnValu
 
 
 @api.route(
-    "/api/jobs/settings/workers/<pioreactor_unit>/job_name/<job_name>/setting/<setting>",
+    "/jobs/settings/workers/<pioreactor_unit>/job_name/<job_name>/setting/<setting>",
     methods=["GET"],
 )
 def get_job_setting_for_worker(pioreactor_unit, job_name, setting) -> ResponseReturnValue:
