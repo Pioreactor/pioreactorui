@@ -1,3 +1,6 @@
+### 24.10.29
+ - fix for workers being locked up
+
 ### 24.10.28
  - fix for env bug
 
