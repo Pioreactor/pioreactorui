@@ -24,6 +24,7 @@ from msgspec.yaml import decode as yaml_decode
 from pioreactor.config import get_leader_hostname
 from pioreactor.experiment_profiles.profile_struct import Profile
 from pioreactor.pubsub import get_from
+from pioreactor.structs import Dataset
 from pioreactor.utils.networking import resolve_to_address
 from pioreactor.whoami import UNIVERSAL_EXPERIMENT
 from pioreactor.whoami import UNIVERSAL_IDENTIFIER
@@ -175,7 +176,7 @@ def run_job_on_unit_in_experiment(
     json = current_app.get_json(request.data, type=structs.ArgsOptionsEnvs)
 
     if pioreactor_unit == UNIVERSAL_IDENTIFIER:
-        # we can do better: make sure the worker is active, too
+        # make sure the worker is active, too
         workers = query_app_db(
             """
             SELECT a.pioreactor_unit as worker
@@ -1015,6 +1016,34 @@ def update_app_from_release_archive() -> ResponseReturnValue:
     assert release_archive_location.endswith(".zip")
     task = tasks.update_app_from_release_archive_across_cluster(release_archive_location)
     return create_task_response(task)
+
+
+@api.route("/contrib/exportable_datasets", methods=["GET"])
+def get_exportable_datasets() -> ResponseReturnValue:
+    try:
+        builtins = sorted((Path(env["DOT_PIOREACTOR"]) / "exportable_datasets").glob("*.y*ml"))
+        plugins = sorted(
+            (Path(env["DOT_PIOREACTOR"]) / "plugins" / "exportable_datasets").glob("*.y*ml")
+        )
+        parsed_yaml = []
+        for file in builtins + plugins:
+            try:
+                dataset = yaml_decode(file.read_bytes(), type=Dataset)
+                parsed_yaml.append(dataset)
+            except (ValidationError, DecodeError) as e:
+                publish_to_error_log(
+                    f"Yaml error in {Path(file).name}: {e}", "get_exportable_datasets"
+                )
+
+        return Response(
+            response=current_app.json.dumps(parsed_yaml),
+            status=200,
+            mimetype="application/json",
+            headers={"Cache-Control": "public,max-age=60"},
+        )
+    except Exception as e:
+        publish_to_error_log(str(e), "get_exportable_datasets")
+        return Response(status=400)
 
 
 @api.route("/export_datasets", methods=["POST"])

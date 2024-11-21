@@ -128,6 +128,8 @@ def update_app_from_release_archive_across_cluster(archive_location: str) -> boo
     update_app_across_all_workers = [PIOS_EXECUTABLE, "update", "--source", archive_location, "-y"]
     run(update_app_across_all_workers)
 
+    update_ui_on_leader = ["pio", "update", "ui", "--source", "/tmp/pioreactorui_archive.tar.gz"]
+    run(update_ui_on_leader)
     return True
 
 
