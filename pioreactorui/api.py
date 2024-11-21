@@ -26,6 +26,8 @@ from pioreactor.experiment_profiles.profile_struct import Profile
 from pioreactor.pubsub import get_from
 from pioreactor.structs import Dataset
 from pioreactor.utils.networking import resolve_to_address
+from pioreactor.utils.timing import current_utc_datetime
+from pioreactor.utils.timing import current_utc_timestamp
 from pioreactor.whoami import UNIVERSAL_EXPERIMENT
 from pioreactor.whoami import UNIVERSAL_IDENTIFIER
 from werkzeug.utils import secure_filename
@@ -43,8 +45,6 @@ from .config import cache
 from .config import env
 from .config import is_testing_env
 from .utils import create_task_response
-from .utils import current_utc_datetime
-from .utils import current_utc_timestamp
 from .utils import is_valid_unix_filename
 from .utils import scrub_to_valid
 
@@ -1052,33 +1052,27 @@ def export_datasets() -> ResponseReturnValue:
 
     other_options: list[str] = []
     cmd_tables: list[str] = sum(
-        [
-            ["--tables", table_name]
-            for (table_name, exporting) in body["datasetCheckbox"].items()
-            if exporting
-        ],
+        [["--dataset-name", dataset_name] for dataset_name in body["selectedDatasets"]],
         [],
     )
 
-    experiment_name: str = body["experimentSelection"]
+    experiments: list[str] = body["experimentSelection"]
     partition_by_unit: bool = body["partitionByUnitSelection"]
+    partition_by_experiment: bool = body["partitionByExperimentSelection"]
 
     if partition_by_unit:
         other_options += ["--partition-by-unit"]
 
+    if partition_by_experiment:
+        other_options += ["--partition-by-experiment"]
+
     timestamp = current_utc_datetime().strftime("%Y%m%d%H%M%S")
-    if experiment_name == "<All experiments>":
-        experiment_options = []
-        filename = f"export_{timestamp}.zip"
+    filename = f"export_{timestamp}.zip"
+
+    if experiments[0] == "<All experiments>":
+        experiment_options: list[str] = []
     else:
-        experiment_options = ["--experiment", experiment_name]
-
-        _experiment_name = experiment_name
-        chars = "\\`*_{}[]()>#+-.!$"
-        for c in chars:
-            _experiment_name = _experiment_name.replace(c, "_")
-
-        filename = f"export_{_experiment_name}_{timestamp}.zip"
+        experiment_options = sum((["--experiment", experiment] for experiment in experiments), [])
 
     filename_with_path = Path("/var/www/pioreactorui/static/exports") / filename
     result = tasks.pio_run_export_experiment_data(  # uses a lock so multiple exports can't happen simultaneously.
