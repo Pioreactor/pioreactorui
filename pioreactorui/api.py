@@ -1052,11 +1052,17 @@ def preview_exportable_datasets(target_dataset) -> ResponseReturnValue:
     plugins = sorted(
         (Path(env["DOT_PIOREACTOR"]) / "plugins" / "exportable_datasets").glob("*.y*ml")
     )
+
+    n_rows = request.args.get("n_rows", 5)
+
     for file in builtins + plugins:
         try:
             dataset = yaml_decode(file.read_bytes(), type=Dataset)
             if dataset.dataset_name == target_dataset:
-                query = f"SELECT * FROM ({dataset.table or dataset.query}) LIMIT 5;"
+                subquery = f"SELECT rowid FROM ({dataset.table or dataset.query}) ORDER BY RANDOM() LIMIT {n_rows}"
+                query = (
+                    f"SELECT * FROM ({dataset.table or dataset.query}) WHERE rowid in ({subquery});"
+                )
                 result = query_app_db(query)
                 return jsonify(result)
         except (ValidationError, DecodeError):
