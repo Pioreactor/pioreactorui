@@ -1046,6 +1046,24 @@ def get_exportable_datasets() -> ResponseReturnValue:
         return Response(status=400)
 
 
+@api.route("/contrib/exportable_datasets/<target_dataset>/preview", methods=["GET"])
+def preview_exportable_datasets(target_dataset) -> ResponseReturnValue:
+    builtins = sorted((Path(env["DOT_PIOREACTOR"]) / "exportable_datasets").glob("*.y*ml"))
+    plugins = sorted(
+        (Path(env["DOT_PIOREACTOR"]) / "plugins" / "exportable_datasets").glob("*.y*ml")
+    )
+    for file in builtins + plugins:
+        try:
+            dataset = yaml_decode(file.read_bytes(), type=Dataset)
+            if dataset.dataset_name == target_dataset:
+                query = f"SELECT * FROM ({dataset.table or dataset.query}) LIMIT 5;"
+                result = query_app_db(query)
+                return jsonify(result)
+        except (ValidationError, DecodeError):
+            pass
+    return Response(status=404)
+
+
 @api.route("/export_datasets", methods=["POST"])
 def export_datasets() -> ResponseReturnValue:
     body = request.get_json()
