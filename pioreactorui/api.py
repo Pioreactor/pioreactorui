@@ -1059,11 +1059,7 @@ def preview_exportable_datasets(target_dataset) -> ResponseReturnValue:
         try:
             dataset = yaml_decode(file.read_bytes(), type=Dataset)
             if dataset.dataset_name == target_dataset:
-                subquery = f"SELECT rowid FROM ({dataset.table or dataset.query}) ORDER BY RANDOM() LIMIT {n_rows}"
-                query = (
-                    f"SELECT * FROM ({dataset.table or dataset.query}) WHERE rowid in ({subquery});"
-                )
-                publish_to_log(query, "test")
+                query = f"SELECT * FROM ({dataset.table or dataset.query}) LIMIT {n_rows};"
                 result = query_app_db(query)
                 return jsonify(result)
         except (ValidationError, DecodeError):
