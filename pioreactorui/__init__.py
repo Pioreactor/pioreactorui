@@ -58,7 +58,7 @@ client.username_pw_set(
 
 
 def decode_base64(string: str) -> str:
-    return loads(b64decode(string))
+    return b64decode(string).decode("utf-8")
 
 
 def create_app():
