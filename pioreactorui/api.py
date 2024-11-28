@@ -1063,6 +1063,7 @@ def preview_exportable_datasets(target_dataset) -> ResponseReturnValue:
                 query = (
                     f"SELECT * FROM ({dataset.table or dataset.query}) WHERE rowid in ({subquery});"
                 )
+                publish_to_log(query, "test")
                 result = query_app_db(query)
                 return jsonify(result)
         except (ValidationError, DecodeError):
