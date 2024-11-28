@@ -5,6 +5,7 @@ import logging
 import sqlite3
 import tempfile
 import typing as t
+from base64 import b64decode
 from datetime import datetime
 from datetime import timezone
 from logging import handlers
@@ -57,7 +58,7 @@ client.username_pw_set(
 
 
 def decode_base64(string: str) -> str:
-    return loads(string)
+    return loads(b64decode(string))
 
 
 def create_app():
