@@ -17,6 +17,7 @@ class PublishedSettingsDescriptor(Struct, forbid_unknown_fields=True):  # type: 
     default: t.Optional[t.Union[str, bool]] = None
     unit: t.Optional[str] = None
     label: t.Optional[str] = None  # if display is false, this isn't needed
+    editable: bool = True
 
 
 class BackgroundJobDescriptor(Struct, forbid_unknown_fields=True):  # type: ignore
