@@ -1,4 +1,4 @@
-### 24.12.4
+### 24.12.10
  - Hotfix for UI settings bug
 
 

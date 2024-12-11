@@ -1743,9 +1743,9 @@ def setup_worker_pioreactor() -> ResponseReturnValue:
         status, msg = result(blocking=True, timeout=250)
     except HueyException:
         status, msg = False, "Timed out, see logs."
-
+    publish_to_log(status, "setup_worker_pioreactor")
     if status:
-        return Response(status=200)
+        return {"msg": f"Worker {new_name} added successfully."}, 200
     else:
         publish_to_error_log(msg, "setup_worker_pioreactor")
         return {"msg": msg}, 500

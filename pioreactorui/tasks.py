@@ -85,7 +85,6 @@ def pio_run(*args: str, env: dict[str, str] = {}) -> bool:
 
 @huey.task()
 def add_new_pioreactor(new_pioreactor_name: str, version: str, model: str) -> tuple[bool, str]:
-    # CPU heavy
     logger.info(f"Adding new pioreactor {new_pioreactor_name}, {model} {version}")
     result = run(
         [PIO_EXECUTABLE, "workers", "add", new_pioreactor_name, "-v", version, "-m", model],
@@ -93,6 +92,7 @@ def add_new_pioreactor(new_pioreactor_name: str, version: str, model: str) -> tu
         text=True,
     )
     cache.evict("config")
+    logger.info(result.returncode)
     if result.returncode != 0:
         return False, str(result.stderr.strip())
     else:
