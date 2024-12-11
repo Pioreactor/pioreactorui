@@ -1106,7 +1106,7 @@ def export_datasets() -> ResponseReturnValue:
         publish_to_error_log(msg, "export_datasets")
         return {"result": status, "filename": None, "msg": msg}, 500
 
-    if not status:
+    if status == b"false":
         publish_to_error_log(msg, "export_datasets")
         return {"result": status, "filename": None, "msg": msg}, 500
 
@@ -1740,15 +1740,15 @@ def setup_worker_pioreactor() -> ResponseReturnValue:
         return {"msg": str(e)}, 500
 
     try:
-        status, msg = result(blocking=True, timeout=250)
+        status = result(blocking=True, timeout=250)
     except HueyException:
-        status, msg = False, "Timed out, see logs."
+        status = False
     publish_to_log(status, "setup_worker_pioreactor")
+    publish_to_log(str(bool(status)), "setup_worker_pioreactor")
     if status:
         return {"msg": f"Worker {new_name} added successfully."}, 200
     else:
-        publish_to_error_log(msg, "setup_worker_pioreactor")
-        return {"msg": msg}, 500
+        return {"msg": f"Failed to add worker {new_name}"}, 500
 
 
 @api.route("/workers", methods=["PUT"])
