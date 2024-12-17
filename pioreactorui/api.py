@@ -535,13 +535,26 @@ def get_od_readings(experiment: str) -> ResponseReturnValue:
 @api.route("/experiments/<experiment>/time_series/<data_source>/<column>", methods=["GET"])
 def get_fallback_time_series(data_source: str, experiment: str, column: str) -> ResponseReturnValue:
     args = request.args
+    filter_mod_n = float(args.get("filter_mod_N", 100.0))
+    lookback = float(args.get("lookback", 4.0))
+
     try:
-        lookback = float(args.get("lookback", 4.0))
         data_source = scrub_to_valid(data_source)
         column = scrub_to_valid(column)
         r = query_app_db(
-            f"SELECT json_object('series', json_group_array(unit), 'data', json_group_array(json(data))) as result FROM (SELECT pioreactor_unit as unit, json_group_array(json_object('x', timestamp, 'y', round({column}, 7))) as data FROM {data_source} WHERE experiment=? AND timestamp > strftime('%Y-%m-%dT%H:%M:%S', datetime('now',?)) and {column} IS NOT NULL GROUP BY 1);",
-            (experiment, f"-{lookback} hours"),
+         """
+            SELECT
+                json_object('series', json_group_array(unit), 'data', json_group_array(json(data))) as result
+            FROM (
+                SELECT pioreactor_unit || '-' || channel as unit, json_group_array(json_object('x', timestamp, 'y', round({column}, 7))) as data
+                FROM {data_source}
+                WHERE experiment=? AND
+                    ((ROWID * 0.61803398875) - cast(ROWID * 0.61803398875 as int) < 1.0/?) AND
+                    timestamp > strftime('%Y-%m-%dT%H:%M:%S', datetime('now', ?))
+                GROUP BY 1
+                );
+            """,
+            (experiment, filter_mod_n, f"-{lookback} hours"),
             one=True,
         )
         assert isinstance(r, dict)
