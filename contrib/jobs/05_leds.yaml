@@ -8,4 +8,3 @@ published_settings:
     label: LED intensity
     type: string
     display: true
-    default: ""

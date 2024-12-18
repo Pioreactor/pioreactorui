@@ -105,14 +105,16 @@ def create_app():
     return app
 
 
-def msg_to_JSON(msg: str, task: str, level: str) -> bytes:
+def msg_to_JSON(msg: str, task: str, level: str, timestamp: None | str = None) -> bytes:
+    if timestamp is None:
+        timestamp = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
     return dumps(
         {
             "message": msg.strip(),
             "task": task,
             "source": "ui",
             "level": level,
-            "timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+            "timestamp": timestamp,
         }
     )
 
@@ -157,8 +159,8 @@ def _get_app_db_connection():
     return db
 
 
-def _get_local_metadata_db_connection():
-    db = getattr(g, "_metadata_database", None)
+def _get_temp_local_metadata_db_connection():
+    db = getattr(g, "_local_metadata_database", None)
     if db is None:
         db = g._local_metadata_database = sqlite3.connect(
             f"{tempfile.gettempdir()}/local_intermittent_pioreactor_metadata.sqlite"
@@ -177,10 +179,10 @@ def query_app_db(
     return (rv[0] if rv else None) if one else rv
 
 
-def query_local_metadata_db(
+def query_temp_local_metadata_db(
     query: str, args=(), one: bool = False
 ) -> dict[str, t.Any] | list[dict[str, t.Any]] | None:
-    cur = _get_local_metadata_db_connection().execute(query, args)
+    cur = _get_temp_local_metadata_db_connection().execute(query, args)
     rv = cur.fetchall()
     cur.close()
     return (rv[0] if rv else None) if one else rv

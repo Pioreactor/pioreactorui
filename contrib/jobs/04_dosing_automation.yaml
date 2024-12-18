@@ -10,31 +10,26 @@ published_settings:
     unit: min
     label: Time between dosing
     type: numeric
-    default: null
     display: true
     description: Change how long to wait between dilutions. Typically between 0.5 and 60 minutes. Changing may immediately trigger a dosing event.
   - key: volume
     unit: mL
     label: Volume / dosing
     type: numeric
-    default: null
     display: true
     description: Change the volume per dilution. Typical values are between 0.0mL and 2.0mL.
   - key: target_normalized_od
     unit: AU
     label: Target nOD
     type: numeric
-    default: null
     display: true
     description: Change the target normalized optical density. Typical values are between 1.0 AU and 100.0 AU.
   - key: target_od
     unit: OD
     label: Target OD
     type: numeric
-    default: null
     display: true
     description: Change the target optical density. Only used if running "Turbidostat Targeting OD" automation.
   - key: automation_name
     type: string
     display: false
-    default: ""

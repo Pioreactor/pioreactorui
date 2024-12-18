@@ -15,7 +15,9 @@ from typing import Any
 
 from pioreactor.config import config
 from pioreactor.mureq import HTTPException
+from pioreactor.pubsub import delete_from
 from pioreactor.pubsub import get_from
+from pioreactor.pubsub import patch_into
 from pioreactor.pubsub import post_into
 from pioreactor.utils.networking import resolve_to_address
 
@@ -90,7 +92,6 @@ def add_new_pioreactor(new_pioreactor_name: str, version: str, model: str) -> bo
         [PIO_EXECUTABLE, "workers", "add", new_pioreactor_name, "-v", version, "-m", model],
     )
     cache.evict("config")
-    logger.info(result.returncode)
     return result.returncode == 0
 
 
@@ -152,31 +153,21 @@ def update_app_from_release_archive_on_specific_pioreactors(
 
 
 @huey.task()
-def pio(*args: str, env: dict[str, str] = {}) -> tuple[bool, str]:
+def pio(*args: str, env: dict[str, str] = {}) -> bool:
     logger.info(f'Executing `{join(("pio",) + args)}`, {env=}')
-    result = run(
-        (PIO_EXECUTABLE,) + args, capture_output=True, text=True, env=dict(os.environ) | env
-    )
-    if result.returncode != 0:
-        return False, result.stderr.strip()
-    else:
-        return True, result.stdout.strip()
+    result = run((PIO_EXECUTABLE,) + args, env=dict(os.environ) | env)
+    return result.returncode == 0
 
 
 @huey.task()
 @huey.lock_task("export-data-lock")
-def pio_run_export_experiment_data(*args: str, env: dict[str, str] = {}) -> tuple[bool, str]:
+def pio_run_export_experiment_data(*args: str, env: dict[str, str] = {}) -> bool:
     logger.info(f'Executing `{join(("pio", "run", "export_experiment_data") + args)}`, {env=}')
     result = run(
         (PIO_EXECUTABLE, "run", "export_experiment_data") + args,
-        capture_output=True,
-        text=True,
         env=dict(os.environ) | env,
     )
-    if result.returncode != 0:
-        return False, result.stderr.strip()
-    else:
-        return True, result.stdout.strip()
+    return result.returncode == 0
 
 
 @huey.task()
@@ -244,18 +235,13 @@ def reboot() -> bool:
 
 
 @huey.task()
-def pios(*args: str, env: dict[str, str] = {}) -> tuple[bool, str]:
+def pios(*args: str, env: dict[str, str] = {}) -> bool:
     logger.info(f'Executing `{join(("pios",) + args + ("-y",))}`, {env=}')
     result = run(
         (PIOS_EXECUTABLE,) + args + ("-y",),
-        capture_output=True,
-        text=True,
         env=dict(os.environ) | env,
     )
-    if result.returncode != 0:
-        return False, result.stderr.strip()
-    else:
-        return True, result.stdout.strip()
+    return result.returncode == 0
 
 
 @huey.task()
@@ -332,5 +318,51 @@ def multicast_get_across_cluster(
     assert endpoint.startswith("/unit_api")
 
     tasks = get_worker.map(((worker, endpoint, json) for worker in workers))
+
+    return {worker: response for (worker, response) in tasks.get(blocking=True)}
+
+
+@huey.task()
+def patch_worker(worker: str, endpoint: str, json: dict | None = None) -> tuple[str, Any]:
+    try:
+        r = patch_into(resolve_to_address(worker), endpoint, json=json, timeout=1)
+        r.raise_for_status()
+        return worker, r.json()
+    except HTTPException:
+        logger.error(f"Could not PATCH to {worker}'s endpoint {endpoint}. Check connection?")
+        return worker, None
+
+
+@huey.task()
+def multicast_patch_across_cluster(
+    endpoint: str, workers: list[str], json: dict | None = None
+) -> dict[str, Any]:
+    # this function "consumes" one huey thread waiting fyi
+    assert endpoint.startswith("/unit_api")
+
+    tasks = patch_worker.map(((worker, endpoint, json) for worker in workers))
+
+    return {worker: response for (worker, response) in tasks.get(blocking=True)}
+
+
+@huey.task()
+def delete_worker(worker: str, endpoint: str, json: dict | None = None) -> tuple[str, Any]:
+    try:
+        r = delete_from(resolve_to_address(worker), endpoint, json=json, timeout=1)
+        r.raise_for_status()
+        return worker, r.json() if r.content else None
+    except HTTPException:
+        logger.error(f"Could not DELETE {worker}'s endpoint {endpoint}. Check connection?")
+        return worker, None
+
+
+@huey.task()
+def multicast_delete_across_cluster(
+    endpoint: str, workers: list[str], json: dict | None = None
+) -> dict[str, Any]:
+    # this function "consumes" one huey thread waiting fyi
+    assert endpoint.startswith("/unit_api")
+
+    tasks = delete_worker.map(((worker, endpoint, json) for worker in workers))
 
     return {worker: response for (worker, response) in tasks.get(blocking=True)}

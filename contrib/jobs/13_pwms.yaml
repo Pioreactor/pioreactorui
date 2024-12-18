@@ -8,4 +8,3 @@ published_settings:
     label: PWM intensity
     type: string
     display: true
-    default: ""

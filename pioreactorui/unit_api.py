@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import annotations
 
+import datetime
 import os
 from pathlib import Path
 from subprocess import run
@@ -15,10 +16,14 @@ from flask import Response
 from flask.typing import ResponseReturnValue
 from huey.exceptions import HueyException
 from huey.exceptions import TaskException
+from msgspec.yaml import decode as yaml_decode
+from pioreactor.calibrations import CALIBRATION_PATH
 from pioreactor.config import get_leader_hostname
+from pioreactor.utils import local_persistant_storage
+from pioreactor.utils.timing import current_utc_timestamp
 
 from . import HOSTNAME
-from . import query_local_metadata_db
+from . import query_temp_local_metadata_db
 from . import tasks
 from . import VERSION
 from .config import cache
@@ -121,6 +126,49 @@ def remove_file() -> ResponseReturnValue:
     return create_task_response(task)
 
 
+# GET clock time
+@unit_api.route("/unit_api/system/clock", methods=["GET"])
+def get_clock_time():
+    try:
+        current_time = current_utc_timestamp()
+        return jsonify({"status": "success", "clock_time": current_time}), 200
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+# PATCH / POST to set clock time
+@unit_api.route("/unit_api/system/clock", methods=["PATCH", "POST"])
+def set_clock_time():
+    try:
+        if HOSTNAME == get_leader_hostname():
+            data = request.json
+            new_time = data.get("clock_time")
+            if not new_time:
+                return jsonify({"status": "error", "message": "clock_time field is required"}), 400
+
+            # Convert and validate the timestamp
+            try:
+                datetime_obj = datetime.fromisoformat(new_time)
+            except ValueError:
+                return (
+                    jsonify(
+                        {"status": "error", "message": "Invalid clock_time format. Use ISO 8601."}
+                    ),
+                    400,
+                )
+
+            # Update the system clock (requires admin privileges)
+            run(["sudo", "date", "-s", datetime_obj.strftime("%Y-%m-%d %H:%M:%S")], check=True)
+            return jsonify({"status": "success", "message": "Clock time successfully updated"}), 200
+        else:
+            # sync using chrony
+            run(["sudo", "chronyc", "-a", "makestep"], check=True)
+            return jsonify({"status": "success", "message": "Clock time successfully synced"}), 200
+
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
 ## RUNNING JOBS CONTROL
 
 
@@ -203,7 +251,7 @@ def stop_all_jobs_by_source(job_source: str) -> ResponseReturnValue:
 
 @unit_api.route("/jobs/running/experiments/<experiment>", methods=["GET"])
 def get_running_jobs_for_experiment(experiment: str) -> ResponseReturnValue:
-    jobs = query_local_metadata_db(
+    jobs = query_temp_local_metadata_db(
         """SELECT * FROM pio_job_metadata where is_running=1 and experiment = (?)""",
         (experiment,),
     )
@@ -213,7 +261,7 @@ def get_running_jobs_for_experiment(experiment: str) -> ResponseReturnValue:
 
 @unit_api.route("/jobs/running", methods=["GET"])
 def get_all_running_jobs() -> ResponseReturnValue:
-    jobs = query_local_metadata_db("SELECT * FROM pio_job_metadata where is_running=1")
+    jobs = query_temp_local_metadata_db("SELECT * FROM pio_job_metadata where is_running=1")
 
     return jsonify(jobs)
 
@@ -231,7 +279,7 @@ def get_settings_for_a_specific_job(job_name) -> ResponseReturnValue:
       }
     }
     """
-    settings = query_local_metadata_db(
+    settings = query_temp_local_metadata_db(
         """
     SELECT s.setting, s.value FROM
         pio_job_published_settings s
@@ -250,7 +298,7 @@ def get_settings_for_a_specific_job(job_name) -> ResponseReturnValue:
 
 @unit_api.route("/jobs/settings/job_name/<job_name>/setting/<setting>", methods=["GET"])
 def get_specific_setting_for_a_job(job_name, setting) -> ResponseReturnValue:
-    setting = query_local_metadata_db(
+    setting = query_temp_local_metadata_db(
         """
     SELECT s.setting, s.value FROM
         pio_job_published_settings s
@@ -418,6 +466,82 @@ def get_ui_version() -> ResponseReturnValue:
         mimetype="text/json",
         headers={"Cache-Control": "public,max-age=60"},
     )
+
+
+### CALIBRATIONS
+
+
+@unit_api.route("/calibrations", methods=["GET"])
+def get_all_calibrations() -> ResponseReturnValue:
+    calibration_dir = Path(f"{env['DOT_PIOREACTOR']}/storage/calibrations")
+
+    if not calibration_dir.exists():
+        return Response(status=404)
+
+    all_calibrations: dict[str, list] = {}
+
+    with local_persistant_storage("active_calibrations") as cache:
+        for file in calibration_dir.glob("*/*.yaml"):
+            try:
+                cal = yaml_decode(file.read_bytes())
+                cal_type = cal["calibration_type"]
+                cal["is_active"] = cache.get(cal_type) == cal["calibration_name"]
+                if cal_type in all_calibrations:
+                    all_calibrations[cal_type].append(cal)
+                else:
+                    all_calibrations[cal_type] = [cal]
+            except Exception as e:
+                print(f"Error reading {file.stem}: {e}")
+
+    return jsonify(all_calibrations)
+
+
+@unit_api.route("/calibrations/<cal_type>", methods=["GET"])
+def get_calibrations(cal_type) -> ResponseReturnValue:
+    calibration_dir = Path(f"{env['DOT_PIOREACTOR']}/storage/calibrations/{cal_type}")
+
+    if not calibration_dir.exists():
+        return Response(status=404)
+
+    calibrations: list[dict] = []
+
+    with local_persistant_storage("active_calibrations") as c:
+        for file in calibration_dir.glob("*.yaml"):
+            try:
+                cal = yaml_decode(file.read_bytes())
+                cal["is_active"] = c.get(cal_type) == cal["calibration_name"]
+                calibrations.append(cal)
+            except Exception as e:
+                print(f"Error reading {file.stem}: {e}")
+
+    return jsonify(calibrations)
+
+
+@unit_api.route("/calibrations/<cal_type>/<cal_name>/active", methods=["PATCH"])
+def set_active_calibration(cal_type, cal_name) -> ResponseReturnValue:
+    with local_persistant_storage("active_calibrations") as c:
+        c[cal_type] = cal_name
+
+    return Response(status=200)
+
+
+@unit_api.route("/calibrations/<cal_type>/active", methods=["DELETE"])
+def remove_active_status_calibration(cal_type) -> ResponseReturnValue:
+    with local_persistant_storage("active_calibrations") as c:
+        c.pop(cal_type)
+
+    return Response(status=200)
+
+
+@unit_api.route("/calibrations/<cal_type>/<cal_name>", methods=["DELETE"])
+def remove_calibration(cal_type, cal_name) -> ResponseReturnValue:
+    target_file = CALIBRATION_PATH / cal_type / f"{cal_name}.yaml"
+    if not target_file.exists():
+        return Response(status=404)
+
+    target_file.unlink()
+
+    return Response(status=200)
 
 
 @unit_api.errorhandler(404)

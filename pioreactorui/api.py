@@ -35,6 +35,7 @@ from werkzeug.utils import secure_filename
 from . import client
 from . import HOSTNAME
 from . import modify_app_db
+from . import msg_to_JSON
 from . import publish_to_error_log
 from . import publish_to_experiment_log
 from . import publish_to_log
@@ -64,19 +65,7 @@ def get_workers_in_experiment(experiment: str) -> list[str]:
     return [unit["pioreactor_unit"] for unit in r]
 
 
-def broadcast_get_across_cluster(endpoint: str) -> dict[str, Any]:
-    assert endpoint.startswith("/unit_api")
-    result = query_app_db("SELECT w.pioreactor_unit as unit FROM workers w")
-    assert result is not None
-    assert isinstance(result, list)
-    list_of_workers = tuple(r["unit"] for r in result)
-
-    return tasks.multicast_get_across_cluster(endpoint, list_of_workers)
-
-
-def broadcast_post_across_cluster(endpoint: str, json: dict | None = None) -> Result:
-    assert endpoint.startswith("/unit_api")
-    # order by desc so that the leader-worker, if exists, is done last. This is important for tasks like /reboot
+def get_all_workers() -> list[str]:
     result = query_app_db(
         """
         SELECT w.pioreactor_unit as unit
@@ -84,11 +73,28 @@ def broadcast_post_across_cluster(endpoint: str, json: dict | None = None) -> Re
         ORDER BY w.added_at DESC
         """
     )
-    assert result is not None
-    assert isinstance(result, list)
-    list_of_workers = tuple(r["unit"] for r in result)
+    assert result is not None and isinstance(result, list)
+    return list(r["unit"] for r in result)
 
-    return tasks.multicast_post_across_cluster(endpoint, list_of_workers, json=json)
+
+def broadcast_get_across_cluster(endpoint: str) -> dict[str, Any]:
+    assert endpoint.startswith("/unit_api")
+    return tasks.multicast_get_across_cluster(endpoint, get_all_workers())
+
+
+def broadcast_post_across_cluster(endpoint: str, json: dict | None = None) -> Result:
+    assert endpoint.startswith("/unit_api")
+    return tasks.multicast_post_across_cluster(endpoint, get_all_workers(), json=json)
+
+
+def broadcast_delete_across_cluster(endpoint: str, json: dict | None = None) -> Result:
+    assert endpoint.startswith("/unit_api")
+    return tasks.multicast_delete_across_cluster(endpoint, get_all_workers(), json=json)
+
+
+def broadcast_patch_across_cluster(endpoint: str, json: dict | None = None) -> Result:
+    assert endpoint.startswith("/unit_api")
+    return tasks.multicast_patch_across_cluster(endpoint, get_all_workers(), json=json)
 
 
 @api.route("/workers/jobs/stop/experiments/<experiment>", methods=["POST", "PATCH"])
@@ -358,6 +364,17 @@ def get_logs(experiment: str) -> ResponseReturnValue:
     return jsonify(recent_logs)
 
 
+@api.route("/experiments/<experiment>/logs", methods=["POST"])
+def publish_new_log(experiment: str) -> ResponseReturnValue:
+    body = request.get_json()
+    topic = f"pioreactor/{body['pioreactor_unit']}/{experiment}/logs/ui/info"
+    client.publish(
+        topic,
+        msg_to_JSON(body["message"], body["source"] or "user", "info", timestamp=body["timestamp"]),
+    )
+    return Response(status=202)
+
+
 @api.route("/workers/<pioreactor_unit>/experiments/<experiment>/logs", methods=["GET"])
 def get_logs_for_unit_and_experiment(experiment: str, pioreactor_unit: str) -> ResponseReturnValue:
     """Shows event logs for a specific worker within an experiment"""
@@ -600,172 +617,61 @@ def get_media_rates(experiment: str) -> ResponseReturnValue:
 ## CALIBRATIONS
 
 
-@api.route("/calibrations/<pioreactor_unit>", methods=["GET"])
-def get_available_calibrations_type_by_unit(pioreactor_unit: str) -> ResponseReturnValue:
-    """
-    {
-        "types": [
-            "temperature",
-            "pH",
-            "dissolved_oxygen",
-            "conductivity"
-        ]
-    }
-    """
-    try:
-        types = query_app_db(
-            "SELECT DISTINCT type FROM calibrations WHERE pioreactor_unit=?",
-            (pioreactor_unit),
+@api.route("/workers/<pioreactor_unit>/calibrations", methods=["GET"])
+def get_all_calibrations(pioreactor_unit) -> ResponseReturnValue:
+    if pioreactor_unit == UNIVERSAL_IDENTIFIER:
+        task = broadcast_get_across_cluster("/unit_api/calibrations")
+    else:
+        task = tasks.multicast_get_across_cluster("/unit_api/calibrations", [pioreactor_unit])
+    return create_task_response(task)
+
+
+@api.route("/workers/<pioreactor_unit>/calibrations/<cal_type>", methods=["GET"])
+def get_calibrations(pioreactor_unit, cal_type) -> ResponseReturnValue:
+    if pioreactor_unit == UNIVERSAL_IDENTIFIER:
+        task = broadcast_get_across_cluster(f"/unit_api/calibrations/{cal_type}")
+    else:
+        task = tasks.multicast_get_across_cluster(
+            f"/unit_api/calibrations/{cal_type}", [pioreactor_unit]
         )
-
-    except Exception as e:
-        publish_to_error_log(str(e), "get_available_calibrations_type_by_unit")
-        return Response(status=500)
-
-    return jsonify(types)
-
-
-@api.route("/calibrations/<pioreactor_unit>/<calibration_type>", methods=["GET"])
-def get_available_calibrations_of_type(
-    pioreactor_unit: str, calibration_type: str
-) -> ResponseReturnValue:
-    try:
-        unit_calibration = query_app_db(
-            "SELECT * FROM calibrations WHERE type=? AND pioreactor_unit=?",
-            (calibration_type, pioreactor_unit),
-        )
-
-    except Exception as e:
-        publish_to_error_log(str(e), "get_available_calibrations_of_type")
-        return Response(status=500)
-
-    return jsonify(unit_calibration)
-
-
-@api.route("/calibrations/<pioreactor_unit>/<calibration_type>/current", methods=["GET"])
-def get_current_calibrations_of_type(
-    pioreactor_unit: str, calibration_type: str
-) -> ResponseReturnValue:
-    """
-    retrieve the current calibration for type
-    """
-    try:
-        r = query_app_db(
-            "SELECT * FROM calibrations WHERE type=? AND pioreactor_unit=? AND is_current=1",
-            (calibration_type, pioreactor_unit),
-            one=True,
-        )
-
-        if r is not None:
-            assert isinstance(r, dict)
-            r["data"] = current_app.json.loads(r["data"])
-            return jsonify(r)
-        else:
-            return Response(status=404)
-
-    except Exception as e:
-        publish_to_error_log(str(e), "get_current_calibrations_of_type")
-        return Response(status=500)
-
-
-@api.route("/calibrations/<pioreactor_unit>/<calibration_type>/<calibration_name>", methods=["GET"])
-def get_calibration_by_name(
-    pioreactor_unit: str, calibration_type: str, calibration_name: str
-) -> ResponseReturnValue:
-    """
-    retrieve the calibration for type with name
-    """
-    try:
-        r = query_app_db(
-            "SELECT * FROM calibrations WHERE type=? AND pioreactor_unit=? AND name=?",
-            (calibration_type, pioreactor_unit, calibration_name),
-            one=True,
-        )
-        if r is not None:
-            assert isinstance(r, dict)
-            r["data"] = current_app.json.loads(r["data"])
-            return jsonify(r)
-        else:
-            return Response(status=404)
-    except Exception as e:
-        publish_to_error_log(str(e), "get_calibration_by_name")
-        return Response(status=500)
+    return create_task_response(task)
 
 
 @api.route(
-    "/calibrations/<pioreactor_unit>/<calibration_type>/<calibration_name>",
-    methods=["PATCH"],
+    "/workers/<pioreactor_unit>/calibrations/<cal_type>/<cal_name>/active", methods=["PATCH"]
 )
-def patch_calibrations(
-    pioreactor_unit: str, calibration_type: str, calibration_name: str
-) -> ResponseReturnValue:
-    body = request.get_json()
-
-    if "current" in body and body["current"] == 1:
-        try:
-            # does the new one exist in the database?
-            existing_row = query_app_db(
-                "SELECT * FROM calibrations WHERE pioreactor_unit=(?) AND type=(?) AND name=(?)",
-                (pioreactor_unit, calibration_type, calibration_name),
-                one=True,
-            )
-            if existing_row is None:
-                publish_to_error_log(
-                    f"calibration {calibration_name=}, {pioreactor_unit=}, {calibration_type=} doesn't exist in database.",
-                    "patch_calibrations",
-                )
-                return Response(status=404)
-
-            elif existing_row["is_current"] == 1:  # type: ignore
-                # already current
-                return Response(status=200)
-
-            modify_app_db(
-                "UPDATE calibrations SET is_current=0, set_to_current_at=NULL WHERE pioreactor_unit=(?) AND type=(?) AND is_current=1",
-                (pioreactor_unit, calibration_type),
-            )
-
-            modify_app_db(
-                "UPDATE calibrations SET is_current=1, set_to_current_at=CURRENT_TIMESTAMP WHERE pioreactor_unit=(?) AND type=(?) AND name=(?)",
-                (pioreactor_unit, calibration_type, calibration_name),
-            )
-            return Response(status=200)
-
-        except Exception as e:
-            publish_to_error_log(str(e), "patch_calibrations")
-            return Response(status=500)
-
-    else:
-        return Response(status=404)
-
-
-@api.route("/calibrations", methods=["PUT"])
-def create_or_update_new_calibrations() -> ResponseReturnValue:
-    try:
-        body = request.get_json()
-
-        modify_app_db(
-            "INSERT OR REPLACE INTO calibrations (pioreactor_unit, created_at, type, data, name, is_current, set_to_current_at) values (?, ?, ?, ?, ?, ?, ?)",
-            (
-                body["pioreactor_unit"],
-                body["created_at"],
-                body["type"],
-                current_app.json.dumps(
-                    body
-                ).decode(),  # keep it as a string, not bytes, probably equivalent to request.get_data(as_text=True)
-                body["name"],
-                0,
-                None,
-            ),
+def set_active_calibration(pioreactor_unit, cal_type, cal_name) -> ResponseReturnValue:
+    if pioreactor_unit == UNIVERSAL_IDENTIFIER:
+        task = broadcast_patch_across_cluster(
+            f"/unit_api/calibrations/{cal_type}/{cal_name}/active"
         )
+    else:
+        task = tasks.multicast_patch_across_cluster(
+            f"/unit_api/calibrations/{cal_type}/{cal_name}/active", [pioreactor_unit]
+        )
+    return create_task_response(task)
 
-        return Response(status=201)
-    except KeyError as e:
-        publish_to_error_log(str(e), "create_or_update_new_calibrations")
-        return Response(status=400)
-    except Exception as e:
-        publish_to_error_log(str(e), "create_or_update_new_calibrations")
-        return Response(status=500)
+
+@api.route("/workers/<pioreactor_unit>/calibrations/<cal_type>/active", methods=["DELETE"])
+def remove_active_status_calibration(pioreactor_unit, cal_type) -> ResponseReturnValue:
+    if pioreactor_unit == UNIVERSAL_IDENTIFIER:
+        task = broadcast_delete_across_cluster(f"/unit_api/calibrations/{cal_type}/active")
+    else:
+        task = tasks.multicast_delete_across_cluster(
+            f"/unit_api/calibrations/{cal_type}/active", [pioreactor_unit]
+        )
+    return create_task_response(task)
+
+
+@api.route("/workers/<pioreactor_unit>/calibrations/<cal_type>/<cal_name>", methods=["DELETE"])
+def remove_calibration(pioreactor_unit, cal_type, cal_name) -> ResponseReturnValue:
+    if pioreactor_unit == UNIVERSAL_IDENTIFIER:
+        task = broadcast_delete_across_cluster(f"/unit_api/calibrations/{cal_type}/{cal_name}")
+    else:
+        task = tasks.multicast_delete_across_cluster(
+            f"/unit_api/calibrations/{cal_type}/{cal_name}", [pioreactor_unit]
+        )
+    return create_task_response(task)
 
 
 ## PLUGINS
@@ -811,8 +717,8 @@ def get_jobs_running_across_cluster_in_experiment(experiment) -> ResponseReturnV
 ### SETTINGS
 
 
-@api.route("/jobs/settings/job_name/<job_name>/experiments/<experiment>", methods=["GET"])
-def get_settings_for_job_across_cluster_in_experiment(job_name, experiment) -> ResponseReturnValue:
+@api.route("/experiments/<experiment>/jobs/settings/job_name/<job_name>", methods=["GET"])
+def get_settings_for_job_across_cluster_in_experiment(experiment, job_name) -> ResponseReturnValue:
     list_of_assigned_workers = get_workers_in_experiment(experiment)
     return create_task_response(
         tasks.multicast_get_across_cluster(
@@ -822,10 +728,10 @@ def get_settings_for_job_across_cluster_in_experiment(job_name, experiment) -> R
 
 
 @api.route(
-    "/jobs/settings/job_name/<job_name>/experiments/<experiment>/setting/<setting>", methods=["GET"]
+    "/experiments/<experiment>/jobs/settings/job_name/<job_name>/setting/<setting>", methods=["GET"]
 )
 def get_setting_for_job_across_cluster_in_experiment(
-    job_name, experiment, setting
+    experiment, job_name, setting
 ) -> ResponseReturnValue:
     list_of_assigned_workers = get_workers_in_experiment(experiment)
     return create_task_response(
@@ -836,34 +742,34 @@ def get_setting_for_job_across_cluster_in_experiment(
     )
 
 
-@api.route("/jobs/settings/workers/<pioreactor_unit>/job_name/<job_name>", methods=["GET"])
+@api.route("/workers/<pioreactor_unit>/jobs/settings/job_name/<job_name>", methods=["GET"])
 def get_job_settings_for_worker(pioreactor_unit, job_name) -> ResponseReturnValue:
-    return create_task_response(
-        tasks.multicast_get_across_cluster(
+    if pioreactor_unit == UNIVERSAL_IDENTIFIER:
+        task = broadcast_get_across_cluster(f"/unit_api/jobs/settings/job_name/{job_name}")
+    else:
+        task = tasks.multicast_get_across_cluster(
             f"/unit_api/jobs/settings/job_name/{job_name}", [pioreactor_unit]
         )
-    )
+    return create_task_response(task)
 
 
 @api.route(
-    "/jobs/settings/workers/<pioreactor_unit>/job_name/<job_name>/setting/<setting>",
+    "/workers/<pioreactor_unit>/jobs/settings/job_name/<job_name>/setting/<setting>",
     methods=["GET"],
 )
 def get_job_setting_for_worker(pioreactor_unit, job_name, setting) -> ResponseReturnValue:
-    return create_task_response(
-        tasks.multicast_get_across_cluster(
-            f"/unit_api/jobs/settings/job_name/{job_name}/setting/{setting}", [pioreactor_unit]
-        )
-    )
-
-
-@api.route("/jobs/settings/job_name/<job_name>/setting/<setting>", methods=["GET"])
-def get_setting_for_job_across_cluster(job_name, setting) -> ResponseReturnValue:
-    return create_task_response(
-        broadcast_get_across_cluster(
+    if pioreactor_unit == UNIVERSAL_IDENTIFIER:
+        task = broadcast_get_across_cluster(
             f"/unit_api/jobs/settings/job_name/{job_name}/setting/{setting}"
         )
-    )
+    else:
+        task = tasks.multicast_get_across_cluster(
+            f"/unit_api/jobs/settings/job_name/{job_name}/setting/{setting}", [pioreactor_unit]
+        )
+    return create_task_response(task)
+
+
+## MISC
 
 
 @api.route("/versions/app", methods=["GET"])
@@ -875,8 +781,6 @@ def get_app_versions_across_cluster() -> ResponseReturnValue:
 def get_ui_versions_across_cluster() -> ResponseReturnValue:
     return create_task_response(broadcast_get_across_cluster("/unit_api/versions/ui"))
 
-
-## MISC
 
 ## UPLOADS
 
@@ -1100,17 +1004,16 @@ def export_datasets() -> ResponseReturnValue:
         "--output", filename_with_path.as_posix(), *cmd_tables, *experiment_options, *other_options
     )
     try:
-        status, msg = result(blocking=True, timeout=5 * 60)
+        status = result(blocking=True, timeout=5 * 60)
     except HueyException:
-        status, msg = False, "Timed out on export."
-        publish_to_error_log(msg, "export_datasets")
-        return {"result": status, "filename": None, "msg": msg}, 500
+        status = False
+        return {"result": status, "filename": None, "msg": "Timed out"}, 500
 
-    if status == b"false":
-        publish_to_error_log(msg, "export_datasets")
-        return {"result": status, "filename": None, "msg": msg}, 500
+    if not status:
+        publish_to_error_log("Failed.", "export_datasets")
+        return {"result": status, "filename": None, "msg": "Failed."}, 500
 
-    return {"result": status, "filename": filename, "msg": msg}, 200
+    return {"result": status, "filename": filename, "msg": "Finished"}, 200
 
 
 @api.route("/experiments", methods=["GET"])
@@ -1258,12 +1161,6 @@ def upsert_unit_labels(experiment: str) -> ResponseReturnValue:
     """
     Update or insert a new unit label for the current experiment.
 
-    This API endpoint accepts a PUT request with a JSON body containing a "unit" and a "label".
-    The "unit" is the identifier for the pioreactor and the "label" is the desired label for that unit.
-    If the unit label for the current experiment already exists, it will be updated; otherwise, a new entry will be created.
-
-    The response will be a status code of 201 if the operation is successful, and 400 if there was an error.
-
 
     JSON Request Body:
     {
@@ -1278,11 +1175,6 @@ def upsert_unit_labels(experiment: str) -> ResponseReturnValue:
         "label": "new_label"
     }
 
-    Returns:
-    HTTP Response with status code 201 if successful, 400 if there was an error.
-
-    Raises:
-    Exception: Any error encountered during the database operation is published to the error log.
     """
 
     body = request.get_json()
@@ -1489,6 +1381,11 @@ def update_config(filename: str) -> ResponseReturnValue:
     # filename is a string
     config = configparser.ConfigParser(allow_no_value=True)
 
+    # make unicode replacements
+    # https://github.com/Pioreactor/pioreactor/issues/539
+    code = code.replace(chr(8211), chr(45))  # en-dash to dash
+    code = code.replace(chr(8212), chr(45))  # em
+
     try:
         config.read_string(code)  # test parser
 
@@ -1498,6 +1395,12 @@ def update_config(filename: str) -> ResponseReturnValue:
             assert config["cluster.topology"]
             assert config.get("cluster.topology", "leader_hostname")
             assert config.get("cluster.topology", "leader_address")
+            assert config["mqtt"]
+
+            if config.get("cluster.topology", "leader_address").startswith("http") or config.get(
+                "mqtt", "broker_address"
+            ).startswith("http"):
+                raise ValueError("Don't start addresses with http:// or https://")
 
     except configparser.DuplicateSectionError as e:
         msg = f"Duplicate section [{e.section}] was found. Please fix and try again."
@@ -1511,8 +1414,8 @@ def update_config(filename: str) -> ResponseReturnValue:
         msg = "Incorrect syntax. Please fix and try again."
         publish_to_error_log(msg, "update_config")
         return {"msg": msg}, 400
-    except (AssertionError, configparser.NoSectionError, KeyError, TypeError):
-        msg = "Missing required field(s) in [cluster.topology]: `leader_hostname` and/or `leader_address`. Please fix and try again."
+    except (AssertionError, configparser.NoSectionError, KeyError) as e:
+        msg = f"Missing required field(s): {e}"
         publish_to_error_log(msg, "update_config")
         return {"msg": msg}, 400
     except ValueError as e:
@@ -1520,7 +1423,7 @@ def update_config(filename: str) -> ResponseReturnValue:
         return {"msg": msg}, 400
     except Exception as e:
         publish_to_error_log(str(e), "update_config")
-        msg = "Hm, something went wrong, check PioreactorUI logs."
+        msg = "Hm, something went wrong, check Pioreactor logs."
         return {"msg": msg}, 500
 
     # if the config file is unit specific, we only need to run sync-config on that unit.
@@ -1743,12 +1646,11 @@ def setup_worker_pioreactor() -> ResponseReturnValue:
         status = result(blocking=True, timeout=250)
     except HueyException:
         status = False
-    publish_to_log(status, "setup_worker_pioreactor")
-    publish_to_log(str(bool(status)), "setup_worker_pioreactor")
+
     if status:
         return {"msg": f"Worker {new_name} added successfully."}, 200
     else:
-        return {"msg": f"Failed to add worker {new_name}"}, 500
+        return {"msg": f"Failed to add worker {new_name}. See logs."}, 500
 
 
 @api.route("/workers", methods=["PUT"])

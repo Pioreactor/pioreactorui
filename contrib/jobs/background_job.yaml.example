@@ -10,12 +10,10 @@ published_settings:
     label: Stirring speed # human readable name
     description: This description is displayed with an editable field in Manage / Settings.
     type: numeric  # one of numeric, boolean, text
-    default: null
     display: true # true to display on the /Pioreactors card
   - key: something_else
     unit: lb
     label: Something else
     description: This description is displayed with an editable field in Manage / Settings.
     type: numeric # one of numeric, boolean, text
-    default: null
     display: true # true to display on the /Pioreactors card
