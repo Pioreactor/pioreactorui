@@ -240,7 +240,9 @@ def get_running_jobs_on_unit(pioreactor_unit: str) -> ResponseReturnValue:
 @api.route("/workers/<pioreactor_unit>/blink", methods=["POST"])
 def blink_worker(pioreactor_unit: str) -> ResponseReturnValue:
     msg = client.publish(
-        f"pioreactor/{pioreactor_unit}/$experiment/monitor/flicker_led_response_okay", 1, qos=0
+        f"pioreactor/{pioreactor_unit}/{UNIVERSAL_EXPERIMENT}/monitor/flicker_led_response_okay",
+        1,
+        qos=0,
     )
     msg.wait_for_publish(timeout=2.0)
     return Response(status=202)
@@ -329,20 +331,21 @@ def shutdown_units() -> ResponseReturnValue:
 ## Logs
 
 
-@api.route("/experiments/<experiment>/logs", methods=["GET"])
-def get_logs(experiment: str) -> ResponseReturnValue:
+# util
+def get_level_string(min_level: str) -> str:
+    levels = {
+        "DEBUG": ["ERROR", "WARNING", "NOTICE", "INFO", "DEBUG"],
+        "INFO": ["ERROR", "NOTICE", "INFO", "WARNING"],
+        "WARNING": ["ERROR", "WARNING"],
+        "ERROR": ["ERROR"],
+    }
+    selected_levels = levels.get(min_level, levels["INFO"])
+    return " or ".join(f'level == "{level}"' for level in selected_levels)
+
+
+@api.route("/experiments/<experiment>/recent_logs", methods=["GET"])
+def get_recent_logs(experiment: str) -> ResponseReturnValue:
     """Shows event logs from all units"""
-
-    def get_level_string(min_level: str) -> str:
-        levels = {
-            "DEBUG": ["ERROR", "WARNING", "NOTICE", "INFO", "DEBUG"],
-            "INFO": ["ERROR", "NOTICE", "INFO", "WARNING"],
-            "WARNING": ["ERROR", "WARNING"],
-            "ERROR": ["ERROR"],
-        }
-
-        selected_levels = levels.get(min_level, levels["INFO"])
-        return " or ".join(f'level == "{level}"' for level in selected_levels)
 
     min_level = request.args.get("min_level", "INFO")
 
@@ -350,11 +353,34 @@ def get_logs(experiment: str) -> ResponseReturnValue:
         recent_logs = query_app_db(
             f"""SELECT l.timestamp, level, l.pioreactor_unit, message, task
                 FROM logs AS l
-                WHERE (l.experiment=? OR l.experiment='$experiment')
+                WHERE (l.experiment=? OR l.experiment=?)
                     AND ({get_level_string(min_level)})
                     AND l.timestamp >= MAX( strftime('%Y-%m-%dT%H:%M:%S', datetime('now', '-24 hours')), (SELECT created_at FROM experiments where experiment=?) )
                 ORDER BY l.timestamp DESC LIMIT 50;""",
-            (experiment, experiment),
+            (experiment, UNIVERSAL_EXPERIMENT, experiment),
+        )
+
+    except Exception as e:
+        publish_to_error_log(str(e), "get_recent_logs")
+        return Response(status=500)
+
+    return jsonify(recent_logs)
+
+
+@api.route("/experiments/<experiment>/logs", methods=["GET"])
+def get_logs(experiment: str) -> ResponseReturnValue:
+    """Shows event logs from all units, uses pagination."""
+
+    skip = int(request.args.get("skip", 0))
+
+    try:
+        recent_logs = query_app_db(
+            f"""SELECT l.timestamp, level, l.pioreactor_unit, message, task
+                FROM logs AS l
+                WHERE (l.experiment=?)
+                    AND ({get_level_string("DEBUG")})
+                ORDER BY l.timestamp DESC LIMIT 50 OFFSET {skip};""",
+            (experiment,),
         )
 
     except Exception as e:
@@ -370,24 +396,22 @@ def publish_new_log(experiment: str) -> ResponseReturnValue:
     topic = f"pioreactor/{body['pioreactor_unit']}/{experiment}/logs/ui/info"
     client.publish(
         topic,
-        msg_to_JSON(body["message"], body["source"] or "user", "info", timestamp=body["timestamp"]),
+        msg_to_JSON(
+            msg=body["message"],
+            source="user",
+            level="info",
+            timestamp=body["timestamp"],
+            task=body["source"] or "",
+        ),
     )
     return Response(status=202)
 
 
-@api.route("/workers/<pioreactor_unit>/experiments/<experiment>/logs", methods=["GET"])
-def get_logs_for_unit_and_experiment(experiment: str, pioreactor_unit: str) -> ResponseReturnValue:
-    """Shows event logs for a specific worker within an experiment"""
-
-    def get_level_string(min_level: str) -> str:
-        levels = {
-            "DEBUG": ["ERROR", "WARNING", "NOTICE", "INFO", "DEBUG"],
-            "INFO": ["ERROR", "NOTICE", "INFO", "WARNING"],
-            "WARNING": ["ERROR", "WARNING"],
-            "ERROR": ["ERROR"],
-        }
-        selected_levels = levels.get(min_level, levels["INFO"])
-        return " or ".join(f'level == "{level}"' for level in selected_levels)
+@api.route("/workers/<pioreactor_unit>/experiments/<experiment>/recent_logs", methods=["GET"])
+def get_recent_logs_for_unit_and_experiment(
+    pioreactor_unit: str, experiment: str
+) -> ResponseReturnValue:
+    """Shows event logs for a specific unit within an experiment"""
 
     min_level = request.args.get("min_level", "INFO")
 
@@ -395,16 +419,40 @@ def get_logs_for_unit_and_experiment(experiment: str, pioreactor_unit: str) -> R
         recent_logs = query_app_db(
             f"""SELECT l.timestamp, level, l.pioreactor_unit, message, task
                 FROM logs AS l
-                WHERE (l.experiment=? OR l.experiment='$experiment')
-                    AND l.pioreactor_unit=?
+                WHERE (l.experiment=? OR l.experiment=?)
+                    AND (l.pioreactor_unit=? or l.pioreactor_unit=?)
                     AND ({get_level_string(min_level)})
                     AND l.timestamp >= MAX( strftime('%Y-%m-%dT%H:%M:%S', datetime('now', '-24 hours')), (SELECT created_at FROM experiments where experiment=?) )
                 ORDER BY l.timestamp DESC LIMIT 50;""",
-            (experiment, pioreactor_unit, experiment),
+            (experiment, UNIVERSAL_EXPERIMENT, pioreactor_unit, UNIVERSAL_IDENTIFIER, experiment),
         )
 
     except Exception as e:
-        publish_to_error_log(str(e), "get_logs_for_unit_and_experiment")
+        publish_to_error_log(str(e), "get_recent_logs_for_unit_and_experiment")
+        return Response(status=500)
+
+    return jsonify(recent_logs)
+
+
+@api.route("/units/<pioreactor_unit>/experiments/<experiment>/logs", methods=["GET"])
+def get_logs_for_unit_and_experiment(pioreactor_unit: str, experiment: str) -> ResponseReturnValue:
+    """Shows event logs from all units, uses pagination."""
+
+    skip = int(request.args.get("skip", 0))
+
+    try:
+        recent_logs = query_app_db(
+            f"""SELECT l.timestamp, level, l.pioreactor_unit, message, task
+                FROM logs AS l
+                WHERE (l.experiment=?)
+                    AND (l.pioreactor_unit=? or l.pioreactor_unit=?)
+                    AND ({get_level_string("DEBUG")})
+                ORDER BY l.timestamp DESC LIMIT 50 OFFSET {skip};""",
+            (experiment, pioreactor_unit, UNIVERSAL_IDENTIFIER),
+        )
+
+    except Exception as e:
+        publish_to_error_log(str(e), "get_get_logs_for_unit_and_experimentlogs")
         return Response(status=500)
 
     return jsonify(recent_logs)

@@ -105,14 +105,16 @@ def create_app():
     return app
 
 
-def msg_to_JSON(msg: str, task: str, level: str, timestamp: None | str = None) -> bytes:
+def msg_to_JSON(
+    msg: str, task: str, level: str, timestamp: None | str = None, source: str = "ui"
+) -> bytes:
     if timestamp is None:
         timestamp = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
     return dumps(
         {
             "message": msg.strip(),
             "task": task,
-            "source": "ui",
+            "source": source,
             "level": level,
             "timestamp": timestamp,
         }
