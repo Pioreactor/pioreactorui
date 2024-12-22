@@ -1910,6 +1910,20 @@ def get_list_of_workers_for_experiment(experiment: str) -> ResponseReturnValue:
     return jsonify(workers)
 
 
+@api.route("/experiments/<experiment>/historical_workers", methods=["GET"])
+def get_list_of_historical_workers_for_experiment(experiment: str) -> ResponseReturnValue:
+    workers = query_app_db(
+        """
+         SELECT pioreactor_unit, experiment, MAX(unassigned_at is NULL) as is_currently_assigned_to_experiment
+         FROM experiment_worker_assignments_history
+         WHERE experiment=?
+         GROUP by 1,2;
+        """,
+        (experiment,),
+    )
+    return jsonify(workers)
+
+
 @api.route("/experiments/<experiment>/workers", methods=["PUT"])
 def add_worker_to_experiment(experiment: str) -> ResponseReturnValue:
     # assign
