@@ -377,6 +377,11 @@ def get_logs(experiment: str) -> ResponseReturnValue:
         recent_logs = query_app_db(
             f"""SELECT l.timestamp, level, l.pioreactor_unit, message, task
                 FROM logs AS l
+                JOIN experiment_worker_assignments_history h
+                   on h.pioreactor_unit = l.pioreactor_unit
+                   and h.experiment = l.experiment
+                   and h.assigned_at <= l.timestamp
+                   and l.timestamp <= coalesce(h.unassigned_at, strftime('%Y-%m-%dT%H:%M:%S', datetime('now')) )
                 WHERE (l.experiment=?)
                     AND ({get_level_string("DEBUG")})
                 ORDER BY l.timestamp DESC LIMIT 50 OFFSET {skip};""",
@@ -444,6 +449,11 @@ def get_logs_for_unit_and_experiment(pioreactor_unit: str, experiment: str) -> R
         recent_logs = query_app_db(
             f"""SELECT l.timestamp, level, l.pioreactor_unit, message, task
                 FROM logs AS l
+                JOIN experiment_worker_assignments_history h
+                   on h.pioreactor_unit = l.pioreactor_unit
+                   and h.experiment = l.experiment
+                   and h.assigned_at <= l.timestamp
+                   and l.timestamp <= coalesce(h.unassigned_at, strftime('%Y-%m-%dT%H:%M:%S', datetime('now')) )
                 WHERE (l.experiment=?)
                     AND (l.pioreactor_unit=? or l.pioreactor_unit=?)
                     AND ({get_level_string("DEBUG")})
