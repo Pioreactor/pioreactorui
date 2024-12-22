@@ -382,10 +382,10 @@ def get_logs(experiment: str) -> ResponseReturnValue:
                    and h.experiment = l.experiment
                    and h.assigned_at <= l.timestamp
                    and l.timestamp <= coalesce(h.unassigned_at, strftime('%Y-%m-%dT%H:%M:%S', datetime('now')) )
-                WHERE (l.experiment=?)
+                WHERE (l.experiment=? OR l.experiment=?)
                     AND ({get_level_string("DEBUG")})
                 ORDER BY l.timestamp DESC LIMIT 50 OFFSET {skip};""",
-            (experiment,),
+            (experiment, UNIVERSAL_EXPERIMENT),
         )
 
     except Exception as e:
@@ -454,11 +454,11 @@ def get_logs_for_unit_and_experiment(pioreactor_unit: str, experiment: str) -> R
                    and h.experiment = l.experiment
                    and h.assigned_at <= l.timestamp
                    and l.timestamp <= coalesce(h.unassigned_at, strftime('%Y-%m-%dT%H:%M:%S', datetime('now')) )
-                WHERE (l.experiment=?)
+                WHERE (l.experiment=? or l.experiment=?)
                     AND (l.pioreactor_unit=? or l.pioreactor_unit=?)
                     AND ({get_level_string("DEBUG")})
                 ORDER BY l.timestamp DESC LIMIT 50 OFFSET {skip};""",
-            (experiment, pioreactor_unit, UNIVERSAL_IDENTIFIER),
+            (experiment, UNIVERSAL_EXPERIMENT, pioreactor_unit, UNIVERSAL_IDENTIFIER),
         )
 
     except Exception as e:
