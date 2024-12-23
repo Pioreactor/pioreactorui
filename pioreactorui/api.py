@@ -351,11 +351,11 @@ def get_recent_logs(experiment: str) -> ResponseReturnValue:
 
     try:
         recent_logs = query_app_db(
-            f"""SELECT l.timestamp, level, l.pioreactor_unit, message, task
+            f"""SELECT l.timestamp, level, l.pioreactor_unit, message, task, l.experiment
                 FROM logs AS l
                 WHERE (l.experiment=? OR l.experiment=?)
                     AND ({get_level_string(min_level)})
-                    AND l.timestamp >= MAX( STRFTIME('%Y-%m-%dT%H:%M:%f000Z', 'NOW', '-24 hours')), (SELECT created_at FROM experiments where experiment=?) )
+                    AND l.timestamp >= MAX( STRFTIME('%Y-%m-%dT%H:%M:%f000Z', 'NOW', '-24 hours'), (SELECT created_at FROM experiments where experiment=?) )
                 ORDER BY l.timestamp DESC LIMIT 50;""",
             (experiment, UNIVERSAL_EXPERIMENT, experiment),
         )
@@ -368,14 +368,14 @@ def get_recent_logs(experiment: str) -> ResponseReturnValue:
 
 
 @api.route("/experiments/<experiment>/logs", methods=["GET"])
-def get_logs(experiment: str) -> ResponseReturnValue:
+def get_exp_logs(experiment: str) -> ResponseReturnValue:
     """Shows event logs from all units, uses pagination."""
 
     skip = int(request.args.get("skip", 0))
 
     try:
         recent_logs = query_app_db(
-            f"""SELECT l.timestamp, level, l.pioreactor_unit, message, task
+            f"""SELECT l.timestamp, level, l.pioreactor_unit, message, task, l.experiment
                 FROM logs AS l
                 JOIN experiment_worker_assignments_history h
                    on h.pioreactor_unit = l.pioreactor_unit
@@ -384,6 +384,26 @@ def get_logs(experiment: str) -> ResponseReturnValue:
                 WHERE (l.experiment=? OR l.experiment=?)
                 ORDER BY l.timestamp DESC LIMIT 50 OFFSET {skip};""",
             (experiment, UNIVERSAL_EXPERIMENT),
+        )
+
+    except Exception as e:
+        publish_to_error_log(str(e), "get_exp_logs")
+        return Response(status=500)
+
+    return jsonify(recent_logs)
+
+
+@api.route("/logs", methods=["GET"])
+def get_logs() -> ResponseReturnValue:
+    """Shows event logs from all units, uses pagination."""
+
+    skip = int(request.args.get("skip", 0))
+
+    try:
+        recent_logs = query_app_db(
+            f"""SELECT l.timestamp, level, l.pioreactor_unit, message, task, l.experiment
+                FROM logs AS l
+                ORDER BY l.timestamp DESC LIMIT 50 OFFSET {skip};"""
         )
 
     except Exception as e:
@@ -420,7 +440,7 @@ def get_recent_logs_for_unit_and_experiment(
 
     try:
         recent_logs = query_app_db(
-            f"""SELECT l.timestamp, level, l.pioreactor_unit, message, task
+            f"""SELECT l.timestamp, level, l.pioreactor_unit, message, task, l.experiment
                 FROM logs AS l
                 WHERE (l.experiment=? OR l.experiment=?)
                     AND (l.pioreactor_unit=? or l.pioreactor_unit=?)
@@ -445,7 +465,7 @@ def get_logs_for_unit_and_experiment(pioreactor_unit: str, experiment: str) -> R
 
     try:
         recent_logs = query_app_db(
-            f"""SELECT l.timestamp, level, l.pioreactor_unit, message, task
+            f"""SELECT l.timestamp, level, l.pioreactor_unit, message, task, l.experiment
                 FROM logs AS l
                 JOIN experiment_worker_assignments_history h
                    on h.pioreactor_unit = l.pioreactor_unit
@@ -458,7 +478,29 @@ def get_logs_for_unit_and_experiment(pioreactor_unit: str, experiment: str) -> R
         )
 
     except Exception as e:
-        publish_to_error_log(str(e), "get_get_logs_for_unit_and_experimentlogs")
+        publish_to_error_log(str(e), "get_for_unit_and_experiment")
+        return Response(status=500)
+
+    return jsonify(recent_logs)
+
+
+@api.route("/units/<pioreactor_unit>/logs", methods=["GET"])
+def get_logs_for_unit(pioreactor_unit: str) -> ResponseReturnValue:
+    """Shows event logs from all units, uses pagination."""
+
+    skip = int(request.args.get("skip", 0))
+
+    try:
+        recent_logs = query_app_db(
+            f"""SELECT l.timestamp, level, l.pioreactor_unit, message, task, l.experiment
+                FROM logs AS l
+                WHERE (l.pioreactor_unit=? or l.pioreactor_unit=?)
+                ORDER BY l.timestamp DESC LIMIT 50 OFFSET {skip};""",
+            (pioreactor_unit, UNIVERSAL_IDENTIFIER),
+        )
+
+    except Exception as e:
+        publish_to_error_log(str(e), "get_logs_for_unit")
         return Response(status=500)
 
     return jsonify(recent_logs)

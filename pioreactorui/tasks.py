@@ -160,6 +160,15 @@ def pio(*args: str, env: dict[str, str] = {}) -> bool:
 
 
 @huey.task()
+def pio_plugins_list(*args: str, env: dict[str, str] = {}) -> tuple[bool, str]:
+    logger.info(f'Executing `{join(("pio",) + args)}`, {env=}')
+    result = run(
+        (PIO_EXECUTABLE,) + args, capture_output=True, text=True, env=dict(os.environ) | env
+    )
+    return result.returncode == 0, result.stdout.strip()
+
+
+@huey.task()
 @huey.lock_task("export-data-lock")
 def pio_run_export_experiment_data(*args: str, env: dict[str, str] = {}) -> bool:
     logger.info(f'Executing `{join(("pio", "run", "export_experiment_data") + args)}`, {env=}')

@@ -337,7 +337,7 @@ def update_job(job: str) -> ResponseReturnValue:
 
 @unit_api.route("/plugins/installed", methods=["GET"])
 def get_installed_plugins() -> ResponseReturnValue:
-    result = tasks.pio("plugins", "list", "--json")
+    result = tasks.pio_plugins_list("plugins", "list", "--json")
     try:
         status, msg = result(blocking=True, timeout=120)
     except HueyException:
