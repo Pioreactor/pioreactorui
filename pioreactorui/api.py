@@ -773,9 +773,14 @@ def remove_calibration(pioreactor_unit, cal_type, cal_name) -> ResponseReturnVal
 ## PLUGINS
 
 
-@api.route("/plugins/installed", methods=["GET"])
-def get_plugins_across_cluster() -> ResponseReturnValue:
-    return create_task_response(broadcast_get_across_cluster("/unit_api/plugins/installed"))
+@api.route("/units/<pioreactor_unit>/plugins/installed", methods=["GET"])
+def get_plugins_on_machine(pioreactor_unit: str) -> ResponseReturnValue:
+    if pioreactor_unit == UNIVERSAL_IDENTIFIER:
+        task = broadcast_get_across_cluster("/unit_api/plugins/installed")
+    else:
+        task = tasks.multicast_get_across_cluster("/unit_api/plugins/installed", [pioreactor_unit])
+
+    return create_task_response(task)
 
 
 @api.route("/plugins/install", methods=["POST", "PATCH"])
@@ -1715,6 +1720,19 @@ def delete_experiment_profile(filename: str) -> ResponseReturnValue:
 
 
 ##### Worker endpoints
+
+
+@api.route("/units", methods=["GET"])
+def get_list_of_units() -> ResponseReturnValue:
+    # Get a list of all units (workers + leader)
+    all_units = query_app_db(
+        f"""SELECT DISTINCT pioreactor_unit FROM (
+            SELECT pioreactor_unit FROM workers
+                UNION
+            SELECT "{get_leader_hostname()}" AS pioreactor_unit
+        );"""
+    )
+    return jsonify(all_units)
 
 
 @api.route("/workers", methods=["GET"])

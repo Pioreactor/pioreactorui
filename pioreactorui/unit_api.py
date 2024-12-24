@@ -50,7 +50,7 @@ def task_status(task_id):
         )
 
     if task is None:
-        return jsonify({"status": "pending or not present"}), 102
+        return jsonify({"status": "pending or not present"}), 202
     elif isinstance(task, Exception):
         return jsonify({"status": "failed", "error": str(task)}), 500
     else:
