@@ -785,22 +785,39 @@ def get_plugins_on_machine(pioreactor_unit: str) -> ResponseReturnValue:
     return create_task_response(task)
 
 
-@api.route("/plugins/install", methods=["POST", "PATCH"])
-def install_plugin_across_cluster() -> ResponseReturnValue:
+@api.route("/units/<pioreactor_unit>/plugins/install", methods=["POST", "PATCH"])
+def install_plugin_across_cluster(pioreactor_unit: str) -> ResponseReturnValue:
     # there is a security problem here. See https://github.com/Pioreactor/pioreactor/issues/421
     if os.path.isfile(Path(env["DOT_PIOREACTOR"]) / "DISALLOW_UI_INSTALLS"):
         return Response(status=403)
 
-    return create_task_response(
-        broadcast_post_across_cluster("/unit_api/plugins/install", request.get_json())
-    )
+    if pioreactor_unit == UNIVERSAL_IDENTIFIER:
+        return create_task_response(
+            broadcast_post_across_cluster("/unit_api/plugins/install", request.get_json())
+        )
+    else:
+        return create_task_response(
+            tasks.multicast_post_across_cluster(
+                "/unit_api/plugins/install", [pioreactor_unit], request.get_json()
+            )
+        )
 
 
-@api.route("/plugins/uninstall", methods=["POST", "PATCH"])
-def uninstall_plugin_across_cluster() -> ResponseReturnValue:
-    return create_task_response(
-        broadcast_post_across_cluster("/unit_api/plugins/uninstall", request.get_json())
-    )
+@api.route("/units/<pioreactor_unit>/plugins/uninstall", methods=["POST", "PATCH"])
+def uninstall_plugin_across_cluster(pioreactor_unit: str) -> ResponseReturnValue:
+    if os.path.isfile(Path(env["DOT_PIOREACTOR"]) / "DISALLOW_UI_INSTALLS"):
+        return Response(status=403)
+
+    if pioreactor_unit == UNIVERSAL_IDENTIFIER:
+        return create_task_response(
+            broadcast_post_across_cluster("/unit_api/plugins/uninstall", request.get_json())
+        )
+    else:
+        return create_task_response(
+            tasks.multicast_post_across_cluster(
+                "/unit_api/plugins/uninstall", [pioreactor_unit], request.get_json()
+            )
+        )
 
 
 @api.route("/jobs/running", methods=["GET"])
