@@ -309,9 +309,11 @@ def multicast_post_across_cluster(
 
 
 @huey.task()
-def get_worker(worker: str, endpoint: str, json: dict | None = None) -> tuple[str, Any]:
+def get_worker(
+    worker: str, endpoint: str, json: dict | None = None, timeout=1.0
+) -> tuple[str, Any]:
     try:
-        r = get_from(resolve_to_address(worker), endpoint, json=json, timeout=1)
+        r = get_from(resolve_to_address(worker), endpoint, json=json, timeout=timeout)
         r.raise_for_status()
         return worker, r.json()
     except HTTPException:
@@ -321,12 +323,12 @@ def get_worker(worker: str, endpoint: str, json: dict | None = None) -> tuple[st
 
 @huey.task()
 def multicast_get_across_cluster(
-    endpoint: str, workers: list[str], json: dict | None = None
+    endpoint: str, workers: list[str], json: dict | None = None, timeout: float = 1.0
 ) -> dict[str, Any]:
     # this function "consumes" one huey thread waiting fyi
     assert endpoint.startswith("/unit_api")
 
-    tasks = get_worker.map(((worker, endpoint, json) for worker in workers))
+    tasks = get_worker.map(((worker, endpoint, json, timeout) for worker in workers))
 
     return {worker: response for (worker, response) in tasks.get(blocking=True)}
 

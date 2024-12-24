@@ -77,9 +77,9 @@ def get_all_workers() -> list[str]:
     return list(r["unit"] for r in result)
 
 
-def broadcast_get_across_cluster(endpoint: str) -> dict[str, Any]:
+def broadcast_get_across_cluster(endpoint: str, timeout: float = 1.0) -> dict[str, Any]:
     assert endpoint.startswith("/unit_api")
-    return tasks.multicast_get_across_cluster(endpoint, get_all_workers())
+    return tasks.multicast_get_across_cluster(endpoint, get_all_workers(), timeout=timeout)
 
 
 def broadcast_post_across_cluster(endpoint: str, json: dict | None = None) -> Result:
@@ -776,9 +776,11 @@ def remove_calibration(pioreactor_unit, cal_type, cal_name) -> ResponseReturnVal
 @api.route("/units/<pioreactor_unit>/plugins/installed", methods=["GET"])
 def get_plugins_on_machine(pioreactor_unit: str) -> ResponseReturnValue:
     if pioreactor_unit == UNIVERSAL_IDENTIFIER:
-        task = broadcast_get_across_cluster("/unit_api/plugins/installed")
+        task = broadcast_get_across_cluster("/unit_api/plugins/installed", timeout=5)
     else:
-        task = tasks.multicast_get_across_cluster("/unit_api/plugins/installed", [pioreactor_unit])
+        task = tasks.multicast_get_across_cluster(
+            "/unit_api/plugins/installed", [pioreactor_unit], timeout=5
+        )
 
     return create_task_response(task)
 
