@@ -944,7 +944,7 @@ def get_automation_contrib(automation_type: str) -> ResponseReturnValue:
             response=current_app.json.dumps(list(parsed_yaml.values())),
             status=200,
             mimetype="application/json",
-            headers={"Cache-Control": "public,max-age=10"},
+            headers={"Cache-Control": "public,max-age=/"},
         )
     except Exception as e:
         publish_to_error_log(str(e), "get_automation_contrib")
@@ -1727,9 +1727,9 @@ def get_list_of_units() -> ResponseReturnValue:
     # Get a list of all units (workers + leader)
     all_units = query_app_db(
         f"""SELECT DISTINCT pioreactor_unit FROM (
-            SELECT pioreactor_unit FROM workers
-                UNION
             SELECT "{get_leader_hostname()}" AS pioreactor_unit
+                UNION
+            SELECT pioreactor_unit FROM workers
         );"""
     )
     return jsonify(all_units)
