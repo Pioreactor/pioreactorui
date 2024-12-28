@@ -76,6 +76,7 @@ def get_all_workers() -> list[str]:
     assert result is not None and isinstance(result, list)
     return list(r["unit"] for r in result)
 
+
 def get_all_units() -> list[str]:
     result = query_app_db(
         f"""SELECT DISTINCT pioreactor_unit FROM (
@@ -328,6 +329,7 @@ def shutdown_unit(pioreactor_unit: str) -> ResponseReturnValue:
 
 ## Clock
 
+
 @api.route("/units/<pioreactor_unit>/system/utc_clock", methods=["GET"])
 def get_clocktime(pioreactor_unit: str) -> ResponseReturnValue:
     if pioreactor_unit == UNIVERSAL_IDENTIFIER:
@@ -336,9 +338,12 @@ def get_clocktime(pioreactor_unit: str) -> ResponseReturnValue:
         task = tasks.multicast_get_across_cluster("/unit_api/system/utc_clock", [pioreactor_unit])
     return create_task_response(task)
 
+
 @api.route("/system/utc_clock", methods=["POST"])
 def set_clocktime() -> ResponseReturnValue:
-    task1 = tasks.multicast_post_across_cluster("/unit_api/system/utc_clock", [get_leader_hostname()], request.get_json())
+    task1 = tasks.multicast_post_across_cluster(
+        "/unit_api/system/utc_clock", [get_leader_hostname()], request.get_json()
+    )
     task2 = broadcast_post_across_cluster("/unit_api/system/utc_clock")
     return create_task_response(task2)
 

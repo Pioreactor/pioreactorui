@@ -14,7 +14,7 @@ from subprocess import STDOUT
 from typing import Any
 
 from pioreactor.config import config
-from pioreactor.mureq import HTTPException
+from pioreactor.mureq import HTTPErrorStatus
 from pioreactor.pubsub import delete_from
 from pioreactor.pubsub import get_from
 from pioreactor.pubsub import patch_into
@@ -291,8 +291,8 @@ def post_worker(worker: str, endpoint: str, json: dict | None = None) -> tuple[s
         r = post_into(resolve_to_address(worker), endpoint, json=json, timeout=1)
         r.raise_for_status()
         return worker, r.json()
-    except HTTPException:
-        logger.error(f"Could not post to {worker}'s endpoint {endpoint}. Check connection?")
+    except HTTPErrorStatus as e:
+        logger.error(f"Could not post to {worker}'s {endpoint=}, sent {json=} and returned {e}. Check connection?")
         return worker, None
 
 
@@ -316,8 +316,8 @@ def get_worker(
         r = get_from(resolve_to_address(worker), endpoint, json=json, timeout=timeout)
         r.raise_for_status()
         return worker, r.json()
-    except HTTPException:
-        logger.error(f"Could not get from {worker}'s endpoint {endpoint}. Check connection?")
+    except HTTPErrorStatus as e:
+        logger.error(f"Could not get from {worker}'s {endpoint=}, sent {json=} and returned {e}. Check connection?")
         return worker, None
 
 
@@ -339,8 +339,8 @@ def patch_worker(worker: str, endpoint: str, json: dict | None = None) -> tuple[
         r = patch_into(resolve_to_address(worker), endpoint, json=json, timeout=1)
         r.raise_for_status()
         return worker, r.json()
-    except HTTPException:
-        logger.error(f"Could not PATCH to {worker}'s endpoint {endpoint}. Check connection?")
+    except HTTPErrorStatus as e:
+        logger.error(f"Could not PATCH to {worker}'s {endpoint=}, sent {json=} and returned {e}. Check connection?")
         return worker, None
 
 
@@ -362,8 +362,8 @@ def delete_worker(worker: str, endpoint: str, json: dict | None = None) -> tuple
         r = delete_from(resolve_to_address(worker), endpoint, json=json, timeout=1)
         r.raise_for_status()
         return worker, r.json() if r.content else None
-    except HTTPException:
-        logger.error(f"Could not DELETE {worker}'s endpoint {endpoint}. Check connection?")
+    except HTTPErrorStatus as e:
+        logger.error(f"Could not DELETE {worker}'s {endpoint=}, sent {json=} and returned {e}. Check connection?")
         return worker, None
 
 
@@ -377,5 +377,3 @@ def multicast_delete_across_cluster(
     tasks = delete_worker.map(((worker, endpoint, json) for worker in workers))
 
     return {worker: response for (worker, response) in tasks.get(blocking=True)}
-
-

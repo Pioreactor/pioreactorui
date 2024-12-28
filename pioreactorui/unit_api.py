@@ -144,7 +144,10 @@ def set_clock_time():
             data = request.json
             new_time = data.get("utc_clock_time")
             if not new_time:
-                return jsonify({"status": "error", "message": "utc_clock_time field is required"}), 400
+                return (
+                    jsonify({"status": "error", "message": "utc_clock_time field is required"}),
+                    400,
+                )
 
             # Convert and validate the timestamp
             try:
@@ -152,7 +155,10 @@ def set_clock_time():
             except ValueError:
                 return (
                     jsonify(
-                        {"status": "error", "message": "Invalid utc_clock_time format. Use ISO 8601."}
+                        {
+                            "status": "error",
+                            "message": "Invalid utc_clock_time format. Use ISO 8601.",
+                        }
                     ),
                     400,
                 )
@@ -268,9 +274,10 @@ def get_all_running_jobs() -> ResponseReturnValue:
 
 @unit_api.route("/long_running_jobs/running", methods=["GET"])
 def get_all_long_running_jobs() -> ResponseReturnValue:
-    jobs = query_temp_local_metadata_db("SELECT * FROM pio_job_metadata where is_running=1 and is_long_running_job=1")
+    jobs = query_temp_local_metadata_db(
+        "SELECT * FROM pio_job_metadata where is_running=1 and is_long_running_job=1"
+    )
     return jsonify(jobs)
-
 
 
 ### SETTINGS
