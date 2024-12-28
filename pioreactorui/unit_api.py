@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import annotations
 
-import datetime
 import os
 from pathlib import Path
 from subprocess import run
@@ -21,6 +20,7 @@ from pioreactor.calibrations import CALIBRATION_PATH
 from pioreactor.config import get_leader_hostname
 from pioreactor.utils import local_persistant_storage
 from pioreactor.utils.timing import current_utc_timestamp
+from pioreactor.utils.timing import to_datetime
 
 from . import HOSTNAME
 from . import query_temp_local_metadata_db
@@ -140,7 +140,7 @@ def get_clock_time():
 @unit_api.route("/system/utc_clock", methods=["PATCH", "POST"])
 def set_clock_time():
     try:
-        if HOSTNAME == get_leader_hostname():
+        if HOSTNAME == get_leader_hostname() and request.json:
             data = request.json
             new_time = data.get("utc_clock_time")
             if not new_time:
@@ -151,7 +151,7 @@ def set_clock_time():
 
             # Convert and validate the timestamp
             try:
-                datetime_obj = datetime.fromisoformat(new_time)
+                datetime_obj = to_datetime(new_time)
             except ValueError:
                 return (
                     jsonify(
