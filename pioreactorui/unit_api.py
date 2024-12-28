@@ -165,12 +165,12 @@ def set_clock_time():
                 )
 
             # Update the system clock (requires admin privileges)
-            run(["sudo", "date", "-s", new_time], check=True)
-            return jsonify({"status": "success", "message": "Clock time successfully updated"}), 200
+            t = tasks.update_clock(new_time)
+            return create_task_response(t)
         else:
             # sync using chrony
-            run(["sudo", "chronyc", "-a", "makestep"], check=True)
-            return jsonify({"status": "success", "message": "Clock time successfully synced"}), 200
+            t = tasks.sync_clock()
+            return create_task_response(t)
 
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500

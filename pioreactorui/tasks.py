@@ -292,7 +292,9 @@ def post_worker(worker: str, endpoint: str, json: dict | None = None) -> tuple[s
         r.raise_for_status()
         return worker, r.json()
     except HTTPErrorStatus as e:
-        logger.error(f"Could not post to {worker}'s {endpoint=}, sent {json=} and returned {e}. Check connection?")
+        logger.error(
+            f"Could not post to {worker}'s {endpoint=}, sent {json=} and returned {e}. Check connection?"
+        )
         return worker, None
 
 
@@ -317,7 +319,9 @@ def get_worker(
         r.raise_for_status()
         return worker, r.json()
     except HTTPErrorStatus as e:
-        logger.error(f"Could not get from {worker}'s {endpoint=}, sent {json=} and returned {e}. Check connection?")
+        logger.error(
+            f"Could not get from {worker}'s {endpoint=}, sent {json=} and returned {e}. Check connection?"
+        )
         return worker, None
 
 
@@ -340,7 +344,9 @@ def patch_worker(worker: str, endpoint: str, json: dict | None = None) -> tuple[
         r.raise_for_status()
         return worker, r.json()
     except HTTPErrorStatus as e:
-        logger.error(f"Could not PATCH to {worker}'s {endpoint=}, sent {json=} and returned {e}. Check connection?")
+        logger.error(
+            f"Could not PATCH to {worker}'s {endpoint=}, sent {json=} and returned {e}. Check connection?"
+        )
         return worker, None
 
 
@@ -363,7 +369,9 @@ def delete_worker(worker: str, endpoint: str, json: dict | None = None) -> tuple
         r.raise_for_status()
         return worker, r.json() if r.content else None
     except HTTPErrorStatus as e:
-        logger.error(f"Could not DELETE {worker}'s {endpoint=}, sent {json=} and returned {e}. Check connection?")
+        logger.error(
+            f"Could not DELETE {worker}'s {endpoint=}, sent {json=} and returned {e}. Check connection?"
+        )
         return worker, None
 
 
@@ -377,3 +385,17 @@ def multicast_delete_across_cluster(
     tasks = delete_worker.map(((worker, endpoint, json) for worker in workers))
 
     return {worker: response for (worker, response) in tasks.get(blocking=True)}
+
+
+@huey.task()
+def update_clock(new_time: str) -> bool:
+    # iso8601 format
+    r = run(["sudo", "date", "-s", new_time])
+    return r.returncode == 0
+
+
+@huey.task()
+def sync_clock() -> bool:
+    # iso8601 format
+    r = run(["sudo", "chronyc", "-a", "makestep"])
+    return r.returncode == 0
