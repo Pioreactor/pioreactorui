@@ -354,7 +354,7 @@ def update_job(job: str) -> ResponseReturnValue:
 def get_installed_plugins() -> ResponseReturnValue:
     result = tasks.pio_plugins_list("plugins", "list", "--json")
     try:
-        status, msg = result(blocking=True, timeout=120)
+        status, msg = result(blocking=True, timeout=10)
     except HueyException:
         status, msg = False, "Timed out."
 
@@ -363,7 +363,11 @@ def get_installed_plugins() -> ResponseReturnValue:
     else:
         # sometimes an error from a plugin will be printed. We just want to last line, the json bit.
         _, _, plugins_as_json = msg.rpartition("\n")
-        return plugins_as_json
+        return Response(
+            response=plugins_as_json,
+            status=200,
+            mimetype="text/json",
+        )
 
 
 @unit_api.route("/plugins/installed/<filename>", methods=["GET"])

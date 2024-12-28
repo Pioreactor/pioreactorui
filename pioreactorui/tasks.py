@@ -13,7 +13,7 @@ from subprocess import run
 from subprocess import STDOUT
 from typing import Any
 
-from huey.api import Result
+from msgspec import DecodeError
 from pioreactor.config import config
 from pioreactor.mureq import HTTPErrorStatus
 from pioreactor.pubsub import delete_from
@@ -22,7 +22,6 @@ from pioreactor.pubsub import patch_into
 from pioreactor.pubsub import post_into
 from pioreactor.utils.networking import resolve_to_address
 
-from . import get_all_workers
 from .config import cache
 from .config import CACHE_DIR
 from .config import env
@@ -313,6 +312,11 @@ def post_to_worker(worker: str, endpoint: str, json: dict | None = None) -> tupl
             f"Could not post to {worker}'s {endpoint=}, sent {json=} and returned {e}. Check connection?"
         )
         return worker, None
+    except DecodeError:
+        logger.error(
+            f"Could not decode response from {worker}'s {endpoint=}, sent {json=} and returned {r.body}."
+        )
+        return worker, None
 
 
 @huey.task()
@@ -340,6 +344,11 @@ def get_from_worker(
             f"Could not get from {worker}'s {endpoint=}, sent {json=} and returned {e}. Check connection?"
         )
         return worker, None
+    except DecodeError:
+        logger.error(
+            f"Could not decode response from {worker}'s {endpoint=}, sent {json=} and returned {r.body}."
+        )
+        return worker, None
 
 
 @huey.task()
@@ -363,6 +372,11 @@ def patch_to_worker(worker: str, endpoint: str, json: dict | None = None) -> tup
     except HTTPErrorStatus as e:
         logger.error(
             f"Could not PATCH to {worker}'s {endpoint=}, sent {json=} and returned {e}. Check connection?"
+        )
+        return worker, None
+    except DecodeError:
+        logger.error(
+            f"Could not decode response from {worker}'s {endpoint=}, sent {json=} and returned {r.body}."
         )
         return worker, None
 
@@ -390,6 +404,11 @@ def delete_from_worker(worker: str, endpoint: str, json: dict | None = None) -> 
             f"Could not DELETE {worker}'s {endpoint=}, sent {json=} and returned {e}. Check connection?"
         )
         return worker, None
+    except DecodeError:
+        logger.error(
+            f"Could not decode response from {worker}'s {endpoint=}, sent {json=} and returned {r.body}."
+        )
+        return worker, None
 
 
 @huey.task()
@@ -402,23 +421,3 @@ def multicast_delete_across_cluster(
     tasks = delete_from_worker.map(((worker, endpoint, json) for worker in workers))
 
     return {worker: response for (worker, response) in tasks.get(blocking=True)}
-
-
-def broadcast_get_across_cluster(endpoint: str, timeout: float = 1.0) -> dict[str, Any]:
-    assert endpoint.startswith("/unit_api")
-    return multicast_get_across_cluster(endpoint, get_all_workers(), timeout=timeout)
-
-
-def broadcast_post_across_cluster(endpoint: str, json: dict | None = None) -> Result:
-    assert endpoint.startswith("/unit_api")
-    return multicast_post_across_cluster(endpoint, get_all_workers(), json=json)
-
-
-def broadcast_delete_across_cluster(endpoint: str, json: dict | None = None) -> Result:
-    assert endpoint.startswith("/unit_api")
-    return multicast_delete_across_cluster(endpoint, get_all_workers(), json=json)
-
-
-def broadcast_patch_across_cluster(endpoint: str, json: dict | None = None) -> Result:
-    assert endpoint.startswith("/unit_api")
-    return multicast_patch_across_cluster(endpoint, get_all_workers(), json=json)
