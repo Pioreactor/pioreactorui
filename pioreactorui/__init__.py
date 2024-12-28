@@ -22,6 +22,7 @@ from pioreactor.config import config as pioreactor_config
 from pioreactor.config import get_leader_hostname
 from pioreactor.whoami import am_I_leader
 from pioreactor.whoami import get_unit_name
+from pioreactor.whoami import UNIVERSAL_EXPERIMENT
 
 from .config import env
 from .version import __version__
@@ -218,3 +219,39 @@ class MsgspecJsonProvider(JSONProvider):
             return loads(obj, type=type)
         else:
             return loads(obj)
+
+
+def get_all_workers_in_experiment(experiment: str) -> list[str]:
+    if experiment == UNIVERSAL_EXPERIMENT:
+        r = query_app_db("SELECT pioreactor_unit FROM workers")
+    else:
+        r = query_app_db(
+            "SELECT pioreactor_unit FROM experiment_worker_assignments WHERE experiment = ?",
+            (experiment,),
+        )
+    assert isinstance(r, list)
+    return [unit["pioreactor_unit"] for unit in r]
+
+
+def get_all_workers() -> list[str]:
+    result = query_app_db(
+        """
+        SELECT w.pioreactor_unit as unit
+        FROM workers w
+        ORDER BY w.added_at DESC
+        """
+    )
+    assert result is not None and isinstance(result, list)
+    return list(r["unit"] for r in result)
+
+
+def get_all_units() -> list[str]:
+    result = query_app_db(
+        f"""SELECT DISTINCT pioreactor_unit FROM (
+            SELECT "{get_leader_hostname()}" AS pioreactor_unit
+                UNION
+            SELECT pioreactor_unit FROM workers
+        );"""
+    )
+    assert result is not None and isinstance(result, list)
+    return list(r["pioreactor_unit"] for r in result)

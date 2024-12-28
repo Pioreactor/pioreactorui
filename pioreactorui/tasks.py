@@ -13,6 +13,7 @@ from subprocess import run
 from subprocess import STDOUT
 from typing import Any
 
+from huey.api import Result
 from pioreactor.config import config
 from pioreactor.mureq import HTTPErrorStatus
 from pioreactor.pubsub import delete_from
@@ -21,11 +22,13 @@ from pioreactor.pubsub import patch_into
 from pioreactor.pubsub import post_into
 from pioreactor.utils.networking import resolve_to_address
 
+from . import get_all_workers
 from .config import cache
 from .config import CACHE_DIR
 from .config import env
 from .config import huey
 from .config import is_testing_env
+
 
 # this is a hack to get around us not cleaning up / tracking Popen processes. We effectively ignore
 # what they do. Note that since this LOC is at the top of this module, PioreactorUI also is affected by
@@ -197,6 +200,20 @@ def pio_plugins(*args: str, env: dict[str, str] = {}) -> bool:
 
 
 @huey.task()
+def update_clock(new_time: str) -> bool:
+    # iso8601 format
+    r = run(["sudo", "date", "-s", new_time])
+    return r.returncode == 0
+
+
+@huey.task()
+def sync_clock() -> bool:
+    # iso8601 format
+    r = run(["sudo", "chronyc", "-a", "makestep"])
+    return r.returncode == 0
+
+
+@huey.task()
 @huey.lock_task("update-lock")
 def pio_update_app(*args: str, env: dict[str, str] = {}) -> bool:
     logger.info(f'Executing `{join(("pio", "update", "app") + args)}`, {env=}')
@@ -286,7 +303,7 @@ def write_config_and_sync(config_path: str, text: str, units: str, flags: str) -
 
 
 @huey.task()
-def post_worker(worker: str, endpoint: str, json: dict | None = None) -> tuple[str, Any]:
+def post_to_worker(worker: str, endpoint: str, json: dict | None = None) -> tuple[str, Any]:
     try:
         r = post_into(resolve_to_address(worker), endpoint, json=json, timeout=1)
         r.raise_for_status()
@@ -305,13 +322,13 @@ def multicast_post_across_cluster(
     # this function "consumes" one huey thread waiting fyi
     assert endpoint.startswith("/unit_api")
 
-    tasks = post_worker.map(((worker, endpoint, json) for worker in workers))
+    tasks = post_to_worker.map(((worker, endpoint, json) for worker in workers))
 
     return {worker: response for (worker, response) in tasks.get(blocking=True)}
 
 
 @huey.task()
-def get_worker(
+def get_from_worker(
     worker: str, endpoint: str, json: dict | None = None, timeout=1.0
 ) -> tuple[str, Any]:
     try:
@@ -332,13 +349,13 @@ def multicast_get_across_cluster(
     # this function "consumes" one huey thread waiting fyi
     assert endpoint.startswith("/unit_api")
 
-    tasks = get_worker.map(((worker, endpoint, json, timeout) for worker in workers))
+    tasks = get_from_worker.map(((worker, endpoint, json, timeout) for worker in workers))
 
     return {worker: response for (worker, response) in tasks.get(blocking=True)}
 
 
 @huey.task()
-def patch_worker(worker: str, endpoint: str, json: dict | None = None) -> tuple[str, Any]:
+def patch_to_worker(worker: str, endpoint: str, json: dict | None = None) -> tuple[str, Any]:
     try:
         r = patch_into(resolve_to_address(worker), endpoint, json=json, timeout=1)
         r.raise_for_status()
@@ -357,13 +374,13 @@ def multicast_patch_across_cluster(
     # this function "consumes" one huey thread waiting fyi
     assert endpoint.startswith("/unit_api")
 
-    tasks = patch_worker.map(((worker, endpoint, json) for worker in workers))
+    tasks = patch_to_worker.map(((worker, endpoint, json) for worker in workers))
 
     return {worker: response for (worker, response) in tasks.get(blocking=True)}
 
 
 @huey.task()
-def delete_worker(worker: str, endpoint: str, json: dict | None = None) -> tuple[str, Any]:
+def delete_from_worker(worker: str, endpoint: str, json: dict | None = None) -> tuple[str, Any]:
     try:
         r = delete_from(resolve_to_address(worker), endpoint, json=json, timeout=1)
         r.raise_for_status()
@@ -382,20 +399,26 @@ def multicast_delete_across_cluster(
     # this function "consumes" one huey thread waiting fyi
     assert endpoint.startswith("/unit_api")
 
-    tasks = delete_worker.map(((worker, endpoint, json) for worker in workers))
+    tasks = delete_from_worker.map(((worker, endpoint, json) for worker in workers))
 
     return {worker: response for (worker, response) in tasks.get(blocking=True)}
 
 
-@huey.task()
-def update_clock(new_time: str) -> bool:
-    # iso8601 format
-    r = run(["sudo", "date", "-s", new_time])
-    return r.returncode == 0
+def broadcast_get_across_cluster(endpoint: str, timeout: float = 1.0) -> dict[str, Any]:
+    assert endpoint.startswith("/unit_api")
+    return multicast_get_across_cluster(endpoint, get_all_workers(), timeout=timeout)
 
 
-@huey.task()
-def sync_clock() -> bool:
-    # iso8601 format
-    r = run(["sudo", "chronyc", "-a", "makestep"])
-    return r.returncode == 0
+def broadcast_post_across_cluster(endpoint: str, json: dict | None = None) -> Result:
+    assert endpoint.startswith("/unit_api")
+    return multicast_post_across_cluster(endpoint, get_all_workers(), json=json)
+
+
+def broadcast_delete_across_cluster(endpoint: str, json: dict | None = None) -> Result:
+    assert endpoint.startswith("/unit_api")
+    return multicast_delete_across_cluster(endpoint, get_all_workers(), json=json)
+
+
+def broadcast_patch_across_cluster(endpoint: str, json: dict | None = None) -> Result:
+    assert endpoint.startswith("/unit_api")
+    return multicast_patch_across_cluster(endpoint, get_all_workers(), json=json)

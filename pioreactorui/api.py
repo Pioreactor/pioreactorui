@@ -7,7 +7,6 @@ import re
 import sqlite3
 import tempfile
 from pathlib import Path
-from typing import Any
 
 from flask import abort
 from flask import Blueprint
@@ -16,7 +15,6 @@ from flask import jsonify
 from flask import request
 from flask import Response
 from flask.typing import ResponseReturnValue
-from huey.api import Result
 from huey.exceptions import HueyException
 from msgspec import DecodeError
 from msgspec import ValidationError
@@ -33,6 +31,8 @@ from pioreactor.whoami import UNIVERSAL_IDENTIFIER
 from werkzeug.utils import secure_filename
 
 from . import client
+from . import get_all_units
+from . import get_all_workers_in_experiment
 from . import HOSTNAME
 from . import modify_app_db
 from . import msg_to_JSON
@@ -53,66 +53,10 @@ from .utils import scrub_to_valid
 api = Blueprint("api", __name__, url_prefix="/api")
 
 
-def get_workers_in_experiment(experiment: str) -> list[str]:
-    if experiment == UNIVERSAL_EXPERIMENT:
-        r = query_app_db("SELECT pioreactor_unit FROM workers")
-    else:
-        r = query_app_db(
-            "SELECT pioreactor_unit FROM experiment_worker_assignments WHERE experiment = ?",
-            (experiment,),
-        )
-    assert isinstance(r, list)
-    return [unit["pioreactor_unit"] for unit in r]
-
-
-def get_all_workers() -> list[str]:
-    result = query_app_db(
-        """
-        SELECT w.pioreactor_unit as unit
-        FROM workers w
-        ORDER BY w.added_at DESC
-        """
-    )
-    assert result is not None and isinstance(result, list)
-    return list(r["unit"] for r in result)
-
-
-def get_all_units() -> list[str]:
-    result = query_app_db(
-        f"""SELECT DISTINCT pioreactor_unit FROM (
-            SELECT "{get_leader_hostname()}" AS pioreactor_unit
-                UNION
-            SELECT pioreactor_unit FROM workers
-        );"""
-    )
-    assert result is not None and isinstance(result, list)
-    return list(r["pioreactor_unit"] for r in result)
-
-
-def broadcast_get_across_cluster(endpoint: str, timeout: float = 1.0) -> dict[str, Any]:
-    assert endpoint.startswith("/unit_api")
-    return tasks.multicast_get_across_cluster(endpoint, get_all_workers(), timeout=timeout)
-
-
-def broadcast_post_across_cluster(endpoint: str, json: dict | None = None) -> Result:
-    assert endpoint.startswith("/unit_api")
-    return tasks.multicast_post_across_cluster(endpoint, get_all_workers(), json=json)
-
-
-def broadcast_delete_across_cluster(endpoint: str, json: dict | None = None) -> Result:
-    assert endpoint.startswith("/unit_api")
-    return tasks.multicast_delete_across_cluster(endpoint, get_all_workers(), json=json)
-
-
-def broadcast_patch_across_cluster(endpoint: str, json: dict | None = None) -> Result:
-    assert endpoint.startswith("/unit_api")
-    return tasks.multicast_patch_across_cluster(endpoint, get_all_workers(), json=json)
-
-
 @api.route("/workers/jobs/stop/experiments/<experiment>", methods=["POST", "PATCH"])
 def stop_all_jobs_in_experiment(experiment: str) -> ResponseReturnValue:
     """Kills all jobs for workers assigned to experiment"""
-    workers_in_experiment = get_workers_in_experiment(experiment)
+    workers_in_experiment = get_all_workers_in_experiment(experiment)
     tasks.multicast_post_across_cluster(
         f"/unit_api/jobs/stop/experiment/{experiment}", workers_in_experiment
     )
@@ -132,7 +76,7 @@ def stop_all_jobs_on_worker_for_experiment(
 ) -> ResponseReturnValue:
     """Kills all jobs for worker assigned to experiment"""
     if pioreactor_unit == UNIVERSAL_IDENTIFIER:
-        broadcast_post_across_cluster(f"/unit_api/jobs/stop/experiment/{experiment}")
+        tasks.broadcast_post_across_cluster(f"/unit_api/jobs/stop/experiment/{experiment}")
     else:
         tasks.multicast_post_across_cluster(
             f"/unit_api/jobs/stop/experiment/{experiment}", [pioreactor_unit]
@@ -311,7 +255,7 @@ def update_job_on_unit(pioreactor_unit: str, experiment: str, job: str) -> Respo
 def reboot_unit(pioreactor_unit: str) -> ResponseReturnValue:
     """Reboots unit"""
     if pioreactor_unit == UNIVERSAL_IDENTIFIER:
-        task = broadcast_post_across_cluster("/unit_api/system/reboot")
+        task = tasks.broadcast_post_across_cluster("/unit_api/system/reboot")
     else:
         task = tasks.multicast_post_across_cluster("/unit_api/system/reboot", [pioreactor_unit])
     return create_task_response(task)
@@ -321,7 +265,7 @@ def reboot_unit(pioreactor_unit: str) -> ResponseReturnValue:
 def shutdown_unit(pioreactor_unit: str) -> ResponseReturnValue:
     """Shutdown unit"""
     if pioreactor_unit == UNIVERSAL_IDENTIFIER:
-        task = broadcast_post_across_cluster("/unit_api/system/shutdown")
+        task = tasks.broadcast_post_across_cluster("/unit_api/system/shutdown")
     else:
         task = tasks.multicast_post_across_cluster("/unit_api/system/shutdown", [pioreactor_unit])
     return create_task_response(task)
@@ -333,7 +277,7 @@ def shutdown_unit(pioreactor_unit: str) -> ResponseReturnValue:
 @api.route("/units/<pioreactor_unit>/system/utc_clock", methods=["GET"])
 def get_clocktime(pioreactor_unit: str) -> ResponseReturnValue:
     if pioreactor_unit == UNIVERSAL_IDENTIFIER:
-        task = broadcast_get_across_cluster("/unit_api/system/utc_clock")
+        task = tasks.broadcast_get_across_cluster("/unit_api/system/utc_clock")
     else:
         task = tasks.multicast_get_across_cluster("/unit_api/system/utc_clock", [pioreactor_unit])
     return create_task_response(task)
@@ -341,10 +285,10 @@ def get_clocktime(pioreactor_unit: str) -> ResponseReturnValue:
 
 @api.route("/system/utc_clock", methods=["POST"])
 def set_clocktime() -> ResponseReturnValue:
-    task1 = tasks.multicast_post_across_cluster(
+    tasks.multicast_post_across_cluster(
         "/unit_api/system/utc_clock", [get_leader_hostname()], request.get_json()
     )
-    task2 = broadcast_post_across_cluster("/unit_api/system/utc_clock")
+    task2 = tasks.broadcast_post_across_cluster("/unit_api/system/utc_clock")
     return create_task_response(task2)
 
 
@@ -734,7 +678,7 @@ def get_media_rates(experiment: str) -> ResponseReturnValue:
 @api.route("/workers/<pioreactor_unit>/calibrations", methods=["GET"])
 def get_all_calibrations(pioreactor_unit) -> ResponseReturnValue:
     if pioreactor_unit == UNIVERSAL_IDENTIFIER:
-        task = broadcast_get_across_cluster("/unit_api/calibrations")
+        task = tasks.broadcast_get_across_cluster("/unit_api/calibrations")
     else:
         task = tasks.multicast_get_across_cluster("/unit_api/calibrations", [pioreactor_unit])
     return create_task_response(task)
@@ -743,7 +687,7 @@ def get_all_calibrations(pioreactor_unit) -> ResponseReturnValue:
 @api.route("/workers/<pioreactor_unit>/calibrations/<cal_type>", methods=["GET"])
 def get_calibrations(pioreactor_unit, cal_type) -> ResponseReturnValue:
     if pioreactor_unit == UNIVERSAL_IDENTIFIER:
-        task = broadcast_get_across_cluster(f"/unit_api/calibrations/{cal_type}")
+        task = tasks.broadcast_get_across_cluster(f"/unit_api/calibrations/{cal_type}")
     else:
         task = tasks.multicast_get_across_cluster(
             f"/unit_api/calibrations/{cal_type}", [pioreactor_unit]
@@ -756,7 +700,7 @@ def get_calibrations(pioreactor_unit, cal_type) -> ResponseReturnValue:
 )
 def set_active_calibration(pioreactor_unit, cal_type, cal_name) -> ResponseReturnValue:
     if pioreactor_unit == UNIVERSAL_IDENTIFIER:
-        task = broadcast_patch_across_cluster(
+        task = tasks.broadcast_patch_across_cluster(
             f"/unit_api/calibrations/{cal_type}/{cal_name}/active"
         )
     else:
@@ -769,7 +713,7 @@ def set_active_calibration(pioreactor_unit, cal_type, cal_name) -> ResponseRetur
 @api.route("/workers/<pioreactor_unit>/calibrations/<cal_type>/active", methods=["DELETE"])
 def remove_active_status_calibration(pioreactor_unit, cal_type) -> ResponseReturnValue:
     if pioreactor_unit == UNIVERSAL_IDENTIFIER:
-        task = broadcast_delete_across_cluster(f"/unit_api/calibrations/{cal_type}/active")
+        task = tasks.broadcast_delete_across_cluster(f"/unit_api/calibrations/{cal_type}/active")
     else:
         task = tasks.multicast_delete_across_cluster(
             f"/unit_api/calibrations/{cal_type}/active", [pioreactor_unit]
@@ -780,7 +724,9 @@ def remove_active_status_calibration(pioreactor_unit, cal_type) -> ResponseRetur
 @api.route("/workers/<pioreactor_unit>/calibrations/<cal_type>/<cal_name>", methods=["DELETE"])
 def remove_calibration(pioreactor_unit, cal_type, cal_name) -> ResponseReturnValue:
     if pioreactor_unit == UNIVERSAL_IDENTIFIER:
-        task = broadcast_delete_across_cluster(f"/unit_api/calibrations/{cal_type}/{cal_name}")
+        task = tasks.broadcast_delete_across_cluster(
+            f"/unit_api/calibrations/{cal_type}/{cal_name}"
+        )
     else:
         task = tasks.multicast_delete_across_cluster(
             f"/unit_api/calibrations/{cal_type}/{cal_name}", [pioreactor_unit]
@@ -794,7 +740,7 @@ def remove_calibration(pioreactor_unit, cal_type, cal_name) -> ResponseReturnVal
 @api.route("/units/<pioreactor_unit>/plugins/installed", methods=["GET"])
 def get_plugins_on_machine(pioreactor_unit: str) -> ResponseReturnValue:
     if pioreactor_unit == UNIVERSAL_IDENTIFIER:
-        task = broadcast_get_across_cluster("/unit_api/plugins/installed", timeout=5)
+        task = tasks.broadcast_get_across_cluster("/unit_api/plugins/installed", timeout=5)
     else:
         task = tasks.multicast_get_across_cluster(
             "/unit_api/plugins/installed", [pioreactor_unit], timeout=5
@@ -811,7 +757,7 @@ def install_plugin_across_cluster(pioreactor_unit: str) -> ResponseReturnValue:
 
     if pioreactor_unit == UNIVERSAL_IDENTIFIER:
         return create_task_response(
-            broadcast_post_across_cluster("/unit_api/plugins/install", request.get_json())
+            tasks.broadcast_post_across_cluster("/unit_api/plugins/install", request.get_json())
         )
     else:
         return create_task_response(
@@ -828,7 +774,7 @@ def uninstall_plugin_across_cluster(pioreactor_unit: str) -> ResponseReturnValue
 
     if pioreactor_unit == UNIVERSAL_IDENTIFIER:
         return create_task_response(
-            broadcast_post_across_cluster("/unit_api/plugins/uninstall", request.get_json())
+            tasks.broadcast_post_across_cluster("/unit_api/plugins/uninstall", request.get_json())
         )
     else:
         return create_task_response(
@@ -840,12 +786,12 @@ def uninstall_plugin_across_cluster(pioreactor_unit: str) -> ResponseReturnValue
 
 @api.route("/jobs/running", methods=["GET"])
 def get_jobs_running_across_cluster() -> ResponseReturnValue:
-    return create_task_response(broadcast_get_across_cluster("/unit_api/jobs/running"))
+    return create_task_response(tasks.broadcast_get_across_cluster("/unit_api/jobs/running"))
 
 
 @api.route("/jobs/running/experiments/<experiment>", methods=["GET"])
 def get_jobs_running_across_cluster_in_experiment(experiment) -> ResponseReturnValue:
-    list_of_assigned_workers = get_workers_in_experiment(experiment)
+    list_of_assigned_workers = get_all_workers_in_experiment(experiment)
 
     return create_task_response(
         tasks.multicast_get_across_cluster("/unit_api/jobs/running", list_of_assigned_workers)
@@ -857,7 +803,7 @@ def get_jobs_running_across_cluster_in_experiment(experiment) -> ResponseReturnV
 
 @api.route("/experiments/<experiment>/jobs/settings/job_name/<job_name>", methods=["GET"])
 def get_settings_for_job_across_cluster_in_experiment(experiment, job_name) -> ResponseReturnValue:
-    list_of_assigned_workers = get_workers_in_experiment(experiment)
+    list_of_assigned_workers = get_all_workers_in_experiment(experiment)
     return create_task_response(
         tasks.multicast_get_across_cluster(
             f"/unit_api/jobs/settings/job_name/{job_name}", list_of_assigned_workers
@@ -871,7 +817,7 @@ def get_settings_for_job_across_cluster_in_experiment(experiment, job_name) -> R
 def get_setting_for_job_across_cluster_in_experiment(
     experiment, job_name, setting
 ) -> ResponseReturnValue:
-    list_of_assigned_workers = get_workers_in_experiment(experiment)
+    list_of_assigned_workers = get_all_workers_in_experiment(experiment)
     return create_task_response(
         tasks.multicast_get_across_cluster(
             f"/unit_api/jobs/settings/job_name/{job_name}/setting/{setting}",
@@ -883,7 +829,7 @@ def get_setting_for_job_across_cluster_in_experiment(
 @api.route("/workers/<pioreactor_unit>/jobs/settings/job_name/<job_name>", methods=["GET"])
 def get_job_settings_for_worker(pioreactor_unit, job_name) -> ResponseReturnValue:
     if pioreactor_unit == UNIVERSAL_IDENTIFIER:
-        task = broadcast_get_across_cluster(f"/unit_api/jobs/settings/job_name/{job_name}")
+        task = tasks.broadcast_get_across_cluster(f"/unit_api/jobs/settings/job_name/{job_name}")
     else:
         task = tasks.multicast_get_across_cluster(
             f"/unit_api/jobs/settings/job_name/{job_name}", [pioreactor_unit]
@@ -897,7 +843,7 @@ def get_job_settings_for_worker(pioreactor_unit, job_name) -> ResponseReturnValu
 )
 def get_job_setting_for_worker(pioreactor_unit, job_name, setting) -> ResponseReturnValue:
     if pioreactor_unit == UNIVERSAL_IDENTIFIER:
-        task = broadcast_get_across_cluster(
+        task = tasks.broadcast_get_across_cluster(
             f"/unit_api/jobs/settings/job_name/{job_name}/setting/{setting}"
         )
     else:
@@ -912,12 +858,12 @@ def get_job_setting_for_worker(pioreactor_unit, job_name, setting) -> ResponseRe
 
 @api.route("/versions/app", methods=["GET"])
 def get_app_versions_across_cluster() -> ResponseReturnValue:
-    return create_task_response(broadcast_get_across_cluster("/unit_api/versions/app"))
+    return create_task_response(tasks.broadcast_get_across_cluster("/unit_api/versions/app"))
 
 
 @api.route("/versions/ui", methods=["GET"])
 def get_ui_versions_across_cluster() -> ResponseReturnValue:
-    return create_task_response(broadcast_get_across_cluster("/unit_api/versions/ui"))
+    return create_task_response(tasks.broadcast_get_across_cluster("/unit_api/versions/ui"))
 
 
 ## UPLOADS
@@ -1233,7 +1179,7 @@ def create_experiment() -> ResponseReturnValue:
 def delete_experiment(experiment: str) -> ResponseReturnValue:
     cache.evict("experiments")
     row_count = modify_app_db("DELETE FROM experiments WHERE experiment=?;", (experiment,))
-    broadcast_post_across_cluster(f"/unit_api/jobs/stop/experiment/{experiment}")
+    tasks.broadcast_post_across_cluster(f"/unit_api/jobs/stop/experiment/{experiment}")
 
     if row_count > 0:
         return Response(status=200)
@@ -1932,7 +1878,7 @@ def remove_all_workers_from_all_experiments() -> ResponseReturnValue:
     modify_app_db(
         "DELETE FROM experiment_worker_assignments",
     )
-    task = broadcast_post_across_cluster("/unit_api/jobs/stop/all")
+    task = tasks.broadcast_post_across_cluster("/unit_api/jobs/stop/all")
     publish_to_log(
         "Removed all worker assignments.",
         level="INFO",
@@ -2076,7 +2022,7 @@ def remove_workers_from_experiment(experiment: str) -> ResponseReturnValue:
         "DELETE FROM experiment_worker_assignments WHERE experiment = ?",
         (experiment,),
     )
-    task = broadcast_post_across_cluster(f"/unit_api/jobs/stop/experiment/{experiment}")
+    task = tasks.broadcast_post_across_cluster(f"/unit_api/jobs/stop/experiment/{experiment}")
     publish_to_experiment_log(
         f"Removed all workers from {experiment}.",
         experiment=experiment,
