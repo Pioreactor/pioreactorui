@@ -139,6 +139,7 @@ def get_clock_time():
 # PATCH / POST to set clock time
 @unit_api.route("/system/utc_clock", methods=["PATCH", "POST"])
 def set_clock_time():
+    # send UTC time in ISO 8601 format
     try:
         if HOSTNAME == get_leader_hostname() and request.json:
             data = request.json
@@ -149,9 +150,9 @@ def set_clock_time():
                     400,
                 )
 
-            # Convert and validate the timestamp
+            # validate the timestamp
             try:
-                datetime_obj = to_datetime(new_time)
+                to_datetime(new_time)
             except ValueError:
                 return (
                     jsonify(
@@ -164,7 +165,7 @@ def set_clock_time():
                 )
 
             # Update the system clock (requires admin privileges)
-            run(["sudo", "date", "-s", datetime_obj.strftime("%Y-%m-%d %H:%M:%S")], check=True)
+            run(["sudo", "date", "-s", new_time], check=True)
             return jsonify({"status": "success", "message": "Clock time successfully updated"}), 200
         else:
             # sync using chrony
