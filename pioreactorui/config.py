@@ -10,7 +10,6 @@ import sqlite3
 import tempfile
 from pathlib import Path
 
-from diskcache import Cache
 from dotenv import dotenv_values
 from huey import SqliteHuey
 
@@ -27,10 +26,3 @@ try:
     huey = SqliteHuey(filename=CACHE_DIR / "huey.db")
 except sqlite3.OperationalError:
     raise IOError(f'Unable to open huey.db at {CACHE_DIR / "huey.db"}')
-
-
-cache = Cache(
-    directory=CACHE_DIR,
-    tag_index=True,
-    disk_min_file_size=2**16,
-)

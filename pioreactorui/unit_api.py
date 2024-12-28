@@ -5,6 +5,7 @@ import os
 from pathlib import Path
 from subprocess import run
 from time import sleep
+from time import time
 
 from flask import abort
 from flask import Blueprint
@@ -18,6 +19,7 @@ from huey.exceptions import TaskException
 from msgspec.yaml import decode as yaml_decode
 from pioreactor.calibrations import CALIBRATION_PATH
 from pioreactor.config import get_leader_hostname
+from pioreactor.utils import local_intermittent_storage
 from pioreactor.utils import local_persistant_storage
 from pioreactor.utils.timing import current_utc_timestamp
 from pioreactor.utils.timing import to_datetime
@@ -26,7 +28,6 @@ from . import HOSTNAME
 from . import query_temp_local_metadata_db
 from . import tasks
 from . import VERSION
-from .config import cache
 from .config import env
 from .config import huey
 from .utils import create_task_response
@@ -183,11 +184,12 @@ def is_rate_limited(job: str, expire_time_seconds=1.0) -> bool:
     """
     Check if the user has made a request within the debounce duration.
     """
-    if cache.get(f"debounce:{job}") is None:
-        cache.set(f"debounce:{job}", b"dummy-key", expire=expire_time_seconds)
-        return False
-    else:
-        return True
+    with local_intermittent_storage("debounce") as cache:
+        if cache.get(job) and (time() - cache.get(job)) < expire_time_seconds:
+            return True
+        else:
+            cache.set(job, time())
+            return False
 
 
 @unit_api.route("/jobs/run/job_name/<job>", methods=["PATCH", "POST"])

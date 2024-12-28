@@ -44,7 +44,6 @@ from . import publish_to_log
 from . import query_app_db
 from . import structs
 from . import tasks
-from .config import cache
 from .config import env
 from .config import is_testing_env
 from .utils import create_task_response
@@ -1121,7 +1120,6 @@ def export_datasets() -> ResponseReturnValue:
 
 
 @api.route("/experiments", methods=["GET"])
-@cache.memoize(expire=60, tag="experiments")
 def get_experiments() -> ResponseReturnValue:
     try:
         response = jsonify(
@@ -1141,9 +1139,6 @@ def get_experiments() -> ResponseReturnValue:
 
 @api.route("/experiments", methods=["POST"])
 def create_experiment() -> ResponseReturnValue:
-    cache.evict("experiments")
-    cache.evict("unit_labels")
-
     body = request.get_json()
     proposed_experiment_name = body.get("experiment")
 
@@ -1197,7 +1192,6 @@ def create_experiment() -> ResponseReturnValue:
 
 @api.route("/experiments/<experiment>", methods=["DELETE"])
 def delete_experiment(experiment: str) -> ResponseReturnValue:
-    cache.evict("experiments")
     row_count = modify_app_db("DELETE FROM experiments WHERE experiment=?;", (experiment,))
     broadcast_post_across_cluster(f"/unit_api/jobs/stop/experiment/{experiment}")
 
@@ -1209,7 +1203,6 @@ def delete_experiment(experiment: str) -> ResponseReturnValue:
 
 
 @api.route("/experiments/latest", methods=["GET"])
-@cache.memoize(expire=30, tag="experiments")
 def get_latest_experiment() -> ResponseReturnValue:
     try:
         return Response(
@@ -1337,8 +1330,6 @@ def get_historical_media_used() -> ResponseReturnValue:
 
 @api.route("/experiments/<experiment>", methods=["PATCH"])
 def update_experiment(experiment: str) -> ResponseReturnValue:
-    cache.evict("experiments")
-
     body = request.get_json()
     try:
         if "description" in body:
@@ -1385,7 +1376,6 @@ def get_experiment(experiment: str) -> ResponseReturnValue:
 
 
 @api.route("/configs/<filename>", methods=["GET"])
-@cache.memoize(expire=30, tag="config")
 def get_config(filename: str) -> ResponseReturnValue:
     """get a specific config.ini file in the .pioreactor folder"""
 
@@ -1414,7 +1404,6 @@ def get_config(filename: str) -> ResponseReturnValue:
 
 
 @api.route("/configs", methods=["GET"])
-@cache.memoize(expire=60, tag="config")
 def get_configs() -> ResponseReturnValue:
     """get a list of all config.ini files in the .pioreactor folder, _and_ are part of the inventory _or_ are leader"""
 
@@ -1453,7 +1442,6 @@ def get_configs() -> ResponseReturnValue:
 
 @api.route("/configs/<filename>", methods=["PATCH"])
 def update_config(filename: str) -> ResponseReturnValue:
-    cache.evict("config")
     body = request.get_json()
     code = body["code"]
 
@@ -1561,7 +1549,6 @@ def get_historical_config_for(filename: str) -> ResponseReturnValue:
 
 
 @api.route("/is_local_access_point_active", methods=["GET"])
-@cache.memoize(expire=10_000)
 def is_local_access_point_active() -> ResponseReturnValue:
     if os.path.isfile("/boot/firmware/local_access_point"):
         return "true"
@@ -1766,7 +1753,6 @@ def setup_worker_pioreactor() -> ResponseReturnValue:
 
 @api.route("/workers", methods=["PUT"])
 def add_worker() -> ResponseReturnValue:
-    cache.evict("config")
     data = request.get_json()
     pioreactor_unit = data.get("pioreactor_unit")
 

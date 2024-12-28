@@ -22,7 +22,6 @@ from pioreactor.pubsub import patch_into
 from pioreactor.pubsub import post_into
 from pioreactor.utils.networking import resolve_to_address
 
-from .config import cache
 from .config import CACHE_DIR
 from .config import env
 from .config import huey
@@ -93,7 +92,6 @@ def add_new_pioreactor(new_pioreactor_name: str, version: str, model: str) -> bo
     result = run(
         [PIO_EXECUTABLE, "workers", "add", new_pioreactor_name, "-v", version, "-m", model],
     )
-    cache.evict("config")
     return result.returncode == 0
 
 
@@ -103,7 +101,6 @@ def update_app_across_cluster() -> bool:
     logger.info("Updating app on leader")
     update_app_on_leader = ["pio", "update", "app"]
     run_and_check_call(update_app_on_leader)
-    cache.evict("app")
 
     logger.info("Updating app and ui on workers")
     update_app_across_all_workers = [PIOS_EXECUTABLE, "update", "-y"]
@@ -117,7 +114,6 @@ def update_app_from_release_archive_across_cluster(archive_location: str) -> boo
     update_app_on_leader = ["pio", "update", "app", "--source", archive_location]
     run_and_check_call(update_app_on_leader)
     # remove bits if success
-    cache.evict("app")
 
     logger.info(f"Updating app and ui on workers from {archive_location}")
     distribute_archive_to_workers = [PIOS_EXECUTABLE, "cp", archive_location, "-y"]
