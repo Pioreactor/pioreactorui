@@ -76,6 +76,17 @@ def get_all_workers() -> list[str]:
     assert result is not None and isinstance(result, list)
     return list(r["unit"] for r in result)
 
+def get_all_units() -> list[str]:
+    result = query_app_db(
+        f"""SELECT DISTINCT pioreactor_unit FROM (
+            SELECT "{get_leader_hostname()}" AS pioreactor_unit
+                UNION
+            SELECT pioreactor_unit FROM workers
+        );"""
+    )
+    assert result is not None and isinstance(result, list)
+    return list(r["pioreactor_unit"] for r in result)
+
 
 def broadcast_get_across_cluster(endpoint: str, timeout: float = 1.0) -> dict[str, Any]:
     assert endpoint.startswith("/unit_api")
@@ -198,7 +209,6 @@ def run_job_on_unit_in_experiment(
 
     else:
         # check if worker is part of experiment
-
         okay = query_app_db(
             """
             SELECT count(1) as count
@@ -211,7 +221,7 @@ def run_job_on_unit_in_experiment(
             one=True,
         )
         assert isinstance(okay, dict)
-        if okay["count"] < 1:
+        if okay["count"] == 0:
             assigned_workers = []
         else:
             assigned_workers = [pioreactor_unit]
@@ -296,7 +306,7 @@ def update_job_on_unit(pioreactor_unit: str, experiment: str, job: str) -> Respo
     return Response(status=202)
 
 
-@api.route("/units/<pioreactor_unit>/system/reboot", methods=["POST"])
+@api.route("/workers/<pioreactor_unit>/system/reboot", methods=["POST"])
 def reboot_unit(pioreactor_unit: str) -> ResponseReturnValue:
     """Reboots unit"""
     if pioreactor_unit == UNIVERSAL_IDENTIFIER:
@@ -306,7 +316,7 @@ def reboot_unit(pioreactor_unit: str) -> ResponseReturnValue:
     return create_task_response(task)
 
 
-@api.route("/units/<pioreactor_unit>/system/shutdown", methods=["POST"])
+@api.route("/workers/<pioreactor_unit>/system/shutdown", methods=["POST"])
 def shutdown_unit(pioreactor_unit: str) -> ResponseReturnValue:
     """Shutdown unit"""
     if pioreactor_unit == UNIVERSAL_IDENTIFIER:
@@ -316,19 +326,21 @@ def shutdown_unit(pioreactor_unit: str) -> ResponseReturnValue:
     return create_task_response(task)
 
 
-@api.route("/workers/system/reboot", methods=["POST"])
-def reboot_units() -> ResponseReturnValue:
-    """Reboots workers"""
-    return create_task_response(broadcast_post_across_cluster("/unit_api/system/reboot"))
+## Clock
 
+@api.route("/units/<pioreactor_unit>/system/utc_clock", methods=["GET"])
+def get_clocktime(pioreactor_unit: str) -> ResponseReturnValue:
+    if pioreactor_unit == UNIVERSAL_IDENTIFIER:
+        task = broadcast_get_across_cluster("/unit_api/system/utc_clock")
+    else:
+        task = tasks.multicast_get_across_cluster("/unit_api/system/utc_clock", [pioreactor_unit])
+    return create_task_response(task)
 
-@api.route("/workers/system/shutdown", methods=["POST"])
-def shutdown_units() -> ResponseReturnValue:
-    """Shutdown workers"""
-    return create_task_response(broadcast_post_across_cluster("/unit_api/system/shutdown"))
-
-
-## Logs
+@api.route("/system/utc_clock", methods=["POST"])
+def set_clocktime() -> ResponseReturnValue:
+    task1 = tasks.multicast_post_across_cluster("/unit_api/system/utc_clock", [get_leader_hostname()], request.get_json())
+    task2 = broadcast_post_across_cluster("/unit_api/system/utc_clock")
+    return create_task_response(task2)
 
 
 # util
@@ -413,23 +425,6 @@ def get_logs() -> ResponseReturnValue:
     return jsonify(recent_logs)
 
 
-@api.route("/experiments/<experiment>/logs", methods=["POST"])
-def publish_new_log(experiment: str) -> ResponseReturnValue:
-    body = request.get_json()
-    topic = f"pioreactor/{body['pioreactor_unit']}/{experiment}/logs/ui/info"
-    client.publish(
-        topic,
-        msg_to_JSON(
-            msg=body["message"],
-            source="user",
-            level="info",
-            timestamp=body["timestamp"],
-            task=body["source"] or "",
-        ),
-    )
-    return Response(status=202)
-
-
 @api.route("/workers/<pioreactor_unit>/experiments/<experiment>/recent_logs", methods=["GET"])
 def get_recent_logs_for_unit_and_experiment(
     pioreactor_unit: str, experiment: str
@@ -504,6 +499,24 @@ def get_logs_for_unit(pioreactor_unit: str) -> ResponseReturnValue:
         return Response(status=500)
 
     return jsonify(recent_logs)
+
+
+@api.route("/units/<pioreactor_unit>/experiments/<experiment>/logs", methods=["POST"])
+def publish_new_log(pioreactor_unit: str, experiment: str) -> ResponseReturnValue:
+    body = request.get_json()
+
+    topic = f"pioreactor/{pioreactor_unit}/{experiment}/logs/ui/info"
+    client.publish(
+        topic,
+        msg_to_JSON(
+            msg=body["message"],
+            source="user",
+            level="info",
+            timestamp=body["timestamp"],
+            task=body["source"] or "",
+        ),
+    )
+    return Response(status=202)
 
 
 ## Time series data
@@ -1744,14 +1757,8 @@ def delete_experiment_profile(filename: str) -> ResponseReturnValue:
 @api.route("/units", methods=["GET"])
 def get_list_of_units() -> ResponseReturnValue:
     # Get a list of all units (workers + leader)
-    all_units = query_app_db(
-        f"""SELECT DISTINCT pioreactor_unit FROM (
-            SELECT "{get_leader_hostname()}" AS pioreactor_unit
-                UNION
-            SELECT pioreactor_unit FROM workers
-        );"""
-    )
-    return jsonify(all_units)
+    all_units = get_all_units()
+    return jsonify([{"pioreactor_unit": u} for u in all_units])
 
 
 @api.route("/workers", methods=["GET"])

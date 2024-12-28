@@ -377,3 +377,5 @@ def multicast_delete_across_cluster(
     tasks = delete_worker.map(((worker, endpoint, json) for worker in workers))
 
     return {worker: response for (worker, response) in tasks.get(blocking=True)}
+
+

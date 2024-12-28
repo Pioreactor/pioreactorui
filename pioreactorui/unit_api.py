@@ -127,7 +127,7 @@ def remove_file() -> ResponseReturnValue:
 
 
 # GET clock time
-@unit_api.route("/unit_api/system/clock", methods=["GET"])
+@unit_api.route("/system/utc_clock", methods=["GET"])
 def get_clock_time():
     try:
         current_time = current_utc_timestamp()
@@ -137,14 +137,14 @@ def get_clock_time():
 
 
 # PATCH / POST to set clock time
-@unit_api.route("/unit_api/system/clock", methods=["PATCH", "POST"])
+@unit_api.route("/system/utc_clock", methods=["PATCH", "POST"])
 def set_clock_time():
     try:
         if HOSTNAME == get_leader_hostname():
             data = request.json
-            new_time = data.get("clock_time")
+            new_time = data.get("utc_clock_time")
             if not new_time:
-                return jsonify({"status": "error", "message": "clock_time field is required"}), 400
+                return jsonify({"status": "error", "message": "utc_clock_time field is required"}), 400
 
             # Convert and validate the timestamp
             try:
@@ -152,7 +152,7 @@ def set_clock_time():
             except ValueError:
                 return (
                     jsonify(
-                        {"status": "error", "message": "Invalid clock_time format. Use ISO 8601."}
+                        {"status": "error", "message": "Invalid utc_clock_time format. Use ISO 8601."}
                     ),
                     400,
                 )
@@ -264,6 +264,13 @@ def get_all_running_jobs() -> ResponseReturnValue:
     jobs = query_temp_local_metadata_db("SELECT * FROM pio_job_metadata where is_running=1")
 
     return jsonify(jobs)
+
+
+@unit_api.route("/long_running_jobs/running", methods=["GET"])
+def get_all_long_running_jobs() -> ResponseReturnValue:
+    jobs = query_temp_local_metadata_db("SELECT * FROM pio_job_metadata where is_running=1 and is_long_running_job=1")
+    return jsonify(jobs)
+
 
 
 ### SETTINGS
