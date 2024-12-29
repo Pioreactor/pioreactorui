@@ -166,7 +166,7 @@ def _get_temp_local_metadata_db_connection():
     db = getattr(g, "_local_metadata_database", None)
     if db is None:
         db = g._local_metadata_database = sqlite3.connect(
-            f"{tempfile.gettempdir()}/local_intermittent_pioreactor_metadata.sqlite"
+            pioreactor_config.get("storage", "temporary_cache")
         )
         db.row_factory = _make_dicts
     return db

@@ -18,7 +18,7 @@ def is_testing_env():
     return os.environ.get("TESTING") == "1"
 
 
-CACHE_DIR = Path(tempfile.gettempdir()) / "pioreactorui_cache"
+CACHE_DIR = Path(tempfile.gettempdir()) / "pioreactor_cache"
 
 env = dotenv_values(".env", verbose=True)
 

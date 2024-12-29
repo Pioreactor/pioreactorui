@@ -34,7 +34,7 @@ jobs:
       - name: Create pioreactor folders and env
         run: |
            mkdir -p .pioreactor/storage
-           mkdir -p /tmp/pioreactorui_cache/
+           mkdir -p /tmp/pioreactor_cache/
            mv .env.example .env
 
       - name: Run tests
