@@ -24,6 +24,7 @@ from pioreactor.utils import local_intermittent_storage
 from pioreactor.utils import local_persistent_storage
 from pioreactor.utils.timing import current_utc_timestamp
 from pioreactor.utils.timing import to_datetime
+from werkzeug.utils import safe_join
 
 from . import HOSTNAME
 from . import query_temp_local_metadata_db
@@ -182,7 +183,23 @@ def set_clock_time():
 @unit_api.route("/system/path/", defaults={"req_path": ""})
 @unit_api.route("/system/path/<path:req_path>")
 def dir_listing(req_path: str):
+    if os.path.isfile(Path(env["DOT_PIOREACTOR"]) / "DISALLOW_UI_FILE_SYSTEM"):
+        return Response(status=403)
+
     BASE_DIR = env["DOT_PIOREACTOR"]
+
+    # Safely join to prevent directory traversal
+    safe_path = safe_join(BASE_DIR, req_path)
+    if not safe_path:
+        return abort(403, "Invalid path.")
+
+    # Check if the path actually exists
+    if not os.path.exists(safe_path):
+        return abort(404, "Path not found.")
+
+    # If it's a file, serve the file
+    if os.path.isfile(safe_path):
+        return send_file(safe_path)
 
     # Joining the base and the requested path
     abs_path = os.path.join(BASE_DIR, req_path)
@@ -197,7 +214,19 @@ def dir_listing(req_path: str):
 
     # Show directory contents
     current, dirs, files = next(os.walk(abs_path))
-    return jsonify({"current": current, "dirs": dirs, "files": files})
+
+    return Response(
+        response=current_app.json.dumps(
+            {
+                "current": current,
+                "dirs": [d for d in dirs if not d == "__pycache__"],
+                "files": files,
+            }
+        ),
+        status=200,
+        mimetype="application/json",
+        headers={"Cache-Control": "public,max-age=6"},
+    )
 
 
 ## RUNNING JOBS CONTROL

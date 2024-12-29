@@ -29,6 +29,7 @@ from pioreactor.utils.timing import current_utc_datetime
 from pioreactor.utils.timing import current_utc_timestamp
 from pioreactor.whoami import UNIVERSAL_EXPERIMENT
 from pioreactor.whoami import UNIVERSAL_IDENTIFIER
+from werkzeug.utils import safe_join
 from werkzeug.utils import secure_filename
 
 from . import client
@@ -906,7 +907,7 @@ def upload() -> ResponseReturnValue:
         return jsonify({"error": "Too large"}), 400
 
     filename = secure_filename(file.filename)
-    save_path = os.path.join(tempfile.gettempdir(), filename)
+    save_path = safe_join(tempfile.gettempdir(), filename)
     file.save(save_path)
     return jsonify({"message": "File successfully uploaded", "save_path": save_path}), 200
 
@@ -946,7 +947,7 @@ def get_automation_contrib(automation_type: str) -> ResponseReturnValue:
             response=current_app.json.dumps(list(parsed_yaml.values())),
             status=200,
             mimetype="application/json",
-            headers={"Cache-Control": "public,max-age=/"},
+            headers={"Cache-Control": "public,max-age=6"},
         )
     except Exception as e:
         publish_to_error_log(str(e), "get_automation_contrib")
