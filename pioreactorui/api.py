@@ -525,7 +525,7 @@ def get_growth_rates(experiment: str) -> ResponseReturnValue:
         publish_to_error_log(str(e), "get_growth_rates")
         return Response(status=400)
 
-    return attach_cache_control(growth_rates["result"])
+    return attach_cache_control(jsonify(growth_rates["result"]))
 
 
 @api.route("/experiments/<experiment>/time_series/temperature_readings", methods=["GET"])
@@ -559,7 +559,7 @@ def get_temperature_readings(experiment: str) -> ResponseReturnValue:
         publish_to_error_log(str(e), "get_temperature_readings")
         return Response(status=400)
 
-    return attach_cache_control(temperature_readings["result"])
+    return attach_cache_control(jsonify(temperature_readings["result"]))
 
 
 @api.route("/experiments/<experiment>/time_series/od_readings_filtered", methods=["GET"])
@@ -594,7 +594,7 @@ def get_od_readings_filtered(experiment: str) -> ResponseReturnValue:
         publish_to_error_log(str(e), "get_od_readings_filtered")
         return Response(status=400)
 
-    return attach_cache_control(filtered_od_readings["result"])
+    return attach_cache_control(jsonify(filtered_od_readings["result"]))
 
 
 @api.route("/experiments/<experiment>/time_series/od_readings", methods=["GET"])
@@ -627,7 +627,7 @@ def get_od_readings(experiment: str) -> ResponseReturnValue:
         publish_to_error_log(str(e), "get_od_readings")
         return Response(status=400)
 
-    return attach_cache_control(raw_od_readings["result"])
+    return attach_cache_control(jsonify(raw_od_readings["result"]))
 
 
 @api.route("/experiments/<experiment>/time_series/<data_source>/<column>", methods=["GET"])
@@ -647,7 +647,7 @@ def get_fallback_time_series(data_source: str, experiment: str, column: str) -> 
     except Exception as e:
         publish_to_error_log(str(e), "get_fallback_time_series")
         return Response(status=400)
-    return attach_cache_control(r["result"])
+    return attach_cache_control(jsonify(r["result"]))
 
 
 @api.route("/experiments/<experiment>/media_rates", methods=["GET"])
