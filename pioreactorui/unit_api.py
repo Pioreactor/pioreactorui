@@ -13,6 +13,7 @@ from flask import current_app
 from flask import jsonify
 from flask import request
 from flask import Response
+from flask import send_file
 from flask.typing import ResponseReturnValue
 from huey.exceptions import HueyException
 from huey.exceptions import TaskException
@@ -175,6 +176,28 @@ def set_clock_time():
 
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
+
+
+#### DIR
+@unit_api.route("/system/path/", defaults={"req_path": ""})
+@unit_api.route("/system/path/<path:req_path>")
+def dir_listing(req_path: str):
+    BASE_DIR = env["DOT_PIOREACTOR"]
+
+    # Joining the base and the requested path
+    abs_path = os.path.join(BASE_DIR, req_path)
+
+    # Return 404 if path doesn't exist
+    if not os.path.exists(abs_path):
+        return abort(404)
+
+    # Check if path is a file and serve
+    if os.path.isfile(abs_path):
+        return send_file(abs_path)
+
+    # Show directory contents
+    current, dirs, files = next(os.walk(abs_path))
+    return jsonify({"current": current, "dirs": dirs, "files": files})
 
 
 ## RUNNING JOBS CONTROL
