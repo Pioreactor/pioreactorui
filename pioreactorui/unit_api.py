@@ -20,7 +20,7 @@ from msgspec.yaml import decode as yaml_decode
 from pioreactor.calibrations import CALIBRATION_PATH
 from pioreactor.config import get_leader_hostname
 from pioreactor.utils import local_intermittent_storage
-from pioreactor.utils import local_persistant_storage
+from pioreactor.utils import local_persistent_storage
 from pioreactor.utils.timing import current_utc_timestamp
 from pioreactor.utils.timing import to_datetime
 
@@ -501,7 +501,7 @@ def get_all_calibrations() -> ResponseReturnValue:
 
     all_calibrations: dict[str, list] = {}
 
-    with local_persistant_storage("active_calibrations") as cache:
+    with local_persistent_storage("active_calibrations") as cache:
         for file in calibration_dir.glob("*/*.yaml"):
             try:
                 cal = yaml_decode(file.read_bytes())
@@ -526,7 +526,7 @@ def get_calibrations(cal_type) -> ResponseReturnValue:
 
     calibrations: list[dict] = []
 
-    with local_persistant_storage("active_calibrations") as c:
+    with local_persistent_storage("active_calibrations") as c:
         for file in calibration_dir.glob("*.yaml"):
             try:
                 cal = yaml_decode(file.read_bytes())
@@ -540,7 +540,7 @@ def get_calibrations(cal_type) -> ResponseReturnValue:
 
 @unit_api.route("/calibrations/<cal_type>/<cal_name>/active", methods=["PATCH"])
 def set_active_calibration(cal_type, cal_name) -> ResponseReturnValue:
-    with local_persistant_storage("active_calibrations") as c:
+    with local_persistent_storage("active_calibrations") as c:
         c[cal_type] = cal_name
 
     return Response(status=200)
@@ -548,7 +548,7 @@ def set_active_calibration(cal_type, cal_name) -> ResponseReturnValue:
 
 @unit_api.route("/calibrations/<cal_type>/active", methods=["DELETE"])
 def remove_active_status_calibration(cal_type) -> ResponseReturnValue:
-    with local_persistant_storage("active_calibrations") as c:
+    with local_persistent_storage("active_calibrations") as c:
         c.pop(cal_type)
 
     return Response(status=200)
