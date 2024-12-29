@@ -32,6 +32,7 @@ from . import tasks
 from . import VERSION
 from .config import env
 from .config import huey
+from .utils import attach_cache_control
 from .utils import create_task_response
 from pioreactorui import structs
 
@@ -215,17 +216,14 @@ def dir_listing(req_path: str):
     # Show directory contents
     current, dirs, files = next(os.walk(abs_path))
 
-    return Response(
-        response=current_app.json.dumps(
+    return attach_cache_control(
+        jsonify(
             {
                 "current": current,
                 "dirs": [d for d in dirs if not d == "__pycache__"],
                 "files": files,
             }
-        ),
-        status=200,
-        mimetype="application/json",
-        headers={"Cache-Control": "public,max-age=6"},
+        )
     )
 
 
@@ -523,22 +521,12 @@ def get_app_version() -> ResponseReturnValue:
     )
     if result.returncode != 0:
         return Response(status=500)
-    return Response(
-        response=current_app.json.dumps({"version": result.stdout.strip()}),
-        status=200,
-        mimetype="text/json",
-        headers={"Cache-Control": "public,max-age=60"},
-    )
+    return attach_cache_control(jsonify({"version": result.stdout.strip()}), max_age=6)
 
 
 @unit_api.route("/versions/ui", methods=["GET"])
 def get_ui_version() -> ResponseReturnValue:
-    return Response(
-        response=current_app.json.dumps({"version": VERSION}),
-        status=200,
-        mimetype="text/json",
-        headers={"Cache-Control": "public,max-age=60"},
-    )
+    return attach_cache_control(jsonify({"version": VERSION}), max_age=6)
 
 
 ### CALIBRATIONS
@@ -566,7 +554,7 @@ def get_all_calibrations() -> ResponseReturnValue:
             except Exception as e:
                 print(f"Error reading {file.stem}: {e}")
 
-    return jsonify(all_calibrations)
+    return attach_cache_control(jsonify(all_calibrations), max_age=10)
 
 
 @unit_api.route("/calibrations/<cal_type>", methods=["GET"])
@@ -587,7 +575,7 @@ def get_calibrations(cal_type) -> ResponseReturnValue:
             except Exception as e:
                 print(f"Error reading {file.stem}: {e}")
 
-    return jsonify(calibrations)
+    return attach_cache_control(jsonify(calibrations), max_age=10)
 
 
 @unit_api.route("/calibrations/<cal_type>/<cal_name>/active", methods=["PATCH"])

@@ -47,6 +47,7 @@ from . import structs
 from . import tasks
 from .config import env
 from .config import is_testing_env
+from .utils import attach_cache_control
 from .utils import create_task_response
 from .utils import is_valid_unix_filename
 from .utils import scrub_to_valid
@@ -524,7 +525,7 @@ def get_growth_rates(experiment: str) -> ResponseReturnValue:
         publish_to_error_log(str(e), "get_growth_rates")
         return Response(status=400)
 
-    return growth_rates["result"]
+    return attach_cache_control(growth_rates["result"])
 
 
 @api.route("/experiments/<experiment>/time_series/temperature_readings", methods=["GET"])
@@ -558,7 +559,7 @@ def get_temperature_readings(experiment: str) -> ResponseReturnValue:
         publish_to_error_log(str(e), "get_temperature_readings")
         return Response(status=400)
 
-    return temperature_readings["result"]
+    return attach_cache_control(temperature_readings["result"])
 
 
 @api.route("/experiments/<experiment>/time_series/od_readings_filtered", methods=["GET"])
@@ -593,7 +594,7 @@ def get_od_readings_filtered(experiment: str) -> ResponseReturnValue:
         publish_to_error_log(str(e), "get_od_readings_filtered")
         return Response(status=400)
 
-    return filtered_od_readings["result"]
+    return attach_cache_control(filtered_od_readings["result"])
 
 
 @api.route("/experiments/<experiment>/time_series/od_readings", methods=["GET"])
@@ -626,7 +627,7 @@ def get_od_readings(experiment: str) -> ResponseReturnValue:
         publish_to_error_log(str(e), "get_od_readings")
         return Response(status=400)
 
-    return raw_od_readings["result"]
+    return attach_cache_control(raw_od_readings["result"])
 
 
 @api.route("/experiments/<experiment>/time_series/<data_source>/<column>", methods=["GET"])
@@ -646,7 +647,7 @@ def get_fallback_time_series(data_source: str, experiment: str, column: str) -> 
     except Exception as e:
         publish_to_error_log(str(e), "get_fallback_time_series")
         return Response(status=400)
-    return r["result"]
+    return attach_cache_control(r["result"])
 
 
 @api.route("/experiments/<experiment>/media_rates", methods=["GET"])
@@ -687,7 +688,7 @@ def get_media_rates(experiment: str) -> ResponseReturnValue:
             aggregate["altMediaRate"] = aggregate["altMediaRate"] + float(row["altMediaRate"])
 
         json_result["all"] = aggregate
-        return jsonify(json_result)
+        return attach_cache_control(jsonify(json_result))
 
     except Exception as e:
         publish_to_error_log(str(e), "get_media_rates")
@@ -943,12 +944,8 @@ def get_automation_contrib(automation_type: str) -> ResponseReturnValue:
                     f"Yaml error in {Path(file).name}: {e}", "get_automation_contrib"
                 )
 
-        return Response(
-            response=current_app.json.dumps(list(parsed_yaml.values())),
-            status=200,
-            mimetype="application/json",
-            headers={"Cache-Control": "public,max-age=6"},
-        )
+        return attach_cache_control(jsonify(list(parsed_yaml.values())))
+
     except Exception as e:
         publish_to_error_log(str(e), "get_automation_contrib")
         return Response(status=400)
@@ -971,12 +968,8 @@ def get_job_contrib() -> ResponseReturnValue:
             except (ValidationError, DecodeError) as e:
                 publish_to_error_log(f"Yaml error in {Path(file).name}: {e}", "get_job_contrib")
 
-        return Response(
-            response=current_app.json.dumps(list(parsed_yaml.values())),
-            status=200,
-            mimetype="application/json",
-            headers={"Cache-Control": "public,max-age=10"},
-        )
+        return attach_cache_control(jsonify(list(parsed_yaml.values())))
+
     except Exception as e:
         publish_to_error_log(str(e), "get_job_contrib")
         return Response(status=400)
@@ -1000,12 +993,8 @@ def get_charts_contrib() -> ResponseReturnValue:
             except (ValidationError, DecodeError) as e:
                 publish_to_error_log(f"Yaml error in {Path(file).name}: {e}", "get_charts_contrib")
 
-        return Response(
-            response=current_app.json.dumps(list(parsed_yaml.values())),
-            status=200,
-            mimetype="application/json",
-            headers={"Cache-Control": "public,max-age=10"},
-        )
+        return attach_cache_control(jsonify(list(parsed_yaml.values())))
+
     except Exception as e:
         publish_to_error_log(str(e), "get_charts_contrib")
         return Response(status=400)
@@ -1043,12 +1032,8 @@ def get_exportable_datasets() -> ResponseReturnValue:
                     f"Yaml error in {Path(file).name}: {e}", "get_exportable_datasets"
                 )
 
-        return Response(
-            response=current_app.json.dumps(parsed_yaml),
-            status=200,
-            mimetype="application/json",
-            headers={"Cache-Control": "public,max-age=60"},
-        )
+        return attach_cache_control(jsonify(parsed_yaml), max_age=60)
+
     except Exception as e:
         publish_to_error_log(str(e), "get_exportable_datasets")
         return Response(status=400)
@@ -1206,18 +1191,14 @@ def delete_experiment(experiment: str) -> ResponseReturnValue:
 @api.route("/experiments/latest", methods=["GET"])
 def get_latest_experiment() -> ResponseReturnValue:
     try:
-        return Response(
-            response=current_app.json.dumps(
+        return attach_cache_control(
+            jsonify(
                 query_app_db(
                     "SELECT experiment, created_at, description, media_used, organism_used, delta_hours FROM latest_experiment",
                     one=True,
                 )
             ),
-            status=200,
-            headers={
-                "Cache-Control": "public,max-age=2"
-            },  # don't make this too high, as it caches description, which changes fast.
-            mimetype="application/json",
+            max_age=2,
         )
 
     except Exception as e:
@@ -1242,12 +1223,7 @@ def get_unit_labels(experiment: str) -> ResponseReturnValue:
 
         keyed_by_unit = {d["unit"]: d["label"] for d in unit_labels}
 
-        return Response(
-            response=current_app.json.dumps(keyed_by_unit),
-            status=200,
-            headers={"Cache-Control": "public,max-age=10"},
-            mimetype="application/json",
-        )
+        return attach_cache_control(jsonify(keyed_by_unit), max_age=10)
 
     except Exception as e:
         publish_to_error_log(str(e), "get_unit_labels")
@@ -1392,11 +1368,13 @@ def get_config(filename: str) -> ResponseReturnValue:
 
         specific_config_path = Path(env["DOT_PIOREACTOR"]) / filename
 
-        return Response(
-            response=specific_config_path.read_text(),
-            status=200,
-            mimetype="text/plain",
-            headers={"Cache-Control": "public,max-age=10"},
+        return attach_cache_control(
+            Response(
+                response=specific_config_path.read_text(),
+                status=200,
+                mimetype="text/plain",
+            ),
+            max_age=10,
         )
 
     except Exception as e:
