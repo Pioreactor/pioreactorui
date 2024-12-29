@@ -56,6 +56,10 @@ from .utils import scrub_to_valid
 api = Blueprint("api", __name__, url_prefix="/api")
 
 
+def to_json_response(json: str) -> ResponseReturnValue:
+    return Response(json, mimetype="application/json")
+
+
 def broadcast_get_across_cluster(endpoint: str, timeout: float = 1.0) -> Result:
     assert endpoint.startswith("/unit_api")
     return tasks.multicast_get_across_cluster(endpoint, get_all_workers(), timeout=timeout)
@@ -505,7 +509,7 @@ def get_growth_rates(experiment: str) -> ResponseReturnValue:
         growth_rates = query_app_db(
             """
             SELECT
-                json_object('series', json_group_array(unit), 'data', json_group_array(json(data))) as result
+                json_object('series', json_group_array(unit), 'data', json_group_array(json(data))) as json
             FROM (
                 SELECT pioreactor_unit as unit,
                        json_group_array(json_object('x', timestamp, 'y', round(rate, 5))) as data
@@ -525,7 +529,7 @@ def get_growth_rates(experiment: str) -> ResponseReturnValue:
         publish_to_error_log(str(e), "get_growth_rates")
         return Response(status=400)
 
-    return attach_cache_control(jsonify(growth_rates["result"]))
+    return attach_cache_control(to_json_response(growth_rates["json"]))
 
 
 @api.route("/experiments/<experiment>/time_series/temperature_readings", methods=["GET"])
@@ -538,7 +542,7 @@ def get_temperature_readings(experiment: str) -> ResponseReturnValue:
     try:
         temperature_readings = query_app_db(
             """
-            SELECT json_object('series', json_group_array(unit), 'data', json_group_array(json(data))) as result
+            SELECT json_object('series', json_group_array(unit), 'data', json_group_array(json(data))) as json
             FROM (
                 SELECT
                     pioreactor_unit as unit,
@@ -559,7 +563,7 @@ def get_temperature_readings(experiment: str) -> ResponseReturnValue:
         publish_to_error_log(str(e), "get_temperature_readings")
         return Response(status=400)
 
-    return attach_cache_control(jsonify(temperature_readings["result"]))
+    return attach_cache_control(to_json_response(temperature_readings["json"]))
 
 
 @api.route("/experiments/<experiment>/time_series/od_readings_filtered", methods=["GET"])
@@ -573,7 +577,7 @@ def get_od_readings_filtered(experiment: str) -> ResponseReturnValue:
         filtered_od_readings = query_app_db(
             """
             SELECT
-                json_object('series', json_group_array(unit), 'data', json_group_array(json(data))) as result
+                json_object('series', json_group_array(unit), 'data', json_group_array(json(data))) as json
             FROM (
                 SELECT
                     pioreactor_unit as unit,
@@ -594,7 +598,7 @@ def get_od_readings_filtered(experiment: str) -> ResponseReturnValue:
         publish_to_error_log(str(e), "get_od_readings_filtered")
         return Response(status=400)
 
-    return attach_cache_control(jsonify(filtered_od_readings["result"]))
+    return attach_cache_control(to_json_response(filtered_od_readings["json"]))
 
 
 @api.route("/experiments/<experiment>/time_series/od_readings", methods=["GET"])
@@ -608,7 +612,7 @@ def get_od_readings(experiment: str) -> ResponseReturnValue:
         raw_od_readings = query_app_db(
             """
             SELECT
-                json_object('series', json_group_array(unit), 'data', json_group_array(json(data))) as result
+                json_object('series', json_group_array(unit), 'data', json_group_array(json(data))) as json
             FROM (
                 SELECT pioreactor_unit || '-' || channel as unit, json_group_array(json_object('x', timestamp, 'y', round(od_reading, 7))) as data
                 FROM od_readings
@@ -627,7 +631,7 @@ def get_od_readings(experiment: str) -> ResponseReturnValue:
         publish_to_error_log(str(e), "get_od_readings")
         return Response(status=400)
 
-    return attach_cache_control(jsonify(raw_od_readings["result"]))
+    return attach_cache_control(to_json_response(raw_od_readings["json"]))
 
 
 @api.route("/experiments/<experiment>/time_series/<data_source>/<column>", methods=["GET"])
@@ -647,7 +651,7 @@ def get_fallback_time_series(data_source: str, experiment: str, column: str) -> 
     except Exception as e:
         publish_to_error_log(str(e), "get_fallback_time_series")
         return Response(status=400)
-    return attach_cache_control(jsonify(r["result"]))
+    return attach_cache_control(to_json_response(r["result"]))
 
 
 @api.route("/experiments/<experiment>/media_rates", methods=["GET"])
