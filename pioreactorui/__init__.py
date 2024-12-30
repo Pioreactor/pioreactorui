@@ -94,7 +94,17 @@ def create_app():
     @app.errorhandler(404)
     def handle_not_found(e):
         # Return JSON for API requests
-        return jsonify({"error": "Not Found"}), 404
+        return jsonify({"error": e.description}), 404
+
+    @app.errorhandler(400)
+    def handle_bad_request(e):
+        # Return JSON for API requests
+        return jsonify({"error": e.description}), 400
+
+    @app.errorhandler(403)
+    def handle_not_auth(e):
+        # Return JSON for API requests
+        return jsonify({"error": e.description}), 403
 
     @app.errorhandler(500)
     def handle_server_error(e):

@@ -185,29 +185,32 @@ def set_clock_time():
 @unit_api.route("/system/path/<path:req_path>")
 def dir_listing(req_path: str):
     if os.path.isfile(Path(env["DOT_PIOREACTOR"]) / "DISALLOW_UI_FILE_SYSTEM"):
-        return Response(status=403)
+        abort(403)
 
     BASE_DIR = env["DOT_PIOREACTOR"]
 
     # Safely join to prevent directory traversal
     safe_path = safe_join(BASE_DIR, req_path)
     if not safe_path:
-        return abort(403, "Invalid path.")
+        abort(403, "Invalid path.")
 
     # Check if the path actually exists
     if not os.path.exists(safe_path):
-        return abort(404, "Path not found.")
+        abort(404, "Path not found.")
 
     # If it's a file, serve the file
     if os.path.isfile(safe_path):
-        return send_file(safe_path)
+        if safe_path.endswith(".sqlite"):
+            abort(403, "Access to sqlite files is limited.")
+
+        return send_file(safe_path, mimetype="text/plain")
 
     # Joining the base and the requested path
     abs_path = os.path.join(BASE_DIR, req_path)
 
     # Return 404 if path doesn't exist
     if not os.path.exists(abs_path):
-        return abort(404)
+        abort(404)
 
     # Check if path is a file and serve
     if os.path.isfile(abs_path):
@@ -439,7 +442,7 @@ def get_plugin(filename: str) -> ResponseReturnValue:
             mimetype="text/plain",
         )
     except IOError:
-        return Response(status=404)
+        abort(404, "must provide a .py file")
     except Exception:
         return Response(status=500)
 
@@ -469,7 +472,7 @@ def install_plugin() -> ResponseReturnValue:
 
     # there is a security problem here. See https://github.com/Pioreactor/pioreactor/issues/421
     if os.path.isfile(Path(env["DOT_PIOREACTOR"]) / "DISALLOW_UI_INSTALLS"):
-        return Response(status=403)
+        abort(403, "DISALLOW_UI_INSTALLS is present")
 
     body = current_app.get_json(request.data, type=structs.ArgsOptionsEnvs)
 
@@ -537,7 +540,7 @@ def get_all_calibrations() -> ResponseReturnValue:
     calibration_dir = Path(f"{env['DOT_PIOREACTOR']}/storage/calibrations")
 
     if not calibration_dir.exists():
-        return Response(status=404)
+        abort(404)
 
     all_calibrations: dict[str, list] = {}
 
@@ -562,7 +565,7 @@ def get_calibrations(cal_type) -> ResponseReturnValue:
     calibration_dir = Path(f"{env['DOT_PIOREACTOR']}/storage/calibrations/{cal_type}")
 
     if not calibration_dir.exists():
-        return Response(status=404)
+        abort(404)
 
     calibrations: list[dict] = []
 
@@ -598,7 +601,7 @@ def remove_active_status_calibration(cal_type) -> ResponseReturnValue:
 def remove_calibration(cal_type, cal_name) -> ResponseReturnValue:
     target_file = CALIBRATION_PATH / cal_type / f"{cal_name}.yaml"
     if not target_file.exists():
-        return Response(status=404)
+        abort(404, f"{target_file} not found")
 
     target_file.unlink()
 

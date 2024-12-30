@@ -132,7 +132,7 @@ def stop_job_on_unit(pioreactor_unit: str, experiment: str, job: str) -> Respons
         tasks.multicast_post_across_cluster(
             f"/unit_api/jobs/stop/job_name/{job}", [pioreactor_unit]
         )
-        return Response(status=500)
+        abort(500)
 
     return Response(status=202)
 
@@ -199,7 +199,7 @@ def run_job_on_unit_in_experiment(
             assigned_workers = [pioreactor_unit]
 
     if len(assigned_workers) == 0:
-        return Response(status=404)
+        abort(404, f"Worker {pioreactor_unit} not found")
 
     # and we can include experiment in the env since we know these workers are in the experiment!
     json.env = json.env | {"EXPERIMENT": experiment, "ACTIVE": "1"}
@@ -273,7 +273,7 @@ def update_job_on_unit(pioreactor_unit: str, experiment: str, job: str) -> Respo
             )
     except Exception as e:
         publish_to_error_log(e, "update_job_on_unit")
-        return Response(status=400)
+        abort(400)
 
     return Response(status=202)
 
@@ -350,7 +350,7 @@ def get_recent_logs(experiment: str) -> ResponseReturnValue:
 
     except Exception as e:
         publish_to_error_log(str(e), "get_recent_logs")
-        return Response(status=500)
+        abort(500)
 
     return jsonify(recent_logs)
 
@@ -376,7 +376,7 @@ def get_exp_logs(experiment: str) -> ResponseReturnValue:
 
     except Exception as e:
         publish_to_error_log(str(e), "get_exp_logs")
-        return Response(status=500)
+        abort(500)
 
     return jsonify(recent_logs)
 
@@ -396,7 +396,7 @@ def get_logs() -> ResponseReturnValue:
 
     except Exception as e:
         publish_to_error_log(str(e), "get_logs")
-        return Response(status=500)
+        abort(500)
 
     return jsonify(recent_logs)
 
@@ -423,7 +423,7 @@ def get_recent_logs_for_unit_and_experiment(
 
     except Exception as e:
         publish_to_error_log(str(e), "get_recent_logs_for_unit_and_experiment")
-        return Response(status=500)
+        abort(500)
 
     return jsonify(recent_logs)
 
@@ -450,7 +450,7 @@ def get_logs_for_unit_and_experiment(pioreactor_unit: str, experiment: str) -> R
 
     except Exception as e:
         publish_to_error_log(str(e), "get_for_unit_and_experiment")
-        return Response(status=500)
+        abort(500)
 
     return jsonify(recent_logs)
 
@@ -472,7 +472,7 @@ def get_logs_for_unit(pioreactor_unit: str) -> ResponseReturnValue:
 
     except Exception as e:
         publish_to_error_log(str(e), "get_logs_for_unit")
-        return Response(status=500)
+        abort(500)
 
     return jsonify(recent_logs)
 
@@ -523,12 +523,12 @@ def get_growth_rates(experiment: str) -> ResponseReturnValue:
             (experiment, filter_mod_n, f"-{lookback} hours"),
             one=True,
         )
-        assert isinstance(growth_rates, dict)
 
     except Exception as e:
         publish_to_error_log(str(e), "get_growth_rates")
-        return Response(status=400)
+        abort(400)
 
+    assert isinstance(growth_rates, dict)
     return attach_cache_control(to_json_response(growth_rates["json"]))
 
 
@@ -557,12 +557,12 @@ def get_temperature_readings(experiment: str) -> ResponseReturnValue:
             (experiment, filter_mod_n, f"-{lookback} hours"),
             one=True,
         )
-        assert isinstance(temperature_readings, dict)
 
     except Exception as e:
         publish_to_error_log(str(e), "get_temperature_readings")
-        return Response(status=400)
+        abort(400)
 
+    assert isinstance(temperature_readings, dict)
     return attach_cache_control(to_json_response(temperature_readings["json"]))
 
 
@@ -592,12 +592,12 @@ def get_od_readings_filtered(experiment: str) -> ResponseReturnValue:
             (experiment, filter_mod_n, f"-{lookback} hours"),
             one=True,
         )
-        assert isinstance(filtered_od_readings, dict)
 
     except Exception as e:
         publish_to_error_log(str(e), "get_od_readings_filtered")
-        return Response(status=400)
+        abort(400)
 
+    assert isinstance(filtered_od_readings, dict)
     return attach_cache_control(to_json_response(filtered_od_readings["json"]))
 
 
@@ -625,12 +625,12 @@ def get_od_readings(experiment: str) -> ResponseReturnValue:
             (experiment, filter_mod_n, f"-{lookback} hours"),
             one=True,
         )
-        assert isinstance(raw_od_readings, dict)
 
     except Exception as e:
         publish_to_error_log(str(e), "get_od_readings")
-        return Response(status=400)
+        abort(400)
 
+    assert isinstance(raw_od_readings, dict)
     return attach_cache_control(to_json_response(raw_od_readings["json"]))
 
 
@@ -642,16 +642,16 @@ def get_fallback_time_series(data_source: str, experiment: str, column: str) -> 
         data_source = scrub_to_valid(data_source)
         column = scrub_to_valid(column)
         r = query_app_db(
-            f"SELECT json_object('series', json_group_array(unit), 'data', json_group_array(json(data))) as result FROM (SELECT pioreactor_unit as unit, json_group_array(json_object('x', timestamp, 'y', round({column}, 7))) as data FROM {data_source} WHERE experiment=? AND timestamp > STRFTIME('%Y-%m-%dT%H:%M:%f000Z', 'NOW',?) and {column} IS NOT NULL GROUP BY 1);",
+            f"SELECT json_object('series', json_group_array(unit), 'data', json_group_array(json(data))) as json FROM (SELECT pioreactor_unit as unit, json_group_array(json_object('x', timestamp, 'y', round({column}, 7))) as data FROM {data_source} WHERE experiment=? AND timestamp > STRFTIME('%Y-%m-%dT%H:%M:%f000Z', 'NOW',?) and {column} IS NOT NULL GROUP BY 1);",
             (experiment, f"-{lookback} hours"),
             one=True,
         )
-        assert isinstance(r, dict)
 
     except Exception as e:
         publish_to_error_log(str(e), "get_fallback_time_series")
-        return Response(status=400)
-    return attach_cache_control(to_json_response(r["result"]))
+        abort(400)
+    assert isinstance(r, dict)
+    return attach_cache_control(to_json_response(r["json"]))
 
 
 @api.route("/experiments/<experiment>/media_rates", methods=["GET"])
@@ -696,7 +696,7 @@ def get_media_rates(experiment: str) -> ResponseReturnValue:
 
     except Exception as e:
         publish_to_error_log(str(e), "get_media_rates")
-        return Response(status=500)
+        abort(500)
 
 
 ## CALIBRATIONS
@@ -778,7 +778,7 @@ def get_plugins_on_machine(pioreactor_unit: str) -> ResponseReturnValue:
 def install_plugin_across_cluster(pioreactor_unit: str) -> ResponseReturnValue:
     # there is a security problem here. See https://github.com/Pioreactor/pioreactor/issues/421
     if os.path.isfile(Path(env["DOT_PIOREACTOR"]) / "DISALLOW_UI_INSTALLS"):
-        return Response(status=403)
+        abort(403)
 
     if pioreactor_unit == UNIVERSAL_IDENTIFIER:
         return create_task_response(
@@ -795,7 +795,7 @@ def install_plugin_across_cluster(pioreactor_unit: str) -> ResponseReturnValue:
 @api.route("/units/<pioreactor_unit>/plugins/uninstall", methods=["POST", "PATCH"])
 def uninstall_plugin_across_cluster(pioreactor_unit: str) -> ResponseReturnValue:
     if os.path.isfile(Path(env["DOT_PIOREACTOR"]) / "DISALLOW_UI_INSTALLS"):
-        return Response(status=403)
+        abort(403)
 
     if pioreactor_unit == UNIVERSAL_IDENTIFIER:
         return create_task_response(
@@ -897,7 +897,7 @@ def get_ui_versions_across_cluster() -> ResponseReturnValue:
 @api.route("/system/upload", methods=["POST"])
 def upload() -> ResponseReturnValue:
     if os.path.isfile(Path(env["DOT_PIOREACTOR"]) / "DISALLOW_UI_UPLOADS"):
-        return Response(status=403)
+        abort(403)
 
     if "file" not in request.files:
         return jsonify({"error": "No file part"}), 400
@@ -921,7 +921,7 @@ def upload() -> ResponseReturnValue:
 def get_automation_contrib(automation_type: str) -> ResponseReturnValue:
     # security to prevent possibly reading arbitrary file
     if automation_type not in {"temperature", "dosing", "led"}:
-        return Response(status=400)
+        abort(400)
 
     try:
         automation_path_default = Path(env["WWW"]) / "contrib" / "automations" / automation_type
@@ -952,7 +952,7 @@ def get_automation_contrib(automation_type: str) -> ResponseReturnValue:
 
     except Exception as e:
         publish_to_error_log(str(e), "get_automation_contrib")
-        return Response(status=400)
+        abort(400)
 
 
 @api.route("/contrib/jobs", methods=["GET"])
@@ -976,7 +976,7 @@ def get_job_contrib() -> ResponseReturnValue:
 
     except Exception as e:
         publish_to_error_log(str(e), "get_job_contrib")
-        return Response(status=400)
+        abort(400)
 
 
 @api.route("/contrib/charts", methods=["GET"])
@@ -1001,7 +1001,7 @@ def get_charts_contrib() -> ResponseReturnValue:
 
     except Exception as e:
         publish_to_error_log(str(e), "get_charts_contrib")
-        return Response(status=400)
+        abort(400)
 
 
 @api.route("/system/update_next_version", methods=["POST"])
@@ -1040,7 +1040,7 @@ def get_exportable_datasets() -> ResponseReturnValue:
 
     except Exception as e:
         publish_to_error_log(str(e), "get_exportable_datasets")
-        return Response(status=400)
+        abort(400)
 
 
 @api.route("/contrib/exportable_datasets/<target_dataset>/preview", methods=["GET"])
@@ -1061,7 +1061,7 @@ def preview_exportable_datasets(target_dataset) -> ResponseReturnValue:
                 return jsonify(result)
         except (ValidationError, DecodeError):
             pass
-    return Response(status=404)
+    abort(404, f"{target_dataset} not found")
 
 
 @api.route("/export_datasets", methods=["POST"])
@@ -1124,7 +1124,7 @@ def get_experiments() -> ResponseReturnValue:
 
     except Exception as e:
         publish_to_error_log(str(e), "get_experiments")
-        return Response(status=500)
+        abort(500)
 
 
 @api.route("/experiments", methods=["POST"])
@@ -1133,13 +1133,13 @@ def create_experiment() -> ResponseReturnValue:
     proposed_experiment_name = body.get("experiment")
 
     if not proposed_experiment_name:
-        return Response(status=400)
+        abort(400)
     elif len(proposed_experiment_name) >= 200:  # just too big
-        return Response(status=400)
+        abort(400)
     elif proposed_experiment_name.lower() == "current":  # too much API rework
-        return Response(status=400)
+        abort(400)
     elif proposed_experiment_name.startswith("_testing_"):  # jobs won't run as expected
-        return Response(status=400)
+        abort(400)
     elif (
         ("#" in proposed_experiment_name)
         or ("+" in proposed_experiment_name)
@@ -1148,7 +1148,7 @@ def create_experiment() -> ResponseReturnValue:
         or ("%" in proposed_experiment_name)
         or ("\\" in proposed_experiment_name)
     ):
-        return Response(status=400)
+        abort(400)
 
     try:
         row_count = modify_app_db(
@@ -1177,7 +1177,7 @@ def create_experiment() -> ResponseReturnValue:
         return Response(status=409)
     except Exception as e:
         publish_to_error_log(str(e), "create_experiment")
-        return Response(status=500)
+        abort(500)
 
 
 @api.route("/experiments/<experiment>", methods=["DELETE"])
@@ -1188,7 +1188,7 @@ def delete_experiment(experiment: str) -> ResponseReturnValue:
     if row_count > 0:
         return Response(status=200)
     else:
-        return Response(status=404)
+        abort(404, f"Experiment {experiment} not found")
     pass
 
 
@@ -1207,7 +1207,7 @@ def get_latest_experiment() -> ResponseReturnValue:
 
     except Exception as e:
         publish_to_error_log(str(e), "get_latest_experiment")
-        return Response(status=500)
+        abort(500)
 
 
 @api.route("/experiments/<experiment>/unit_labels", methods=["GET"])
@@ -1231,7 +1231,7 @@ def get_unit_labels(experiment: str) -> ResponseReturnValue:
 
     except Exception as e:
         publish_to_error_log(str(e), "get_unit_labels")
-        return Response(status=500)
+        abort(500)
 
 
 @api.route("/experiments/<experiment>/unit_labels", methods=["PUT", "PATCH"])
@@ -1276,7 +1276,7 @@ def upsert_unit_labels(experiment: str) -> ResponseReturnValue:
 
     except Exception as e:
         publish_to_error_log(str(e), "upsert_current_unit_labels")
-        return Response(status=400)
+        abort(400)
 
     return Response(status=201)
 
@@ -1290,7 +1290,7 @@ def get_historical_organisms_used() -> ResponseReturnValue:
 
     except Exception as e:
         publish_to_error_log(str(e), "historical_organisms")
-        return Response(status=500)
+        abort(500)
 
     return jsonify(historical_organisms)
 
@@ -1304,7 +1304,7 @@ def get_historical_media_used() -> ResponseReturnValue:
 
     except Exception as e:
         publish_to_error_log(str(e), "historical_media")
-        return Response(status=500)
+        abort(500)
 
     return jsonify(historical_media)
 
@@ -1322,13 +1322,13 @@ def update_experiment(experiment: str) -> ResponseReturnValue:
             if row_count == 1:
                 return Response(status=200)
             else:
-                return Response(status=404)
+                abort(404, f"Experiment {experiment} not found")
         else:
-            return Response(status=400)
+            abort(400)
 
     except Exception as e:
         publish_to_error_log(str(e), "update_experiment")
-        return Response(status=500)
+        abort(500)
 
 
 @api.route("/experiments/<experiment>", methods=["GET"])
@@ -1346,11 +1346,11 @@ def get_experiment(experiment: str) -> ResponseReturnValue:
         if result is not None:
             return jsonify(result)
         else:
-            return Response(status=404)
+            abort(404, f"Experiment {experiment} not found")
 
     except Exception as e:
         publish_to_error_log(str(e), "get_experiments")
-        return Response(status=500)
+        abort(500)
 
 
 ## CONFIG CONTROL
@@ -1368,7 +1368,7 @@ def get_config(filename: str) -> ResponseReturnValue:
 
     try:
         if Path(filename).suffix != ".ini":
-            abort(404)
+            abort(404, "Must be a .ini file")
 
         specific_config_path = Path(env["DOT_PIOREACTOR"]) / filename
 
@@ -1383,7 +1383,7 @@ def get_config(filename: str) -> ResponseReturnValue:
 
     except Exception as e:
         publish_to_error_log(str(e), "get_config_of_file")
-        return Response(status=400)
+        abort(400)
 
 
 @api.route("/configs", methods=["GET"])
@@ -1420,7 +1420,7 @@ def get_configs() -> ResponseReturnValue:
 
     except Exception as e:
         publish_to_error_log(str(e), "get_configs")
-        return Response(status=500)
+        abort(500)
 
 
 @api.route("/configs/<filename>", methods=["PATCH"])
@@ -1429,7 +1429,7 @@ def update_config(filename: str) -> ResponseReturnValue:
     code = body["code"]
 
     if not filename.endswith(".ini"):
-        return {"msg": "Incorrect filetype. Must be .ini."}, 400
+        return abort(400, "Incorrect filetype. Must be .ini.")
 
     # security bit:
     # users could have filename look like ../../../../root/bad.txt
@@ -1480,26 +1480,26 @@ def update_config(filename: str) -> ResponseReturnValue:
     except configparser.DuplicateSectionError as e:
         msg = f"Duplicate section [{e.section}] was found. Please fix and try again."
         publish_to_error_log(msg, "update_config")
-        return {"msg": msg}, 400
+        abort(400, msg)
     except configparser.DuplicateOptionError as e:
         msg = f"Duplicate option, `{e.option}`, was found in section [{e.section}]. Please fix and try again."
         publish_to_error_log(msg, "update_config")
-        return {"msg": msg}, 400
+        abort(400, msg)
     except configparser.ParsingError:
         msg = "Incorrect syntax. Please fix and try again."
         publish_to_error_log(msg, "update_config")
-        return {"msg": msg}, 400
+        abort(400, msg)
     except (AssertionError, configparser.NoSectionError, KeyError) as e:
         msg = f"Missing required field(s): {e}"
         publish_to_error_log(msg, "update_config")
-        return {"msg": msg}, 400
+        abort(400, msg)
     except ValueError as e:
         publish_to_error_log(str(e), "update_config")
-        return {"msg": msg}, 400
+        abort(400, msg)
     except Exception as e:
         publish_to_error_log(str(e), "update_config")
         msg = "Hm, something went wrong, check Pioreactor logs."
-        return {"msg": msg}, 500
+        abort(500, msg)
 
     # if the config file is unit specific, we only need to run sync-config on that unit.
     result = tasks.write_config_and_sync(config_path, code, units, flags)
@@ -1511,7 +1511,7 @@ def update_config(filename: str) -> ResponseReturnValue:
 
     if not status:
         publish_to_error_log(msg_or_exception, "save_new_config")
-        return {"msg": str(msg_or_exception)}, 500
+        abort(500, str(msg_or_exception))
 
     return Response(status=200)
 
@@ -1526,7 +1526,7 @@ def get_historical_config_for(filename: str) -> ResponseReturnValue:
 
     except Exception as e:
         publish_to_error_log(str(e), "get_historical_config_for")
-        return Response(status=400)
+        abort(400)
 
     return jsonify(configs_for_filename)
 
@@ -1554,29 +1554,29 @@ def create_experiment_profile() -> ResponseReturnValue:
     except Exception as e:
         msg = f"{e}"
         # publish_to_error_log(msg, "create_experiment_profile")
-        return {"msg": msg}, 400
+        return abort(400, msg)
 
     # verify file
     try:
         if not is_valid_unix_filename(experiment_profile_filename):
-            abort(404)
+            abort(404, "Not valid unix name")
 
         if not (
             experiment_profile_filename.endswith(".yaml")
             or experiment_profile_filename.endswith(".yml")
         ):
-            abort(404)
+            abort(404, "must end in .yaml")
 
     except Exception:
         msg = "Invalid filename"
         # publish_to_error_log(msg, "create_experiment_profile")
-        return {"msg": msg}, 400
+        abort(400, msg)
 
     filepath = Path(env["DOT_PIOREACTOR"]) / "experiment_profiles" / experiment_profile_filename
 
     # check if exists
     if filepath.exists():
-        return {"msg": "A profile already exists with that filename. Choose another."}, 400
+        abort(400, "A profile already exists with that filename. Choose another.")
 
     # save file to disk
     tasks.save_file(
@@ -1603,17 +1603,17 @@ def update_experiment_profile() -> ResponseReturnValue:
     # verify file - user could have provided a different filename so we still check this.
     try:
         if not is_valid_unix_filename(experiment_profile_filename):
-            abort(404)
+            abort(404, "not valid unix filename")
 
         if not (
             experiment_profile_filename.endswith(".yaml")
             or experiment_profile_filename.endswith(".yml")
         ):
-            abort(404)
+            abort(404, "must end in .yaml")
 
     except Exception:
         # publish_to_error_log(msg, "create_experiment_profile")
-        return {"msg": "Invalid filename"}, 400
+        return abort(400, "Invalid filename")
 
     filepath = Path(env["DOT_PIOREACTOR"]) / "experiment_profiles" / experiment_profile_filename
 
@@ -1649,7 +1649,7 @@ def get_experiment_profiles() -> ResponseReturnValue:
         )
     except Exception as e:
         publish_to_error_log(str(e), "get_experiment_profiles")
-        return Response(status=400)
+        abort(400)
 
 
 @api.route("/contrib/experiment_profiles/<filename>", methods=["GET"])
@@ -1667,10 +1667,10 @@ def get_experiment_profile(filename: str) -> ResponseReturnValue:
         )
     except IOError as e:
         publish_to_error_log(str(e), "get_experiment_profile")
-        return Response(status=404)
+        abort(404)
     except Exception as e:
         publish_to_error_log(str(e), "get_experiment_profile")
-        return Response(status=500)
+        abort(500)
 
 
 @api.route("/contrib/experiment_profiles/<filename>", methods=["DELETE"])
@@ -1686,10 +1686,10 @@ def delete_experiment_profile(filename: str) -> ResponseReturnValue:
         return Response(status=200)
     except IOError as e:
         publish_to_error_log(str(e), "delete_experiment_profile")
-        return Response(status=404)
+        abort(404)
     except Exception as e:
         publish_to_error_log(str(e), "delete_experiment_profile")
-        return Response(status=500)
+        abort(500)
 
 
 ##### Worker endpoints
@@ -1721,7 +1721,7 @@ def setup_worker_pioreactor() -> ResponseReturnValue:
     try:
         result = tasks.add_new_pioreactor(new_name, version, model)
     except Exception as e:
-        return {"msg": str(e)}, 500
+        return abort(500, str(e))
 
     try:
         status = result(blocking=True, timeout=250)
@@ -1749,7 +1749,7 @@ def add_worker() -> ResponseReturnValue:
     if nrows > 0:
         return Response(status=201)
     else:
-        return Response(status=404)
+        abort(500)
 
 
 @api.route("/workers/<pioreactor_unit>", methods=["DELETE"])
@@ -1789,7 +1789,7 @@ def delete_worker(pioreactor_unit: str) -> ResponseReturnValue:
 
         return Response(status=202)
     else:
-        return Response(status=404)
+        abort(404, f"Worker {pioreactor_unit} not found")
 
 
 @api.route("/workers/<pioreactor_unit>/is_active", methods=["PUT"])
@@ -1817,7 +1817,7 @@ def change_worker_status(pioreactor_unit: str) -> ResponseReturnValue:
             tasks.multicast_post_across_cluster("/unit_api/jobs/stop/all", [pioreactor_unit])
         return Response(status=200)
     else:
-        return Response(status=404)
+        abort(404, f"Worker {pioreactor_unit} not found")
 
 
 @api.route("/workers/<pioreactor_unit>", methods=["GET"])
@@ -1979,7 +1979,7 @@ def add_worker_to_experiment(experiment: str) -> ResponseReturnValue:
         return Response(status=200)
     else:
         # probably an integrity error
-        return Response(status=404)
+        abort(500)
 
 
 @api.route("/experiments/<experiment>/workers/<pioreactor_unit>", methods=["DELETE"])
@@ -2001,7 +2001,7 @@ def remove_worker_from_experiment(experiment: str, pioreactor_unit: str) -> Resp
         )
         return Response(status=200)
     else:
-        return Response(status=404)
+        abort(404, f"Worker {pioreactor_unit} not found")
 
 
 @api.route("/experiments/<experiment>/workers", methods=["DELETE"])
