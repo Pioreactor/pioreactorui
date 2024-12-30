@@ -223,8 +223,8 @@ def dir_listing(req_path: str):
         jsonify(
             {
                 "current": current,
-                "dirs": [d for d in dirs if not d == "__pycache__"],
-                "files": files,
+                "dirs": sorted([d for d in dirs if not d == "__pycache__"]),
+                "files": sorted(files),
             }
         )
     )
