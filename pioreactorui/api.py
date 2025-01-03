@@ -542,7 +542,7 @@ def get_fallback_time_series(data_source: str, experiment: str, column: str) -> 
         data_source = scrub_to_valid(data_source)
         column = scrub_to_valid(column)
         r = query_app_db(
-         """
+         f"""
             SELECT
                 json_object('series', json_group_array(unit), 'data', json_group_array(json(data))) as result
             FROM (
