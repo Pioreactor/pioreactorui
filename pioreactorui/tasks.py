@@ -16,6 +16,7 @@ from typing import Any
 from msgspec import DecodeError
 from pioreactor.config import config
 from pioreactor.mureq import HTTPErrorStatus
+from pioreactor.mureq import HTTPException
 from pioreactor.pubsub import delete_from
 from pioreactor.pubsub import get_from
 from pioreactor.pubsub import patch_into
@@ -303,7 +304,7 @@ def post_to_worker(worker: str, endpoint: str, json: dict | None = None) -> tupl
         r = post_into(resolve_to_address(worker), endpoint, json=json, timeout=1)
         r.raise_for_status()
         return worker, r.json()
-    except HTTPErrorStatus as e:
+    except (HTTPErrorStatus, HTTPException) as e:
         logger.error(
             f"Could not post to {worker}'s {endpoint=}, sent {json=} and returned {e}. Check connection?"
         )
@@ -335,7 +336,7 @@ def get_from_worker(
         r = get_from(resolve_to_address(worker), endpoint, json=json, timeout=timeout)
         r.raise_for_status()
         return worker, r.json()
-    except HTTPErrorStatus as e:
+    except (HTTPErrorStatus, HTTPException) as e:
         logger.error(
             f"Could not get from {worker}'s {endpoint=}, sent {json=} and returned {e}. Check connection?"
         )
@@ -365,7 +366,7 @@ def patch_to_worker(worker: str, endpoint: str, json: dict | None = None) -> tup
         r = patch_into(resolve_to_address(worker), endpoint, json=json, timeout=1)
         r.raise_for_status()
         return worker, r.json()
-    except HTTPErrorStatus as e:
+    except (HTTPErrorStatus, HTTPException) as e:
         logger.error(
             f"Could not PATCH to {worker}'s {endpoint=}, sent {json=} and returned {e}. Check connection?"
         )
@@ -395,7 +396,7 @@ def delete_from_worker(worker: str, endpoint: str, json: dict | None = None) -> 
         r = delete_from(resolve_to_address(worker), endpoint, json=json, timeout=1)
         r.raise_for_status()
         return worker, r.json() if r.content else None
-    except HTTPErrorStatus as e:
+    except (HTTPErrorStatus, HTTPException) as e:
         logger.error(
             f"Could not DELETE {worker}'s {endpoint=}, sent {json=} and returned {e}. Check connection?"
         )

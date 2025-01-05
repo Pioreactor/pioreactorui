@@ -548,21 +548,21 @@ def get_all_calibrations() -> ResponseReturnValue:
         for file in calibration_dir.glob("*/*.yaml"):
             try:
                 cal = yaml_decode(file.read_bytes())
-                cal_type = cal["calibration_type"]
-                cal["is_active"] = cache.get(cal_type) == cal["calibration_name"]
-                if cal_type in all_calibrations:
-                    all_calibrations[cal_type].append(cal)
+                device = cal["device"]
+                cal["is_active"] = cache.get(device) == cal["calibration_name"]
+                if device in all_calibrations:
+                    all_calibrations[device].append(cal)
                 else:
-                    all_calibrations[cal_type] = [cal]
+                    all_calibrations[device] = [cal]
             except Exception as e:
                 print(f"Error reading {file.stem}: {e}")
 
     return attach_cache_control(jsonify(all_calibrations), max_age=10)
 
 
-@unit_api.route("/calibrations/<cal_type>", methods=["GET"])
-def get_calibrations(cal_type) -> ResponseReturnValue:
-    calibration_dir = Path(f"{env['DOT_PIOREACTOR']}/storage/calibrations/{cal_type}")
+@unit_api.route("/calibrations/<device>", methods=["GET"])
+def get_calibrations_by_device(device) -> ResponseReturnValue:
+    calibration_dir = Path(f"{env['DOT_PIOREACTOR']}/storage/calibrations/{device}")
 
     if not calibration_dir.exists():
         abort(404)
@@ -573,7 +573,7 @@ def get_calibrations(cal_type) -> ResponseReturnValue:
         for file in calibration_dir.glob("*.yaml"):
             try:
                 cal = yaml_decode(file.read_bytes())
-                cal["is_active"] = c.get(cal_type) == cal["calibration_name"]
+                cal["is_active"] = c.get(device) == cal["calibration_name"]
                 calibrations.append(cal)
             except Exception as e:
                 print(f"Error reading {file.stem}: {e}")
@@ -581,25 +581,25 @@ def get_calibrations(cal_type) -> ResponseReturnValue:
     return attach_cache_control(jsonify(calibrations), max_age=10)
 
 
-@unit_api.route("/calibrations/<cal_type>/<cal_name>/active", methods=["PATCH"])
-def set_active_calibration(cal_type, cal_name) -> ResponseReturnValue:
+@unit_api.route("/calibrations/<device>/<cal_name>/active", methods=["PATCH"])
+def set_active_calibration(device, cal_name) -> ResponseReturnValue:
     with local_persistent_storage("active_calibrations") as c:
-        c[cal_type] = cal_name
+        c[device] = cal_name
 
     return Response(status=200)
 
 
-@unit_api.route("/calibrations/<cal_type>/active", methods=["DELETE"])
-def remove_active_status_calibration(cal_type) -> ResponseReturnValue:
+@unit_api.route("/calibrations/<device>/active", methods=["DELETE"])
+def remove_active_status_calibration(device) -> ResponseReturnValue:
     with local_persistent_storage("active_calibrations") as c:
-        c.pop(cal_type)
+        c.pop(device)
 
     return Response(status=200)
 
 
-@unit_api.route("/calibrations/<cal_type>/<cal_name>", methods=["DELETE"])
-def remove_calibration(cal_type, cal_name) -> ResponseReturnValue:
-    target_file = CALIBRATION_PATH / cal_type / f"{cal_name}.yaml"
+@unit_api.route("/calibrations/<device>/<cal_name>", methods=["DELETE"])
+def remove_calibration(device, cal_name) -> ResponseReturnValue:
+    target_file = CALIBRATION_PATH / device / f"{cal_name}.yaml"
     if not target_file.exists():
         abort(404, f"{target_file} not found")
 
