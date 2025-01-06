@@ -27,6 +27,7 @@ from pioreactor.utils.timing import to_datetime
 from werkzeug.utils import safe_join
 
 from . import HOSTNAME
+from . import publish_to_error_log
 from . import query_temp_local_metadata_db
 from . import tasks
 from . import VERSION
@@ -547,15 +548,15 @@ def get_all_calibrations() -> ResponseReturnValue:
     with local_persistent_storage("active_calibrations") as cache:
         for file in calibration_dir.glob("*/*.yaml"):
             try:
+                device = file.parent.name
                 cal = yaml_decode(file.read_bytes())
-                device = cal["device"]
                 cal["is_active"] = cache.get(device) == cal["calibration_name"]
                 if device in all_calibrations:
                     all_calibrations[device].append(cal)
                 else:
                     all_calibrations[device] = [cal]
             except Exception as e:
-                print(f"Error reading {file.stem}: {e}")
+                publish_to_error_log(f"Error reading {file.stem}: {e}", "get_all_calibrations")
 
     return attach_cache_control(jsonify(all_calibrations), max_age=10)
 
@@ -572,11 +573,15 @@ def get_calibrations_by_device(device) -> ResponseReturnValue:
     with local_persistent_storage("active_calibrations") as c:
         for file in calibration_dir.glob("*.yaml"):
             try:
-                cal = yaml_decode(file.read_bytes())
+                cal = yaml_decode(
+                    file.read_bytes()
+                )  # dict, don't make Struct since we can't add fields to structs.
                 cal["is_active"] = c.get(device) == cal["calibration_name"]
                 calibrations.append(cal)
             except Exception as e:
-                print(f"Error reading {file.stem}: {e}")
+                publish_to_error_log(
+                    f"Error reading {file.stem}: {e}", "get_calibrations_by_device"
+                )
 
     return attach_cache_control(jsonify(calibrations), max_age=10)
 
