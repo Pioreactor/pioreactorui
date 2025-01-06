@@ -542,11 +542,11 @@ def get_fallback_time_series(data_source: str, experiment: str, column: str) -> 
         data_source = scrub_to_valid(data_source)
         column = scrub_to_valid(column)
         r = query_app_db(
-         f"""
+            f"""
             SELECT
                 json_object('series', json_group_array(unit), 'data', json_group_array(json(data))) as result
             FROM (
-                SELECT pioreactor_unit || '-' || channel as unit, json_group_array(json_object('x', timestamp, 'y', round({column}, 7))) as data
+                SELECT pioreactor_unit as unit, json_group_array(json_object('x', timestamp, 'y', round({column}, 7))) as data
                 FROM {data_source}
                 WHERE experiment=? AND
                     ((ROWID * 0.61803398875) - cast(ROWID * 0.61803398875 as int) < 1.0/?) AND
