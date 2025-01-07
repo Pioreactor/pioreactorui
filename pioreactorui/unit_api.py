@@ -419,10 +419,12 @@ def get_installed_plugins() -> ResponseReturnValue:
     else:
         # sometimes an error from a plugin will be printed. We just want to last line, the json bit.
         _, _, plugins_as_json = msg.rpartition("\n")
-        return Response(
-            response=plugins_as_json,
-            status=200,
-            mimetype="text/json",
+        return attach_cache_control(
+            Response(
+                response=plugins_as_json,
+                status=200,
+                mimetype="text/json",
+            )
         )
 
 
@@ -437,10 +439,12 @@ def get_plugin(filename: str) -> ResponseReturnValue:
             raise IOError("must provide a .py file")
 
         specific_plugin_path = Path(env["DOT_PIOREACTOR"]) / "plugins" / file
-        return Response(
-            response=specific_plugin_path.read_text(),
-            status=200,
-            mimetype="text/plain",
+        return attach_cache_control(
+            Response(
+                response=specific_plugin_path.read_text(),
+                status=200,
+                mimetype="text/plain",
+            )
         )
     except IOError:
         abort(404, "must provide a .py file")
@@ -553,7 +557,7 @@ def get_all_calibrations() -> ResponseReturnValue:
                 cal = yaml_decode(file.read_bytes())
                 cal["is_active"] = cache.get(device) == cal["calibration_name"]
                 cal["pioreactor_unit"] = HOSTNAME
-                if True: #cal["is_active"]:
+                if True:  # cal["is_active"]:
                     if device in all_calibrations:
                         all_calibrations[device].append(cal)
                     else:
