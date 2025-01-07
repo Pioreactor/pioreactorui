@@ -542,7 +542,6 @@ def get_ui_version() -> ResponseReturnValue:
 
 @unit_api.route("/calibrations", methods=["GET"])
 def get_all_calibrations() -> ResponseReturnValue:
-    # TODO: only returns active calibrations
     calibration_dir = Path(f"{env['DOT_PIOREACTOR']}/storage/calibrations")
 
     if not calibration_dir.exists():
@@ -557,11 +556,10 @@ def get_all_calibrations() -> ResponseReturnValue:
                 cal = yaml_decode(file.read_bytes())
                 cal["is_active"] = cache.get(device) == cal["calibration_name"]
                 cal["pioreactor_unit"] = HOSTNAME
-                if True:  # cal["is_active"]:
-                    if device in all_calibrations:
-                        all_calibrations[device].append(cal)
-                    else:
-                        all_calibrations[device] = [cal]
+                if device in all_calibrations:
+                    all_calibrations[device].append(cal)
+                else:
+                    all_calibrations[device] = [cal]
             except Exception as e:
                 publish_to_error_log(f"Error reading {file.stem}: {e}", "get_all_calibrations")
 
