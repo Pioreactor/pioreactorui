@@ -2,6 +2,8 @@
 from __future__ import annotations
 
 import os
+import zipfile
+from io import BytesIO
 from pathlib import Path
 from subprocess import run
 from time import sleep
@@ -564,6 +566,33 @@ def get_all_calibrations() -> ResponseReturnValue:
                 publish_to_error_log(f"Error reading {file.stem}: {e}", "get_all_calibrations")
 
     return attach_cache_control(jsonify(all_calibrations), max_age=10)
+
+
+@unit_api.route("/zipped_calibrations", methods=["GET"])
+def get_all_calibrations_as_yaml() -> ResponseReturnValue:
+    calibration_dir = Path(f"{env['DOT_PIOREACTOR']}/storage/calibrations")
+
+    if not calibration_dir.exists():
+        abort(404)
+
+    buffer = BytesIO()
+
+    with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
+        for file_path in calibration_dir.rglob("*"):
+            if file_path.is_file():
+                arc_name = file_path.relative_to(calibration_dir)
+                zip_file.write(str(file_path), arcname=str(arc_name))
+
+    # Move the cursor to the beginning of the buffer
+    buffer.seek(0)
+
+    # Return the file using send_file
+    return send_file(
+        buffer,
+        as_attachment=True,
+        download_name=f"{HOSTNAME}_calibrations.zip",  # Name shown to the user
+        mimetype="application/zip",
+    )
 
 
 @unit_api.route("/calibrations/<device>", methods=["GET"])

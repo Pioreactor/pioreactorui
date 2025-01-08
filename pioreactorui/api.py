@@ -6,6 +6,8 @@ import os
 import re
 import sqlite3
 import tempfile
+import zipfile
+from io import BytesIO
 from pathlib import Path
 
 from flask import abort
@@ -14,6 +16,7 @@ from flask import current_app
 from flask import jsonify
 from flask import request
 from flask import Response
+from flask import send_file
 from flask.typing import ResponseReturnValue
 from huey.api import Result
 from huey.exceptions import HueyException
@@ -60,9 +63,11 @@ def to_json_response(json: str) -> ResponseReturnValue:
     return Response(json, mimetype="application/json")
 
 
-def broadcast_get_across_cluster(endpoint: str, timeout: float = 1.0) -> Result:
+def broadcast_get_across_cluster(endpoint: str, timeout: float = 1.0, return_raw=False) -> Result:
     assert endpoint.startswith("/unit_api")
-    return tasks.multicast_get_across_cluster(endpoint, get_all_workers(), timeout=timeout)
+    return tasks.multicast_get_across_cluster(
+        endpoint, get_all_workers(), timeout=timeout, return_raw=return_raw
+    )
 
 
 def broadcast_post_across_cluster(endpoint: str, json: dict | None = None) -> Result:
@@ -703,12 +708,57 @@ def get_media_rates(experiment: str) -> ResponseReturnValue:
 
 
 @api.route("/workers/<pioreactor_unit>/calibrations", methods=["GET"])
-def get_all_calibrations(pioreactor_unit) -> ResponseReturnValue:
+def get_all_calibrations(pioreactor_unit: str) -> ResponseReturnValue:
     if pioreactor_unit == UNIVERSAL_IDENTIFIER:
         task = broadcast_get_across_cluster("/unit_api/calibrations")
     else:
         task = tasks.multicast_get_across_cluster("/unit_api/calibrations", [pioreactor_unit])
     return create_task_response(task)
+
+
+@api.route("/workers/<pioreactor_unit>/zipped_calibrations", methods=["GET"])
+def get_all_calibrations_as_yamls(pioreactor_unit: str) -> ResponseReturnValue:
+    if pioreactor_unit == UNIVERSAL_IDENTIFIER:
+        task = broadcast_get_across_cluster("/unit_api/zipped_calibrations", return_raw=True)
+    else:
+        task = tasks.multicast_get_across_cluster(
+            "/unit_api/zipped_calibrations", [pioreactor_unit], return_raw=True
+        )
+
+    try:
+        results = task.get(blocking=True, timeout=60)
+    except HueyException:
+        return {"result": False, "filename": None, "msg": "Timed out"}, 500
+
+    aggregate_buffer = BytesIO()
+
+    with zipfile.ZipFile(aggregate_buffer, "w", zipfile.ZIP_DEFLATED) as aggregate_zip:
+        for worker, content in results.items():
+            # Load the remote ZIP into memory
+            remote_zip_buffer = BytesIO(content)
+            with zipfile.ZipFile(remote_zip_buffer, "r") as remote_zip:
+                # Iterate over each file in the remote ZIP
+                for file_info in remote_zip.infolist():
+                    # Read file contents
+                    with remote_zip.open(file_info) as file_data:
+                        contents = file_data.read()
+
+                    # Build a prefixed path to avoid collisions
+                    new_name = f"{worker}/{file_info.filename}"
+
+                    # Add the file to our aggregator zip
+                    aggregate_zip.writestr(new_name, contents)
+
+    # Reset the buffer's position
+    aggregate_buffer.seek(0)
+
+    # Send the aggregated ZIP as a downloadable file
+    return send_file(
+        aggregate_buffer,
+        as_attachment=True,
+        download_name="calibration_yamls.zip",
+        mimetype="application/zip",
+    )
 
 
 @api.route("/workers/<pioreactor_unit>/calibrations/<device>", methods=["GET"])
