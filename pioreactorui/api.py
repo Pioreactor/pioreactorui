@@ -421,7 +421,10 @@ def get_recent_logs_for_unit_and_experiment(
                 WHERE (l.experiment=? OR l.experiment=?)
                     AND (l.pioreactor_unit=? or l.pioreactor_unit=?)
                     AND ({get_level_string(min_level)})
-                    AND l.timestamp >= MAX( STRFTIME('%Y-%m-%dT%H:%M:%f000Z', 'NOW', '-24 hours'), (SELECT created_at FROM experiments where experiment=?) )
+                    AND l.timestamp >= MAX(
+                        STRFTIME('%Y-%m-%dT%H:%M:%f000Z', 'NOW', '-24 hours'),
+                        COALESCE((SELECT created_at FROM experiments WHERE experiment=?), STRFTIME('%Y-%m-%dT%H:%M:%f000Z', 'NOW', '-24 hours'))
+                    )
                 ORDER BY l.timestamp DESC LIMIT 50;""",
             (experiment, UNIVERSAL_EXPERIMENT, pioreactor_unit, UNIVERSAL_IDENTIFIER, experiment),
         )
@@ -1982,7 +1985,7 @@ def get_experiment_assignment_for_worker(pioreactor_unit: str) -> ResponseReturn
         )
     elif result["experiment"] is None:  # type: ignore
         return (
-            jsonify({"error": f"Worker {pioreactor_unit} is not assigned to any experiment."}),
+            jsonify({"error": f"Worker `{pioreactor_unit}` is not assigned to any experiment."}),
             404,
         )
     else:
