@@ -620,6 +620,26 @@ def get_calibrations_by_device(device) -> ResponseReturnValue:
     return attach_cache_control(jsonify(calibrations), max_age=10)
 
 
+@unit_api.route("/calibrations/<device>/<cal_name>", methods=["GET"])
+def get_calibration(device, cal_name) -> ResponseReturnValue:
+    calibration_path = Path(
+        f"{env['DOT_PIOREACTOR']}/storage/calibrations/{device}/{cal_name}.yaml"
+    )
+
+    if not calibration_path.exists():
+        abort(404)
+
+    with local_persistent_storage("active_calibrations") as c:
+        try:
+            cal = yaml_decode(
+                calibration_path.read_bytes()
+            )  # dict, don't make Struct since we can't add fields to structs.
+            cal["is_active"] = c.get(device) == cal["calibration_name"]
+            return attach_cache_control(jsonify(cal), max_age=10)
+        except Exception as e:
+            publish_to_error_log(f"Error reading {calibration_path.stem}: {e}", "get_calibration")
+
+
 @unit_api.route("/calibrations/<device>/<cal_name>/active", methods=["PATCH"])
 def set_active_calibration(device, cal_name) -> ResponseReturnValue:
     with local_persistent_storage("active_calibrations") as c:

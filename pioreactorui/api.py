@@ -775,6 +775,17 @@ def get_calibrations(pioreactor_unit, device) -> ResponseReturnValue:
     return create_task_response(task)
 
 
+@api.route("/workers/<pioreactor_unit>/calibrations/<device>/<cal_name>", methods=["GET"])
+def get_calibration(pioreactor_unit, device, cal_name) -> ResponseReturnValue:
+    if pioreactor_unit == UNIVERSAL_IDENTIFIER:
+        task = broadcast_get_across_cluster(f"/unit_api/calibrations/{device}/{cal_name}")
+    else:
+        task = tasks.multicast_get_across_cluster(
+            f"/unit_api/calibrations/{device}/{cal_name}", [pioreactor_unit]
+        )
+    return create_task_response(task)
+
+
 @api.route("/workers/<pioreactor_unit>/calibrations/<device>/<cal_name>/active", methods=["PATCH"])
 def set_active_calibration(pioreactor_unit, device, cal_name) -> ResponseReturnValue:
     if pioreactor_unit == UNIVERSAL_IDENTIFIER:
