@@ -531,12 +531,12 @@ def get_app_version() -> ResponseReturnValue:
     )
     if result.returncode != 0:
         return Response(status=500)
-    return attach_cache_control(jsonify({"version": result.stdout.strip()}), max_age=6)
+    return attach_cache_control(jsonify({"version": result.stdout.strip()}), max_age=10)
 
 
 @unit_api.route("/versions/ui", methods=["GET"])
 def get_ui_version() -> ResponseReturnValue:
-    return attach_cache_control(jsonify({"version": VERSION}), max_age=6)
+    return attach_cache_control(jsonify({"version": VERSION}), max_age=10)
 
 
 ### CALIBRATIONS

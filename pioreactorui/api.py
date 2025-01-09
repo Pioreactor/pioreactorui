@@ -1616,15 +1616,14 @@ def get_historical_config_for(filename: str) -> ResponseReturnValue:
         publish_to_error_log(str(e), "get_historical_config_for")
         abort(400)
 
-    return jsonify(configs_for_filename)
+    return attach_cache_control(jsonify(configs_for_filename), max_age=15)
 
 
 @api.route("/is_local_access_point_active", methods=["GET"])
 def is_local_access_point_active() -> ResponseReturnValue:
-    if os.path.isfile("/boot/firmware/local_access_point"):
-        return "true"
-    else:
-        return "false"
+    return attach_cache_control(
+        jsonify({"result": os.path.isfile("/boot/firmware/local_access_point")}), max_age=10_000
+    )
 
 
 ### experiment profiles
@@ -1944,9 +1943,9 @@ def get_workers_and_experiment_assignments() -> ResponseReturnValue:
         """,
     )
     if result:
-        return jsonify(result)
+        return attach_cache_control(jsonify(result), max_age=2)
     else:
-        return jsonify([])
+        return attach_cache_control(jsonify([]), max_age=2)
 
 
 @api.route("/workers/assignments", methods=["DELETE"])
@@ -1980,9 +1979,9 @@ def get_experiments_worker_assignments() -> ResponseReturnValue:
         """,
     )
     if result:
-        return jsonify(result)
+        return attach_cache_control(jsonify(result), max_age=2)
     else:
-        return jsonify([])
+        return attach_cache_control(jsonify([]), max_age=2)
 
 
 @api.route("/workers/<pioreactor_unit>/experiment", methods=["GET"])
@@ -2011,7 +2010,7 @@ def get_experiment_assignment_for_worker(pioreactor_unit: str) -> ResponseReturn
             404,
         )
     else:
-        return jsonify(result)
+        return attach_cache_control(jsonify(result), max_age=2)
 
 
 @api.route("/experiments/<experiment>/workers", methods=["GET"])
@@ -2027,7 +2026,7 @@ def get_list_of_workers_for_experiment(experiment: str) -> ResponseReturnValue:
         """,
         (experiment,),
     )
-    return jsonify(workers)
+    return attach_cache_control(jsonify(workers), max_age=2)
 
 
 @api.route("/experiments/<experiment>/historical_worker_assignments", methods=["GET"])
