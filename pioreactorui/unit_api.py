@@ -552,7 +552,7 @@ def get_all_calibrations() -> ResponseReturnValue:
     all_calibrations: dict[str, list] = {}
 
     with local_persistent_storage("active_calibrations") as cache:
-        for file in calibration_dir.glob("*/*.yaml"):
+        for file in sorted(calibration_dir.glob("*/*.yaml")):
             try:
                 device = file.parent.name
                 cal = yaml_decode(file.read_bytes())
@@ -604,7 +604,7 @@ def get_all_calibrations_as_yaml() -> ResponseReturnValue:
     buffer = BytesIO()
 
     with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
-        for file_path in calibration_dir.rglob("*"):
+        for file_path in sorted(calibration_dir.rglob("*")):
             if file_path.is_file():
                 arc_name = file_path.relative_to(calibration_dir)
                 zip_file.write(str(file_path), arcname=str(arc_name))
@@ -631,7 +631,7 @@ def get_calibrations_by_device(device) -> ResponseReturnValue:
     calibrations: list[dict] = []
 
     with local_persistent_storage("active_calibrations") as c:
-        for file in calibration_dir.glob("*.yaml"):
+        for file in sorted(calibration_dir.glob("*.yaml")):
             try:
                 cal = yaml_decode(
                     file.read_bytes()
