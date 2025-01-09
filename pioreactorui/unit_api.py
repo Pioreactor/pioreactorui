@@ -544,7 +544,7 @@ def get_ui_version() -> ResponseReturnValue:
 
 @unit_api.route("/calibrations", methods=["GET"])
 def get_all_calibrations() -> ResponseReturnValue:
-    calibration_dir = Path(f"{env['DOT_PIOREACTOR']}/storage/calibrations")
+    calibration_dir = Path(env["DOT_PIOREACTOR"]) / "storage" / "calibrations"
 
     if not calibration_dir.exists():
         abort(404)
@@ -568,9 +568,35 @@ def get_all_calibrations() -> ResponseReturnValue:
     return attach_cache_control(jsonify(all_calibrations), max_age=10)
 
 
+@unit_api.route("/active_calibrations", methods=["GET"])
+def get_all_active_calibrations() -> ResponseReturnValue:
+    calibration_dir = Path(env["DOT_PIOREACTOR"]) / "storage" / "calibrations"
+
+    if not calibration_dir.exists():
+        abort(404)
+
+    all_calibrations: dict[str, dict] = {}
+
+    with local_persistent_storage("active_calibrations") as cache:
+        for device in cache.iterkeys():
+            cal_name = cache[device]
+            cal_file_path = calibration_dir / device / f"{cal_name}.yaml"
+            try:
+                cal = yaml_decode(cal_file_path.read_bytes())
+                cal["is_active"] = True
+                cal["pioreactor_unit"] = HOSTNAME
+                all_calibrations[device] = cal
+            except Exception as e:
+                publish_to_error_log(
+                    f"Error reading {cal_file_path.stem}: {e}", "get_all_active_calibrations"
+                )
+
+    return attach_cache_control(jsonify(all_calibrations), max_age=10)
+
+
 @unit_api.route("/zipped_calibrations", methods=["GET"])
 def get_all_calibrations_as_yaml() -> ResponseReturnValue:
-    calibration_dir = Path(f"{env['DOT_PIOREACTOR']}/storage/calibrations")
+    calibration_dir = Path(env["DOT_PIOREACTOR"]) / "storage" / "calibrations"
 
     if not calibration_dir.exists():
         abort(404)
@@ -597,7 +623,7 @@ def get_all_calibrations_as_yaml() -> ResponseReturnValue:
 
 @unit_api.route("/calibrations/<device>", methods=["GET"])
 def get_calibrations_by_device(device) -> ResponseReturnValue:
-    calibration_dir = Path(f"{env['DOT_PIOREACTOR']}/storage/calibrations/{device}")
+    calibration_dir = Path(env["DOT_PIOREACTOR"]) / "storage" / "calibrations" / device
 
     if not calibration_dir.exists():
         abort(404)
@@ -622,8 +648,8 @@ def get_calibrations_by_device(device) -> ResponseReturnValue:
 
 @unit_api.route("/calibrations/<device>/<cal_name>", methods=["GET"])
 def get_calibration(device, cal_name) -> ResponseReturnValue:
-    calibration_path = Path(
-        f"{env['DOT_PIOREACTOR']}/storage/calibrations/{device}/{cal_name}.yaml"
+    calibration_path = (
+        Path(env["DOT_PIOREACTOR"]) / "storage" / "calibrations" / device / f"{cal_name}.yaml"
     )
 
     if not calibration_path.exists():
@@ -640,7 +666,7 @@ def get_calibration(device, cal_name) -> ResponseReturnValue:
             publish_to_error_log(f"Error reading {calibration_path.stem}: {e}", "get_calibration")
 
 
-@unit_api.route("/calibrations/<device>/<cal_name>/active", methods=["PATCH"])
+@unit_api.route("/active_calibrations/<device>/<cal_name>", methods=["PATCH"])
 def set_active_calibration(device, cal_name) -> ResponseReturnValue:
     with local_persistent_storage("active_calibrations") as c:
         c[device] = cal_name
@@ -648,7 +674,7 @@ def set_active_calibration(device, cal_name) -> ResponseReturnValue:
     return Response(status=200)
 
 
-@unit_api.route("/calibrations/<device>/active", methods=["DELETE"])
+@unit_api.route("/active_calibrations/<device>", methods=["DELETE"])
 def remove_active_status_calibration(device) -> ResponseReturnValue:
     with local_persistent_storage("active_calibrations") as c:
         c.pop(device)

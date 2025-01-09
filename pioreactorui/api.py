@@ -719,6 +719,17 @@ def get_all_calibrations(pioreactor_unit: str) -> ResponseReturnValue:
     return create_task_response(task)
 
 
+@api.route("/workers/<pioreactor_unit>/active_calibrations", methods=["GET"])
+def get_all_active_calibrations(pioreactor_unit: str) -> ResponseReturnValue:
+    if pioreactor_unit == UNIVERSAL_IDENTIFIER:
+        task = broadcast_get_across_cluster("/unit_api/active_calibrations")
+    else:
+        task = tasks.multicast_get_across_cluster(
+            "/unit_api/active_calibrations", [pioreactor_unit]
+        )
+    return create_task_response(task)
+
+
 @api.route("/workers/<pioreactor_unit>/zipped_calibrations", methods=["GET"])
 def get_all_calibrations_as_yamls(pioreactor_unit: str) -> ResponseReturnValue:
     if pioreactor_unit == UNIVERSAL_IDENTIFIER:
@@ -786,24 +797,24 @@ def get_calibration(pioreactor_unit, device, cal_name) -> ResponseReturnValue:
     return create_task_response(task)
 
 
-@api.route("/workers/<pioreactor_unit>/calibrations/<device>/<cal_name>/active", methods=["PATCH"])
+@api.route("/workers/<pioreactor_unit>/active_calibrations/<device>/<cal_name>", methods=["PATCH"])
 def set_active_calibration(pioreactor_unit, device, cal_name) -> ResponseReturnValue:
     if pioreactor_unit == UNIVERSAL_IDENTIFIER:
-        task = broadcast_patch_across_cluster(f"/unit_api/calibrations/{device}/{cal_name}/active")
+        task = broadcast_patch_across_cluster(f"/unit_api/active_calibrations/{device}/{cal_name}")
     else:
         task = tasks.multicast_patch_across_cluster(
-            f"/unit_api/calibrations/{device}/{cal_name}/active", [pioreactor_unit]
+            f"/unit_api/active_calibrations/{device}/{cal_name}", [pioreactor_unit]
         )
     return create_task_response(task)
 
 
-@api.route("/workers/<pioreactor_unit>/calibrations/<device>/active", methods=["DELETE"])
+@api.route("/workers/<pioreactor_unit>/active_calibrations/<device>", methods=["DELETE"])
 def remove_active_status_calibration(pioreactor_unit, device) -> ResponseReturnValue:
     if pioreactor_unit == UNIVERSAL_IDENTIFIER:
-        task = broadcast_delete_across_cluster(f"/unit_api/calibrations/{device}/active")
+        task = broadcast_delete_across_cluster(f"/unit_api/active_calibrations/{device}")
     else:
         task = tasks.multicast_delete_across_cluster(
-            f"/unit_api/calibrations/{device}/active", [pioreactor_unit]
+            f"/unit_api/active_calibrations/{device}", [pioreactor_unit]
         )
     return create_task_response(task)
 
