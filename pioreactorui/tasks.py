@@ -296,8 +296,7 @@ def write_config_and_sync(
             env=env,
             check=True,
         )
-        logger.info(str(result))
-        logger.debug(result)
+        logger.info(result)
         if result.returncode != 0:
             raise Exception(result.stderr.strip())
 
@@ -335,7 +334,9 @@ def multicast_post_across_cluster(
 
     tasks = post_to_worker.map(((worker, endpoint, json) for worker in workers))
 
-    return {worker: response for (worker, response) in tasks.get(blocking=True)}
+    return {
+        worker: response for (worker, response) in tasks.get(blocking=True, timeout=30)
+    }  # add a timeout so that we don't hold up a thread forever.
 
 
 @huey.task()
@@ -343,6 +344,7 @@ def get_from_worker(
     worker: str, endpoint: str, json: dict | None = None, timeout=1.0, return_raw=False
 ) -> tuple[str, Any]:
     try:
+        logger.info(timeout)
         r = get_from(resolve_to_address(worker), endpoint, json=json, timeout=timeout)
         r.raise_for_status()
         if not return_raw:
@@ -375,7 +377,9 @@ def multicast_get_across_cluster(
         ((worker, endpoint, json, timeout, return_raw) for worker in workers)
     )
 
-    return {worker: response for (worker, response) in tasks.get(blocking=True)}
+    return {
+        worker: response for (worker, response) in tasks.get(blocking=True, timeout=30)
+    }  # add a timeout so that we don't hold up a thread forever.
 
 
 @huey.task()
@@ -405,7 +409,9 @@ def multicast_patch_across_cluster(
 
     tasks = patch_to_worker.map(((worker, endpoint, json) for worker in workers))
 
-    return {worker: response for (worker, response) in tasks.get(blocking=True)}
+    return {
+        worker: response for (worker, response) in tasks.get(blocking=True, timeout=30)
+    }  # add a timeout so that we don't hold up a thread forever.
 
 
 @huey.task()
@@ -435,4 +441,6 @@ def multicast_delete_across_cluster(
 
     tasks = delete_from_worker.map(((worker, endpoint, json) for worker in workers))
 
-    return {worker: response for (worker, response) in tasks.get(blocking=True)}
+    return {
+        worker: response for (worker, response) in tasks.get(blocking=True, timeout=30)
+    }  # add a timeout so that we don't hold up a thread forever.
