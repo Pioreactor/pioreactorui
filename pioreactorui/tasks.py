@@ -294,7 +294,9 @@ def write_config_and_sync(
             capture_output=True,
             text=True,
             env=env,
+            check=True,
         )
+        logger.info(str(result))
         logger.debug(result)
         if result.returncode != 0:
             raise Exception(result.stderr.strip())
