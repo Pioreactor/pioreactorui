@@ -278,16 +278,24 @@ def save_file(path: str, content: str) -> bool:
 
 
 @huey.task()
-def write_config_and_sync(config_path: str, text: str, units: str, flags: str) -> tuple[bool, str]:
+def write_config_and_sync(
+    config_path: str, text: str, units: str, flags: str, env: dict[str, str] = {}
+) -> tuple[bool, str]:
     try:
         with open(config_path, "w") as f:
             f.write(text)
+
+        logger.info(
+            f'Executing `{join((PIOS_EXECUTABLE, "sync-configs", "--units", units, flags))}`, {env=}'
+        )
 
         result = run(
             (PIOS_EXECUTABLE, "sync-configs", "--units", units, flags),
             capture_output=True,
             text=True,
+            env=env,
         )
+        logger.debug(result)
         if result.returncode != 0:
             raise Exception(result.stderr.strip())
 

@@ -748,6 +748,8 @@ def get_all_calibrations_as_yamls(pioreactor_unit: str) -> ResponseReturnValue:
 
     with zipfile.ZipFile(aggregate_buffer, "w", zipfile.ZIP_DEFLATED) as aggregate_zip:
         for worker, content in results.items():
+            if content is None:
+                continue  # worker did not respond
             # Load the remote ZIP into memory
             remote_zip_buffer = BytesIO(content)
             with zipfile.ZipFile(remote_zip_buffer, "r") as remote_zip:
