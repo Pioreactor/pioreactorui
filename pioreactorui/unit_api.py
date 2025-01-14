@@ -19,9 +19,12 @@ from flask import send_file
 from flask.typing import ResponseReturnValue
 from huey.exceptions import HueyException
 from huey.exceptions import TaskException
+from msgspec import to_builtins
 from msgspec.yaml import decode as yaml_decode
 from pioreactor.calibrations import CALIBRATION_PATH
 from pioreactor.config import get_leader_hostname
+from pioreactor.structs import CalibrationBase
+from pioreactor.structs import subclass_union
 from pioreactor.utils import local_intermittent_storage
 from pioreactor.utils import local_persistent_storage
 from pioreactor.utils.timing import current_utc_timestamp
@@ -38,6 +41,8 @@ from .config import huey
 from .utils import attach_cache_control
 from .utils import create_task_response
 from pioreactorui import structs
+
+AllCalibrations = subclass_union(CalibrationBase)
 
 
 unit_api = Blueprint("unit_api", __name__, url_prefix="/unit_api")
@@ -555,7 +560,7 @@ def get_all_calibrations() -> ResponseReturnValue:
         for file in sorted(calibration_dir.glob("*/*.yaml")):
             try:
                 device = file.parent.name
-                cal = yaml_decode(file.read_bytes())
+                cal = to_builtins(yaml_decode(file.read_bytes(), type=AllCalibrations))
                 cal["is_active"] = cache.get(device) == cal["calibration_name"]
                 cal["pioreactor_unit"] = HOSTNAME
                 if device in all_calibrations:
@@ -582,7 +587,7 @@ def get_all_active_calibrations() -> ResponseReturnValue:
             cal_name = cache[device]
             cal_file_path = calibration_dir / device / f"{cal_name}.yaml"
             try:
-                cal = yaml_decode(cal_file_path.read_bytes())
+                cal = to_builtins(yaml_decode(cal_file_path.read_bytes(), type=AllCalibrations))
                 cal["is_active"] = True
                 cal["pioreactor_unit"] = HOSTNAME
                 all_calibrations[device] = cal
@@ -633,9 +638,8 @@ def get_calibrations_by_device(device) -> ResponseReturnValue:
     with local_persistent_storage("active_calibrations") as c:
         for file in sorted(calibration_dir.glob("*.yaml")):
             try:
-                cal = yaml_decode(
-                    file.read_bytes()
-                )  # dict, don't make Struct since we can't add fields to structs.
+                # first try to open it using our struct, but only to verify it.
+                cal = to_builtins(yaml_decode(file.read_bytes(), type=AllCalibrations))
                 cal["is_active"] = c.get(device) == cal["calibration_name"]
                 calibrations.append(cal)
             except Exception as e:
@@ -657,13 +661,12 @@ def get_calibration(device, cal_name) -> ResponseReturnValue:
 
     with local_persistent_storage("active_calibrations") as c:
         try:
-            cal = yaml_decode(
-                calibration_path.read_bytes()
-            )  # dict, don't make Struct since we can't add fields to structs.
+            cal = to_builtins(yaml_decode(calibration_path.read_bytes(), type=AllCalibrations))
             cal["is_active"] = c.get(device) == cal["calibration_name"]
             return attach_cache_control(jsonify(cal), max_age=10)
         except Exception as e:
             publish_to_error_log(f"Error reading {calibration_path.stem}: {e}", "get_calibration")
+            abort(500)
 
 
 @unit_api.route("/active_calibrations/<device>/<cal_name>", methods=["PATCH"])

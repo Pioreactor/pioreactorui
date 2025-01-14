@@ -296,7 +296,6 @@ def write_config_and_sync(
             env=env,
             check=True,
         )
-        logger.info(result)
         if result.returncode != 0:
             raise Exception(result.stderr.strip())
 
