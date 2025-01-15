@@ -264,7 +264,7 @@ def test_broadcasting(client):
     count_of_workers = len(data)
 
     with capture_requests() as bucket:
-        response = client.get("/api/versions/ui")
+        response = client.get("/api/units/$broadcast/versions/ui")
 
     assert len(bucket) == count_of_workers
 

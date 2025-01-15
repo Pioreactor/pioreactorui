@@ -66,7 +66,7 @@ def to_json_response(json: str) -> ResponseReturnValue:
 def broadcast_get_across_cluster(endpoint: str, timeout: float = 1.0, return_raw=False) -> Result:
     assert endpoint.startswith("/unit_api")
     return tasks.multicast_get_across_cluster(
-        endpoint, get_all_workers(), timeout=timeout, return_raw=return_raw
+        endpoint=endpoint, workers=get_all_workers(), timeout=timeout, return_raw=return_raw
     )
 
 
@@ -964,7 +964,7 @@ def get_job_setting_for_worker(
 @api.route("/units/<pioreactor_unit>/versions/app", methods=["GET"])
 def get_app_versions(pioreactor_unit: str) -> ResponseReturnValue:
     if pioreactor_unit == UNIVERSAL_IDENTIFIER:
-        return broadcast_get_across_cluster("/unit_api/versions/app")
+        return create_task_response(broadcast_get_across_cluster("/unit_api/versions/app"))
     else:
         return create_task_response(
             tasks.multicast_get_across_cluster("/unit_api/versions/app", [pioreactor_unit])
@@ -974,7 +974,7 @@ def get_app_versions(pioreactor_unit: str) -> ResponseReturnValue:
 @api.route("/units/<pioreactor_unit>/versions/ui", methods=["GET"])
 def get_ui_versions_across_cluster(pioreactor_unit: str) -> ResponseReturnValue:
     if pioreactor_unit == UNIVERSAL_IDENTIFIER:
-        return broadcast_get_across_cluster("/unit_api/versions/ui")
+        return create_task_response(broadcast_get_across_cluster("/unit_api/versions/ui"))
     else:
         return create_task_response(
             tasks.multicast_get_across_cluster("/unit_api/versions/ui", [pioreactor_unit])
@@ -1402,23 +1402,18 @@ def get_historical_media_used() -> ResponseReturnValue:
 @api.route("/experiments/<experiment>", methods=["PATCH"])
 def update_experiment(experiment: str) -> ResponseReturnValue:
     body = request.get_json()
-    try:
-        if "description" in body:
-            row_count = modify_app_db(
-                "UPDATE experiments SET description = (?) WHERE experiment=(?)",
-                (body["description"], experiment),
-            )
+    if "description" in body:
+        row_count = modify_app_db(
+            "UPDATE experiments SET description = (?) WHERE experiment=(?)",
+            (body["description"], experiment),
+        )
 
-            if row_count == 1:
-                return Response(status=200)
-            else:
-                abort(404, f"Experiment {experiment} not found")
+        if row_count == 1:
+            return Response(status=200)
         else:
-            abort(400)
-
-    except Exception as e:
-        publish_to_error_log(str(e), "update_experiment")
-        abort(500)
+            abort(404, f"Experiment {experiment} not found")
+    else:
+        abort(400)
 
 
 @api.route("/experiments/<experiment>", methods=["GET"])

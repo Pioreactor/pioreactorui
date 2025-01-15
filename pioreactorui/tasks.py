@@ -374,7 +374,6 @@ def multicast_get_across_cluster(
     tasks = get_from_worker.map(
         ((worker, endpoint, json, timeout, return_raw) for worker in workers)
     )
-
     return {
         worker: response for (worker, response) in tasks.get(blocking=True, timeout=30)
     }  # add a timeout so that we don't hold up a thread forever.
