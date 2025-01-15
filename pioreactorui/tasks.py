@@ -343,7 +343,6 @@ def get_from_worker(
     worker: str, endpoint: str, json: dict | None = None, timeout=1.0, return_raw=False
 ) -> tuple[str, Any]:
     try:
-        logger.info(timeout)
         r = get_from(resolve_to_address(worker), endpoint, json=json, timeout=timeout)
         r.raise_for_status()
         if not return_raw:
