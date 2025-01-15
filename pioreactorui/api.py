@@ -6,8 +6,9 @@ import os
 import re
 import sqlite3
 import tempfile
+import zipfile
+from io import BytesIO
 from pathlib import Path
-from typing import Any
 
 from flask import abort
 from flask import Blueprint
@@ -15,6 +16,7 @@ from flask import current_app
 from flask import jsonify
 from flask import request
 from flask import Response
+from flask import send_file
 from flask.typing import ResponseReturnValue
 from huey.api import Result
 from huey.exceptions import HueyException
@@ -30,20 +32,25 @@ from pioreactor.utils.timing import current_utc_datetime
 from pioreactor.utils.timing import current_utc_timestamp
 from pioreactor.whoami import UNIVERSAL_EXPERIMENT
 from pioreactor.whoami import UNIVERSAL_IDENTIFIER
+from werkzeug.utils import safe_join
 from werkzeug.utils import secure_filename
 
 from . import client
+from . import get_all_units
+from . import get_all_workers
+from . import get_all_workers_in_experiment
 from . import HOSTNAME
 from . import modify_app_db
+from . import msg_to_JSON
 from . import publish_to_error_log
 from . import publish_to_experiment_log
 from . import publish_to_log
 from . import query_app_db
 from . import structs
 from . import tasks
-from .config import cache
 from .config import env
 from .config import is_testing_env
+from .utils import attach_cache_control
 from .utils import create_task_response
 from .utils import is_valid_unix_filename
 from .utils import scrub_to_valid
@@ -52,49 +59,36 @@ from .utils import scrub_to_valid
 api = Blueprint("api", __name__, url_prefix="/api")
 
 
-def get_workers_in_experiment(experiment: str) -> list[str]:
-    if experiment == UNIVERSAL_EXPERIMENT:
-        r = query_app_db("SELECT pioreactor_unit FROM workers")
-    else:
-        r = query_app_db(
-            "SELECT pioreactor_unit FROM experiment_worker_assignments WHERE experiment = ?",
-            (experiment,),
-        )
-    assert isinstance(r, list)
-    return [unit["pioreactor_unit"] for unit in r]
+def to_json_response(json: str) -> ResponseReturnValue:
+    return Response(json, mimetype="application/json")
 
 
-def broadcast_get_across_cluster(endpoint: str) -> dict[str, Any]:
+def broadcast_get_across_cluster(endpoint: str, timeout: float = 1.0, return_raw=False) -> Result:
     assert endpoint.startswith("/unit_api")
-    result = query_app_db("SELECT w.pioreactor_unit as unit FROM workers w")
-    assert result is not None
-    assert isinstance(result, list)
-    list_of_workers = tuple(r["unit"] for r in result)
-
-    return tasks.multicast_get_across_cluster(endpoint, list_of_workers)
+    return tasks.multicast_get_across_cluster(
+        endpoint=endpoint, workers=get_all_workers(), timeout=timeout, return_raw=return_raw
+    )
 
 
 def broadcast_post_across_cluster(endpoint: str, json: dict | None = None) -> Result:
     assert endpoint.startswith("/unit_api")
-    # order by desc so that the leader-worker, if exists, is done last. This is important for tasks like /reboot
-    result = query_app_db(
-        """
-        SELECT w.pioreactor_unit as unit
-        FROM workers w
-        ORDER BY w.added_at DESC
-        """
-    )
-    assert result is not None
-    assert isinstance(result, list)
-    list_of_workers = tuple(r["unit"] for r in result)
+    return tasks.multicast_post_across_cluster(endpoint, get_all_workers(), json=json)
 
-    return tasks.multicast_post_across_cluster(endpoint, list_of_workers, json=json)
+
+def broadcast_delete_across_cluster(endpoint: str, json: dict | None = None) -> Result:
+    assert endpoint.startswith("/unit_api")
+    return tasks.multicast_delete_across_cluster(endpoint, get_all_workers(), json=json)
+
+
+def broadcast_patch_across_cluster(endpoint: str, json: dict | None = None) -> Result:
+    assert endpoint.startswith("/unit_api")
+    return tasks.multicast_patch_across_cluster(endpoint, get_all_workers(), json=json)
 
 
 @api.route("/workers/jobs/stop/experiments/<experiment>", methods=["POST", "PATCH"])
 def stop_all_jobs_in_experiment(experiment: str) -> ResponseReturnValue:
     """Kills all jobs for workers assigned to experiment"""
-    workers_in_experiment = get_workers_in_experiment(experiment)
+    workers_in_experiment = get_all_workers_in_experiment(experiment)
     tasks.multicast_post_across_cluster(
         f"/unit_api/jobs/stop/experiment/{experiment}", workers_in_experiment
     )
@@ -143,7 +137,7 @@ def stop_job_on_unit(pioreactor_unit: str, experiment: str, job: str) -> Respons
         tasks.multicast_post_across_cluster(
             f"/unit_api/jobs/stop/job_name/{job}", [pioreactor_unit]
         )
-        return Response(status=500)
+        abort(500)
 
     return Response(status=202)
 
@@ -192,7 +186,6 @@ def run_job_on_unit_in_experiment(
 
     else:
         # check if worker is part of experiment
-
         okay = query_app_db(
             """
             SELECT count(1) as count
@@ -205,13 +198,13 @@ def run_job_on_unit_in_experiment(
             one=True,
         )
         assert isinstance(okay, dict)
-        if okay["count"] < 1:
+        if okay["count"] == 0:
             assigned_workers = []
         else:
             assigned_workers = [pioreactor_unit]
 
     if len(assigned_workers) == 0:
-        return Response(status=404)
+        abort(404, f"Worker {pioreactor_unit} not found")
 
     # and we can include experiment in the env since we know these workers are in the experiment!
     json.env = json.env | {"EXPERIMENT": experiment, "ACTIVE": "1"}
@@ -234,7 +227,9 @@ def get_running_jobs_on_unit(pioreactor_unit: str) -> ResponseReturnValue:
 @api.route("/workers/<pioreactor_unit>/blink", methods=["POST"])
 def blink_worker(pioreactor_unit: str) -> ResponseReturnValue:
     msg = client.publish(
-        f"pioreactor/{pioreactor_unit}/$experiment/monitor/flicker_led_response_okay", 1, qos=0
+        f"pioreactor/{pioreactor_unit}/{UNIVERSAL_EXPERIMENT}/monitor/flicker_led_response_okay",
+        1,
+        qos=0,
     )
     msg.wait_for_publish(timeout=2.0)
     return Response(status=202)
@@ -283,7 +278,7 @@ def update_job_on_unit(pioreactor_unit: str, experiment: str, job: str) -> Respo
             )
     except Exception as e:
         publish_to_error_log(e, "update_job_on_unit")
-        return Response(status=400)
+        abort(400)
 
     return Response(status=202)
 
@@ -308,89 +303,204 @@ def shutdown_unit(pioreactor_unit: str) -> ResponseReturnValue:
     return create_task_response(task)
 
 
-@api.route("/workers/system/reboot", methods=["POST"])
-def reboot_units() -> ResponseReturnValue:
-    """Reboots workers"""
-    return create_task_response(broadcast_post_across_cluster("/unit_api/system/reboot"))
+## Clock
 
 
-@api.route("/workers/system/shutdown", methods=["POST"])
-def shutdown_units() -> ResponseReturnValue:
-    """Shutdown workers"""
-    return create_task_response(broadcast_post_across_cluster("/unit_api/system/shutdown"))
+@api.route("/units/<pioreactor_unit>/system/utc_clock", methods=["GET"])
+def get_clocktime(pioreactor_unit: str) -> ResponseReturnValue:
+    if pioreactor_unit == UNIVERSAL_IDENTIFIER:
+        task = broadcast_get_across_cluster("/unit_api/system/utc_clock")
+    else:
+        task = tasks.multicast_get_across_cluster("/unit_api/system/utc_clock", [pioreactor_unit])
+    return create_task_response(task)
 
 
-## Logs
+@api.route("/system/utc_clock", methods=["POST"])
+def set_clocktime() -> ResponseReturnValue:
+    tasks.multicast_post_across_cluster(
+        "/unit_api/system/utc_clock", [get_leader_hostname()], request.get_json()
+    )
+    task2 = broadcast_post_across_cluster("/unit_api/system/utc_clock")
+    return create_task_response(task2)
 
 
-@api.route("/experiments/<experiment>/logs", methods=["GET"])
-def get_logs(experiment: str) -> ResponseReturnValue:
+# util
+def get_level_string(min_level: str) -> str:
+    levels = {
+        "DEBUG": ["ERROR", "WARNING", "NOTICE", "INFO", "DEBUG"],
+        "INFO": ["ERROR", "NOTICE", "INFO", "WARNING"],
+        "WARNING": ["ERROR", "WARNING"],
+        "ERROR": ["ERROR"],
+    }
+    selected_levels = levels.get(min_level, levels["INFO"])
+    return " or ".join(f'level == "{level}"' for level in selected_levels)
+
+
+@api.route("/experiments/<experiment>/recent_logs", methods=["GET"])
+def get_recent_logs(experiment: str) -> ResponseReturnValue:
     """Shows event logs from all units"""
-
-    def get_level_string(min_level: str) -> str:
-        levels = {
-            "DEBUG": ["ERROR", "WARNING", "NOTICE", "INFO", "DEBUG"],
-            "INFO": ["ERROR", "NOTICE", "INFO", "WARNING"],
-            "WARNING": ["ERROR", "WARNING"],
-            "ERROR": ["ERROR"],
-        }
-
-        selected_levels = levels.get(min_level, levels["INFO"])
-        return " or ".join(f'level == "{level}"' for level in selected_levels)
 
     min_level = request.args.get("min_level", "INFO")
 
     try:
         recent_logs = query_app_db(
-            f"""SELECT l.timestamp, level, l.pioreactor_unit, message, task
+            f"""SELECT l.timestamp, level, l.pioreactor_unit, message, task, l.experiment
                 FROM logs AS l
-                WHERE (l.experiment=? OR l.experiment='$experiment')
+                WHERE (l.experiment=? OR l.experiment=?)
                     AND ({get_level_string(min_level)})
-                    AND l.timestamp >= MAX( strftime('%Y-%m-%dT%H:%M:%S', datetime('now', '-24 hours')), (SELECT created_at FROM experiments where experiment=?) )
+                    AND l.timestamp >= MAX( STRFTIME('%Y-%m-%dT%H:%M:%f000Z', 'NOW', '-24 hours'), (SELECT created_at FROM experiments where experiment=?) )
                 ORDER BY l.timestamp DESC LIMIT 50;""",
-            (experiment, experiment),
+            (experiment, UNIVERSAL_EXPERIMENT, experiment),
+        )
+
+    except Exception as e:
+        publish_to_error_log(str(e), "get_recent_logs")
+        abort(500)
+
+    return jsonify(recent_logs)
+
+
+@api.route("/experiments/<experiment>/logs", methods=["GET"])
+def get_exp_logs(experiment: str) -> ResponseReturnValue:
+    """Shows event logs from all units, uses pagination."""
+
+    skip = int(request.args.get("skip", 0))
+
+    try:
+        recent_logs = query_app_db(
+            f"""SELECT l.timestamp, level, l.pioreactor_unit, message, task, l.experiment
+                FROM logs AS l
+                JOIN experiment_worker_assignments_history h
+                   on h.pioreactor_unit = l.pioreactor_unit
+                   and h.assigned_at <= l.timestamp
+                   and l.timestamp <= coalesce(h.unassigned_at, STRFTIME('%Y-%m-%dT%H:%M:%f000Z', 'NOW'))
+                WHERE (l.experiment=? OR l.experiment=?)
+                ORDER BY l.timestamp DESC LIMIT 50 OFFSET {skip};""",
+            (experiment, UNIVERSAL_EXPERIMENT),
+        )
+
+    except Exception as e:
+        publish_to_error_log(str(e), "get_exp_logs")
+        abort(500)
+
+    return jsonify(recent_logs)
+
+
+@api.route("/logs", methods=["GET"])
+def get_logs() -> ResponseReturnValue:
+    """Shows event logs from all units, uses pagination."""
+
+    skip = int(request.args.get("skip", 0))
+
+    try:
+        recent_logs = query_app_db(
+            f"""SELECT l.timestamp, level, l.pioreactor_unit, message, task, l.experiment
+                FROM logs AS l
+                ORDER BY l.timestamp DESC LIMIT 50 OFFSET {skip};"""
         )
 
     except Exception as e:
         publish_to_error_log(str(e), "get_logs")
-        return Response(status=500)
+        abort(500)
+
+    return jsonify(recent_logs)
+
+
+@api.route("/workers/<pioreactor_unit>/experiments/<experiment>/recent_logs", methods=["GET"])
+def get_recent_logs_for_unit_and_experiment(
+    pioreactor_unit: str, experiment: str
+) -> ResponseReturnValue:
+    """Shows event logs for a specific unit within an experiment"""
+
+    min_level = request.args.get("min_level", "INFO")
+
+    try:
+        recent_logs = query_app_db(
+            f"""SELECT l.timestamp, level, l.pioreactor_unit, message, task, l.experiment
+                FROM logs AS l
+                WHERE (l.experiment=? OR l.experiment=?)
+                    AND (l.pioreactor_unit=? or l.pioreactor_unit=?)
+                    AND ({get_level_string(min_level)})
+                    AND l.timestamp >= MAX(
+                        STRFTIME('%Y-%m-%dT%H:%M:%f000Z', 'NOW', '-24 hours'),
+                        COALESCE((SELECT created_at FROM experiments WHERE experiment=?), STRFTIME('%Y-%m-%dT%H:%M:%f000Z', 'NOW', '-24 hours'))
+                    )
+                ORDER BY l.timestamp DESC LIMIT 50;""",
+            (experiment, UNIVERSAL_EXPERIMENT, pioreactor_unit, UNIVERSAL_IDENTIFIER, experiment),
+        )
+
+    except Exception as e:
+        publish_to_error_log(str(e), "get_recent_logs_for_unit_and_experiment")
+        abort(500)
 
     return jsonify(recent_logs)
 
 
 @api.route("/workers/<pioreactor_unit>/experiments/<experiment>/logs", methods=["GET"])
-def get_logs_for_unit_and_experiment(experiment: str, pioreactor_unit: str) -> ResponseReturnValue:
-    """Shows event logs for a specific worker within an experiment"""
+def get_logs_for_unit_and_experiment(pioreactor_unit: str, experiment: str) -> ResponseReturnValue:
+    """Shows event logs from all units, uses pagination."""
 
-    def get_level_string(min_level: str) -> str:
-        levels = {
-            "DEBUG": ["ERROR", "WARNING", "NOTICE", "INFO", "DEBUG"],
-            "INFO": ["ERROR", "NOTICE", "INFO", "WARNING"],
-            "WARNING": ["ERROR", "WARNING"],
-            "ERROR": ["ERROR"],
-        }
-        selected_levels = levels.get(min_level, levels["INFO"])
-        return " or ".join(f'level == "{level}"' for level in selected_levels)
-
-    min_level = request.args.get("min_level", "INFO")
+    skip = int(request.args.get("skip", 0))
 
     try:
         recent_logs = query_app_db(
-            f"""SELECT l.timestamp, level, l.pioreactor_unit, message, task
+            f"""SELECT l.timestamp, level, l.pioreactor_unit, message, task, l.experiment
                 FROM logs AS l
-                WHERE (l.experiment=? OR l.experiment='$experiment')
-                    AND l.pioreactor_unit=?
-                    AND ({get_level_string(min_level)})
-                    AND l.timestamp >= MAX( strftime('%Y-%m-%dT%H:%M:%S', datetime('now', '-24 hours')), (SELECT created_at FROM experiments where experiment=?) )
-                ORDER BY l.timestamp DESC LIMIT 50;""",
-            (experiment, pioreactor_unit, experiment),
+                JOIN experiment_worker_assignments_history h
+                   on h.pioreactor_unit = l.pioreactor_unit
+                   and h.assigned_at <= l.timestamp
+                   and l.timestamp <= coalesce(h.unassigned_at, STRFTIME('%Y-%m-%dT%H:%M:%f000Z', 'NOW') )
+                WHERE (l.experiment=? or l.experiment=?)
+                    AND (l.pioreactor_unit=? or l.pioreactor_unit=?)
+                ORDER BY l.timestamp DESC LIMIT 50 OFFSET {skip};""",
+            (experiment, UNIVERSAL_EXPERIMENT, pioreactor_unit, UNIVERSAL_IDENTIFIER),
         )
 
     except Exception as e:
-        publish_to_error_log(str(e), "get_logs_for_unit_and_experiment")
-        return Response(status=500)
+        publish_to_error_log(str(e), "get_for_unit_and_experiment")
+        abort(500)
 
     return jsonify(recent_logs)
+
+
+@api.route("/units/<pioreactor_unit>/logs", methods=["GET"])
+def get_logs_for_unit(pioreactor_unit: str) -> ResponseReturnValue:
+    """Shows event logs from all units, uses pagination."""
+
+    skip = int(request.args.get("skip", 0))
+
+    try:
+        recent_logs = query_app_db(
+            f"""SELECT l.timestamp, level, l.pioreactor_unit, message, task, l.experiment
+                FROM logs AS l
+                WHERE (l.pioreactor_unit=? or l.pioreactor_unit=?)
+                ORDER BY l.timestamp DESC LIMIT 50 OFFSET {skip};""",
+            (pioreactor_unit, UNIVERSAL_IDENTIFIER),
+        )
+
+    except Exception as e:
+        publish_to_error_log(str(e), "get_logs_for_unit")
+        abort(500)
+
+    return jsonify(recent_logs)
+
+
+@api.route("/workers/<pioreactor_unit>/experiments/<experiment>/logs", methods=["POST"])
+def publish_new_log(pioreactor_unit: str, experiment: str) -> ResponseReturnValue:
+    body = request.get_json()
+
+    topic = f"pioreactor/{pioreactor_unit}/{experiment}/logs/ui/info"
+    client.publish(
+        topic,
+        msg_to_JSON(
+            msg=body["message"],
+            source="user",
+            level="info",
+            timestamp=body["timestamp"],
+            task=body["source"] or "",
+        ),
+    )
+    return Response(status=202)
 
 
 ## Time series data
@@ -407,27 +517,27 @@ def get_growth_rates(experiment: str) -> ResponseReturnValue:
         growth_rates = query_app_db(
             """
             SELECT
-                json_object('series', json_group_array(unit), 'data', json_group_array(json(data))) as result
+                json_object('series', json_group_array(unit), 'data', json_group_array(json(data))) as json
             FROM (
                 SELECT pioreactor_unit as unit,
                        json_group_array(json_object('x', timestamp, 'y', round(rate, 5))) as data
                 FROM growth_rates
                 WHERE experiment=? AND
                       ((ROWID * 0.61803398875) - cast(ROWID * 0.61803398875 as int) < 1.0/?) AND
-                      timestamp > strftime('%Y-%m-%dT%H:%M:%S', datetime('now',?))
+                      timestamp > STRFTIME('%Y-%m-%dT%H:%M:%f000Z', 'NOW', ?)
                 GROUP BY 1
                 );
             """,
             (experiment, filter_mod_n, f"-{lookback} hours"),
             one=True,
         )
-        assert isinstance(growth_rates, dict)
 
     except Exception as e:
         publish_to_error_log(str(e), "get_growth_rates")
-        return Response(status=400)
+        abort(400)
 
-    return growth_rates["result"]
+    assert isinstance(growth_rates, dict)
+    return attach_cache_control(to_json_response(growth_rates["json"]))
 
 
 @api.route("/experiments/<experiment>/time_series/temperature_readings", methods=["GET"])
@@ -440,7 +550,7 @@ def get_temperature_readings(experiment: str) -> ResponseReturnValue:
     try:
         temperature_readings = query_app_db(
             """
-            SELECT json_object('series', json_group_array(unit), 'data', json_group_array(json(data))) as result
+            SELECT json_object('series', json_group_array(unit), 'data', json_group_array(json(data))) as json
             FROM (
                 SELECT
                     pioreactor_unit as unit,
@@ -448,20 +558,20 @@ def get_temperature_readings(experiment: str) -> ResponseReturnValue:
                 FROM temperature_readings
                 WHERE experiment=? AND
                     ((ROWID * 0.61803398875) - cast(ROWID * 0.61803398875 as int) < 1.0/?) AND
-                    timestamp > strftime('%Y-%m-%dT%H:%M:%S', datetime('now',?))
+                    timestamp > STRFTIME('%Y-%m-%dT%H:%M:%f000Z', 'NOW' , ?)
                 GROUP BY 1
                 );
             """,
             (experiment, filter_mod_n, f"-{lookback} hours"),
             one=True,
         )
-        assert isinstance(temperature_readings, dict)
 
     except Exception as e:
         publish_to_error_log(str(e), "get_temperature_readings")
-        return Response(status=400)
+        abort(400)
 
-    return temperature_readings["result"]
+    assert isinstance(temperature_readings, dict)
+    return attach_cache_control(to_json_response(temperature_readings["json"]))
 
 
 @api.route("/experiments/<experiment>/time_series/od_readings_filtered", methods=["GET"])
@@ -475,7 +585,7 @@ def get_od_readings_filtered(experiment: str) -> ResponseReturnValue:
         filtered_od_readings = query_app_db(
             """
             SELECT
-                json_object('series', json_group_array(unit), 'data', json_group_array(json(data))) as result
+                json_object('series', json_group_array(unit), 'data', json_group_array(json(data))) as json
             FROM (
                 SELECT
                     pioreactor_unit as unit,
@@ -483,20 +593,20 @@ def get_od_readings_filtered(experiment: str) -> ResponseReturnValue:
                 FROM od_readings_filtered
                 WHERE experiment=? AND
                     ((ROWID * 0.61803398875) - cast(ROWID * 0.61803398875 as int) < 1.0/?) AND
-                    timestamp > strftime('%Y-%m-%dT%H:%M:%S', datetime('now',?))
+                    timestamp > STRFTIME('%Y-%m-%dT%H:%M:%f000Z', 'NOW', ?)
                 GROUP BY 1
                 );
             """,
             (experiment, filter_mod_n, f"-{lookback} hours"),
             one=True,
         )
-        assert isinstance(filtered_od_readings, dict)
 
     except Exception as e:
         publish_to_error_log(str(e), "get_od_readings_filtered")
-        return Response(status=400)
+        abort(400)
 
-    return filtered_od_readings["result"]
+    assert isinstance(filtered_od_readings, dict)
+    return attach_cache_control(to_json_response(filtered_od_readings["json"]))
 
 
 @api.route("/experiments/<experiment>/time_series/od_readings", methods=["GET"])
@@ -510,26 +620,26 @@ def get_od_readings(experiment: str) -> ResponseReturnValue:
         raw_od_readings = query_app_db(
             """
             SELECT
-                json_object('series', json_group_array(unit), 'data', json_group_array(json(data))) as result
+                json_object('series', json_group_array(unit), 'data', json_group_array(json(data))) as json
             FROM (
                 SELECT pioreactor_unit || '-' || channel as unit, json_group_array(json_object('x', timestamp, 'y', round(od_reading, 7))) as data
                 FROM od_readings
                 WHERE experiment=? AND
                     ((ROWID * 0.61803398875) - cast(ROWID * 0.61803398875 as int) < 1.0/?) AND
-                    timestamp > strftime('%Y-%m-%dT%H:%M:%S', datetime('now', ?))
+                    timestamp > STRFTIME('%Y-%m-%dT%H:%M:%f000Z', 'NOW',  ?)
                 GROUP BY 1
                 );
             """,
             (experiment, filter_mod_n, f"-{lookback} hours"),
             one=True,
         )
-        assert isinstance(raw_od_readings, dict)
 
     except Exception as e:
         publish_to_error_log(str(e), "get_od_readings")
-        return Response(status=400)
+        abort(400)
 
-    return raw_od_readings["result"]
+    assert isinstance(raw_od_readings, dict)
+    return attach_cache_control(to_json_response(raw_od_readings["json"]))
 
 
 @api.route("/experiments/<experiment>/time_series/<data_source>/<column>", methods=["GET"])
@@ -544,25 +654,26 @@ def get_fallback_time_series(data_source: str, experiment: str, column: str) -> 
         r = query_app_db(
             f"""
             SELECT
-                json_object('series', json_group_array(unit), 'data', json_group_array(json(data))) as result
+                json_object('series', json_group_array(unit), 'data', json_group_array(json(data))) as json
             FROM (
                 SELECT pioreactor_unit as unit, json_group_array(json_object('x', timestamp, 'y', round({column}, 7))) as data
                 FROM {data_source}
                 WHERE experiment=? AND
                     ((ROWID * 0.61803398875) - cast(ROWID * 0.61803398875 as int) < 1.0/?) AND
-                    timestamp > strftime('%Y-%m-%dT%H:%M:%S', datetime('now', ?))
+                    timestamp > STRFTIME('%Y-%m-%dT%H:%M:%f000Z', 'NOW',?) AND
+                    {column} IS NOT NULL
                 GROUP BY 1
                 );
             """,
             (experiment, filter_mod_n, f"-{lookback} hours"),
             one=True,
         )
-        assert isinstance(r, dict)
 
     except Exception as e:
         publish_to_error_log(str(e), "get_fallback_time_series")
-        return Response(status=400)
-    return r["result"]
+        abort(400)
+    assert isinstance(r, dict)
+    return attach_cache_control(to_json_response(r["json"]))
 
 
 @api.route("/experiments/<experiment>/media_rates", methods=["GET"])
@@ -603,218 +714,201 @@ def get_media_rates(experiment: str) -> ResponseReturnValue:
             aggregate["altMediaRate"] = aggregate["altMediaRate"] + float(row["altMediaRate"])
 
         json_result["all"] = aggregate
-        return jsonify(json_result)
+        return attach_cache_control(jsonify(json_result))
 
     except Exception as e:
         publish_to_error_log(str(e), "get_media_rates")
-        return Response(status=500)
+        abort(500)
 
 
 ## CALIBRATIONS
 
 
-@api.route("/calibrations/<pioreactor_unit>", methods=["GET"])
-def get_available_calibrations_type_by_unit(pioreactor_unit: str) -> ResponseReturnValue:
-    """
-    {
-        "types": [
-            "temperature",
-            "pH",
-            "dissolved_oxygen",
-            "conductivity"
-        ]
-    }
-    """
-    try:
-        types = query_app_db(
-            "SELECT DISTINCT type FROM calibrations WHERE pioreactor_unit=?",
-            (pioreactor_unit),
-        )
-
-    except Exception as e:
-        publish_to_error_log(str(e), "get_available_calibrations_type_by_unit")
-        return Response(status=500)
-
-    return jsonify(types)
-
-
-@api.route("/calibrations/<pioreactor_unit>/<calibration_type>", methods=["GET"])
-def get_available_calibrations_of_type(
-    pioreactor_unit: str, calibration_type: str
-) -> ResponseReturnValue:
-    try:
-        unit_calibration = query_app_db(
-            "SELECT * FROM calibrations WHERE type=? AND pioreactor_unit=?",
-            (calibration_type, pioreactor_unit),
-        )
-
-    except Exception as e:
-        publish_to_error_log(str(e), "get_available_calibrations_of_type")
-        return Response(status=500)
-
-    return jsonify(unit_calibration)
-
-
-@api.route("/calibrations/<pioreactor_unit>/<calibration_type>/current", methods=["GET"])
-def get_current_calibrations_of_type(
-    pioreactor_unit: str, calibration_type: str
-) -> ResponseReturnValue:
-    """
-    retrieve the current calibration for type
-    """
-    try:
-        r = query_app_db(
-            "SELECT * FROM calibrations WHERE type=? AND pioreactor_unit=? AND is_current=1",
-            (calibration_type, pioreactor_unit),
-            one=True,
-        )
-
-        if r is not None:
-            assert isinstance(r, dict)
-            r["data"] = current_app.json.loads(r["data"])
-            return jsonify(r)
-        else:
-            return Response(status=404)
-
-    except Exception as e:
-        publish_to_error_log(str(e), "get_current_calibrations_of_type")
-        return Response(status=500)
-
-
-@api.route("/calibrations/<pioreactor_unit>/<calibration_type>/<calibration_name>", methods=["GET"])
-def get_calibration_by_name(
-    pioreactor_unit: str, calibration_type: str, calibration_name: str
-) -> ResponseReturnValue:
-    """
-    retrieve the calibration for type with name
-    """
-    try:
-        r = query_app_db(
-            "SELECT * FROM calibrations WHERE type=? AND pioreactor_unit=? AND name=?",
-            (calibration_type, pioreactor_unit, calibration_name),
-            one=True,
-        )
-        if r is not None:
-            assert isinstance(r, dict)
-            r["data"] = current_app.json.loads(r["data"])
-            return jsonify(r)
-        else:
-            return Response(status=404)
-    except Exception as e:
-        publish_to_error_log(str(e), "get_calibration_by_name")
-        return Response(status=500)
-
-
-@api.route(
-    "/calibrations/<pioreactor_unit>/<calibration_type>/<calibration_name>",
-    methods=["PATCH"],
-)
-def patch_calibrations(
-    pioreactor_unit: str, calibration_type: str, calibration_name: str
-) -> ResponseReturnValue:
-    body = request.get_json()
-
-    if "current" in body and body["current"] == 1:
-        try:
-            # does the new one exist in the database?
-            existing_row = query_app_db(
-                "SELECT * FROM calibrations WHERE pioreactor_unit=(?) AND type=(?) AND name=(?)",
-                (pioreactor_unit, calibration_type, calibration_name),
-                one=True,
-            )
-            if existing_row is None:
-                publish_to_error_log(
-                    f"calibration {calibration_name=}, {pioreactor_unit=}, {calibration_type=} doesn't exist in database.",
-                    "patch_calibrations",
-                )
-                return Response(status=404)
-
-            elif existing_row["is_current"] == 1:  # type: ignore
-                # already current
-                return Response(status=200)
-
-            modify_app_db(
-                "UPDATE calibrations SET is_current=0, set_to_current_at=NULL WHERE pioreactor_unit=(?) AND type=(?) AND is_current=1",
-                (pioreactor_unit, calibration_type),
-            )
-
-            modify_app_db(
-                "UPDATE calibrations SET is_current=1, set_to_current_at=CURRENT_TIMESTAMP WHERE pioreactor_unit=(?) AND type=(?) AND name=(?)",
-                (pioreactor_unit, calibration_type, calibration_name),
-            )
-            return Response(status=200)
-
-        except Exception as e:
-            publish_to_error_log(str(e), "patch_calibrations")
-            return Response(status=500)
-
+@api.route("/workers/<pioreactor_unit>/calibrations", methods=["GET"])
+def get_all_calibrations(pioreactor_unit: str) -> ResponseReturnValue:
+    if pioreactor_unit == UNIVERSAL_IDENTIFIER:
+        task = broadcast_get_across_cluster("/unit_api/calibrations")
     else:
-        return Response(status=404)
+        task = tasks.multicast_get_across_cluster("/unit_api/calibrations", [pioreactor_unit])
+    return create_task_response(task)
 
 
-@api.route("/calibrations", methods=["PUT"])
-def create_or_update_new_calibrations() -> ResponseReturnValue:
-    try:
-        body = request.get_json()
+@api.route("/workers/<pioreactor_unit>/active_calibrations", methods=["GET"])
+def get_all_active_calibrations(pioreactor_unit: str) -> ResponseReturnValue:
+    if pioreactor_unit == UNIVERSAL_IDENTIFIER:
+        task = broadcast_get_across_cluster("/unit_api/active_calibrations")
+    else:
+        task = tasks.multicast_get_across_cluster(
+            "/unit_api/active_calibrations", [pioreactor_unit]
+        )
+    return create_task_response(task)
 
-        modify_app_db(
-            "INSERT OR REPLACE INTO calibrations (pioreactor_unit, created_at, type, data, name, is_current, set_to_current_at) values (?, ?, ?, ?, ?, ?, ?)",
-            (
-                body["pioreactor_unit"],
-                body["created_at"],
-                body["type"],
-                current_app.json.dumps(
-                    body
-                ).decode(),  # keep it as a string, not bytes, probably equivalent to request.get_data(as_text=True)
-                body["name"],
-                0,
-                None,
-            ),
+
+@api.route("/workers/<pioreactor_unit>/zipped_calibrations", methods=["GET"])
+def get_all_calibrations_as_yamls(pioreactor_unit: str) -> ResponseReturnValue:
+    if pioreactor_unit == UNIVERSAL_IDENTIFIER:
+        task = broadcast_get_across_cluster("/unit_api/zipped_calibrations", return_raw=True)
+    else:
+        task = tasks.multicast_get_across_cluster(
+            "/unit_api/zipped_calibrations", [pioreactor_unit], return_raw=True
         )
 
-        return Response(status=201)
-    except KeyError as e:
-        publish_to_error_log(str(e), "create_or_update_new_calibrations")
-        return Response(status=400)
-    except Exception as e:
-        publish_to_error_log(str(e), "create_or_update_new_calibrations")
-        return Response(status=500)
+    try:
+        results = task.get(blocking=True, timeout=60)
+    except HueyException:
+        return {"result": False, "filename": None, "msg": "Timed out"}, 500
+
+    aggregate_buffer = BytesIO()
+
+    with zipfile.ZipFile(aggregate_buffer, "w", zipfile.ZIP_DEFLATED) as aggregate_zip:
+        for worker, content in results.items():
+            if content is None:
+                continue  # worker did not respond
+            # Load the remote ZIP into memory
+            remote_zip_buffer = BytesIO(content)
+            with zipfile.ZipFile(remote_zip_buffer, "r") as remote_zip:
+                # Iterate over each file in the remote ZIP
+                for file_info in remote_zip.infolist():
+                    # Read file contents
+                    with remote_zip.open(file_info) as file_data:
+                        contents = file_data.read()
+
+                    # Build a prefixed path to avoid collisions
+                    new_name = f"{worker}/{file_info.filename}"
+
+                    # Add the file to our aggregator zip
+                    aggregate_zip.writestr(new_name, contents)
+
+    # Reset the buffer's position
+    aggregate_buffer.seek(0)
+
+    # Send the aggregated ZIP as a downloadable file
+    return send_file(
+        aggregate_buffer,
+        as_attachment=True,
+        download_name="calibration_yamls.zip",
+        mimetype="application/zip",
+    )
+
+
+@api.route("/workers/<pioreactor_unit>/calibrations/<device>", methods=["GET"])
+def get_calibrations(pioreactor_unit, device) -> ResponseReturnValue:
+    if pioreactor_unit == UNIVERSAL_IDENTIFIER:
+        task = broadcast_get_across_cluster(f"/unit_api/calibrations/{device}")
+    else:
+        task = tasks.multicast_get_across_cluster(
+            f"/unit_api/calibrations/{device}", [pioreactor_unit]
+        )
+    return create_task_response(task)
+
+
+@api.route("/workers/<pioreactor_unit>/calibrations/<device>/<cal_name>", methods=["GET"])
+def get_calibration(pioreactor_unit, device, cal_name) -> ResponseReturnValue:
+    if pioreactor_unit == UNIVERSAL_IDENTIFIER:
+        task = broadcast_get_across_cluster(f"/unit_api/calibrations/{device}/{cal_name}")
+    else:
+        task = tasks.multicast_get_across_cluster(
+            f"/unit_api/calibrations/{device}/{cal_name}", [pioreactor_unit]
+        )
+    return create_task_response(task)
+
+
+@api.route("/workers/<pioreactor_unit>/active_calibrations/<device>/<cal_name>", methods=["PATCH"])
+def set_active_calibration(pioreactor_unit, device, cal_name) -> ResponseReturnValue:
+    if pioreactor_unit == UNIVERSAL_IDENTIFIER:
+        task = broadcast_patch_across_cluster(f"/unit_api/active_calibrations/{device}/{cal_name}")
+    else:
+        task = tasks.multicast_patch_across_cluster(
+            f"/unit_api/active_calibrations/{device}/{cal_name}", [pioreactor_unit]
+        )
+    return create_task_response(task)
+
+
+@api.route("/workers/<pioreactor_unit>/active_calibrations/<device>", methods=["DELETE"])
+def remove_active_status_calibration(pioreactor_unit, device) -> ResponseReturnValue:
+    if pioreactor_unit == UNIVERSAL_IDENTIFIER:
+        task = broadcast_delete_across_cluster(f"/unit_api/active_calibrations/{device}")
+    else:
+        task = tasks.multicast_delete_across_cluster(
+            f"/unit_api/active_calibrations/{device}", [pioreactor_unit]
+        )
+    return create_task_response(task)
+
+
+@api.route("/workers/<pioreactor_unit>/calibrations/<device>/<cal_name>", methods=["DELETE"])
+def remove_calibration(pioreactor_unit, device, cal_name) -> ResponseReturnValue:
+    if pioreactor_unit == UNIVERSAL_IDENTIFIER:
+        task = broadcast_delete_across_cluster(f"/unit_api/calibrations/{device}/{cal_name}")
+    else:
+        task = tasks.multicast_delete_across_cluster(
+            f"/unit_api/calibrations/{device}/{cal_name}", [pioreactor_unit]
+        )
+    return create_task_response(task)
 
 
 ## PLUGINS
 
 
-@api.route("/plugins/installed", methods=["GET"])
-def get_plugins_across_cluster() -> ResponseReturnValue:
-    return create_task_response(broadcast_get_across_cluster("/unit_api/plugins/installed"))
+@api.route("/units/<pioreactor_unit>/plugins/installed", methods=["GET"])
+def get_plugins_on_machine(pioreactor_unit: str) -> ResponseReturnValue:
+    if pioreactor_unit == UNIVERSAL_IDENTIFIER:
+        task = broadcast_get_across_cluster("/unit_api/plugins/installed", timeout=5)
+    else:
+        task = tasks.multicast_get_across_cluster(
+            "/unit_api/plugins/installed", [pioreactor_unit], timeout=5
+        )
+
+    return create_task_response(task)
 
 
-@api.route("/plugins/install", methods=["POST", "PATCH"])
-def install_plugin_across_cluster() -> ResponseReturnValue:
+@api.route("/units/<pioreactor_unit>/plugins/install", methods=["POST", "PATCH"])
+def install_plugin_across_cluster(pioreactor_unit: str) -> ResponseReturnValue:
     # there is a security problem here. See https://github.com/Pioreactor/pioreactor/issues/421
     if os.path.isfile(Path(env["DOT_PIOREACTOR"]) / "DISALLOW_UI_INSTALLS"):
-        return Response(status=403)
+        abort(403)
 
-    return create_task_response(
-        broadcast_post_across_cluster("/unit_api/plugins/install", request.get_json())
-    )
-
-
-@api.route("/plugins/uninstall", methods=["POST", "PATCH"])
-def uninstall_plugin_across_cluster() -> ResponseReturnValue:
-    return create_task_response(
-        broadcast_post_across_cluster("/unit_api/plugins/uninstall", request.get_json())
-    )
-
-
-@api.route("/jobs/running", methods=["GET"])
-def get_jobs_running_across_cluster() -> ResponseReturnValue:
-    return create_task_response(broadcast_get_across_cluster("/unit_api/jobs/running"))
+    if pioreactor_unit == UNIVERSAL_IDENTIFIER:
+        return create_task_response(
+            broadcast_post_across_cluster("/unit_api/plugins/install", request.get_json())
+        )
+    else:
+        return create_task_response(
+            tasks.multicast_post_across_cluster(
+                "/unit_api/plugins/install", [pioreactor_unit], request.get_json()
+            )
+        )
 
 
-@api.route("/jobs/running/experiments/<experiment>", methods=["GET"])
+@api.route("/units/<pioreactor_unit>/plugins/uninstall", methods=["POST", "PATCH"])
+def uninstall_plugin_across_cluster(pioreactor_unit: str) -> ResponseReturnValue:
+    if os.path.isfile(Path(env["DOT_PIOREACTOR"]) / "DISALLOW_UI_INSTALLS"):
+        abort(403)
+
+    if pioreactor_unit == UNIVERSAL_IDENTIFIER:
+        return create_task_response(
+            broadcast_post_across_cluster("/unit_api/plugins/uninstall", request.get_json())
+        )
+    else:
+        return create_task_response(
+            tasks.multicast_post_across_cluster(
+                "/unit_api/plugins/uninstall", [pioreactor_unit], request.get_json()
+            )
+        )
+
+
+@api.route("/units/<pioreactor_unit>/jobs/running", methods=["GET"])
+def get_jobs_running(pioreactor_unit: str) -> ResponseReturnValue:
+    if pioreactor_unit == UNIVERSAL_IDENTIFIER:
+        return create_task_response(broadcast_get_across_cluster("/unit_api/jobs/running"))
+    else:
+        return create_task_response(
+            tasks.multicast_get_across_cluster("/unit_api/jobs/running", [pioreactor_unit])
+        )
+
+
+@api.route("/experiments/<experiment>/jobs/running", methods=["GET"])
 def get_jobs_running_across_cluster_in_experiment(experiment) -> ResponseReturnValue:
-    list_of_assigned_workers = get_workers_in_experiment(experiment)
+    list_of_assigned_workers = get_all_workers_in_experiment(experiment)
 
     return create_task_response(
         tasks.multicast_get_across_cluster("/unit_api/jobs/running", list_of_assigned_workers)
@@ -824,9 +918,9 @@ def get_jobs_running_across_cluster_in_experiment(experiment) -> ResponseReturnV
 ### SETTINGS
 
 
-@api.route("/jobs/settings/job_name/<job_name>/experiments/<experiment>", methods=["GET"])
-def get_settings_for_job_across_cluster_in_experiment(job_name, experiment) -> ResponseReturnValue:
-    list_of_assigned_workers = get_workers_in_experiment(experiment)
+@api.route("/experiments/<experiment>/jobs/settings/job_name/<job_name>", methods=["GET"])
+def get_settings_for_job_across_cluster_in_experiment(experiment, job_name) -> ResponseReturnValue:
+    list_of_assigned_workers = get_all_workers_in_experiment(experiment)
     return create_task_response(
         tasks.multicast_get_across_cluster(
             f"/unit_api/jobs/settings/job_name/{job_name}", list_of_assigned_workers
@@ -835,12 +929,12 @@ def get_settings_for_job_across_cluster_in_experiment(job_name, experiment) -> R
 
 
 @api.route(
-    "/jobs/settings/job_name/<job_name>/experiments/<experiment>/setting/<setting>", methods=["GET"]
+    "/experiments/<experiment>/jobs/settings/job_name/<job_name>/setting/<setting>", methods=["GET"]
 )
 def get_setting_for_job_across_cluster_in_experiment(
-    job_name, experiment, setting
+    experiment, job_name, setting
 ) -> ResponseReturnValue:
-    list_of_assigned_workers = get_workers_in_experiment(experiment)
+    list_of_assigned_workers = get_all_workers_in_experiment(experiment)
     return create_task_response(
         tasks.multicast_get_across_cluster(
             f"/unit_api/jobs/settings/job_name/{job_name}/setting/{setting}",
@@ -849,47 +943,57 @@ def get_setting_for_job_across_cluster_in_experiment(
     )
 
 
-@api.route("/jobs/settings/workers/<pioreactor_unit>/job_name/<job_name>", methods=["GET"])
-def get_job_settings_for_worker(pioreactor_unit, job_name) -> ResponseReturnValue:
-    return create_task_response(
-        tasks.multicast_get_across_cluster(
+@api.route("/workers/<pioreactor_unit>/jobs/settings/job_name/<job_name>", methods=["GET"])
+def get_job_settings_for_worker(pioreactor_unit: str, job_name: str) -> ResponseReturnValue:
+    if pioreactor_unit == UNIVERSAL_IDENTIFIER:
+        task = broadcast_get_across_cluster(f"/unit_api/jobs/settings/job_name/{job_name}")
+    else:
+        task = tasks.multicast_get_across_cluster(
             f"/unit_api/jobs/settings/job_name/{job_name}", [pioreactor_unit]
         )
-    )
+    return create_task_response(task)
 
 
 @api.route(
-    "/jobs/settings/workers/<pioreactor_unit>/job_name/<job_name>/setting/<setting>",
+    "/workers/<pioreactor_unit>/jobs/settings/job_name/<job_name>/setting/<setting>",
     methods=["GET"],
 )
-def get_job_setting_for_worker(pioreactor_unit, job_name, setting) -> ResponseReturnValue:
-    return create_task_response(
-        tasks.multicast_get_across_cluster(
-            f"/unit_api/jobs/settings/job_name/{job_name}/setting/{setting}", [pioreactor_unit]
-        )
-    )
-
-
-@api.route("/jobs/settings/job_name/<job_name>/setting/<setting>", methods=["GET"])
-def get_setting_for_job_across_cluster(job_name, setting) -> ResponseReturnValue:
-    return create_task_response(
-        broadcast_get_across_cluster(
+def get_job_setting_for_worker(
+    pioreactor_unit: str, job_name: str, setting: str
+) -> ResponseReturnValue:
+    if pioreactor_unit == UNIVERSAL_IDENTIFIER:
+        task = broadcast_get_across_cluster(
             f"/unit_api/jobs/settings/job_name/{job_name}/setting/{setting}"
         )
-    )
-
-
-@api.route("/versions/app", methods=["GET"])
-def get_app_versions_across_cluster() -> ResponseReturnValue:
-    return create_task_response(broadcast_get_across_cluster("/unit_api/versions/app"))
-
-
-@api.route("/versions/ui", methods=["GET"])
-def get_ui_versions_across_cluster() -> ResponseReturnValue:
-    return create_task_response(broadcast_get_across_cluster("/unit_api/versions/ui"))
+    else:
+        task = tasks.multicast_get_across_cluster(
+            f"/unit_api/jobs/settings/job_name/{job_name}/setting/{setting}", [pioreactor_unit]
+        )
+    return create_task_response(task)
 
 
 ## MISC
+
+
+@api.route("/units/<pioreactor_unit>/versions/app", methods=["GET"])
+def get_app_versions(pioreactor_unit: str) -> ResponseReturnValue:
+    if pioreactor_unit == UNIVERSAL_IDENTIFIER:
+        return create_task_response(broadcast_get_across_cluster("/unit_api/versions/app"))
+    else:
+        return create_task_response(
+            tasks.multicast_get_across_cluster("/unit_api/versions/app", [pioreactor_unit])
+        )
+
+
+@api.route("/units/<pioreactor_unit>/versions/ui", methods=["GET"])
+def get_ui_versions_across_cluster(pioreactor_unit: str) -> ResponseReturnValue:
+    if pioreactor_unit == UNIVERSAL_IDENTIFIER:
+        return create_task_response(broadcast_get_across_cluster("/unit_api/versions/ui"))
+    else:
+        return create_task_response(
+            tasks.multicast_get_across_cluster("/unit_api/versions/ui", [pioreactor_unit])
+        )
+
 
 ## UPLOADS
 
@@ -897,7 +1001,7 @@ def get_ui_versions_across_cluster() -> ResponseReturnValue:
 @api.route("/system/upload", methods=["POST"])
 def upload() -> ResponseReturnValue:
     if os.path.isfile(Path(env["DOT_PIOREACTOR"]) / "DISALLOW_UI_UPLOADS"):
-        return Response(status=403)
+        abort(403)
 
     if "file" not in request.files:
         return jsonify({"error": "No file part"}), 400
@@ -912,7 +1016,7 @@ def upload() -> ResponseReturnValue:
         return jsonify({"error": "Too large"}), 400
 
     filename = secure_filename(file.filename)
-    save_path = os.path.join(tempfile.gettempdir(), filename)
+    save_path = safe_join(tempfile.gettempdir(), filename)
     file.save(save_path)
     return jsonify({"message": "File successfully uploaded", "save_path": save_path}), 200
 
@@ -921,7 +1025,7 @@ def upload() -> ResponseReturnValue:
 def get_automation_contrib(automation_type: str) -> ResponseReturnValue:
     # security to prevent possibly reading arbitrary file
     if automation_type not in {"temperature", "dosing", "led"}:
-        return Response(status=400)
+        abort(400)
 
     try:
         automation_path_default = Path(env["WWW"]) / "contrib" / "automations" / automation_type
@@ -948,15 +1052,11 @@ def get_automation_contrib(automation_type: str) -> ResponseReturnValue:
                     f"Yaml error in {Path(file).name}: {e}", "get_automation_contrib"
                 )
 
-        return Response(
-            response=current_app.json.dumps(list(parsed_yaml.values())),
-            status=200,
-            mimetype="application/json",
-            headers={"Cache-Control": "public,max-age=10"},
-        )
+        return attach_cache_control(jsonify(list(parsed_yaml.values())))
+
     except Exception as e:
         publish_to_error_log(str(e), "get_automation_contrib")
-        return Response(status=400)
+        abort(400)
 
 
 @api.route("/contrib/jobs", methods=["GET"])
@@ -976,15 +1076,11 @@ def get_job_contrib() -> ResponseReturnValue:
             except (ValidationError, DecodeError) as e:
                 publish_to_error_log(f"Yaml error in {Path(file).name}: {e}", "get_job_contrib")
 
-        return Response(
-            response=current_app.json.dumps(list(parsed_yaml.values())),
-            status=200,
-            mimetype="application/json",
-            headers={"Cache-Control": "public,max-age=10"},
-        )
+        return attach_cache_control(jsonify(list(parsed_yaml.values())))
+
     except Exception as e:
         publish_to_error_log(str(e), "get_job_contrib")
-        return Response(status=400)
+        abort(400)
 
 
 @api.route("/contrib/charts", methods=["GET"])
@@ -1005,15 +1101,11 @@ def get_charts_contrib() -> ResponseReturnValue:
             except (ValidationError, DecodeError) as e:
                 publish_to_error_log(f"Yaml error in {Path(file).name}: {e}", "get_charts_contrib")
 
-        return Response(
-            response=current_app.json.dumps(list(parsed_yaml.values())),
-            status=200,
-            mimetype="application/json",
-            headers={"Cache-Control": "public,max-age=10"},
-        )
+        return attach_cache_control(jsonify(list(parsed_yaml.values())))
+
     except Exception as e:
         publish_to_error_log(str(e), "get_charts_contrib")
-        return Response(status=400)
+        abort(400)
 
 
 @api.route("/system/update_next_version", methods=["POST"])
@@ -1048,15 +1140,11 @@ def get_exportable_datasets() -> ResponseReturnValue:
                     f"Yaml error in {Path(file).name}: {e}", "get_exportable_datasets"
                 )
 
-        return Response(
-            response=current_app.json.dumps(parsed_yaml),
-            status=200,
-            mimetype="application/json",
-            headers={"Cache-Control": "public,max-age=60"},
-        )
+        return attach_cache_control(jsonify(parsed_yaml), max_age=60)
+
     except Exception as e:
         publish_to_error_log(str(e), "get_exportable_datasets")
-        return Response(status=400)
+        abort(400)
 
 
 @api.route("/contrib/exportable_datasets/<target_dataset>/preview", methods=["GET"])
@@ -1077,7 +1165,7 @@ def preview_exportable_datasets(target_dataset) -> ResponseReturnValue:
                 return jsonify(result)
         except (ValidationError, DecodeError):
             pass
-    return Response(status=404)
+    abort(404, f"{target_dataset} not found")
 
 
 @api.route("/export_datasets", methods=["POST"])
@@ -1113,21 +1201,19 @@ def export_datasets() -> ResponseReturnValue:
         "--output", filename_with_path.as_posix(), *cmd_tables, *experiment_options, *other_options
     )
     try:
-        status, msg = result(blocking=True, timeout=5 * 60)
+        status = result(blocking=True, timeout=5 * 60)
     except HueyException:
-        status, msg = False, "Timed out on export."
-        publish_to_error_log(msg, "export_datasets")
-        return {"result": status, "filename": None, "msg": msg}, 500
+        status = False
+        return {"result": status, "filename": None, "msg": "Timed out"}, 500
 
     if not status:
-        publish_to_error_log(msg, "export_datasets")
-        return {"result": status, "filename": None, "msg": msg}, 500
+        publish_to_error_log("Failed.", "export_datasets")
+        return {"result": status, "filename": None, "msg": "Failed."}, 500
 
-    return {"result": status, "filename": filename, "msg": msg}, 200
+    return {"result": status, "filename": filename, "msg": "Finished"}, 200
 
 
 @api.route("/experiments", methods=["GET"])
-@cache.memoize(expire=60, tag="experiments")
 def get_experiments() -> ResponseReturnValue:
     try:
         response = jsonify(
@@ -1142,25 +1228,22 @@ def get_experiments() -> ResponseReturnValue:
 
     except Exception as e:
         publish_to_error_log(str(e), "get_experiments")
-        return Response(status=500)
+        abort(500)
 
 
 @api.route("/experiments", methods=["POST"])
 def create_experiment() -> ResponseReturnValue:
-    cache.evict("experiments")
-    cache.evict("unit_labels")
-
     body = request.get_json()
     proposed_experiment_name = body.get("experiment")
 
     if not proposed_experiment_name:
-        return Response(status=400)
+        abort(400)
     elif len(proposed_experiment_name) >= 200:  # just too big
-        return Response(status=400)
+        abort(400)
     elif proposed_experiment_name.lower() == "current":  # too much API rework
-        return Response(status=400)
+        abort(400)
     elif proposed_experiment_name.startswith("_testing_"):  # jobs won't run as expected
-        return Response(status=400)
+        abort(400)
     elif (
         ("#" in proposed_experiment_name)
         or ("+" in proposed_experiment_name)
@@ -1169,7 +1252,7 @@ def create_experiment() -> ResponseReturnValue:
         or ("%" in proposed_experiment_name)
         or ("\\" in proposed_experiment_name)
     ):
-        return Response(status=400)
+        abort(400)
 
     try:
         row_count = modify_app_db(
@@ -1198,43 +1281,37 @@ def create_experiment() -> ResponseReturnValue:
         return Response(status=409)
     except Exception as e:
         publish_to_error_log(str(e), "create_experiment")
-        return Response(status=500)
+        abort(500)
 
 
 @api.route("/experiments/<experiment>", methods=["DELETE"])
 def delete_experiment(experiment: str) -> ResponseReturnValue:
-    cache.evict("experiments")
     row_count = modify_app_db("DELETE FROM experiments WHERE experiment=?;", (experiment,))
     broadcast_post_across_cluster(f"/unit_api/jobs/stop/experiment/{experiment}")
 
     if row_count > 0:
         return Response(status=200)
     else:
-        return Response(status=404)
+        abort(404, f"Experiment {experiment} not found")
     pass
 
 
 @api.route("/experiments/latest", methods=["GET"])
-@cache.memoize(expire=30, tag="experiments")
 def get_latest_experiment() -> ResponseReturnValue:
     try:
-        return Response(
-            response=current_app.json.dumps(
+        return attach_cache_control(
+            jsonify(
                 query_app_db(
                     "SELECT experiment, created_at, description, media_used, organism_used, delta_hours FROM latest_experiment",
                     one=True,
                 )
             ),
-            status=200,
-            headers={
-                "Cache-Control": "public,max-age=2"
-            },  # don't make this too high, as it caches description, which changes fast.
-            mimetype="application/json",
+            max_age=2,
         )
 
     except Exception as e:
         publish_to_error_log(str(e), "get_latest_experiment")
-        return Response(status=500)
+        abort(500)
 
 
 @api.route("/experiments/<experiment>/unit_labels", methods=["GET"])
@@ -1254,28 +1331,17 @@ def get_unit_labels(experiment: str) -> ResponseReturnValue:
 
         keyed_by_unit = {d["unit"]: d["label"] for d in unit_labels}
 
-        return Response(
-            response=current_app.json.dumps(keyed_by_unit),
-            status=200,
-            headers={"Cache-Control": "public,max-age=10"},
-            mimetype="application/json",
-        )
+        return attach_cache_control(jsonify(keyed_by_unit), max_age=10)
 
     except Exception as e:
         publish_to_error_log(str(e), "get_unit_labels")
-        return Response(status=500)
+        abort(500)
 
 
 @api.route("/experiments/<experiment>/unit_labels", methods=["PUT", "PATCH"])
 def upsert_unit_labels(experiment: str) -> ResponseReturnValue:
     """
     Update or insert a new unit label for the current experiment.
-
-    This API endpoint accepts a PUT request with a JSON body containing a "unit" and a "label".
-    The "unit" is the identifier for the pioreactor and the "label" is the desired label for that unit.
-    If the unit label for the current experiment already exists, it will be updated; otherwise, a new entry will be created.
-
-    The response will be a status code of 201 if the operation is successful, and 400 if there was an error.
 
 
     JSON Request Body:
@@ -1291,11 +1357,6 @@ def upsert_unit_labels(experiment: str) -> ResponseReturnValue:
         "label": "new_label"
     }
 
-    Returns:
-    HTTP Response with status code 201 if successful, 400 if there was an error.
-
-    Raises:
-    Exception: Any error encountered during the database operation is published to the error log.
     """
 
     body = request.get_json()
@@ -1313,13 +1374,13 @@ def upsert_unit_labels(experiment: str) -> ResponseReturnValue:
             )
         else:
             modify_app_db(
-                "INSERT OR REPLACE INTO pioreactor_unit_labels (label, experiment, pioreactor_unit, created_at) VALUES ((?), (?), (?), strftime('%Y-%m-%dT%H:%M:%S', datetime('now')) ) ON CONFLICT(experiment, pioreactor_unit) DO UPDATE SET label=excluded.label, created_at=strftime('%Y-%m-%dT%H:%M:%S', datetime('now'))",
+                "INSERT OR REPLACE INTO pioreactor_unit_labels (label, experiment, pioreactor_unit, created_at) VALUES ((?), (?), (?), STRFTIME('%Y-%m-%dT%H:%M:%f000Z', 'NOW') ) ON CONFLICT(experiment, pioreactor_unit) DO UPDATE SET label=excluded.label, created_at=STRFTIME('%Y-%m-%dT%H:%M:%f000Z', 'NOW')",
                 (label, experiment, unit),
             )
 
     except Exception as e:
         publish_to_error_log(str(e), "upsert_current_unit_labels")
-        return Response(status=400)
+        abort(400)
 
     return Response(status=201)
 
@@ -1333,7 +1394,7 @@ def get_historical_organisms_used() -> ResponseReturnValue:
 
     except Exception as e:
         publish_to_error_log(str(e), "historical_organisms")
-        return Response(status=500)
+        abort(500)
 
     return jsonify(historical_organisms)
 
@@ -1347,33 +1408,26 @@ def get_historical_media_used() -> ResponseReturnValue:
 
     except Exception as e:
         publish_to_error_log(str(e), "historical_media")
-        return Response(status=500)
+        abort(500)
 
     return jsonify(historical_media)
 
 
 @api.route("/experiments/<experiment>", methods=["PATCH"])
 def update_experiment(experiment: str) -> ResponseReturnValue:
-    cache.evict("experiments")
-
     body = request.get_json()
-    try:
-        if "description" in body:
-            row_count = modify_app_db(
-                "UPDATE experiments SET description = (?) WHERE experiment=(?)",
-                (body["description"], experiment),
-            )
+    if "description" in body:
+        row_count = modify_app_db(
+            "UPDATE experiments SET description = (?) WHERE experiment=(?)",
+            (body["description"], experiment),
+        )
 
-            if row_count == 1:
-                return Response(status=200)
-            else:
-                return Response(status=404)
+        if row_count == 1:
+            return Response(status=200)
         else:
-            return Response(status=400)
-
-    except Exception as e:
-        publish_to_error_log(str(e), "update_experiment")
-        return Response(status=500)
+            abort(404, f"Experiment {experiment} not found")
+    else:
+        abort(400)
 
 
 @api.route("/experiments/<experiment>", methods=["GET"])
@@ -1391,18 +1445,17 @@ def get_experiment(experiment: str) -> ResponseReturnValue:
         if result is not None:
             return jsonify(result)
         else:
-            return Response(status=404)
+            abort(404, f"Experiment {experiment} not found")
 
     except Exception as e:
         publish_to_error_log(str(e), "get_experiments")
-        return Response(status=500)
+        abort(500)
 
 
 ## CONFIG CONTROL
 
 
 @api.route("/configs/<filename>", methods=["GET"])
-@cache.memoize(expire=30, tag="config")
 def get_config(filename: str) -> ResponseReturnValue:
     """get a specific config.ini file in the .pioreactor folder"""
 
@@ -1414,24 +1467,25 @@ def get_config(filename: str) -> ResponseReturnValue:
 
     try:
         if Path(filename).suffix != ".ini":
-            abort(404)
+            abort(404, "Must be a .ini file")
 
         specific_config_path = Path(env["DOT_PIOREACTOR"]) / filename
 
-        return Response(
-            response=specific_config_path.read_text(),
-            status=200,
-            mimetype="text/plain",
-            headers={"Cache-Control": "public,max-age=10"},
+        return attach_cache_control(
+            Response(
+                response=specific_config_path.read_text(),
+                status=200,
+                mimetype="text/plain",
+            ),
+            max_age=10,
         )
 
     except Exception as e:
         publish_to_error_log(str(e), "get_config_of_file")
-        return Response(status=400)
+        abort(400)
 
 
 @api.route("/configs", methods=["GET"])
-@cache.memoize(expire=60, tag="config")
 def get_configs() -> ResponseReturnValue:
     """get a list of all config.ini files in the .pioreactor folder, _and_ are part of the inventory _or_ are leader"""
 
@@ -1465,17 +1519,16 @@ def get_configs() -> ResponseReturnValue:
 
     except Exception as e:
         publish_to_error_log(str(e), "get_configs")
-        return Response(status=500)
+        abort(500)
 
 
 @api.route("/configs/<filename>", methods=["PATCH"])
 def update_config(filename: str) -> ResponseReturnValue:
-    cache.evict("config")
     body = request.get_json()
     code = body["code"]
 
     if not filename.endswith(".ini"):
-        return {"msg": "Incorrect filetype. Must be .ini."}, 400
+        return abort(400, "Incorrect filetype. Must be .ini.")
 
     # security bit:
     # users could have filename look like ../../../../root/bad.txt
@@ -1502,6 +1555,11 @@ def update_config(filename: str) -> ResponseReturnValue:
     # filename is a string
     config = configparser.ConfigParser(allow_no_value=True)
 
+    # make unicode replacements
+    # https://github.com/Pioreactor/pioreactor/issues/539
+    code = code.replace(chr(8211), chr(45))  # en-dash to dash
+    code = code.replace(chr(8212), chr(45))  # em
+
     try:
         config.read_string(code)  # test parser
 
@@ -1511,30 +1569,36 @@ def update_config(filename: str) -> ResponseReturnValue:
             assert config["cluster.topology"]
             assert config.get("cluster.topology", "leader_hostname")
             assert config.get("cluster.topology", "leader_address")
+            assert config["mqtt"]
+
+            if config.get("cluster.topology", "leader_address").startswith("http") or config.get(
+                "mqtt", "broker_address"
+            ).startswith("http"):
+                raise ValueError("Don't start addresses with http:// or https://")
 
     except configparser.DuplicateSectionError as e:
         msg = f"Duplicate section [{e.section}] was found. Please fix and try again."
         publish_to_error_log(msg, "update_config")
-        return {"msg": msg}, 400
+        abort(400, msg)
     except configparser.DuplicateOptionError as e:
         msg = f"Duplicate option, `{e.option}`, was found in section [{e.section}]. Please fix and try again."
         publish_to_error_log(msg, "update_config")
-        return {"msg": msg}, 400
+        abort(400, msg)
     except configparser.ParsingError:
         msg = "Incorrect syntax. Please fix and try again."
         publish_to_error_log(msg, "update_config")
-        return {"msg": msg}, 400
-    except (AssertionError, configparser.NoSectionError, KeyError, TypeError):
-        msg = "Missing required field(s) in [cluster.topology]: `leader_hostname` and/or `leader_address`. Please fix and try again."
+        abort(400, msg)
+    except (AssertionError, configparser.NoSectionError, KeyError) as e:
+        msg = f"Missing required field(s): {e}"
         publish_to_error_log(msg, "update_config")
-        return {"msg": msg}, 400
+        abort(400, msg)
     except ValueError as e:
         publish_to_error_log(str(e), "update_config")
-        return {"msg": msg}, 400
+        abort(400, msg)
     except Exception as e:
         publish_to_error_log(str(e), "update_config")
-        msg = "Hm, something went wrong, check PioreactorUI logs."
-        return {"msg": msg}, 500
+        msg = "Hm, something went wrong, check Pioreactor logs."
+        abort(500, msg)
 
     # if the config file is unit specific, we only need to run sync-config on that unit.
     result = tasks.write_config_and_sync(config_path, code, units, flags)
@@ -1546,7 +1610,7 @@ def update_config(filename: str) -> ResponseReturnValue:
 
     if not status:
         publish_to_error_log(msg_or_exception, "save_new_config")
-        return {"msg": str(msg_or_exception)}, 500
+        abort(500, str(msg_or_exception))
 
     return Response(status=200)
 
@@ -1561,18 +1625,16 @@ def get_historical_config_for(filename: str) -> ResponseReturnValue:
 
     except Exception as e:
         publish_to_error_log(str(e), "get_historical_config_for")
-        return Response(status=400)
+        abort(400)
 
-    return jsonify(configs_for_filename)
+    return attach_cache_control(jsonify(configs_for_filename), max_age=15)
 
 
 @api.route("/is_local_access_point_active", methods=["GET"])
-@cache.memoize(expire=10_000)
 def is_local_access_point_active() -> ResponseReturnValue:
-    if os.path.isfile("/boot/firmware/local_access_point"):
-        return "true"
-    else:
-        return "false"
+    return attach_cache_control(
+        jsonify({"result": os.path.isfile("/boot/firmware/local_access_point")}), max_age=10_000
+    )
 
 
 ### experiment profiles
@@ -1590,29 +1652,29 @@ def create_experiment_profile() -> ResponseReturnValue:
     except Exception as e:
         msg = f"{e}"
         # publish_to_error_log(msg, "create_experiment_profile")
-        return {"msg": msg}, 400
+        return abort(400, msg)
 
     # verify file
     try:
         if not is_valid_unix_filename(experiment_profile_filename):
-            abort(404)
+            abort(404, "Not valid unix name")
 
         if not (
             experiment_profile_filename.endswith(".yaml")
             or experiment_profile_filename.endswith(".yml")
         ):
-            abort(404)
+            abort(404, "must end in .yaml")
 
     except Exception:
         msg = "Invalid filename"
         # publish_to_error_log(msg, "create_experiment_profile")
-        return {"msg": msg}, 400
+        abort(400, msg)
 
     filepath = Path(env["DOT_PIOREACTOR"]) / "experiment_profiles" / experiment_profile_filename
 
     # check if exists
     if filepath.exists():
-        return {"msg": "A profile already exists with that filename. Choose another."}, 400
+        abort(400, "A profile already exists with that filename. Choose another.")
 
     # save file to disk
     tasks.save_file(
@@ -1639,17 +1701,17 @@ def update_experiment_profile() -> ResponseReturnValue:
     # verify file - user could have provided a different filename so we still check this.
     try:
         if not is_valid_unix_filename(experiment_profile_filename):
-            abort(404)
+            abort(404, "not valid unix filename")
 
         if not (
             experiment_profile_filename.endswith(".yaml")
             or experiment_profile_filename.endswith(".yml")
         ):
-            abort(404)
+            abort(404, "must end in .yaml")
 
     except Exception:
         # publish_to_error_log(msg, "create_experiment_profile")
-        return {"msg": "Invalid filename"}, 400
+        return abort(400, "Invalid filename")
 
     filepath = Path(env["DOT_PIOREACTOR"]) / "experiment_profiles" / experiment_profile_filename
 
@@ -1685,7 +1747,7 @@ def get_experiment_profiles() -> ResponseReturnValue:
         )
     except Exception as e:
         publish_to_error_log(str(e), "get_experiment_profiles")
-        return Response(status=400)
+        abort(400)
 
 
 @api.route("/contrib/experiment_profiles/<filename>", methods=["GET"])
@@ -1703,10 +1765,10 @@ def get_experiment_profile(filename: str) -> ResponseReturnValue:
         )
     except IOError as e:
         publish_to_error_log(str(e), "get_experiment_profile")
-        return Response(status=404)
+        abort(404)
     except Exception as e:
         publish_to_error_log(str(e), "get_experiment_profile")
-        return Response(status=500)
+        abort(500)
 
 
 @api.route("/contrib/experiment_profiles/<filename>", methods=["DELETE"])
@@ -1722,13 +1784,20 @@ def delete_experiment_profile(filename: str) -> ResponseReturnValue:
         return Response(status=200)
     except IOError as e:
         publish_to_error_log(str(e), "delete_experiment_profile")
-        return Response(status=404)
+        abort(404)
     except Exception as e:
         publish_to_error_log(str(e), "delete_experiment_profile")
-        return Response(status=500)
+        abort(500)
 
 
 ##### Worker endpoints
+
+
+@api.route("/units", methods=["GET"])
+def get_list_of_units() -> ResponseReturnValue:
+    # Get a list of all units (workers + leader)
+    all_units = get_all_units()
+    return jsonify([{"pioreactor_unit": u} for u in all_units])
 
 
 @api.route("/workers", methods=["GET"])
@@ -1750,23 +1819,21 @@ def setup_worker_pioreactor() -> ResponseReturnValue:
     try:
         result = tasks.add_new_pioreactor(new_name, version, model)
     except Exception as e:
-        return {"msg": str(e)}, 500
+        return abort(500, str(e))
 
     try:
-        status, msg = result(blocking=True, timeout=250)
+        status = result(blocking=True, timeout=250)
     except HueyException:
-        status, msg = False, "Timed out, see logs."
+        status = False
 
     if status:
-        return Response(status=200)
+        return {"msg": f"Worker {new_name} added successfully."}, 200
     else:
-        publish_to_error_log(msg, "setup_worker_pioreactor")
-        return {"msg": msg}, 500
+        return {"msg": f"Failed to add worker {new_name}. See logs."}, 500
 
 
 @api.route("/workers", methods=["PUT"])
 def add_worker() -> ResponseReturnValue:
-    cache.evict("config")
     data = request.get_json()
     pioreactor_unit = data.get("pioreactor_unit")
 
@@ -1780,7 +1847,7 @@ def add_worker() -> ResponseReturnValue:
     if nrows > 0:
         return Response(status=201)
     else:
-        return Response(status=404)
+        abort(500)
 
 
 @api.route("/workers/<pioreactor_unit>", methods=["DELETE"])
@@ -1820,7 +1887,7 @@ def delete_worker(pioreactor_unit: str) -> ResponseReturnValue:
 
         return Response(status=202)
     else:
-        return Response(status=404)
+        abort(404, f"Worker {pioreactor_unit} not found")
 
 
 @api.route("/workers/<pioreactor_unit>/is_active", methods=["PUT"])
@@ -1848,7 +1915,7 @@ def change_worker_status(pioreactor_unit: str) -> ResponseReturnValue:
             tasks.multicast_post_across_cluster("/unit_api/jobs/stop/all", [pioreactor_unit])
         return Response(status=200)
     else:
-        return Response(status=404)
+        abort(404, f"Worker {pioreactor_unit} not found")
 
 
 @api.route("/workers/<pioreactor_unit>", methods=["GET"])
@@ -1887,9 +1954,9 @@ def get_workers_and_experiment_assignments() -> ResponseReturnValue:
         """,
     )
     if result:
-        return jsonify(result)
+        return attach_cache_control(jsonify(result), max_age=2)
     else:
-        return jsonify([])
+        return attach_cache_control(jsonify([]), max_age=2)
 
 
 @api.route("/workers/assignments", methods=["DELETE"])
@@ -1923,9 +1990,9 @@ def get_experiments_worker_assignments() -> ResponseReturnValue:
         """,
     )
     if result:
-        return jsonify(result)
+        return attach_cache_control(jsonify(result), max_age=2)
     else:
-        return jsonify([])
+        return attach_cache_control(jsonify([]), max_age=2)
 
 
 @api.route("/workers/<pioreactor_unit>/experiment", methods=["GET"])
@@ -1950,11 +2017,11 @@ def get_experiment_assignment_for_worker(pioreactor_unit: str) -> ResponseReturn
         )
     elif result["experiment"] is None:  # type: ignore
         return (
-            jsonify({"error": f"Worker {pioreactor_unit} is not assigned to any experiment."}),
+            jsonify({"error": f"Worker `{pioreactor_unit}` is not assigned to any experiment."}),
             404,
         )
     else:
-        return jsonify(result)
+        return attach_cache_control(jsonify(result), max_age=2)
 
 
 @api.route("/experiments/<experiment>/workers", methods=["GET"])
@@ -1967,6 +2034,20 @@ def get_list_of_workers_for_experiment(experiment: str) -> ResponseReturnValue:
           on w.pioreactor_unit = a.pioreactor_unit
         WHERE experiment = ?
         ORDER BY w.pioreactor_unit
+        """,
+        (experiment,),
+    )
+    return attach_cache_control(jsonify(workers), max_age=2)
+
+
+@api.route("/experiments/<experiment>/historical_worker_assignments", methods=["GET"])
+def get_list_of_historical_workers_for_experiment(experiment: str) -> ResponseReturnValue:
+    workers = query_app_db(
+        """
+         SELECT pioreactor_unit, experiment, MAX(unassigned_at is NULL) as is_currently_assigned_to_experiment
+         FROM experiment_worker_assignments_history
+         WHERE experiment=?
+         GROUP by 1,2;
         """,
         (experiment,),
     )
@@ -1996,7 +2077,7 @@ def add_worker_to_experiment(experiment: str) -> ResponseReturnValue:
         return Response(status=200)
     else:
         # probably an integrity error
-        return Response(status=404)
+        abort(500)
 
 
 @api.route("/experiments/<experiment>/workers/<pioreactor_unit>", methods=["DELETE"])
@@ -2018,7 +2099,7 @@ def remove_worker_from_experiment(experiment: str, pioreactor_unit: str) -> Resp
         )
         return Response(status=200)
     else:
-        return Response(status=404)
+        abort(404, f"Worker {pioreactor_unit} not found")
 
 
 @api.route("/experiments/<experiment>/workers", methods=["DELETE"])

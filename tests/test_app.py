@@ -264,7 +264,7 @@ def test_broadcasting(client):
     count_of_workers = len(data)
 
     with capture_requests() as bucket:
-        response = client.get("/api/versions/ui")
+        response = client.get("/api/units/$broadcast/versions/ui")
 
     assert len(bucket) == count_of_workers
 
@@ -364,7 +364,7 @@ def test_get_settings_unit_api(client):
             "/unit_api/jobs/settings/job_name/stirring",
         )
         assert r.json["settings"]["$state"] == "ready"
-        assert r.json["settings"]["target_rpm"] == "500.0"
+        assert r.json["settings"]["target_rpm"] == 500.0
 
         r = client.get(
             "/unit_api/jobs/settings/job_name/stirring/setting/target_rpm",
@@ -378,17 +378,17 @@ def test_get_settings_api(client):
 
     with start_stirring(unit="unit1", experiment="exp1"):
         r = client.get(
-            "/api/jobs/settings/job_name/stirring/experiments/exp1",
+            "/api/experiments/exp1/jobs/settings/job_name/stirring",
         )
         # follow the task
         r = client.get(r.json["result_url_path"])
         settings_per_unit = r.json["result"]
         assert settings_per_unit["unit2"] is None
-        assert settings_per_unit["unit1"]["settings"]["target_rpm"] == "500.0"
+        assert settings_per_unit["unit1"]["settings"]["target_rpm"] == 500.0
 
         # next api
-        r = client.get("/api/jobs/settings/workers/unit1/job_name/stirring")
+        r = client.get("/api/workers/unit1/jobs/settings/job_name/stirring")
         # follow the task
         r = client.get(r.json["result_url_path"])
         settings_per_unit = r.json["result"]
-        assert settings_per_unit["unit1"]["settings"]["target_rpm"] == "500.0"
+        assert settings_per_unit["unit1"]["settings"]["target_rpm"] == 500.0

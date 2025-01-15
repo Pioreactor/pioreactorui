@@ -9,4 +9,3 @@ published_settings:
   - key: automation_name
     type: string
     display: false
-    default: ""

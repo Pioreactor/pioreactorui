@@ -14,7 +14,7 @@ class PublishedSettingsDescriptor(Struct, forbid_unknown_fields=True):  # type: 
     type: t.Literal["numeric", "boolean", "string", "json"]
     display: bool
     description: t.Optional[str] = None
-    default: t.Optional[t.Union[str, bool]] = None
+    default: t.Optional[t.Union[str, bool]] = None  # DEPRECATED DO NOT USE
     unit: t.Optional[str] = None
     label: t.Optional[str] = None  # if display is false, this isn't needed
     editable: bool = True
@@ -28,7 +28,7 @@ class BackgroundJobDescriptor(Struct, forbid_unknown_fields=True):  # type: igno
     source: t.Optional[str] = None  # what plugin / app created this job? Usually `app`
     description: t.Optional[str] = None  # if display is false, this isn't needed
     subtext: t.Optional[str] = None
-    is_testing: bool = False  # DEPRECATED
+    is_testing: bool = False  # DEPRECATED DO NOT USE
 
 
 #### Automations

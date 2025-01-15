@@ -5,8 +5,18 @@ from __future__ import annotations
 import re
 
 from flask import jsonify
+from flask import Response
 from flask.typing import ResponseReturnValue
 from pioreactor.whoami import get_unit_name
+
+
+def attach_cache_control(response: Response, max_age=5) -> Response:
+    """
+    Takes in a Flask Response object and sets the Cache-Control header
+    to 'public, max-age=<max_age>'.
+    """
+    response.headers["Cache-Control"] = f"public, max-age={max_age}"
+    return response
 
 
 def create_task_response(task) -> ResponseReturnValue:

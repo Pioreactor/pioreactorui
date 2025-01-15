@@ -2,9 +2,12 @@
 from __future__ import annotations
 
 import os
+import zipfile
+from io import BytesIO
 from pathlib import Path
 from subprocess import run
 from time import sleep
+from time import time
 
 from flask import abort
 from flask import Blueprint
@@ -12,20 +15,34 @@ from flask import current_app
 from flask import jsonify
 from flask import request
 from flask import Response
+from flask import send_file
 from flask.typing import ResponseReturnValue
 from huey.exceptions import HueyException
 from huey.exceptions import TaskException
+from msgspec import to_builtins
+from msgspec.yaml import decode as yaml_decode
+from pioreactor.calibrations import CALIBRATION_PATH
 from pioreactor.config import get_leader_hostname
+from pioreactor.structs import CalibrationBase
+from pioreactor.structs import subclass_union
+from pioreactor.utils import local_intermittent_storage
+from pioreactor.utils import local_persistent_storage
+from pioreactor.utils.timing import current_utc_timestamp
+from pioreactor.utils.timing import to_datetime
+from werkzeug.utils import safe_join
 
 from . import HOSTNAME
-from . import query_local_metadata_db
+from . import publish_to_error_log
+from . import query_temp_local_metadata_db
 from . import tasks
 from . import VERSION
-from .config import cache
 from .config import env
 from .config import huey
+from .utils import attach_cache_control
 from .utils import create_task_response
 from pioreactorui import structs
+
+AllCalibrations = subclass_union(CalibrationBase)
 
 
 unit_api = Blueprint("unit_api", __name__, url_prefix="/unit_api")
@@ -45,7 +62,7 @@ def task_status(task_id):
         )
 
     if task is None:
-        return jsonify({"status": "pending or not present"}), 102
+        return jsonify({"status": "pending or not present"}), 202
     elif isinstance(task, Exception):
         return jsonify({"status": "failed", "error": str(task)}), 500
     else:
@@ -121,6 +138,106 @@ def remove_file() -> ResponseReturnValue:
     return create_task_response(task)
 
 
+# GET clock time
+@unit_api.route("/system/utc_clock", methods=["GET"])
+def get_clock_time():
+    try:
+        current_time = current_utc_timestamp()
+        return jsonify({"status": "success", "clock_time": current_time}), 200
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+# PATCH / POST to set clock time
+@unit_api.route("/system/utc_clock", methods=["PATCH", "POST"])
+def set_clock_time():
+    # send UTC time in ISO 8601 format
+    try:
+        if HOSTNAME == get_leader_hostname() and request.json:
+            data = request.json
+            new_time = data.get("utc_clock_time")
+            if not new_time:
+                return (
+                    jsonify({"status": "error", "message": "utc_clock_time field is required"}),
+                    400,
+                )
+
+            # validate the timestamp
+            try:
+                to_datetime(new_time)
+            except ValueError:
+                return (
+                    jsonify(
+                        {
+                            "status": "error",
+                            "message": "Invalid utc_clock_time format. Use ISO 8601.",
+                        }
+                    ),
+                    400,
+                )
+
+            # Update the system clock (requires admin privileges)
+            t = tasks.update_clock(new_time)
+            return create_task_response(t)
+        else:
+            # sync using chrony
+            t = tasks.sync_clock()
+            return create_task_response(t)
+
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+#### DIR
+@unit_api.route("/system/path/", defaults={"req_path": ""})
+@unit_api.route("/system/path/<path:req_path>")
+def dir_listing(req_path: str):
+    if os.path.isfile(Path(env["DOT_PIOREACTOR"]) / "DISALLOW_UI_FILE_SYSTEM"):
+        abort(403)
+
+    BASE_DIR = env["DOT_PIOREACTOR"]
+
+    # Safely join to prevent directory traversal
+    safe_path = safe_join(BASE_DIR, req_path)
+    if not safe_path:
+        abort(403, "Invalid path.")
+
+    # Check if the path actually exists
+    if not os.path.exists(safe_path):
+        abort(404, "Path not found.")
+
+    # If it's a file, serve the file
+    if os.path.isfile(safe_path):
+        if safe_path.endswith(".sqlite") or safe_path.endswith(".sqlite.backup"):
+            abort(403, "Access to downloading sqlite files is restricted.")
+
+        return send_file(safe_path, mimetype="text/plain")
+
+    # Joining the base and the requested path
+    abs_path = os.path.join(BASE_DIR, req_path)
+
+    # Return 404 if path doesn't exist
+    if not os.path.exists(abs_path):
+        abort(404)
+
+    # Check if path is a file and serve
+    if os.path.isfile(abs_path):
+        return send_file(abs_path)
+
+    # Show directory contents
+    current, dirs, files = next(os.walk(abs_path))
+
+    return attach_cache_control(
+        jsonify(
+            {
+                "current": current,
+                "dirs": sorted([d for d in dirs if not d == "__pycache__"]),
+                "files": sorted(files),
+            }
+        )
+    )
+
+
 ## RUNNING JOBS CONTROL
 
 
@@ -128,11 +245,12 @@ def is_rate_limited(job: str, expire_time_seconds=1.0) -> bool:
     """
     Check if the user has made a request within the debounce duration.
     """
-    if cache.get(f"debounce:{job}") is None:
-        cache.set(f"debounce:{job}", b"dummy-key", expire=expire_time_seconds)
-        return False
-    else:
-        return True
+    with local_intermittent_storage("debounce") as cache:
+        if cache.get(job) and (time() - cache.get(job)) < expire_time_seconds:
+            return True
+        else:
+            cache.set(job, time())
+            return False
 
 
 @unit_api.route("/jobs/run/job_name/<job>", methods=["PATCH", "POST"])
@@ -203,7 +321,7 @@ def stop_all_jobs_by_source(job_source: str) -> ResponseReturnValue:
 
 @unit_api.route("/jobs/running/experiments/<experiment>", methods=["GET"])
 def get_running_jobs_for_experiment(experiment: str) -> ResponseReturnValue:
-    jobs = query_local_metadata_db(
+    jobs = query_temp_local_metadata_db(
         """SELECT * FROM pio_job_metadata where is_running=1 and experiment = (?)""",
         (experiment,),
     )
@@ -213,8 +331,16 @@ def get_running_jobs_for_experiment(experiment: str) -> ResponseReturnValue:
 
 @unit_api.route("/jobs/running", methods=["GET"])
 def get_all_running_jobs() -> ResponseReturnValue:
-    jobs = query_local_metadata_db("SELECT * FROM pio_job_metadata where is_running=1")
+    jobs = query_temp_local_metadata_db("SELECT * FROM pio_job_metadata where is_running=1")
 
+    return jsonify(jobs)
+
+
+@unit_api.route("/long_running_jobs/running", methods=["GET"])
+def get_all_long_running_jobs() -> ResponseReturnValue:
+    jobs = query_temp_local_metadata_db(
+        "SELECT * FROM pio_job_metadata where is_running=1 and is_long_running_job=1"
+    )
     return jsonify(jobs)
 
 
@@ -231,7 +357,7 @@ def get_settings_for_a_specific_job(job_name) -> ResponseReturnValue:
       }
     }
     """
-    settings = query_local_metadata_db(
+    settings = query_temp_local_metadata_db(
         """
     SELECT s.setting, s.value FROM
         pio_job_published_settings s
@@ -250,7 +376,7 @@ def get_settings_for_a_specific_job(job_name) -> ResponseReturnValue:
 
 @unit_api.route("/jobs/settings/job_name/<job_name>/setting/<setting>", methods=["GET"])
 def get_specific_setting_for_a_job(job_name, setting) -> ResponseReturnValue:
-    setting = query_local_metadata_db(
+    setting = query_temp_local_metadata_db(
         """
     SELECT s.setting, s.value FROM
         pio_job_published_settings s
@@ -289,9 +415,9 @@ def update_job(job: str) -> ResponseReturnValue:
 
 @unit_api.route("/plugins/installed", methods=["GET"])
 def get_installed_plugins() -> ResponseReturnValue:
-    result = tasks.pio("plugins", "list", "--json")
+    result = tasks.pio_plugins_list("plugins", "list", "--json")
     try:
-        status, msg = result(blocking=True, timeout=120)
+        status, msg = result(blocking=True, timeout=10)
     except HueyException:
         status, msg = False, "Timed out."
 
@@ -300,7 +426,13 @@ def get_installed_plugins() -> ResponseReturnValue:
     else:
         # sometimes an error from a plugin will be printed. We just want to last line, the json bit.
         _, _, plugins_as_json = msg.rpartition("\n")
-        return plugins_as_json
+        return attach_cache_control(
+            Response(
+                response=plugins_as_json,
+                status=200,
+                mimetype="text/json",
+            )
+        )
 
 
 @unit_api.route("/plugins/installed/<filename>", methods=["GET"])
@@ -314,13 +446,15 @@ def get_plugin(filename: str) -> ResponseReturnValue:
             raise IOError("must provide a .py file")
 
         specific_plugin_path = Path(env["DOT_PIOREACTOR"]) / "plugins" / file
-        return Response(
-            response=specific_plugin_path.read_text(),
-            status=200,
-            mimetype="text/plain",
+        return attach_cache_control(
+            Response(
+                response=specific_plugin_path.read_text(),
+                status=200,
+                mimetype="text/plain",
+            )
         )
     except IOError:
-        return Response(status=404)
+        abort(404, "must provide a .py file")
     except Exception:
         return Response(status=500)
 
@@ -350,7 +484,7 @@ def install_plugin() -> ResponseReturnValue:
 
     # there is a security problem here. See https://github.com/Pioreactor/pioreactor/issues/421
     if os.path.isfile(Path(env["DOT_PIOREACTOR"]) / "DISALLOW_UI_INSTALLS"):
-        return Response(status=403)
+        abort(403, "DISALLOW_UI_INSTALLS is present")
 
     body = current_app.get_json(request.data, type=structs.ArgsOptionsEnvs)
 
@@ -402,22 +536,164 @@ def get_app_version() -> ResponseReturnValue:
     )
     if result.returncode != 0:
         return Response(status=500)
-    return Response(
-        response=current_app.json.dumps({"version": result.stdout.strip()}),
-        status=200,
-        mimetype="text/json",
-        headers={"Cache-Control": "public,max-age=60"},
-    )
+    return attach_cache_control(jsonify({"version": result.stdout.strip()}), max_age=30)
 
 
 @unit_api.route("/versions/ui", methods=["GET"])
 def get_ui_version() -> ResponseReturnValue:
-    return Response(
-        response=current_app.json.dumps({"version": VERSION}),
-        status=200,
-        mimetype="text/json",
-        headers={"Cache-Control": "public,max-age=60"},
+    return attach_cache_control(jsonify({"version": VERSION}), max_age=30)
+
+
+### CALIBRATIONS
+
+
+@unit_api.route("/calibrations", methods=["GET"])
+def get_all_calibrations() -> ResponseReturnValue:
+    calibration_dir = Path(env["DOT_PIOREACTOR"]) / "storage" / "calibrations"
+
+    if not calibration_dir.exists():
+        abort(404)
+
+    all_calibrations: dict[str, list] = {}
+
+    with local_persistent_storage("active_calibrations") as cache:
+        for file in sorted(calibration_dir.glob("*/*.yaml")):
+            try:
+                device = file.parent.name
+                cal = to_builtins(yaml_decode(file.read_bytes(), type=AllCalibrations))
+                cal["is_active"] = cache.get(device) == cal["calibration_name"]
+                cal["pioreactor_unit"] = HOSTNAME
+                if device in all_calibrations:
+                    all_calibrations[device].append(cal)
+                else:
+                    all_calibrations[device] = [cal]
+            except Exception as e:
+                publish_to_error_log(f"Error reading {file.stem}: {e}", "get_all_calibrations")
+
+    return attach_cache_control(jsonify(all_calibrations), max_age=10)
+
+
+@unit_api.route("/active_calibrations", methods=["GET"])
+def get_all_active_calibrations() -> ResponseReturnValue:
+    calibration_dir = Path(env["DOT_PIOREACTOR"]) / "storage" / "calibrations"
+
+    if not calibration_dir.exists():
+        abort(404)
+
+    all_calibrations: dict[str, dict] = {}
+
+    with local_persistent_storage("active_calibrations") as cache:
+        for device in cache.iterkeys():
+            cal_name = cache[device]
+            cal_file_path = calibration_dir / device / f"{cal_name}.yaml"
+            try:
+                cal = to_builtins(yaml_decode(cal_file_path.read_bytes(), type=AllCalibrations))
+                cal["is_active"] = True
+                cal["pioreactor_unit"] = HOSTNAME
+                all_calibrations[device] = cal
+            except Exception as e:
+                publish_to_error_log(
+                    f"Error reading {cal_file_path.stem}: {e}", "get_all_active_calibrations"
+                )
+
+    return attach_cache_control(jsonify(all_calibrations), max_age=10)
+
+
+@unit_api.route("/zipped_calibrations", methods=["GET"])
+def get_all_calibrations_as_yaml() -> ResponseReturnValue:
+    calibration_dir = Path(env["DOT_PIOREACTOR"]) / "storage" / "calibrations"
+
+    if not calibration_dir.exists():
+        abort(404)
+
+    buffer = BytesIO()
+
+    with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
+        for file_path in sorted(calibration_dir.rglob("*")):
+            if file_path.is_file():
+                arc_name = file_path.relative_to(calibration_dir)
+                zip_file.write(str(file_path), arcname=str(arc_name))
+
+    # Move the cursor to the beginning of the buffer
+    buffer.seek(0)
+
+    # Return the file using send_file
+    return send_file(
+        buffer,
+        as_attachment=True,
+        download_name=f"{HOSTNAME}_calibrations.zip",  # Name shown to the user
+        mimetype="application/zip",
     )
+
+
+@unit_api.route("/calibrations/<device>", methods=["GET"])
+def get_calibrations_by_device(device) -> ResponseReturnValue:
+    calibration_dir = Path(env["DOT_PIOREACTOR"]) / "storage" / "calibrations" / device
+
+    if not calibration_dir.exists():
+        abort(404)
+
+    calibrations: list[dict] = []
+
+    with local_persistent_storage("active_calibrations") as c:
+        for file in sorted(calibration_dir.glob("*.yaml")):
+            try:
+                # first try to open it using our struct, but only to verify it.
+                cal = to_builtins(yaml_decode(file.read_bytes(), type=AllCalibrations))
+                cal["is_active"] = c.get(device) == cal["calibration_name"]
+                calibrations.append(cal)
+            except Exception as e:
+                publish_to_error_log(
+                    f"Error reading {file.stem}: {e}", "get_calibrations_by_device"
+                )
+
+    return attach_cache_control(jsonify(calibrations), max_age=10)
+
+
+@unit_api.route("/calibrations/<device>/<cal_name>", methods=["GET"])
+def get_calibration(device, cal_name) -> ResponseReturnValue:
+    calibration_path = (
+        Path(env["DOT_PIOREACTOR"]) / "storage" / "calibrations" / device / f"{cal_name}.yaml"
+    )
+
+    if not calibration_path.exists():
+        abort(404)
+
+    with local_persistent_storage("active_calibrations") as c:
+        try:
+            cal = to_builtins(yaml_decode(calibration_path.read_bytes(), type=AllCalibrations))
+            cal["is_active"] = c.get(device) == cal["calibration_name"]
+            return attach_cache_control(jsonify(cal), max_age=10)
+        except Exception as e:
+            publish_to_error_log(f"Error reading {calibration_path.stem}: {e}", "get_calibration")
+            abort(500)
+
+
+@unit_api.route("/active_calibrations/<device>/<cal_name>", methods=["PATCH"])
+def set_active_calibration(device, cal_name) -> ResponseReturnValue:
+    with local_persistent_storage("active_calibrations") as c:
+        c[device] = cal_name
+
+    return Response(status=200)
+
+
+@unit_api.route("/active_calibrations/<device>", methods=["DELETE"])
+def remove_active_status_calibration(device) -> ResponseReturnValue:
+    with local_persistent_storage("active_calibrations") as c:
+        c.pop(device)
+
+    return Response(status=200)
+
+
+@unit_api.route("/calibrations/<device>/<cal_name>", methods=["DELETE"])
+def remove_calibration(device, cal_name) -> ResponseReturnValue:
+    target_file = CALIBRATION_PATH / device / f"{cal_name}.yaml"
+    if not target_file.exists():
+        abort(404, f"{target_file} not found")
+
+    target_file.unlink()
+
+    return Response(status=200)
 
 
 @unit_api.errorhandler(404)

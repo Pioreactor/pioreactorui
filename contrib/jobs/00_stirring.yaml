@@ -10,5 +10,4 @@ published_settings:
     label: Target stir RPM
     description: Modify the target RPM of stirring. This will effect the optical density reading. Too low and the stirring may completely stop. Too high and the resulting vortex may interfere with the optics.
     type: numeric
-    default: null
     display: true

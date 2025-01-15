@@ -22,6 +22,7 @@ from pioreactor.config import config as pioreactor_config
 from pioreactor.config import get_leader_hostname
 from pioreactor.whoami import am_I_leader
 from pioreactor.whoami import get_unit_name
+from pioreactor.whoami import UNIVERSAL_EXPERIMENT
 
 from .config import env
 from .version import __version__
@@ -93,7 +94,17 @@ def create_app():
     @app.errorhandler(404)
     def handle_not_found(e):
         # Return JSON for API requests
-        return jsonify({"error": "Not Found"}), 404
+        return jsonify({"error": e.description}), 404
+
+    @app.errorhandler(400)
+    def handle_bad_request(e):
+        # Return JSON for API requests
+        return jsonify({"error": e.description}), 400
+
+    @app.errorhandler(403)
+    def handle_not_auth(e):
+        # Return JSON for API requests
+        return jsonify({"error": e.description}), 403
 
     @app.errorhandler(500)
     def handle_server_error(e):
@@ -105,14 +116,18 @@ def create_app():
     return app
 
 
-def msg_to_JSON(msg: str, task: str, level: str) -> bytes:
+def msg_to_JSON(
+    msg: str, task: str, level: str, timestamp: None | str = None, source: str = "ui"
+) -> bytes:
+    if timestamp is None:
+        timestamp = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
     return dumps(
         {
             "message": msg.strip(),
             "task": task,
-            "source": "ui",
+            "source": source,
             "level": level,
-            "timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+            "timestamp": timestamp,
         }
     )
 
@@ -131,8 +146,9 @@ def publish_to_experiment_log(msg: str | t.Any, experiment: str, task: str, leve
 
     getattr(logger, level.lower())(msg)
 
-    topic = f"pioreactor/{get_leader_hostname()}/{experiment}/logs/ui/{level.lower()}"
-    client.publish(topic, msg_to_JSON(msg, task, level))
+    if am_I_leader():
+        topic = f"pioreactor/{get_leader_hostname()}/{experiment}/logs/ui/{level.lower()}"
+        client.publish(topic, msg_to_JSON(msg, task, level))
 
 
 def publish_to_error_log(msg, task: str) -> None:
@@ -157,11 +173,11 @@ def _get_app_db_connection():
     return db
 
 
-def _get_local_metadata_db_connection():
-    db = getattr(g, "_metadata_database", None)
+def _get_temp_local_metadata_db_connection():
+    db = getattr(g, "_local_metadata_database", None)
     if db is None:
         db = g._local_metadata_database = sqlite3.connect(
-            f"{tempfile.gettempdir()}/local_intermittent_pioreactor_metadata.sqlite"
+            pioreactor_config.get("storage", "temporary_cache")
         )
         db.row_factory = _make_dicts
     return db
@@ -177,10 +193,10 @@ def query_app_db(
     return (rv[0] if rv else None) if one else rv
 
 
-def query_local_metadata_db(
+def query_temp_local_metadata_db(
     query: str, args=(), one: bool = False
 ) -> dict[str, t.Any] | list[dict[str, t.Any]] | None:
-    cur = _get_local_metadata_db_connection().execute(query, args)
+    cur = _get_temp_local_metadata_db_connection().execute(query, args)
     rv = cur.fetchall()
     cur.close()
     return (rv[0] if rv else None) if one else rv
@@ -214,3 +230,39 @@ class MsgspecJsonProvider(JSONProvider):
             return loads(obj, type=type)
         else:
             return loads(obj)
+
+
+def get_all_workers_in_experiment(experiment: str) -> list[str]:
+    if experiment == UNIVERSAL_EXPERIMENT:
+        r = query_app_db("SELECT pioreactor_unit FROM workers")
+    else:
+        r = query_app_db(
+            "SELECT pioreactor_unit FROM experiment_worker_assignments WHERE experiment = ?",
+            (experiment,),
+        )
+    assert isinstance(r, list)
+    return [unit["pioreactor_unit"] for unit in r]
+
+
+def get_all_workers() -> list[str]:
+    result = query_app_db(
+        """
+        SELECT w.pioreactor_unit as unit
+        FROM workers w
+        ORDER BY w.added_at DESC
+        """
+    )
+    assert result is not None and isinstance(result, list)
+    return list(r["unit"] for r in result)
+
+
+def get_all_units() -> list[str]:
+    result = query_app_db(
+        f"""SELECT DISTINCT pioreactor_unit FROM (
+            SELECT "{get_leader_hostname()}" AS pioreactor_unit
+                UNION
+            SELECT pioreactor_unit FROM workers
+        );"""
+    )
+    assert result is not None and isinstance(result, list)
+    return list(r["pioreactor_unit"] for r in result)
