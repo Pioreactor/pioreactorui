@@ -1709,9 +1709,9 @@ def update_experiment_profile() -> ResponseReturnValue:
         ):
             abort(404, "must end in .yaml")
 
-    except Exception:
+    except Exception as e:
         # publish_to_error_log(msg, "create_experiment_profile")
-        return abort(400, "Invalid filename")
+        abort(400, str(e))
 
     filepath = Path(env["DOT_PIOREACTOR"]) / "experiment_profiles" / experiment_profile_filename
 
@@ -1728,10 +1728,22 @@ def update_experiment_profile() -> ResponseReturnValue:
 def get_experiment_profiles() -> ResponseReturnValue:
     try:
         profile_path = Path(env["DOT_PIOREACTOR"]) / "experiment_profiles"
-        files = sorted(profile_path.glob("*.y*ml"), key=os.path.getmtime, reverse=True)
+        files = sorted(profile_path.glob("*.y*ml"), key=lambda f: f.stat().st_mtime, reverse=True)
 
         parsed_yaml = []
         for file in files:
+            # allow empty files, it's annoying to users otherwise (and maybe theres a bug that wipes yamls?)
+            if file.stat().st_size == 0:
+                parsed_yaml.append(
+                    {
+                        "experimentProfile": {
+                            "experiment_profile_name": f"temporary name: {file.stem}"
+                        },
+                        "file": str(file),
+                    }
+                )
+                continue
+
             try:
                 profile = yaml_decode(file.read_bytes(), type=Profile)
                 parsed_yaml.append({"experimentProfile": profile, "file": str(file)})

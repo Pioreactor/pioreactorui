@@ -168,7 +168,18 @@ def _get_app_db_connection():
         )  # TODO: until next OS release which implements a native sqlite3 base64 function
 
         db.row_factory = _make_dicts
-        db.execute("PRAGMA foreign_keys = 1")
+        db.executescript(
+            """
+            PRAGMA journal_mode=WAL;
+            PRAGMA synchronous = 1; -- aka NORMAL, recommended when using WAL
+            PRAGMA temp_store = 2;  -- stop writing small files to disk, use mem
+            PRAGMA busy_timeout = 15000;
+            PRAGMA foreign_keys = ON;
+            PRAGMA synchronous = NORMAL;
+            PRAGMA auto_vacuum = INCREMENTAL;
+            PRAGMA cache_size = -20000;
+        """
+        )
 
     return db
 
@@ -180,6 +191,19 @@ def _get_temp_local_metadata_db_connection():
             pioreactor_config.get("storage", "temporary_cache")
         )
         db.row_factory = _make_dicts
+        db.executescript(
+            """
+            PRAGMA journal_mode=WAL;
+            PRAGMA synchronous = 1; -- aka NORMAL, recommended when using WAL
+            PRAGMA temp_store = 2;  -- stop writing small files to disk, use mem
+            PRAGMA busy_timeout = 15000;
+            PRAGMA foreign_keys = ON;
+            PRAGMA synchronous = NORMAL;
+            PRAGMA auto_vacuum = INCREMENTAL;
+            PRAGMA cache_size = -20000;
+        """
+        )
+
     return db
 
 
