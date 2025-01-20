@@ -108,7 +108,10 @@ def create_app():
 
     @app.errorhandler(500)
     def handle_server_error(e):
-        return jsonify({"error": "Internal server error. See logs."}), 500
+        return (
+            jsonify({"error": f"Internal server error: {e.description}. See logs for more."}),
+            500,
+        )
 
     app.json = MsgspecJsonProvider(app)
     app.get_json = app.json.loads

@@ -1696,7 +1696,7 @@ def update_experiment_profile() -> ResponseReturnValue:
         yaml_decode(experiment_profile_body, type=Profile)
     except Exception as e:
         # publish_to_error_log(msg, "create_experiment_profile")
-        return {"msg": str(e)}, 400
+        abort(400, str(e))
 
     # verify file - user could have provided a different filename so we still check this.
     try:
@@ -1841,7 +1841,7 @@ def setup_worker_pioreactor() -> ResponseReturnValue:
     if status:
         return {"msg": f"Worker {new_name} added successfully."}, 200
     else:
-        return {"msg": f"Failed to add worker {new_name}. See logs."}, 500
+        abort(500, f"Failed to add worker {new_name}. See logs.")
 
 
 @api.route("/workers", methods=["PUT"])
