@@ -19,6 +19,7 @@ from flask import send_file
 from flask.typing import ResponseReturnValue
 from huey.exceptions import HueyException
 from huey.exceptions import TaskException
+from msgspec import convert
 from msgspec import to_builtins
 from msgspec.yaml import decode as yaml_decode
 from pioreactor.calibrations import CALIBRATION_PATH
@@ -545,6 +546,32 @@ def get_ui_version() -> ResponseReturnValue:
 
 
 ### CALIBRATIONS
+
+
+@unit_api.route("/calibrations/<device>", methods=["POST"])
+def create_calibration(device) -> ResponseReturnValue:
+    """
+    Create a new calibration for the specified device.
+    The request must contain a JSON payload with the calibration data.
+    """
+    calibration_dir = Path(env["DOT_PIOREACTOR"]) / "storage" / "calibrations" / device
+    calibration_dir.mkdir(parents=True, exist_ok=True)
+
+    try:
+        data = request.get_json()
+        calibration_name = data.get("calibration_name")
+        if not calibration_name:
+            abort(400, description="Missing 'calibration_name' in request payload.")
+
+        calibration_data = convert(data, AllCalibrations)
+        path = calibration_data.save_to_disk_for_device(device)
+
+        # Respond with success and the created calibration details
+        return jsonify({"msg": "Calibration created successfully.", "path": str(path)}), 201
+
+    except Exception as e:
+        publish_to_error_log(f"Error creating calibration: {e}", "create_calibration")
+        abort(500, description="Failed to create calibration.")
 
 
 @unit_api.route("/calibrations", methods=["GET"])
