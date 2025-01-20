@@ -1,6 +1,6 @@
 # pyyaml is installed elsewhere
 # this should be a superset of requirements_leader.txt
-flask==3.0.2
+flask==3.1.0
 flup6==1.1.1
 python-dotenv==1.0.1
 paho-mqtt==2.1.0
