@@ -600,7 +600,7 @@ def get_all_active_calibrations() -> ResponseReturnValue:
 
 
 @unit_api.route("/zipped_calibrations", methods=["GET"])
-def get_all_calibrations_as_yaml() -> ResponseReturnValue:
+def get_all_calibrations_as_zipped_yaml() -> ResponseReturnValue:
     calibration_dir = Path(env["DOT_PIOREACTOR"]) / "storage" / "calibrations"
 
     if not calibration_dir.exists():
