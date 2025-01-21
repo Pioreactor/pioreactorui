@@ -574,6 +574,45 @@ def create_calibration(device) -> ResponseReturnValue:
         abort(500, description="Failed to create calibration.")
 
 
+@unit_api.route("/calibrations/<device>/<calibration_name>", methods=["DELETE"])
+def delete_calibration(device: str, calibration_name: str) -> ResponseReturnValue:
+    """
+    Delete a specific calibration for a given device.
+    """
+    calibration_path = (
+        Path(env["DOT_PIOREACTOR"])
+        / "storage"
+        / "calibrations"
+        / device
+        / f"{calibration_name}.yaml"
+    )
+
+    if not calibration_path.exists():
+        abort(404, description=f"Calibration '{calibration_name}' not found for device '{device}'.")
+
+    try:
+        # Remove the calibration file
+        calibration_path.unlink()
+
+        # If the deleted calibration was active, remove its active status
+        with local_persistent_storage("active_calibrations") as cache:
+            if cache.get(device) == calibration_name:
+                cache.pop(device)
+
+        return (
+            jsonify(
+                {
+                    "msg": f"Calibration '{calibration_name}' for device '{device}' deleted successfully."
+                }
+            ),
+            200,
+        )
+
+    except Exception as e:
+        publish_to_error_log(f"Error deleting calibration: {e}", "delete_calibration")
+        abort(500, description="Failed to delete calibration.")
+
+
 @unit_api.route("/calibrations", methods=["GET"])
 def get_all_calibrations() -> ResponseReturnValue:
     calibration_dir = Path(env["DOT_PIOREACTOR"]) / "storage" / "calibrations"
