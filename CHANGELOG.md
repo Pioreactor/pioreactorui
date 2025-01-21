@@ -1,3 +1,6 @@
+### 25.1.21
+ - Bug fixes for the UI
+
 ### 25.1.20
  - Bug fixes for the UI
 
