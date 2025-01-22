@@ -256,7 +256,6 @@ def is_rate_limited(job: str, expire_time_seconds=1.0) -> bool:
 
 @unit_api.route("/jobs/run/job_name/<job>", methods=["PATCH", "POST"])
 def run_job(job: str) -> ResponseReturnValue:
-    # DONT USE YET
     """
     Body should look like (all optional)
     {

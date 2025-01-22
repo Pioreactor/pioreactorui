@@ -134,6 +134,7 @@ def stop_job_on_unit(pioreactor_unit: str, experiment: str, job: str) -> Respons
     try:
         msg.wait_for_publish(timeout=2.0)
     except Exception:
+        # TODO: make this $broadcastable
         tasks.multicast_post_across_cluster(
             f"/unit_api/jobs/stop/job_name/{job}", [pioreactor_unit]
         )

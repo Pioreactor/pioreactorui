@@ -20,6 +20,7 @@ from msgspec.json import encode as dumps
 from paho.mqtt.enums import CallbackAPIVersion
 from pioreactor.config import config as pioreactor_config
 from pioreactor.config import get_leader_hostname
+from pioreactor.plugin_management import get_plugins
 from pioreactor.whoami import am_I_leader
 from pioreactor.whoami import get_unit_name
 from pioreactor.whoami import UNIVERSAL_EXPERIMENT
@@ -115,6 +116,8 @@ def create_app():
 
     app.json = MsgspecJsonProvider(app)
     app.get_json = app.json.loads
+
+    get_plugins()
 
     return app
 
