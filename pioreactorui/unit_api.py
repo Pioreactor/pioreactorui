@@ -43,8 +43,8 @@ from .utils import attach_cache_control
 from .utils import create_task_response
 from pioreactorui import structs
 
-AllCalibrations = subclass_union(CalibrationBase)
 
+AllCalibrations = subclass_union(CalibrationBase)
 
 unit_api = Blueprint("unit_api", __name__, url_prefix="/unit_api")
 
