@@ -3,10 +3,12 @@
 from __future__ import annotations
 
 import re
+from time import time
 
 from flask import jsonify
 from flask import Response
 from flask.typing import ResponseReturnValue
+from pioreactor.utils import local_intermittent_storage
 from pioreactor.whoami import get_unit_name
 
 
@@ -46,3 +48,15 @@ def is_valid_unix_filename(filename: str) -> bool:
         and "/" not in filename
         and "\0" not in filename
     )
+
+
+def is_rate_limited(job: str, expire_time_seconds=1.0) -> bool:
+    """
+    Check if the user has made a request within the debounce duration.
+    """
+    with local_intermittent_storage("debounce") as cache:
+        if cache.get(job) and (time() - cache.get(job)) < expire_time_seconds:
+            return True
+        else:
+            cache.set(job, time())
+            return False

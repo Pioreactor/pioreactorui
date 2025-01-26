@@ -7,7 +7,6 @@ from io import BytesIO
 from pathlib import Path
 from subprocess import run
 from time import sleep
-from time import time
 
 from flask import abort
 from flask import Blueprint
@@ -26,7 +25,6 @@ from pioreactor.calibrations import CALIBRATION_PATH
 from pioreactor.config import get_leader_hostname
 from pioreactor.structs import CalibrationBase
 from pioreactor.structs import subclass_union
-from pioreactor.utils import local_intermittent_storage
 from pioreactor.utils import local_persistent_storage
 from pioreactor.utils.timing import current_utc_timestamp
 from pioreactor.utils.timing import to_datetime
@@ -41,6 +39,7 @@ from .config import env
 from .config import huey
 from .utils import attach_cache_control
 from .utils import create_task_response
+from .utils import is_rate_limited
 from pioreactorui import structs
 
 
@@ -242,18 +241,6 @@ def dir_listing(req_path: str):
 ## RUNNING JOBS CONTROL
 
 
-def is_rate_limited(job: str, expire_time_seconds=1.0) -> bool:
-    """
-    Check if the user has made a request within the debounce duration.
-    """
-    with local_intermittent_storage("debounce") as cache:
-        if cache.get(job) and (time() - cache.get(job)) < expire_time_seconds:
-            return True
-        else:
-            cache.set(job, time())
-            return False
-
-
 @unit_api.route("/jobs/run/job_name/<job>", methods=["PATCH", "POST"])
 def run_job(job: str) -> ResponseReturnValue:
     """
@@ -332,6 +319,15 @@ def get_running_jobs_for_experiment(experiment: str) -> ResponseReturnValue:
 @unit_api.route("/jobs/running", methods=["GET"])
 def get_all_running_jobs() -> ResponseReturnValue:
     jobs = query_temp_local_metadata_db("SELECT * FROM pio_job_metadata where is_running=1")
+
+    return jsonify(jobs)
+
+
+@unit_api.route("/jobs/running/<job>", methods=["GET"])
+def get_running_job(job) -> ResponseReturnValue:
+    jobs = query_temp_local_metadata_db(
+        "SELECT * FROM pio_job_metadata where is_running=1 and job_name=?", (job,)
+    )
 
     return jsonify(jobs)
 

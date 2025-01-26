@@ -75,7 +75,7 @@ def initialized():
     logger.info(f"Cache directory = {CACHE_DIR}")
 
 
-@huey.task()
+@huey.task(priority=10)
 def pio_run(*args: str, env: dict[str, str] = {}) -> bool:
     # for long running pio run jobs where we don't care about the output / status
     command = ("nohup", PIO_EXECUTABLE, "run") + args
@@ -178,7 +178,7 @@ def pio_run_export_experiment_data(*args: str, env: dict[str, str] = {}) -> bool
     return result.returncode == 0
 
 
-@huey.task()
+@huey.task(priority=100)
 def pio_kill(*args: str, env: dict[str, str] = {}) -> bool:
     logger.info(f'Executing `{join(("pio", "kill") + args)}`, {env=}')
     result = run((PIO_EXECUTABLE, "kill") + args, env=dict(os.environ) | env)
@@ -306,7 +306,7 @@ def write_config_and_sync(
         return (False, "Could not sync configs to all Pioreactors.")
 
 
-@huey.task()
+@huey.task(priority=10)
 def post_to_worker(worker: str, endpoint: str, json: dict | None = None) -> tuple[str, Any]:
     try:
         r = post_into(resolve_to_address(worker), endpoint, json=json, timeout=1)
@@ -324,7 +324,7 @@ def post_to_worker(worker: str, endpoint: str, json: dict | None = None) -> tupl
         return worker, None
 
 
-@huey.task()
+@huey.task(priority=5)
 def multicast_post_across_cluster(
     endpoint: str, workers: list[str], json: dict | None = None
 ) -> dict[str, Any]:
@@ -338,7 +338,7 @@ def multicast_post_across_cluster(
     }  # add a timeout so that we don't hold up a thread forever.
 
 
-@huey.task()
+@huey.task(priority=10)
 def get_from_worker(
     worker: str, endpoint: str, json: dict | None = None, timeout=1.0, return_raw=False
 ) -> tuple[str, Any]:
@@ -361,7 +361,7 @@ def get_from_worker(
         return worker, None
 
 
-@huey.task()
+@huey.task(priority=5)
 def multicast_get_across_cluster(
     endpoint: str,
     workers: list[str],
@@ -379,7 +379,7 @@ def multicast_get_across_cluster(
     }  # add a timeout so that we don't hold up a thread forever.
 
 
-@huey.task()
+@huey.task(priority=10)
 def patch_to_worker(worker: str, endpoint: str, json: dict | None = None) -> tuple[str, Any]:
     try:
         r = patch_into(resolve_to_address(worker), endpoint, json=json, timeout=1)
@@ -397,7 +397,7 @@ def patch_to_worker(worker: str, endpoint: str, json: dict | None = None) -> tup
         return worker, None
 
 
-@huey.task()
+@huey.task(priority=5)
 def multicast_patch_across_cluster(
     endpoint: str, workers: list[str], json: dict | None = None
 ) -> dict[str, Any]:
@@ -411,7 +411,7 @@ def multicast_patch_across_cluster(
     }  # add a timeout so that we don't hold up a thread forever.
 
 
-@huey.task()
+@huey.task(priority=10)
 def delete_from_worker(worker: str, endpoint: str, json: dict | None = None) -> tuple[str, Any]:
     try:
         r = delete_from(resolve_to_address(worker), endpoint, json=json, timeout=1)
@@ -429,7 +429,7 @@ def delete_from_worker(worker: str, endpoint: str, json: dict | None = None) -> 
         return worker, None
 
 
-@huey.task()
+@huey.task(priority=5)
 def multicast_delete_across_cluster(
     endpoint: str, workers: list[str], json: dict | None = None
 ) -> dict[str, Any]:
