@@ -46,6 +46,7 @@ from . import publish_to_error_log
 from . import publish_to_experiment_log
 from . import publish_to_log
 from . import query_app_db
+from . import query_temp_local_metadata_db
 from . import structs
 from . import tasks
 from .config import env
@@ -59,7 +60,7 @@ from .utils import scrub_to_valid
 api = Blueprint("api", __name__, url_prefix="/api")
 
 
-def to_json_response(json: str) -> ResponseReturnValue:
+def as_json_response(json: str) -> ResponseReturnValue:
     return Response(json, mimetype="application/json")
 
 
@@ -538,7 +539,7 @@ def get_growth_rates(experiment: str) -> ResponseReturnValue:
         abort(400)
 
     assert isinstance(growth_rates, dict)
-    return attach_cache_control(to_json_response(growth_rates["json"]))
+    return attach_cache_control(as_json_response(growth_rates["json"]))
 
 
 @api.route("/experiments/<experiment>/time_series/temperature_readings", methods=["GET"])
@@ -572,7 +573,7 @@ def get_temperature_readings(experiment: str) -> ResponseReturnValue:
         abort(400)
 
     assert isinstance(temperature_readings, dict)
-    return attach_cache_control(to_json_response(temperature_readings["json"]))
+    return attach_cache_control(as_json_response(temperature_readings["json"]))
 
 
 @api.route("/experiments/<experiment>/time_series/od_readings_filtered", methods=["GET"])
@@ -607,7 +608,7 @@ def get_od_readings_filtered(experiment: str) -> ResponseReturnValue:
         abort(400)
 
     assert isinstance(filtered_od_readings, dict)
-    return attach_cache_control(to_json_response(filtered_od_readings["json"]))
+    return attach_cache_control(as_json_response(filtered_od_readings["json"]))
 
 
 @api.route("/experiments/<experiment>/time_series/od_readings", methods=["GET"])
@@ -640,7 +641,7 @@ def get_od_readings(experiment: str) -> ResponseReturnValue:
         abort(400)
 
     assert isinstance(raw_od_readings, dict)
-    return attach_cache_control(to_json_response(raw_od_readings["json"]))
+    return attach_cache_control(as_json_response(raw_od_readings["json"]))
 
 
 @api.route("/experiments/<experiment>/time_series/<data_source>/<column>", methods=["GET"])
@@ -674,7 +675,7 @@ def get_fallback_time_series(data_source: str, experiment: str, column: str) -> 
         publish_to_error_log(str(e), "get_fallback_time_series")
         abort(400)
     assert isinstance(r, dict)
-    return attach_cache_control(to_json_response(r["json"]))
+    return attach_cache_control(as_json_response(r["json"]))
 
 
 @api.route("/experiments/<experiment>/media_rates", methods=["GET"])
@@ -1639,6 +1640,36 @@ def is_local_access_point_active() -> ResponseReturnValue:
 
 
 ### experiment profiles
+
+
+@api.route("/experiment_profiles/running/experiments/<experiment>", methods=["GET"])
+def get_running_profiles(experiment: str) -> ResponseReturnValue:
+    jobs = query_temp_local_metadata_db(
+        """
+        SELECT
+            json_group_array(json_object(
+                'job_name', m.job_name,
+                'experiment', m.experiment,
+                'job_id', m.id,
+                'settings', (
+                    SELECT json_group_object(s.setting, s.value)
+                    FROM pio_job_published_settings s
+                    WHERE s.job_id = m.id
+                )
+            )) as result
+        FROM
+            pio_job_metadata m
+        WHERE
+            m.is_running=1 and
+            m.experiment = (?) AND
+            m.job_name="experiment_profile"
+        """,
+        (experiment,),
+        one=True,
+    )
+    assert isinstance(jobs, dict)
+
+    return as_json_response(jobs["result"])
 
 
 @api.route("/contrib/experiment_profiles", methods=["POST"])

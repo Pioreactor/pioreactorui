@@ -306,6 +306,12 @@ def stop_all_jobs_by_source(job_source: str) -> ResponseReturnValue:
     return create_task_response(task)
 
 
+@unit_api.route("/jobs/stop/job_id/<job_id>", methods=["PATCH", "POST"])
+def stop_all_jobs_by_id(job_id: int) -> ResponseReturnValue:
+    task = tasks.pio_kill("--job-id", job_id)
+    return create_task_response(task)
+
+
 @unit_api.route("/jobs/running/experiments/<experiment>", methods=["GET"])
 def get_running_jobs_for_experiment(experiment: str) -> ResponseReturnValue:
     jobs = query_temp_local_metadata_db(
