@@ -110,22 +110,58 @@ def update_app_across_cluster() -> bool:
 
 
 @huey.task()
-def update_app_from_release_archive_across_cluster(archive_location: str) -> bool:
-    logger.info(f"Updating app on leader from {archive_location}")
-    update_app_on_leader = ["pio", "update", "app", "--source", archive_location]
-    run_and_check_call(update_app_on_leader)
-    # remove bits if success
+def update_app_from_release_archive_across_cluster(archive_location: str, units: str) -> bool:
+    if units == "$broadcast":
+        logger.info(f"Updating app on leader from {archive_location}")
+        update_app_on_leader = ["pio", "update", "app", "--source", archive_location]
+        run_and_check_call(update_app_on_leader)
+        # remove bits if success
 
-    logger.info(f"Updating app and ui on workers from {archive_location}")
-    distribute_archive_to_workers = [PIOS_EXECUTABLE, "cp", archive_location, "-y"]
-    run(distribute_archive_to_workers)
+        logger.info(f"Updating app and ui on workers from {archive_location}")
+        distribute_archive_to_workers = [PIOS_EXECUTABLE, "cp", archive_location, "-y"]
+        run(distribute_archive_to_workers)
 
-    update_app_across_all_workers = [PIOS_EXECUTABLE, "update", "--source", archive_location, "-y"]
-    run(update_app_across_all_workers)
+        update_app_across_all_workers = [
+            PIOS_EXECUTABLE,
+            "update",
+            "--source",
+            archive_location,
+            "-y",
+        ]
+        run(update_app_across_all_workers)
 
-    update_ui_on_leader = ["pio", "update", "ui", "--source", "/tmp/pioreactorui_archive.tar.gz"]
-    run(update_ui_on_leader)
-    return True
+        update_ui_on_leader = [
+            "pio",
+            "update",
+            "ui",
+            "--source",
+            "/tmp/pioreactorui_archive.tar.gz",
+        ]
+        run(update_ui_on_leader)
+        return True
+    else:
+        logger.info(f"Updating app and ui on unit {units} from {archive_location}")
+        distribute_archive_to_workers = [
+            PIOS_EXECUTABLE,
+            "cp",
+            archive_location,
+            "-y",
+            "--units",
+            units,
+        ]
+        run(distribute_archive_to_workers)
+
+        update_app_across_all_workers = [
+            PIOS_EXECUTABLE,
+            "update",
+            "--source",
+            archive_location,
+            "-y",
+            "--units",
+            units,
+        ]
+        run(update_app_across_all_workers)
+        return True
 
 
 @huey.task()

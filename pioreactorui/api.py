@@ -328,13 +328,14 @@ def set_clocktime() -> ResponseReturnValue:
 
 # util
 def get_level_string(min_level: str) -> str:
+    min_level = min_level.lower()
     levels = {
-        "DEBUG": ["ERROR", "WARNING", "NOTICE", "INFO", "DEBUG"],
-        "INFO": ["ERROR", "NOTICE", "INFO", "WARNING"],
-        "WARNING": ["ERROR", "WARNING"],
-        "ERROR": ["ERROR"],
+        "debug": ["ERROR", "WARNING", "NOTICE", "INFO", "DEBUG"],
+        "info": ["ERROR", "NOTICE", "INFO", "WARNING"],
+        "warning": ["ERROR", "WARNING"],
+        "error": ["ERROR"],
     }
-    selected_levels = levels.get(min_level, levels["INFO"])
+    selected_levels = levels.get(min_level, levels["info"])
     return " or ".join(f'level == "{level}"' for level in selected_levels)
 
 
@@ -367,6 +368,7 @@ def get_exp_logs(experiment: str) -> ResponseReturnValue:
     """Shows event logs from all units, uses pagination."""
 
     skip = int(request.args.get("skip", 0))
+    min_level = request.args.get("min_level", "INFO")
 
     try:
         recent_logs = query_app_db(
@@ -376,9 +378,10 @@ def get_exp_logs(experiment: str) -> ResponseReturnValue:
                    on h.pioreactor_unit = l.pioreactor_unit
                    and h.assigned_at <= l.timestamp
                    and l.timestamp <= coalesce(h.unassigned_at, STRFTIME('%Y-%m-%dT%H:%M:%f000Z', 'NOW'))
-                WHERE (l.experiment=? OR l.experiment=?)
+                WHERE (l.experiment=? )
+                AND ({get_level_string(min_level)})
                 ORDER BY l.timestamp DESC LIMIT 50 OFFSET {skip};""",
-            (experiment, UNIVERSAL_EXPERIMENT),
+            (experiment,),
         )
 
     except Exception as e:
@@ -393,11 +396,13 @@ def get_logs() -> ResponseReturnValue:
     """Shows event logs from all units, uses pagination."""
 
     skip = int(request.args.get("skip", 0))
+    min_level = request.args.get("min_level", "INFO")
 
     try:
         recent_logs = query_app_db(
             f"""SELECT l.timestamp, level, l.pioreactor_unit, message, task, l.experiment
                 FROM logs AS l
+                WHERE ({get_level_string(min_level)})
                 ORDER BY l.timestamp DESC LIMIT 50 OFFSET {skip};"""
         )
 
@@ -443,6 +448,7 @@ def get_logs_for_unit_and_experiment(pioreactor_unit: str, experiment: str) -> R
     """Shows event logs from all units, uses pagination."""
 
     skip = int(request.args.get("skip", 0))
+    min_level = request.args.get("min_level", "INFO")
 
     try:
         recent_logs = query_app_db(
@@ -454,6 +460,7 @@ def get_logs_for_unit_and_experiment(pioreactor_unit: str, experiment: str) -> R
                    and l.timestamp <= coalesce(h.unassigned_at, STRFTIME('%Y-%m-%dT%H:%M:%f000Z', 'NOW') )
                 WHERE (l.experiment=? or l.experiment=?)
                     AND (l.pioreactor_unit=? or l.pioreactor_unit=?)
+                    AND ({get_level_string(min_level)})
                 ORDER BY l.timestamp DESC LIMIT 50 OFFSET {skip};""",
             (experiment, UNIVERSAL_EXPERIMENT, pioreactor_unit, UNIVERSAL_IDENTIFIER),
         )
@@ -470,12 +477,14 @@ def get_logs_for_unit(pioreactor_unit: str) -> ResponseReturnValue:
     """Shows event logs from all units, uses pagination."""
 
     skip = int(request.args.get("skip", 0))
+    min_level = request.args.get("min_level", "INFO")
 
     try:
         recent_logs = query_app_db(
             f"""SELECT l.timestamp, level, l.pioreactor_unit, message, task, l.experiment
                 FROM logs AS l
                 WHERE (l.pioreactor_unit=? or l.pioreactor_unit=?)
+                AND ({get_level_string(min_level)})
                 ORDER BY l.timestamp DESC LIMIT 50 OFFSET {skip};""",
             (pioreactor_unit, UNIVERSAL_IDENTIFIER),
         )
@@ -1121,7 +1130,9 @@ def update_app_from_release_archive() -> ResponseReturnValue:
     body = request.get_json()
     release_archive_location = body["release_archive_location"]
     assert release_archive_location.endswith(".zip")
-    task = tasks.update_app_from_release_archive_across_cluster(release_archive_location)
+    task = tasks.update_app_from_release_archive_across_cluster(
+        release_archive_location, units=body["units"]
+    )
     return create_task_response(task)
 
 
