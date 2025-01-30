@@ -328,14 +328,24 @@ def set_clocktime() -> ResponseReturnValue:
 
 # util
 def get_level_string(min_level: str) -> str:
-    min_level = min_level.lower()
+    min_level = min_level.upper()
     levels = {
-        "debug": ["ERROR", "WARNING", "NOTICE", "INFO", "DEBUG"],
-        "info": ["ERROR", "NOTICE", "INFO", "WARNING"],
-        "warning": ["ERROR", "WARNING"],
-        "error": ["ERROR"],
+        "DEBUG": ["ERROR", "WARNING", "NOTICE", "INFO", "DEBUG"],
+        "INFO": [
+            "ERROR",
+            "WARNING",
+            "NOTICE",
+            "INFO",
+        ],
+        "NOTICE": [
+            "ERROR",
+            "WARNING",
+            "NOTICE",
+        ],
+        "WARNING": ["ERROR", "WARNING"],
+        "ERROR": ["ERROR"],
     }
-    selected_levels = levels.get(min_level, levels["info"])
+    selected_levels = levels.get(min_level, levels["INFO"])
     return " or ".join(f'level == "{level}"' for level in selected_levels)
 
 
