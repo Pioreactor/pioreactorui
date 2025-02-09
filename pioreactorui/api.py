@@ -355,20 +355,15 @@ def get_recent_logs(experiment: str) -> ResponseReturnValue:
 
     min_level = request.args.get("min_level", "INFO")
 
-    try:
-        recent_logs = query_app_db(
-            f"""SELECT l.timestamp, level, l.pioreactor_unit, message, task, l.experiment
-                FROM logs AS l
-                WHERE (l.experiment=? OR l.experiment=?)
-                    AND ({get_level_string(min_level)})
-                    AND l.timestamp >= MAX( STRFTIME('%Y-%m-%dT%H:%M:%f000Z', 'NOW', '-24 hours'), (SELECT created_at FROM experiments where experiment=?) )
-                ORDER BY l.timestamp DESC LIMIT 50;""",
-            (experiment, UNIVERSAL_EXPERIMENT, experiment),
-        )
-
-    except Exception as e:
-        publish_to_error_log(str(e), "get_recent_logs")
-        abort(500)
+    recent_logs = query_app_db(
+        f"""SELECT l.timestamp, level, l.pioreactor_unit, message, task, l.experiment
+            FROM logs AS l
+            WHERE (l.experiment=? OR l.experiment=?)
+                AND ({get_level_string(min_level)})
+                AND l.timestamp >= MAX( STRFTIME('%Y-%m-%dT%H:%M:%f000Z', 'NOW', '-24 hours'), (SELECT created_at FROM experiments where experiment=?) )
+            ORDER BY l.timestamp DESC LIMIT 50;""",
+        (experiment, UNIVERSAL_EXPERIMENT, experiment),
+    )
 
     return jsonify(recent_logs)
 
@@ -380,23 +375,18 @@ def get_exp_logs(experiment: str) -> ResponseReturnValue:
     skip = int(request.args.get("skip", 0))
     min_level = request.args.get("min_level", "INFO")
 
-    try:
-        recent_logs = query_app_db(
-            f"""SELECT l.timestamp, level, l.pioreactor_unit, message, task, l.experiment
-                FROM logs AS l
-                JOIN experiment_worker_assignments_history h
-                   on h.pioreactor_unit = l.pioreactor_unit
-                   and h.assigned_at <= l.timestamp
-                   and l.timestamp <= coalesce(h.unassigned_at, STRFTIME('%Y-%m-%dT%H:%M:%f000Z', 'NOW'))
-                WHERE (l.experiment=? )
-                AND ({get_level_string(min_level)})
-                ORDER BY l.timestamp DESC LIMIT 50 OFFSET {skip};""",
-            (experiment,),
-        )
-
-    except Exception as e:
-        publish_to_error_log(str(e), "get_exp_logs")
-        abort(500)
+    recent_logs = query_app_db(
+        f"""SELECT l.timestamp, level, l.pioreactor_unit, message, task, l.experiment
+            FROM logs AS l
+            JOIN experiment_worker_assignments_history h
+               on h.pioreactor_unit = l.pioreactor_unit
+               and h.assigned_at <= l.timestamp
+               and l.timestamp <= coalesce(h.unassigned_at, STRFTIME('%Y-%m-%dT%H:%M:%f000Z', 'NOW'))
+            WHERE (l.experiment=? )
+            AND ({get_level_string(min_level)})
+            ORDER BY l.timestamp DESC LIMIT 50 OFFSET {skip};""",
+        (experiment,),
+    )
 
     return jsonify(recent_logs)
 
@@ -408,17 +398,12 @@ def get_logs() -> ResponseReturnValue:
     skip = int(request.args.get("skip", 0))
     min_level = request.args.get("min_level", "INFO")
 
-    try:
-        recent_logs = query_app_db(
-            f"""SELECT l.timestamp, level, l.pioreactor_unit, message, task, l.experiment
-                FROM logs AS l
-                WHERE ({get_level_string(min_level)})
-                ORDER BY l.timestamp DESC LIMIT 50 OFFSET {skip};"""
-        )
-
-    except Exception as e:
-        publish_to_error_log(str(e), "get_logs")
-        abort(500)
+    recent_logs = query_app_db(
+        f"""SELECT l.timestamp, level, l.pioreactor_unit, message, task, l.experiment
+            FROM logs AS l
+            WHERE ({get_level_string(min_level)})
+            ORDER BY l.timestamp DESC LIMIT 50 OFFSET {skip};"""
+    )
 
     return jsonify(recent_logs)
 
@@ -431,24 +416,19 @@ def get_recent_logs_for_unit_and_experiment(
 
     min_level = request.args.get("min_level", "INFO")
 
-    try:
-        recent_logs = query_app_db(
-            f"""SELECT l.timestamp, level, l.pioreactor_unit, message, task, l.experiment
-                FROM logs AS l
-                WHERE (l.experiment=? OR l.experiment=?)
-                    AND (l.pioreactor_unit=? or l.pioreactor_unit=?)
-                    AND ({get_level_string(min_level)})
-                    AND l.timestamp >= MAX(
-                        STRFTIME('%Y-%m-%dT%H:%M:%f000Z', 'NOW', '-24 hours'),
-                        COALESCE((SELECT created_at FROM experiments WHERE experiment=?), STRFTIME('%Y-%m-%dT%H:%M:%f000Z', 'NOW', '-24 hours'))
-                    )
-                ORDER BY l.timestamp DESC LIMIT 50;""",
-            (experiment, UNIVERSAL_EXPERIMENT, pioreactor_unit, UNIVERSAL_IDENTIFIER, experiment),
-        )
-
-    except Exception as e:
-        publish_to_error_log(str(e), "get_recent_logs_for_unit_and_experiment")
-        abort(500)
+    recent_logs = query_app_db(
+        f"""SELECT l.timestamp, level, l.pioreactor_unit, message, task, l.experiment
+            FROM logs AS l
+            WHERE (l.experiment=? OR l.experiment=?)
+                AND (l.pioreactor_unit=? or l.pioreactor_unit=?)
+                AND ({get_level_string(min_level)})
+                AND l.timestamp >= MAX(
+                    STRFTIME('%Y-%m-%dT%H:%M:%f000Z', 'NOW', '-24 hours'),
+                    COALESCE((SELECT created_at FROM experiments WHERE experiment=?), STRFTIME('%Y-%m-%dT%H:%M:%f000Z', 'NOW', '-24 hours'))
+                )
+            ORDER BY l.timestamp DESC LIMIT 50;""",
+        (experiment, UNIVERSAL_EXPERIMENT, pioreactor_unit, UNIVERSAL_IDENTIFIER, experiment),
+    )
 
     return jsonify(recent_logs)
 
@@ -460,24 +440,19 @@ def get_logs_for_unit_and_experiment(pioreactor_unit: str, experiment: str) -> R
     skip = int(request.args.get("skip", 0))
     min_level = request.args.get("min_level", "INFO")
 
-    try:
-        recent_logs = query_app_db(
-            f"""SELECT l.timestamp, level, l.pioreactor_unit, message, task, l.experiment
-                FROM logs AS l
-                JOIN experiment_worker_assignments_history h
-                   on h.pioreactor_unit = l.pioreactor_unit
-                   and h.assigned_at <= l.timestamp
-                   and l.timestamp <= coalesce(h.unassigned_at, STRFTIME('%Y-%m-%dT%H:%M:%f000Z', 'NOW') )
-                WHERE (l.experiment=? or l.experiment=?)
-                    AND (l.pioreactor_unit=? or l.pioreactor_unit=?)
-                    AND ({get_level_string(min_level)})
-                ORDER BY l.timestamp DESC LIMIT 50 OFFSET {skip};""",
-            (experiment, UNIVERSAL_EXPERIMENT, pioreactor_unit, UNIVERSAL_IDENTIFIER),
-        )
-
-    except Exception as e:
-        publish_to_error_log(str(e), "get_for_unit_and_experiment")
-        abort(500)
+    recent_logs = query_app_db(
+        f"""SELECT l.timestamp, level, l.pioreactor_unit, message, task, l.experiment
+            FROM logs AS l
+            JOIN experiment_worker_assignments_history h
+               on h.pioreactor_unit = l.pioreactor_unit
+               and h.assigned_at <= l.timestamp
+               and l.timestamp <= coalesce(h.unassigned_at, STRFTIME('%Y-%m-%dT%H:%M:%f000Z', 'NOW') )
+            WHERE (l.experiment=? or l.experiment=?)
+                AND (l.pioreactor_unit=? or l.pioreactor_unit=?)
+                AND ({get_level_string(min_level)})
+            ORDER BY l.timestamp DESC LIMIT 50 OFFSET {skip};""",
+        (experiment, UNIVERSAL_EXPERIMENT, pioreactor_unit, UNIVERSAL_IDENTIFIER),
+    )
 
     return jsonify(recent_logs)
 
@@ -489,19 +464,14 @@ def get_logs_for_unit(pioreactor_unit: str) -> ResponseReturnValue:
     skip = int(request.args.get("skip", 0))
     min_level = request.args.get("min_level", "INFO")
 
-    try:
-        recent_logs = query_app_db(
-            f"""SELECT l.timestamp, level, l.pioreactor_unit, message, task, l.experiment
-                FROM logs AS l
-                WHERE (l.pioreactor_unit=? or l.pioreactor_unit=?)
-                AND ({get_level_string(min_level)})
-                ORDER BY l.timestamp DESC LIMIT 50 OFFSET {skip};""",
-            (pioreactor_unit, UNIVERSAL_IDENTIFIER),
-        )
-
-    except Exception as e:
-        publish_to_error_log(str(e), "get_logs_for_unit")
-        abort(500)
+    recent_logs = query_app_db(
+        f"""SELECT l.timestamp, level, l.pioreactor_unit, message, task, l.experiment
+            FROM logs AS l
+            WHERE (l.pioreactor_unit=? or l.pioreactor_unit=?)
+            AND ({get_level_string(min_level)})
+            ORDER BY l.timestamp DESC LIMIT 50 OFFSET {skip};""",
+        (pioreactor_unit, UNIVERSAL_IDENTIFIER),
+    )
 
     return jsonify(recent_logs)
 
@@ -516,7 +486,7 @@ def publish_new_log(pioreactor_unit: str, experiment: str) -> ResponseReturnValu
         msg_to_JSON(
             msg=body["message"],
             source="user",
-            level="info",
+            level="INFO",
             timestamp=body["timestamp"],
             task=body["source"] or "",
         ),
@@ -534,28 +504,23 @@ def get_growth_rates(experiment: str) -> ResponseReturnValue:
     filter_mod_n = float(args.get("filter_mod_N", 100.0))
     lookback = float(args.get("lookback", 4.0))
 
-    try:
-        growth_rates = query_app_db(
-            """
-            SELECT
-                json_object('series', json_group_array(unit), 'data', json_group_array(json(data))) as json
-            FROM (
-                SELECT pioreactor_unit as unit,
-                       json_group_array(json_object('x', timestamp, 'y', round(rate, 5))) as data
-                FROM growth_rates
-                WHERE experiment=? AND
-                      ((ROWID * 0.61803398875) - cast(ROWID * 0.61803398875 as int) < 1.0/?) AND
-                      timestamp > STRFTIME('%Y-%m-%dT%H:%M:%f000Z', 'NOW', ?)
-                GROUP BY 1
-                );
-            """,
-            (experiment, filter_mod_n, f"-{lookback} hours"),
-            one=True,
-        )
-
-    except Exception as e:
-        publish_to_error_log(str(e), "get_growth_rates")
-        abort(400)
+    growth_rates = query_app_db(
+        """
+        SELECT
+            json_object('series', json_group_array(unit), 'data', json_group_array(json(data))) as json
+        FROM (
+            SELECT pioreactor_unit as unit,
+                   json_group_array(json_object('x', timestamp, 'y', round(rate, 5))) as data
+            FROM growth_rates
+            WHERE experiment=? AND
+                  ((ROWID * 0.61803398875) - cast(ROWID * 0.61803398875 as int) < 1.0/?) AND
+                  timestamp > STRFTIME('%Y-%m-%dT%H:%M:%f000Z', 'NOW', ?)
+            GROUP BY 1
+            );
+        """,
+        (experiment, filter_mod_n, f"-{lookback} hours"),
+        one=True,
+    )
 
     assert isinstance(growth_rates, dict)
     return attach_cache_control(as_json_response(growth_rates["json"]))
@@ -568,28 +533,23 @@ def get_temperature_readings(experiment: str) -> ResponseReturnValue:
     filter_mod_n = float(args.get("filter_mod_N", 100.0))
     lookback = float(args.get("lookback", 4.0))
 
-    try:
-        temperature_readings = query_app_db(
-            """
-            SELECT json_object('series', json_group_array(unit), 'data', json_group_array(json(data))) as json
-            FROM (
-                SELECT
-                    pioreactor_unit as unit,
-                    json_group_array(json_object('x', timestamp, 'y', round(temperature_c, 2))) as data
-                FROM temperature_readings
-                WHERE experiment=? AND
-                    ((ROWID * 0.61803398875) - cast(ROWID * 0.61803398875 as int) < 1.0/?) AND
-                    timestamp > STRFTIME('%Y-%m-%dT%H:%M:%f000Z', 'NOW' , ?)
-                GROUP BY 1
-                );
-            """,
-            (experiment, filter_mod_n, f"-{lookback} hours"),
-            one=True,
-        )
-
-    except Exception as e:
-        publish_to_error_log(str(e), "get_temperature_readings")
-        abort(400)
+    temperature_readings = query_app_db(
+        """
+        SELECT json_object('series', json_group_array(unit), 'data', json_group_array(json(data))) as json
+        FROM (
+            SELECT
+                pioreactor_unit as unit,
+                json_group_array(json_object('x', timestamp, 'y', round(temperature_c, 2))) as data
+            FROM temperature_readings
+            WHERE experiment=? AND
+                ((ROWID * 0.61803398875) - cast(ROWID * 0.61803398875 as int) < 1.0/?) AND
+                timestamp > STRFTIME('%Y-%m-%dT%H:%M:%f000Z', 'NOW' , ?)
+            GROUP BY 1
+            );
+        """,
+        (experiment, filter_mod_n, f"-{lookback} hours"),
+        one=True,
+    )
 
     assert isinstance(temperature_readings, dict)
     return attach_cache_control(as_json_response(temperature_readings["json"]))
@@ -602,29 +562,24 @@ def get_od_readings_filtered(experiment: str) -> ResponseReturnValue:
     filter_mod_n = float(args.get("filter_mod_N", 100.0))
     lookback = float(args.get("lookback", 4.0))
 
-    try:
-        filtered_od_readings = query_app_db(
-            """
+    filtered_od_readings = query_app_db(
+        """
+        SELECT
+            json_object('series', json_group_array(unit), 'data', json_group_array(json(data))) as json
+        FROM (
             SELECT
-                json_object('series', json_group_array(unit), 'data', json_group_array(json(data))) as json
-            FROM (
-                SELECT
-                    pioreactor_unit as unit,
-                    json_group_array(json_object('x', timestamp, 'y', round(normalized_od_reading, 7))) as data
-                FROM od_readings_filtered
-                WHERE experiment=? AND
-                    ((ROWID * 0.61803398875) - cast(ROWID * 0.61803398875 as int) < 1.0/?) AND
-                    timestamp > STRFTIME('%Y-%m-%dT%H:%M:%f000Z', 'NOW', ?)
-                GROUP BY 1
-                );
-            """,
-            (experiment, filter_mod_n, f"-{lookback} hours"),
-            one=True,
-        )
-
-    except Exception as e:
-        publish_to_error_log(str(e), "get_od_readings_filtered")
-        abort(400)
+                pioreactor_unit as unit,
+                json_group_array(json_object('x', timestamp, 'y', round(normalized_od_reading, 7))) as data
+            FROM od_readings_filtered
+            WHERE experiment=? AND
+                ((ROWID * 0.61803398875) - cast(ROWID * 0.61803398875 as int) < 1.0/?) AND
+                timestamp > STRFTIME('%Y-%m-%dT%H:%M:%f000Z', 'NOW', ?)
+            GROUP BY 1
+            );
+        """,
+        (experiment, filter_mod_n, f"-{lookback} hours"),
+        one=True,
+    )
 
     assert isinstance(filtered_od_readings, dict)
     return attach_cache_control(as_json_response(filtered_od_readings["json"]))
@@ -637,27 +592,22 @@ def get_od_readings(experiment: str) -> ResponseReturnValue:
     filter_mod_n = float(args.get("filter_mod_N", 100.0))
     lookback = float(args.get("lookback", 4.0))
 
-    try:
-        raw_od_readings = query_app_db(
-            """
-            SELECT
-                json_object('series', json_group_array(unit), 'data', json_group_array(json(data))) as json
-            FROM (
-                SELECT pioreactor_unit || '-' || channel as unit, json_group_array(json_object('x', timestamp, 'y', round(od_reading, 7))) as data
-                FROM od_readings
-                WHERE experiment=? AND
-                    ((ROWID * 0.61803398875) - cast(ROWID * 0.61803398875 as int) < 1.0/?) AND
-                    timestamp > STRFTIME('%Y-%m-%dT%H:%M:%f000Z', 'NOW',  ?)
-                GROUP BY 1
-                );
-            """,
-            (experiment, filter_mod_n, f"-{lookback} hours"),
-            one=True,
-        )
-
-    except Exception as e:
-        publish_to_error_log(str(e), "get_od_readings")
-        abort(400)
+    raw_od_readings = query_app_db(
+        """
+        SELECT
+            json_object('series', json_group_array(unit), 'data', json_group_array(json(data))) as json
+        FROM (
+            SELECT pioreactor_unit || '-' || channel as unit, json_group_array(json_object('x', timestamp, 'y', round(od_reading, 7))) as data
+            FROM od_readings
+            WHERE experiment=? AND
+                ((ROWID * 0.61803398875) - cast(ROWID * 0.61803398875 as int) < 1.0/?) AND
+                timestamp > STRFTIME('%Y-%m-%dT%H:%M:%f000Z', 'NOW',  ?)
+            GROUP BY 1
+            );
+        """,
+        (experiment, filter_mod_n, f"-{lookback} hours"),
+        one=True,
+    )
 
     assert isinstance(raw_od_readings, dict)
     return attach_cache_control(as_json_response(raw_od_readings["json"]))
@@ -693,6 +643,7 @@ def get_fallback_time_series(data_source: str, experiment: str, column: str) -> 
     except Exception as e:
         publish_to_error_log(str(e), "get_fallback_time_series")
         abort(400)
+
     assert isinstance(r, dict)
     return attach_cache_control(as_json_response(r["json"]))
 
@@ -1455,24 +1406,18 @@ def update_experiment(experiment: str) -> ResponseReturnValue:
 
 @api.route("/experiments/<experiment>", methods=["GET"])
 def get_experiment(experiment: str) -> ResponseReturnValue:
-    try:
-        result = query_app_db(
-            """SELECT experiment, created_at, description, round( (strftime("%s","now") - strftime("%s", created_at))/60/60, 0) as delta_hours
-            FROM experiments
-            WHERE experiment=(?)
-            ;
-            """,
-            (experiment,),
-            one=True,
-        )
-        if result is not None:
-            return jsonify(result)
-        else:
-            abort(404, f"Experiment {experiment} not found")
-
-    except Exception as e:
-        publish_to_error_log(str(e), "get_experiments")
-        abort(500)
+    result = query_app_db(
+        """SELECT experiment, created_at, description, round( (strftime("%s","now") - strftime("%s", created_at))/60/60, 0) as delta_hours
+        FROM experiments
+        WHERE experiment=(?);
+        """,
+        (experiment,),
+        one=True,
+    )
+    if result is not None:
+        return jsonify(result)
+    else:
+        abort(404, f"Experiment {experiment} not found")
 
 
 ## CONFIG CONTROL
@@ -1530,19 +1475,14 @@ def get_configs() -> ResponseReturnValue:
             # return True
             return strip_worker_name_from_config(file_name) in pioreactors_bucket
 
-    try:
-        config_path = Path(env["DOT_PIOREACTOR"])
-        return jsonify(
-            [
-                file.name
-                for file in sorted(config_path.glob("config*.ini"))
-                if allow_file_through(file.name)
-            ]
-        )
-
-    except Exception as e:
-        publish_to_error_log(str(e), "get_configs")
-        abort(500)
+    config_path = Path(env["DOT_PIOREACTOR"])
+    return jsonify(
+        [
+            file.name
+            for file in sorted(config_path.glob("config*.ini"))
+            if allow_file_through(file.name)
+        ]
+    )
 
 
 @api.route("/configs/<filename>", methods=["PATCH"])
@@ -1640,15 +1580,10 @@ def update_config(filename: str) -> ResponseReturnValue:
 
 @api.route("/configs/<filename>/history", methods=["GET"])
 def get_historical_config_for(filename: str) -> ResponseReturnValue:
-    try:
-        configs_for_filename = query_app_db(
-            "SELECT filename, timestamp, data FROM config_files_histories WHERE filename=? ORDER BY timestamp DESC",
-            (filename,),
-        )
-
-    except Exception as e:
-        publish_to_error_log(str(e), "get_historical_config_for")
-        abort(400)
+    configs_for_filename = query_app_db(
+        "SELECT filename, timestamp, data FROM config_files_histories WHERE filename=? ORDER BY timestamp DESC",
+        (filename,),
+    )
 
     return attach_cache_control(jsonify(configs_for_filename), max_age=15)
 
@@ -1831,9 +1766,6 @@ def get_experiment_profile(filename: str) -> ResponseReturnValue:
     except IOError as e:
         publish_to_error_log(str(e), "get_experiment_profile")
         abort(404)
-    except Exception as e:
-        publish_to_error_log(str(e), "get_experiment_profile")
-        abort(500)
 
 
 @api.route("/contrib/experiment_profiles/<filename>", methods=["DELETE"])

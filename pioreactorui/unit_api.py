@@ -555,8 +555,8 @@ def create_calibration(device) -> ResponseReturnValue:
     Create a new calibration for the specified device.
     The request must contain a JSON payload with the calibration data.
     """
-    calibration_dir = Path(env["DOT_PIOREACTOR"]) / "storage" / "calibrations" / device
-    calibration_dir.mkdir(parents=True, exist_ok=True)
+    # calibration_dir = Path(env["DOT_PIOREACTOR"]) / "storage" / "calibrations" / device
+    # if folder does not exist, users should make it with mkdir -p ... && chown -R pioreactor:www-data ...
 
     try:
         data = request.get_json()
