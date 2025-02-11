@@ -1,3 +1,16 @@
+### 25.2.10
+- **UI Improvements**:
+  - Improved chart colors.
+  - Added the ability to choose the level of detail on the new Event Logs page.
+  - Ability to run multiple experiment profiles per experiment.
+  - Users can now specify which Pioreactor to update on the Updates page (available only with release archives)
+- Introduced:
+  - `GET /unit_api/jobs/running/<job>`
+  - `GET /api/experiment_profiles/running/experiments/<experiment>`
+- Fixed UI not displaying third-party calibrations.
+- Fixed manual dosing issues in the UI.
+- Fixed manual log recording in the UI.
+
 ### 25.1.21
  - Bug fixes for the UI
 

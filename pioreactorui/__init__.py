@@ -228,7 +228,6 @@ def query_temp_local_metadata_db(
     cur = _get_temp_local_metadata_db_connection().execute(query, args)
     rv = cur.fetchall()
     cur.close()
-    print(rv)
     return (rv[0] if rv else None) if one else rv
 
 
