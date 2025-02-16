@@ -3,10 +3,9 @@ from __future__ import annotations
 
 import logging
 import os
-import signal
 from logging import handlers
 from shlex import join
-from subprocess import check_call as run_and_check_call
+from subprocess import check_call
 from subprocess import DEVNULL
 from subprocess import Popen
 from subprocess import run
@@ -32,7 +31,7 @@ from .config import is_testing_env
 # this is a hack to get around us not cleaning up / tracking Popen processes. We effectively ignore
 # what they do. Note that since this LOC is at the top of this module, PioreactorUI also is affected by
 # it. https://stackoverflow.com/questions/16807603/python-non-blocking-non-defunct-process and https://www.philipson.co.il/post/a-subprocess-bug-nah/
-signal.signal(signal.SIGCHLD, signal.SIG_IGN)
+# signal.signal(signal.SIGCHLD, signal.SIG_IGN)
 
 logger = logging.getLogger("huey.consumer")
 logger.setLevel(logging.INFO)
@@ -91,8 +90,7 @@ def pio_run(*args: str, env: dict[str, str] = {}) -> bool:
 def add_new_pioreactor(new_pioreactor_name: str, version: str, model: str) -> bool:
     command = [PIO_EXECUTABLE, "workers", "add", new_pioreactor_name, "-v", version, "-m", model]
     logger.info(f"Executing `{join(command)}`")
-    result = run_and_check_call(command)
-    print(result)
+    check_call(command)
     return True
 
 
@@ -101,7 +99,7 @@ def update_app_across_cluster() -> bool:
     # CPU heavy / IO heavy
     logger.info("Updating app on leader")
     update_app_on_leader = ["pio", "update", "app"]
-    run_and_check_call(update_app_on_leader)
+    check_call(update_app_on_leader)
 
     logger.info("Updating app and ui on workers")
     update_app_across_all_workers = [PIOS_EXECUTABLE, "update", "-y"]
@@ -114,7 +112,7 @@ def update_app_from_release_archive_across_cluster(archive_location: str, units:
     if units == "$broadcast":
         logger.info(f"Updating app on leader from {archive_location}")
         update_app_on_leader = ["pio", "update", "app", "--source", archive_location]
-        run_and_check_call(update_app_on_leader)
+        check_call(update_app_on_leader)
         # remove bits if success
 
         logger.info(f"Updating app and ui on workers from {archive_location}")
