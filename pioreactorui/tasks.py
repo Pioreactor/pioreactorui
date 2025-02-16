@@ -89,11 +89,11 @@ def pio_run(*args: str, env: dict[str, str] = {}) -> bool:
 
 @huey.task()
 def add_new_pioreactor(new_pioreactor_name: str, version: str, model: str) -> bool:
-    logger.info(f"Adding new pioreactor {new_pioreactor_name}, {model} {version}")
-    result = run(
-        [PIO_EXECUTABLE, "workers", "add", new_pioreactor_name, "-v", version, "-m", model],
-    )
-    return result.returncode == 0
+    command = [PIO_EXECUTABLE, "workers", "add", new_pioreactor_name, "-v", version, "-m", model]
+    logger.info(f"Executing `{join(command)}`")
+    result = run_and_check_call(command)
+    print(result)
+    return True
 
 
 @huey.task()

@@ -44,7 +44,7 @@ def scrub_to_valid(value: str) -> str:
 
 def is_valid_unix_filename(filename: str) -> bool:
     return (
-        bool(re.fullmatch(r"[a-zA-Z0-9._-]+", filename))
+        bool(re.fullmatch(r"[\sa-zA-Z0-9._-]+", filename))
         and "/" not in filename
         and "\0" not in filename
     )
