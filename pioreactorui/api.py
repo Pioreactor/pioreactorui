@@ -1727,24 +1727,20 @@ def get_experiment_profiles() -> ResponseReturnValue:
                         "experimentProfile": {
                             "experiment_profile_name": f"temporary name: {file.stem}"
                         },
-                        "file": str(file),
+                        "file": Path(file).name,
                     }
                 )
                 continue
 
             try:
                 profile = yaml_decode(file.read_bytes(), type=Profile)
-                parsed_yaml.append({"experimentProfile": profile, "file": str(file)})
+                parsed_yaml.append({"experimentProfile": profile, "file": Path(file).name})
             except (ValidationError, DecodeError) as e:
                 publish_to_error_log(
                     f"Yaml error in {Path(file).name}: {e}", "get_experiment_profiles"
                 )
 
-        return Response(
-            response=current_app.json.dumps(parsed_yaml),
-            status=200,
-            mimetype="application/json",
-        )
+        return attach_cache_control(jsonify(parsed_yaml), max_age=5)
     except Exception as e:
         publish_to_error_log(str(e), "get_experiment_profiles")
         abort(400)
@@ -1816,7 +1812,7 @@ def setup_worker_pioreactor() -> ResponseReturnValue:
     try:
         result = tasks.add_new_pioreactor(new_name, version, model)
     except Exception as e:
-        return abort(500, str(e))
+        return abort(404, str(e))
 
     try:
         status = result(blocking=True, timeout=250)
@@ -1826,7 +1822,7 @@ def setup_worker_pioreactor() -> ResponseReturnValue:
     if status:
         return {"msg": f"Worker {new_name} added successfully."}, 200
     else:
-        abort(500, f"Failed to add worker {new_name}. See logs.")
+        abort(404, f"Failed to add worker {new_name}. See logs.")
 
 
 @api.route("/workers", methods=["PUT"])
