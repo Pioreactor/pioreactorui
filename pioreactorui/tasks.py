@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import logging
 import os
+import time
 from logging import handlers
 from shlex import join
 from subprocess import check_call
@@ -68,20 +69,18 @@ def initialized():
     logger.info("Starting Huey consumer...")
     logger.info(f"Cache directory = {CACHE_DIR}")
 
-
 @huey.task(priority=10)
 def pio_run(*args: str, env: dict[str, str] = {}) -> bool:
     # for long running pio run jobs where we don't care about the output / status
-    command = ("nohup", PIO_EXECUTABLE, "run") + args
 
+    unique_id = f"pio-stirring-{int(time.time())}"  # Ensure a unique unit name
     command = (
         "systemd-run",
-        "--scope",
-        "--user",  # optional: run as a user unit
-        "-p",
-        "KillSignal=SIGTERM",
-        "-p",
-        "TimeoutStopSec=30",
+        "--unit",
+        unique_id,  # Assigns a unique systemd unit name
+        "--user",  # Runs under the user instance of systemd
+        "--property=KillSignal=SIGTERM",
+        "--property=TimeoutStopSec=30",
         PIO_EXECUTABLE,
         "run",
     ) + args
