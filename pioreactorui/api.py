@@ -1606,11 +1606,11 @@ def get_running_profiles(experiment: str) -> ResponseReturnValue:
             json_group_array(json_object(
                 'job_name', m.job_name,
                 'experiment', m.experiment,
-                'job_id', m.id,
+                'job_id', m.job_id,
                 'settings', (
                     SELECT json_group_object(s.setting, s.value)
                     FROM pio_job_published_settings s
-                    WHERE s.job_id = m.id
+                    WHERE s.job_id = m.job_id
                 )
             )) as result
         FROM
@@ -1728,13 +1728,20 @@ def get_experiment_profiles() -> ResponseReturnValue:
                             "experiment_profile_name": f"temporary name: {file.stem}"
                         },
                         "file": Path(file).name,
+                        "fullpath": Path(file).as_posix(),
                     }
                 )
                 continue
 
             try:
                 profile = yaml_decode(file.read_bytes(), type=Profile)
-                parsed_yaml.append({"experimentProfile": profile, "file": Path(file).name})
+                parsed_yaml.append(
+                    {
+                        "experimentProfile": profile,
+                        "file": Path(file).name,
+                        "fullpath": Path(file).as_posix(),
+                    }
+                )
             except (ValidationError, DecodeError) as e:
                 publish_to_error_log(
                     f"Yaml error in {Path(file).name}: {e}", "get_experiment_profiles"

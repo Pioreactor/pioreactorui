@@ -364,7 +364,7 @@ def get_settings_for_a_specific_job(job_name) -> ResponseReturnValue:
     SELECT s.setting, s.value FROM
         pio_job_published_settings s
         JOIN pio_job_metadata m
-            on m.id = s.job_id
+            on m.job_id = s.job_id
         WHERE m.is_running=1 AND m.job_name=(?);
     """,
         (job_name,),
@@ -383,7 +383,7 @@ def get_specific_setting_for_a_job(job_name, setting) -> ResponseReturnValue:
     SELECT s.setting, s.value FROM
         pio_job_published_settings s
         JOIN pio_job_metadata m
-            on m.id = s.job_id
+            on m.job_id = s.job_id
         WHERE m.is_running=1 AND m.job_name=(?) AND setting = (?)
     """,
         (job_name, setting),
