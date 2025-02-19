@@ -73,6 +73,19 @@ def initialized():
 def pio_run(*args: str, env: dict[str, str] = {}) -> bool:
     # for long running pio run jobs where we don't care about the output / status
     command = ("nohup", PIO_EXECUTABLE, "run") + args
+
+    command = (
+        "systemd-run",
+        "--scope",
+        "--user",  # optional: run as a user unit
+        "-p",
+        "KillSignal=SIGTERM",
+        "-p",
+        "TimeoutStopSec=30",
+        PIO_EXECUTABLE,
+        "run",
+    ) + args
+
     env = {k: v for k, v in (env or {}).items() if k in ALLOWED_ENV}
     logger.info(f"Executing `{join(command)}`, {env=}")
     Popen(
@@ -108,7 +121,6 @@ def update_app_from_release_archive_across_cluster(archive_location: str, units:
         logger.info(f"Updating app on leader from {archive_location}")
         update_app_on_leader = ["pio", "update", "app", "--source", archive_location]
         check_call(update_app_on_leader)
-        # remove bits if success
 
         logger.info(f"Updating app and ui on workers from {archive_location}")
         distribute_archive_to_workers = [PIOS_EXECUTABLE, "cp", archive_location, "-y"]
