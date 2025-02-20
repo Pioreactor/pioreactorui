@@ -76,7 +76,7 @@ def pio_run(*args: str, env: dict[str, str] = {}) -> bool:
 
     env = {k: v for k, v in (env or {}).items() if k in ALLOWED_ENV}
     logger.info(f"Executing `{join(command)}`, {env=}")
-    Popen(command, env=dict(os.environ) | env, stdout=DEVNULL, stderr=STDOUT)
+    check_call(command, env=dict(os.environ) | env)
     return True
 
 
