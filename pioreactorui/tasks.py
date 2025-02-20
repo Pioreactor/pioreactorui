@@ -72,18 +72,13 @@ def initialized():
 @huey.task(priority=10)
 def pio_run(*args: str, env: dict[str, str] = {}) -> bool:
     # for long running pio run jobs where we don't care about the output / status
-    command = ("systemd-run", "--user", PIO_EXECUTABLE, "run") + args
+    command = ("nohup", PIO_EXECUTABLE, "run") + args
 
     env = {k: v for k, v in (env or {}).items() if k in ALLOWED_ENV}
     logger.info(f"Executing `{join(command)}`, {env=}")
-    result = run(command, env=dict(os.environ) | env, capture_output=True, text=True)
-
-    if result.returncode != 0:
-        raise Exception(result.stderr.strip())
-
-    logger.info(result.stderr.strip())
-    logger.info(result.stdout.strip())
-
+    Popen(
+        command, start_new_session=True, env=dict(os.environ) | env, stdout=DEVNULL, stderr=STDOUT
+    )
     return True
 
 
