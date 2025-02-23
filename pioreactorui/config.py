@@ -7,7 +7,6 @@ from __future__ import annotations
 
 import os
 import sqlite3
-import tempfile
 from pathlib import Path
 
 from dotenv import dotenv_values
@@ -18,7 +17,9 @@ def is_testing_env():
     return os.environ.get("TESTING") == "1"
 
 
-CACHE_DIR = Path(tempfile.gettempdir()) / "pioreactor_cache"
+CACHE_DIR = (
+    Path("/tmp") / "pioreactor_cache"
+)  # sucks that is hardcoded - I don't have a config for this location.
 
 env = dotenv_values(".env", verbose=True)
 
