@@ -381,7 +381,7 @@ def get_exp_logs(experiment: str) -> ResponseReturnValue:
             JOIN experiment_worker_assignments_history h
                on h.pioreactor_unit = l.pioreactor_unit
                and h.assigned_at <= l.timestamp
-               and l.timestamp <= coalesce(h.unassigned_at, STRFTIME('%Y-%m-%dT%H:%M:%f000Z', 'NOW', '+5 seconds'))
+               and DATETIME(l.timestamp) <= DATETIME(coalesce(h.unassigned_at, STRFTIME('%Y-%m-%dT%H:%M:%f000Z', 'NOW')), '+5 seconds')
             WHERE (l.experiment=? )
             AND ({get_level_string(min_level)})
             ORDER BY l.timestamp DESC LIMIT 50 OFFSET {skip};""",
@@ -446,7 +446,7 @@ def get_logs_for_unit_and_experiment(pioreactor_unit: str, experiment: str) -> R
             JOIN experiment_worker_assignments_history h
                on h.pioreactor_unit = l.pioreactor_unit
                and h.assigned_at <= l.timestamp
-               and l.timestamp <= coalesce(h.unassigned_at, STRFTIME('%Y-%m-%dT%H:%M:%f000Z', 'NOW', '+5 seconds') )
+               and DATETIME(l.timestamp) <= DATETIME(coalesce(h.unassigned_at, STRFTIME('%Y-%m-%dT%H:%M:%f000Z', 'NOW')), '+5 seconds')
             WHERE (l.experiment=? or l.experiment=?)
                 AND (l.pioreactor_unit=? or l.pioreactor_unit=?)
                 AND ({get_level_string(min_level)})
