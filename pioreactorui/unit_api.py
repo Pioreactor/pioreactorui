@@ -288,26 +288,59 @@ def stop_all_jobs() -> ResponseReturnValue:
     return create_task_response(task)
 
 
+@unit_api.route("/jobs/stop", methods=["PATCH", "POST"])
+def stop_jobs() -> ResponseReturnValue:
+    job_name = request.args.get("job_name")
+    experiment = request.args.get("experiment")
+    job_source = request.args.get("job_source")
+    job_id = request.args.get("job_id")  # note job_id is typically an int, so you might convert it.
+
+    # If you need at least one query param:
+    if not any([job_name, experiment, job_source, job_id]):
+        return abort(400, "No job filter specified")
+
+    kill_args = []
+    if job_name:
+        kill_args.extend(["--job-name", job_name])
+    if experiment:
+        kill_args.extend(["--experiment", experiment])
+    if job_source:
+        kill_args.extend(["--job-source", job_source])
+    if job_id:
+        kill_args.extend(["--job-id", job_id])
+
+    task = tasks.pio_kill(*kill_args)
+    return create_task_response(task)
+
+
+
 @unit_api.route("/jobs/stop/job_name/<job_name>", methods=["PATCH", "POST"])
 def stop_job_by_name(job_name: str) -> ResponseReturnValue:
+    # deprecated
     task = tasks.pio_kill("--job-name", job_name)
     return create_task_response(task)
 
 
 @unit_api.route("/jobs/stop/experiment/<experiment>", methods=["PATCH", "POST"])
 def stop_all_jobs_by_experiment(experiment: str) -> ResponseReturnValue:
+    # deprecated
+
     task = tasks.pio_kill("--experiment", experiment)
     return create_task_response(task)
 
 
 @unit_api.route("/jobs/stop/job_source/<job_source>", methods=["PATCH", "POST"])
 def stop_all_jobs_by_source(job_source: str) -> ResponseReturnValue:
+    # deprecated
+
     task = tasks.pio_kill("--job-source", job_source)
     return create_task_response(task)
 
 
 @unit_api.route("/jobs/stop/job_id/<job_id>", methods=["PATCH", "POST"])
 def stop_all_jobs_by_id(job_id: int) -> ResponseReturnValue:
+    # deprecated
+
     task = tasks.pio_kill("--job-id", job_id)
     return create_task_response(task)
 
@@ -396,8 +429,7 @@ def get_specific_setting_for_a_job(job_name, setting) -> ResponseReturnValue:
 
 
 @unit_api.route("/jobs/settings/job_name/<job_name>", methods=["PATCH"])
-def update_job(job: str) -> ResponseReturnValue:
-    # DONT USE YET
+def update_job(job_name: str) -> ResponseReturnValue:
     """
     The body should look like:
 

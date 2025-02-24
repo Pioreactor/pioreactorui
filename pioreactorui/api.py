@@ -91,7 +91,7 @@ def stop_all_jobs_in_experiment(experiment: str) -> ResponseReturnValue:
     """Kills all jobs for workers assigned to experiment"""
     workers_in_experiment = get_all_workers_in_experiment(experiment)
     tasks.multicast_post_across_cluster(
-        f"/unit_api/jobs/stop/experiment/{experiment}", workers_in_experiment
+        f"/unit_api/jobs/stop", workers_in_experiment, params={'experiment': experiment}
     )
 
     # sometimes the leader isn't part of the experiment, but a profile associated with the experiment is running:
@@ -109,10 +109,10 @@ def stop_all_jobs_on_worker_for_experiment(
 ) -> ResponseReturnValue:
     """Kills all jobs for worker assigned to experiment"""
     if pioreactor_unit == UNIVERSAL_IDENTIFIER:
-        broadcast_post_across_cluster(f"/unit_api/jobs/stop/experiment/{experiment}")
+        broadcast_post_across_cluster(f"/unit_api/jobs/stop", params={'experiment': experiment})
     else:
         tasks.multicast_post_across_cluster(
-            f"/unit_api/jobs/stop/experiment/{experiment}", [pioreactor_unit]
+            f"/unit_api/jobs/stop", [pioreactor_unit], params={'experiment': experiment}
         )
 
     return Response(status=202)
@@ -123,21 +123,21 @@ def stop_all_jobs_on_worker_for_experiment(
     methods=["PATCH", "POST"],
 )
 @api.route(
-    "/units/<pioreactor_unit>/jobs/stop/job_name/<job>/experiments/<experiment>",
+    "/units/<pioreactor_unit>/jobs/stop/job_name/<job_name>/experiments/<experiment>",
     methods=["PATCH", "POST"],
 )
-def stop_job_on_unit(pioreactor_unit: str, experiment: str, job: str) -> ResponseReturnValue:
+def stop_job_on_unit(pioreactor_unit: str, experiment: str, job_name: str) -> ResponseReturnValue:
     """Kills specified job on unit"""
 
     msg = client.publish(
-        f"pioreactor/{pioreactor_unit}/{experiment}/{job}/$state/set", b"disconnected", qos=1
+        f"pioreactor/{pioreactor_unit}/{experiment}/{job_name}/$state/set", b"disconnected", qos=1
     )
     try:
         msg.wait_for_publish(timeout=2.0)
     except Exception:
         # TODO: make this $broadcastable
         tasks.multicast_post_across_cluster(
-            f"/unit_api/jobs/stop/job_name/{job}", [pioreactor_unit]
+            f"/unit_api/jobs/stop", [pioreactor_unit], params={'job_name': job_name}
         )
         abort(500)
 
@@ -1261,7 +1261,7 @@ def create_experiment() -> ResponseReturnValue:
 @api.route("/experiments/<experiment>", methods=["DELETE"])
 def delete_experiment(experiment: str) -> ResponseReturnValue:
     row_count = modify_app_db("DELETE FROM experiments WHERE experiment=?;", (experiment,))
-    broadcast_post_across_cluster(f"/unit_api/jobs/stop/experiment/{experiment}")
+    broadcast_post_across_cluster(f"/unit_api/jobs/stop", params={"experiment": experiment})
 
     if row_count > 0:
         return Response(status=200)
@@ -2089,7 +2089,7 @@ def remove_worker_from_experiment(experiment: str, pioreactor_unit: str) -> Resp
     )
     if row_count > 0:
         tasks.multicast_post_across_cluster(
-            f"/unit_api/jobs/stop/experiment/{experiment}", [pioreactor_unit]
+            f"/unit_api/jobs/stop", [pioreactor_unit], params={'experiment': experiment}
         )
         publish_to_experiment_log(
             f"Removed {pioreactor_unit} from {experiment}.",
@@ -2109,7 +2109,7 @@ def remove_workers_from_experiment(experiment: str) -> ResponseReturnValue:
         "DELETE FROM experiment_worker_assignments WHERE experiment = ?",
         (experiment,),
     )
-    task = broadcast_post_across_cluster(f"/unit_api/jobs/stop/experiment/{experiment}")
+    task = broadcast_post_across_cluster(f"/unit_api/jobs/stop", params={'experiment': experiment})
     publish_to_experiment_log(
         f"Removed all workers from {experiment}.",
         experiment=experiment,
