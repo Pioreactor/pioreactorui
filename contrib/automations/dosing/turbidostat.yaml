@@ -19,7 +19,7 @@ fields:
     label: Target OD
     type: numeric
   - key: volume
-    default: 2.0
+    default: 1.0
     unit: mL
     label: Volume
     type: numeric

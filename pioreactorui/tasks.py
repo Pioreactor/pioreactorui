@@ -336,9 +336,11 @@ def write_config_and_sync(
 
 
 @huey.task(priority=10)
-def post_to_worker(worker: str, endpoint: str, json: dict | None = None) -> tuple[str, Any]:
+def post_to_worker(
+    worker: str, endpoint: str, json: dict | None = None, params: dict | None = None
+) -> tuple[str, Any]:
     try:
-        r = post_into(resolve_to_address(worker), endpoint, json=json, timeout=1)
+        r = post_into(resolve_to_address(worker), endpoint, json=json, params=params, timeout=1)
         r.raise_for_status()
         return worker, r.json()
     except (HTTPErrorStatus, HTTPException) as e:
@@ -355,12 +357,12 @@ def post_to_worker(worker: str, endpoint: str, json: dict | None = None) -> tupl
 
 @huey.task(priority=5)
 def multicast_post_across_cluster(
-    endpoint: str, workers: list[str], json: dict | None = None
+    endpoint: str, workers: list[str], json: dict | None = None, params: dict | None = None
 ) -> dict[str, Any]:
     # this function "consumes" one huey thread waiting fyi
     assert endpoint.startswith("/unit_api")
 
-    tasks = post_to_worker.map(((worker, endpoint, json) for worker in workers))
+    tasks = post_to_worker.map(((worker, endpoint, json, params) for worker in workers))
 
     return {
         worker: response for (worker, response) in tasks.get(blocking=True, timeout=30)
