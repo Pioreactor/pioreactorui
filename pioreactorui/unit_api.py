@@ -295,7 +295,6 @@ def stop_jobs() -> ResponseReturnValue:
     job_source = request.args.get("job_source")
     job_id = request.args.get("job_id")  # note job_id is typically an int, so you might convert it.
 
-    # If you need at least one query param:
     if not any([job_name, experiment, job_source, job_id]):
         return abort(400, "No job filter specified")
 
@@ -313,18 +312,16 @@ def stop_jobs() -> ResponseReturnValue:
     return create_task_response(task)
 
 
-
 @unit_api.route("/jobs/stop/job_name/<job_name>", methods=["PATCH", "POST"])
 def stop_job_by_name(job_name: str) -> ResponseReturnValue:
-    # deprecated
+    # deprecated, use /jobs/stop?job_name=<job_name>
     task = tasks.pio_kill("--job-name", job_name)
     return create_task_response(task)
 
 
 @unit_api.route("/jobs/stop/experiment/<experiment>", methods=["PATCH", "POST"])
 def stop_all_jobs_by_experiment(experiment: str) -> ResponseReturnValue:
-    # deprecated
-
+    # deprecated, use /jobs/stop?experiment=<experiment>
     task = tasks.pio_kill("--experiment", experiment)
     return create_task_response(task)
 
@@ -332,7 +329,6 @@ def stop_all_jobs_by_experiment(experiment: str) -> ResponseReturnValue:
 @unit_api.route("/jobs/stop/job_source/<job_source>", methods=["PATCH", "POST"])
 def stop_all_jobs_by_source(job_source: str) -> ResponseReturnValue:
     # deprecated
-
     task = tasks.pio_kill("--job-source", job_source)
     return create_task_response(task)
 
