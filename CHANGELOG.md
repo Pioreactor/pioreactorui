@@ -1,3 +1,18 @@
+### 25.3.3
+
+- **New time option on the Overview page: "Now" for only real-time data**
+  - The UI now has a “Now” option that filters out historical data, displaying only real-time sensor readings and status updates.
+- **Deprecation of `/unit_api/jobs/stop/...` endpoint**
+  - The `/unit_api/jobs/stop/...` API endpoint is being deprecated in favor of using query parameters:
+    - Instead of `/unit_api/jobs/stop/job_name`, use `/unit_api/jobs/stop/?job_name=...`.
+    - The special case `/unit_api/jobs/stop/all` remains valid and unchanged.
+- **Fix for "More" button in the Logs UI page**
+  - Previously, clicking "More" in the Logs UI would default to "Standard" log level instead of retaining the selected filter. Now, it correctly uses the log level chosen by the user.
+- **Fix for API returning incorrect responses for Huey-related tasks**
+  - API responses related to background tasks (e.g., adding a new Pioreactor, syncing configs, updating firmware) were sometimes incorrect or missing details. This has been fixed.
+- **Fix for missing log events in Event Logs after worker unassignment**
+  - Some log events (such as clean-up and assignment events) were missing when they occurred after a worker was unassigned. These now appear correctly. Additionally, some unrelated log entries that were mistakenly displayed have been removed.
+
 ### 25.2.10
 - **UI Improvements**:
   - Improved chart colors.
