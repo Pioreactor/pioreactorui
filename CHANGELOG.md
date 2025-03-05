@@ -1,3 +1,8 @@
+### 25.3.5
+
+ - Fix for updating across cluster and leader saying it failed
+
+
 ### 25.3.3
 
 - **New time option on the Overview page: "Now" for only real-time data**
