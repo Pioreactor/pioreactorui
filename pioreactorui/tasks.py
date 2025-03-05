@@ -13,6 +13,7 @@ from subprocess import STDOUT
 from typing import Any
 
 from msgspec import DecodeError
+from pioreactor import whoami
 from pioreactor.config import config
 from pioreactor.mureq import HTTPErrorStatus
 from pioreactor.mureq import HTTPException
@@ -114,6 +115,7 @@ def update_app_from_release_archive_across_cluster(archive_location: str, units:
         distribute_archive_to_workers = [PIOS_EXECUTABLE, "cp", archive_location, "-y"]
         run(distribute_archive_to_workers)
 
+        # this may include leader, and leader's UI. If it's not included, we need to update the UI later.
         update_app_across_all_workers = [
             PIOS_EXECUTABLE,
             "update",
@@ -123,14 +125,17 @@ def update_app_from_release_archive_across_cluster(archive_location: str, units:
         ]
         run(update_app_across_all_workers)
 
-        update_ui_on_leader = [
-            "pio",
-            "update",
-            "ui",
-            "--source",
-            "/tmp/pioreactorui_archive.tar.gz",
-        ]
-        run(update_ui_on_leader)
+        if not whoami.am_I_a_worker():
+            # update the UI on the leader
+            update_ui_on_leader = [
+                "pio",
+                "update",
+                "ui",
+                "--source",
+                "/tmp/pioreactorui_archive.tar.gz",
+            ]
+            run(update_ui_on_leader)
+
         return True
     else:
         logger.info(f"Updating app and ui on unit {units} from {archive_location}")
@@ -251,7 +256,7 @@ def pio_update_app(*args: str, env: dict[str, str] = {}) -> bool:
 def pio_update(*args: str, env: dict[str, str] = {}) -> bool:
     logger.info(f'Executing `{join(("pio", "update") + args)}`, {env=}')
     run((PIO_EXECUTABLE, "update") + args, env=dict(os.environ) | env)
-    # this always returns >0 because it kills huey, I think, so just return true
+    # HACK: this always returns >0 because it kills huey, I think, so just return true
     return True
 
 
