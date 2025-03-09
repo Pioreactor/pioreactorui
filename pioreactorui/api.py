@@ -177,9 +177,9 @@ def run_job_on_unit_in_experiment(
 
     if pioreactor_unit == UNIVERSAL_IDENTIFIER:
         # make sure the worker is active, too
-        workers = query_app_db(
+        assigned_workers = query_app_db(
             """
-            SELECT a.pioreactor_unit as worker
+            SELECT a.pioreactor_unit, w.is_active, w.model_name, w.model_version
             FROM experiment_worker_assignments a
             JOIN workers w
                on w.pioreactor_unit = a.pioreactor_unit
@@ -187,14 +187,13 @@ def run_job_on_unit_in_experiment(
             """,
             (experiment,),
         )
-        assert isinstance(workers, list)
-        assigned_workers = [w["worker"] for w in workers]
+        assert isinstance(assigned_workers, list)
 
     else:
         # check if worker is part of experiment
-        okay = query_app_db(
+        worker = query_app_db(
             """
-            SELECT count(1) as count
+            SELECT a.pioreactor_unit, w.is_active, w.model_name, w.model_version
             FROM experiment_worker_assignments a
             JOIN workers w
                on w.pioreactor_unit = a.pioreactor_unit
@@ -203,20 +202,31 @@ def run_job_on_unit_in_experiment(
             (experiment, pioreactor_unit),
             one=True,
         )
-        assert isinstance(okay, dict)
-        if okay["count"] == 0:
+        assert isinstance(worker, dict)
+        if worker is None:
             assigned_workers = []
         else:
-            assigned_workers = [pioreactor_unit]
+            assigned_workers = [worker]
+
+    assert isinstance(assigned_workers, list)
 
     if len(assigned_workers) == 0:
-        abort(404, f"Worker {pioreactor_unit} not found")
+        abort(404, f"Worker(s) {pioreactor_unit} not found or not active.")
 
     # and we can include experiment in the env since we know these workers are in the experiment!
-    json.env = json.env | {"EXPERIMENT": experiment, "ACTIVE": "1"}
+    # json.env = json.env | {"EXPERIMENT": experiment, "ACTIVE": "1"}
 
     t = tasks.multicast_post_across_cluster(
-        f"/unit_api/jobs/run/job_name/{job}", assigned_workers, json=json
+        f"/unit_api/jobs/run/job_name/{job}",
+        [worker["pioreactor_unit"] for worker in assigned_workers],
+        json=[
+            (
+                json.env
+                | {"EXPERIMENT": experiment, "ACTIVE": "1"}
+                | {"MODEL_NAME": worker["model_name"], "MODEL_VERSION": worker["model_version"]}
+            )
+            for worker in assigned_workers
+        ],
     )
     return create_task_response(t)
 
@@ -1808,7 +1818,7 @@ def get_list_of_units() -> ResponseReturnValue:
 def get_list_of_workers() -> ResponseReturnValue:
     # Get a list of all workers
     all_workers = query_app_db(
-        "SELECT pioreactor_unit, added_at, is_active FROM workers ORDER BY pioreactor_unit;"
+        "SELECT pioreactor_unit, added_at, is_active, model_name, model_version FROM workers ORDER BY pioreactor_unit;"
     )
     return jsonify(all_workers)
 
@@ -1922,12 +1932,38 @@ def change_worker_status(pioreactor_unit: str) -> ResponseReturnValue:
         abort(404, f"Worker {pioreactor_unit} not found")
 
 
+@api.route("/workers/<pioreactor_unit>/model", methods=["PUT"])
+def change_worker_model(pioreactor_unit: str) -> ResponseReturnValue:
+    # Get the new status from the request body
+    data = request.json
+    model_version, model_name = data.get("model_version"), data.get("model_name")
+
+    if not model_version or not model_name:
+        return jsonify({"error": "Missing model_version or model_name"}), 400
+
+    # Update the status of the worker in the database
+    row_count = modify_app_db(
+        "UPDATE workers SET model_name = (?), model_version= (?) WHERE pioreactor_unit = (?)",
+        (model_name, model_version, pioreactor_unit),
+    )
+
+    if row_count > 0:
+        publish_to_log(
+            f"Set {pioreactor_unit} to {model_name}, {model_version}.",
+            task="worker_model",
+            level="INFO",
+        )
+        return Response(status=200)
+    else:
+        abort(404, f"Worker {pioreactor_unit} not found")
+
+
 @api.route("/workers/<pioreactor_unit>", methods=["GET"])
 def get_worker(pioreactor_unit: str) -> ResponseReturnValue:
-    # Query the database for the status of the worker in the given experiment
+    # Query the database for a worker
     result = query_app_db(
         """
-        SELECT pioreactor_unit, added_at, is_active
+        SELECT pioreactor_unit, added_at, is_active, model_name, model_version
         FROM workers
         WHERE pioreactor_unit = ?
         """,
@@ -2004,7 +2040,7 @@ def get_experiment_assignment_for_worker(pioreactor_unit: str) -> ResponseReturn
     # Get the experiment that a worker is assigned to along with its active status
     result = query_app_db(
         """
-        SELECT w.pioreactor_unit, w.is_active, a.experiment
+        SELECT w.pioreactor_unit, w.is_active, a.experiment, w.model_name, w.model_version
         FROM workers w
         LEFT JOIN experiment_worker_assignments a
           on w.pioreactor_unit = a.pioreactor_unit
@@ -2032,7 +2068,7 @@ def get_experiment_assignment_for_worker(pioreactor_unit: str) -> ResponseReturn
 def get_list_of_workers_for_experiment(experiment: str) -> ResponseReturnValue:
     workers = query_app_db(
         """
-        SELECT w.pioreactor_unit, is_active
+        SELECT w.pioreactor_unit, w.is_active, w.model_name, w.model_version
         FROM experiment_worker_assignments a
         JOIN workers w
           on w.pioreactor_unit = a.pioreactor_unit

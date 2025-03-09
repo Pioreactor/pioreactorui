@@ -61,6 +61,8 @@ ALLOWED_ENV = (
     "FIRMWARE",
     "ACTIVE",
     "DEBUG",
+    "MODEL_NAME",
+    "MODEL_VERSION",
 )
 
 
@@ -362,12 +364,23 @@ def post_to_worker(
 
 @huey.task(priority=5)
 def multicast_post_across_cluster(
-    endpoint: str, workers: list[str], json: dict | None = None, params: dict | None = None
+    endpoint: str,
+    workers: list[str],
+    json: dict | list[dict] | None = None,
+    params: dict | list[dict] | None = None,
 ) -> dict[str, Any]:
     # this function "consumes" one huey thread waiting fyi
     assert endpoint.startswith("/unit_api")
 
-    tasks = post_to_worker.map(((worker, endpoint, json, params) for worker in workers))
+    if not isinstance(json, list):
+        json = [json] * len(workers)
+
+    if not isinstance(params, list):
+        params = [params] * len(workers)
+
+    tasks = post_to_worker.map(
+        ((workers[i], endpoint, json[i], params[i]) for i in range(len(workers)))
+    )
 
     return {
         worker: response for (worker, response) in tasks.get(blocking=True, timeout=30)
@@ -401,14 +414,18 @@ def get_from_worker(
 def multicast_get_across_cluster(
     endpoint: str,
     workers: list[str],
-    json: dict | None = None,
+    json: dict | list[dict] | None = None,
     timeout: float = 1.0,
     return_raw=False,
 ) -> dict[str, Any]:
     # this function "consumes" one huey thread waiting fyi
     assert endpoint.startswith("/unit_api")
+
+    if not isinstance(json, list):
+        json = [json] * len(workers)
+
     tasks = get_from_worker.map(
-        ((worker, endpoint, json, timeout, return_raw) for worker in workers)
+        ((workers[i], endpoint, json[i], timeout, return_raw) for i in range(len(workers)))
     )
     return {
         worker: response for (worker, response) in tasks.get(blocking=True, timeout=30)
