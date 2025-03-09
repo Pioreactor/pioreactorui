@@ -220,11 +220,19 @@ def run_job_on_unit_in_experiment(
         f"/unit_api/jobs/run/job_name/{job}",
         [worker["pioreactor_unit"] for worker in assigned_workers],
         json=[
-            (
-                json.env
-                | {"EXPERIMENT": experiment, "ACTIVE": "1"}
-                | {"MODEL_NAME": worker["model_name"], "MODEL_VERSION": worker["model_version"]}
-            )
+            {
+                "args": json.args,
+                "options": json.options,
+                "env": (
+                    json.env
+                    | {"EXPERIMENT": experiment}
+                    | {
+                        "MODEL_NAME": worker["model_name"],
+                        "MODEL_VERSION": worker["model_version"],
+                        "ACTIVE": str(worker["is_active"]),
+                    }
+                ),
+            }
             for worker in assigned_workers
         ],
     )
