@@ -57,7 +57,6 @@ ALLOWED_ENV = (
     "HOSTNAME",
     "HARDWARE",
     "ACTIVE",
-    "PIO_VERSION",
     "FIRMWARE",
     "ACTIVE",
     "DEBUG",
@@ -366,14 +365,16 @@ def post_to_worker(
 def multicast_post_across_cluster(
     endpoint: str,
     workers: list[str],
-    json: dict | list[dict] | None = None,
-    params: dict | list[dict] | None = None,
+    json: dict | list[dict | None] | None = None,
+    params: dict | list[dict | None] | None = None,
 ) -> dict[str, Any]:
     # this function "consumes" one huey thread waiting fyi
     assert endpoint.startswith("/unit_api")
 
     if not isinstance(json, list):
         json = [json] * len(workers)
+
+    assert json is not None
 
     if not isinstance(params, list):
         params = [params] * len(workers)
@@ -414,7 +415,7 @@ def get_from_worker(
 def multicast_get_across_cluster(
     endpoint: str,
     workers: list[str],
-    json: dict | list[dict] | None = None,
+    json: dict | list[dict | None] | None = None,
     timeout: float = 1.0,
     return_raw=False,
 ) -> dict[str, Any]:

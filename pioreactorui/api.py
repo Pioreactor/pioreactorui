@@ -20,6 +20,7 @@ from flask import send_file
 from flask.typing import ResponseReturnValue
 from huey.api import Result
 from huey.exceptions import HueyException
+from huey.exceptions import TaskException
 from msgspec import DecodeError
 from msgspec import ValidationError
 from msgspec.yaml import decode as yaml_decode
@@ -169,7 +170,7 @@ def run_job_on_unit_in_experiment(
         "option1": "value1",
         "option2": "value2"
       },
-      "env": {}, # JOB_SOURCE or EXPERIMENT optional
+      "env": {},
       "args": ["arg1", "arg2"]
     }
     """
@@ -749,7 +750,7 @@ def get_all_calibrations_as_yamls(pioreactor_unit: str) -> ResponseReturnValue:
 
     try:
         results = task.get(blocking=True, timeout=60)
-    except HueyException:
+    except (HueyException, TaskException):
         return {"result": False, "filename": None, "msg": "Timed out"}, 500
 
     aggregate_buffer = BytesIO()
@@ -1198,7 +1199,7 @@ def export_datasets() -> ResponseReturnValue:
     )
     try:
         status = result(blocking=True, timeout=5 * 60)
-    except HueyException:
+    except (HueyException, TaskException):
         status = False
         return {"result": status, "filename": None, "msg": "Timed out"}, 500
 
@@ -1590,7 +1591,7 @@ def update_config(filename: str) -> ResponseReturnValue:
 
     try:
         status, msg_or_exception = result(blocking=True, timeout=75)
-    except HueyException:
+    except (HueyException, TaskException):
         status, msg_or_exception = False, "sync-configs timed out."
 
     if not status:
@@ -1845,7 +1846,7 @@ def setup_worker_pioreactor() -> ResponseReturnValue:
 
     try:
         status = result(blocking=True, timeout=250)
-    except HueyException:
+    except (HueyException, TaskException):
         status = False
 
     if status:
@@ -1858,13 +1859,15 @@ def setup_worker_pioreactor() -> ResponseReturnValue:
 def add_worker() -> ResponseReturnValue:
     data = request.get_json()
     pioreactor_unit = data.get("pioreactor_unit")
+    model_name = data.get("model_name")
+    model_version = data.get("model_version")
 
-    if not pioreactor_unit:
-        return jsonify({"error": "Missing pioreactor_unit"}), 400
+    if not pioreactor_unit or not model_name or not model_version:
+        return jsonify({"error": "Missing data"}), 400
 
     nrows = modify_app_db(
-        "INSERT OR REPLACE INTO workers (pioreactor_unit, added_at, is_active) VALUES (?, STRFTIME('%Y-%m-%dT%H:%M:%f000Z', 'NOW'), 1);",
-        (pioreactor_unit,),
+        "INSERT OR REPLACE INTO workers (pioreactor_unit, added_at, is_active, model_name, model_version) VALUES (?, STRFTIME('%Y-%m-%dT%H:%M:%f000Z', 'NOW'), 1, ?, ?);",
+        (pioreactor_unit, model_name, model_version),
     )
     if nrows > 0:
         return Response(status=201)
