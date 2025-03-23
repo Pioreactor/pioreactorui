@@ -1446,6 +1446,28 @@ def get_experiment(experiment: str) -> ResponseReturnValue:
 ## CONFIG CONTROL
 
 
+@api.route("/unit/<pioreactor_unit>/configuration", methods=["GET"])
+def get_configuration_for_pioreactor_unit(pioreactor_unit: str) -> ResponseReturnValue:
+    """get configuration for a pioreactor unit"""
+    try:
+        if is_testing_env():
+            global_config_path = Path(env["DOT_PIOREACTOR"]) / "config.dev.ini"
+        else:
+            global_config_path = Path(env["DOT_PIOREACTOR"]) / "config.ini"
+
+        specific_config_path = Path(env["DOT_PIOREACTOR"]) / f"config_{pioreactor_unit}.ini"
+
+        config_files = [global_config_path, specific_config_path]
+        config = configparser.ConfigParser(strict=False)
+        config.read(config_files)
+
+        return {section: dict(config[section]) for section in config.sections()}
+
+    except Exception as e:
+        publish_to_error_log(str(e), "get_configuration_for_pioreactor_unit")
+        abort(400)
+
+
 @api.route("/configs/<filename>", methods=["GET"])
 def get_config(filename: str) -> ResponseReturnValue:
     """get a specific config.ini file in the .pioreactor folder"""

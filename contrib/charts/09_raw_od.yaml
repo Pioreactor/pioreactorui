@@ -1,8 +1,8 @@
 ---
-chart_key: optical_density
-data_source: od_readings # SQL table
-title: Optical density
-mqtt_topic: [od_reading/od1, od_reading/od2]
+chart_key: raw_optical_density
+data_source: raw_od_readings # SQL table
+title: Raw optical density (uncalibrated)
+mqtt_topic: [od_reading/raw_od1, od_reading/raw_od2]
 source: app
 payload_key: od
 y_axis_label: Reading
