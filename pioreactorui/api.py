@@ -342,9 +342,13 @@ def get_clocktime(pioreactor_unit: str) -> ResponseReturnValue:
 
 @api.route("/system/utc_clock", methods=["POST"])
 def set_clocktime() -> ResponseReturnValue:
-    tasks.multicast_post_across_cluster(
+    # first update the leader:
+    task1 = tasks.multicast_post_across_cluster(
         "/unit_api/system/utc_clock", [get_leader_hostname()], request.get_json()
     )
+    task1.get(blocking=True, timeout=20)
+
+    # then tell the workers to update to leader's value (via chrony)
     task2 = broadcast_post_across_cluster("/unit_api/system/utc_clock")
     return create_task_response(task2)
 
