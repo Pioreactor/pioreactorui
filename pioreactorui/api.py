@@ -694,7 +694,6 @@ def get_media_rates(experiment: str) -> ResponseReturnValue:
             WHERE
                 datetime(d.timestamp) >= datetime('now', '-3 hours') AND
                 event IN ('add_alt_media', 'add_media') AND
-                source_of_event LIKE 'dosing_automation%' AND
                 experiment = ?
             GROUP BY d.pioreactor_unit;
             """,
