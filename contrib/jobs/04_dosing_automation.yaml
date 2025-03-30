@@ -33,3 +33,9 @@ published_settings:
   - key: automation_name
     type: string
     display: false
+  - key: max_volume
+    type: string
+    display: false
+  - key: liquid_volume
+    type: string
+    display: false
