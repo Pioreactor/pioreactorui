@@ -203,13 +203,10 @@ def run_job_on_unit_in_experiment(
             (experiment, pioreactor_unit),
             one=True,
         )
-        assert isinstance(worker, dict)
         if worker is None:
             assigned_workers = []
         else:
-            assigned_workers = [worker]
-
-    assert isinstance(assigned_workers, list)
+            assigned_workers = [worker]  # type: ignore
 
     if len(assigned_workers) == 0:
         abort(404, f"Worker(s) {pioreactor_unit} not found or not active.")

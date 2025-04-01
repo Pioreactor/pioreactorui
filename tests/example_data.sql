@@ -4,11 +4,11 @@ INSERT INTO experiments (experiment, created_at, description, media_used, organi
 ('exp2', '2023-10-02T15:00:00Z', 'Second experiment', 'Minimal media', 'Yeast'),
 ('exp3', '2023-10-03T09:00:00Z', 'Third experiment', 'Rich media', 'Bacteria');
 
-INSERT INTO workers (pioreactor_unit, added_at, is_active) VALUES
-('unit1', '2023-10-01T10:00:00Z', 1),
-('unit2', '2023-10-01T11:00:00Z', 1),
-('unit3', '2023-10-02T10:00:00Z', 1),
-('unit4', '2023-10-03T08:00:00Z', 0);
+INSERT INTO workers (pioreactor_unit, added_at, is_active, model_name, model_version) VALUES
+('unit1', '2023-10-01T10:00:00Z', 1, "pioreactor_20ml", "1.1"),
+('unit2', '2023-10-01T11:00:00Z', 1, "pioreactor_40ml", "1.0"),
+('unit3', '2023-10-02T10:00:00Z', 1, "pioreactor_40ml", "1.0"),
+('unit4', '2023-10-03T08:00:00Z', 0, "pioreactor_40ml", "1.0");
 
 INSERT INTO experiment_worker_assignments (pioreactor_unit, experiment, assigned_at) VALUES
 ('unit1', 'exp1', '2023-10-01T12:00:00Z'),

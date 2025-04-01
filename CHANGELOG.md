@@ -1,3 +1,21 @@
+### 25.3.31
+
+#### Enhancements
+
+- **Support for Pioreactor 40mL**
+  - UI and backend now accommodates the new Pioreactor 40mL. Change the Pioreactor model on the Inventory page.
+- **Device models and versions now tracked in the database**
+  - Models and versions for each Pioreactor are now stored in the `worker` table.
+  We're deprecating the `[pioreactor]` section in `config.ini`. You can manage models and versions on the **Inventory** page.
+- **Improvements to dosing automation settings**:
+  - When starting a dosing automation, you can set the initial and max culture volumes.
+
+#### Bug Fixes
+
+- Fixed occasional crash on the **Overview** page in the UI.
+- UI page `/pioreactors/<some_unit>` now uses that unit's specific configuration from `config_<some_unit>.ini`.
+
+
 ### 25.3.5
 
  - Fix for updating across cluster and leader saying it failed
