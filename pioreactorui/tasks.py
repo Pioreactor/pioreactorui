@@ -348,7 +348,7 @@ def post_to_worker(
     try:
         r = post_into(resolve_to_address(worker), endpoint, json=json, params=params, timeout=1)
         r.raise_for_status()
-        return worker, r.json()
+        return worker, r.json() if r.content else None
     except (HTTPErrorStatus, HTTPException) as e:
         logger.error(
             f"Could not post to {worker}'s {endpoint=}, sent {json=} and returned {e}. Check connection?"
@@ -396,9 +396,9 @@ def get_from_worker(
         r = get_from(resolve_to_address(worker), endpoint, json=json, timeout=timeout)
         r.raise_for_status()
         if not return_raw:
-            return worker, r.json()
+            return worker, r.json() if r.content else None
         else:
-            return worker, r.content
+            return worker, r.content or None
     except (HTTPErrorStatus, HTTPException) as e:
         logger.error(
             f"Could not get from {worker}'s {endpoint=}, sent {json=} and returned {e}. Check connection?"
@@ -438,7 +438,7 @@ def patch_to_worker(worker: str, endpoint: str, json: dict | None = None) -> tup
     try:
         r = patch_into(resolve_to_address(worker), endpoint, json=json, timeout=1)
         r.raise_for_status()
-        return worker, r.json()
+        return worker, r.json() if r.content else None
     except (HTTPErrorStatus, HTTPException) as e:
         logger.error(
             f"Could not PATCH to {worker}'s {endpoint=}, sent {json=} and returned {e}. Check connection?"
