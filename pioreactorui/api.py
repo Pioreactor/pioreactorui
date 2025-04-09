@@ -637,6 +637,34 @@ def get_od_readings(experiment: str) -> ResponseReturnValue:
     return attach_cache_control(as_json_response(raw_od_readings["json"]))
 
 
+@api.route("/experiments/<experiment>/time_series/raw_od_readings", methods=["GET"])
+def get_od_raw_readings(experiment: str) -> ResponseReturnValue:
+    """Gets raw od for all units"""
+    args = request.args
+    filter_mod_n = float(args.get("filter_mod_N", 100.0))
+    lookback = float(args.get("lookback", 4.0))
+
+    raw_od_readings = query_app_db(
+        """
+        SELECT
+            json_object('series', json_group_array(unit), 'data', json_group_array(json(data))) as json
+        FROM (
+            SELECT pioreactor_unit || '-' || channel as unit, json_group_array(json_object('x', timestamp, 'y', round(od_reading, 7))) as data
+            FROM raw_od_readings
+            WHERE experiment=? AND
+                ((ROWID * 0.61803398875) - cast(ROWID * 0.61803398875 as int) < 1.0/?) AND
+                timestamp > STRFTIME('%Y-%m-%dT%H:%M:%f000Z', 'NOW',  ?)
+            GROUP BY 1
+            );
+        """,
+        (experiment, filter_mod_n, f"-{lookback} hours"),
+        one=True,
+    )
+
+    assert isinstance(raw_od_readings, dict)
+    return attach_cache_control(as_json_response(raw_od_readings["json"]))
+
+
 @api.route("/experiments/<experiment>/time_series/<data_source>/<column>", methods=["GET"])
 def get_fallback_time_series(data_source: str, experiment: str, column: str) -> ResponseReturnValue:
     args = request.args

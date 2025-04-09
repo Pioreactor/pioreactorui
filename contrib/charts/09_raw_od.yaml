@@ -1,7 +1,6 @@
 ---
 chart_key: raw_optical_density
 data_source: raw_od_readings # SQL table
-data_source_column: od_reading
 title: Raw optical density (uncalibrated)
 mqtt_topic: [od_reading/raw_od1, od_reading/raw_od2]
 source: app
