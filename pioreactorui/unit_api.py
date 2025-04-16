@@ -581,18 +581,16 @@ def get_ui_version() -> ResponseReturnValue:
 def create_calibration(device) -> ResponseReturnValue:
     """
     Create a new calibration for the specified device.
-    The request must contain a JSON payload with the calibration data.
     """
     # calibration_dir = Path(env["DOT_PIOREACTOR"]) / "storage" / "calibrations" / device
     # if folder does not exist, users should make it with mkdir -p ... && chown -R pioreactor:www-data ...
 
     try:
-        data = request.get_json()
-        calibration_name = data.get("calibration_name")
+        calibration_data = yaml_decode(request.get_json()["calibration_data"], type=AllCalibrations)
+        calibration_name = calibration_data.calibration_name
         if not calibration_name:
-            abort(400, description="Missing 'calibration_name' in request payload.")
+            abort(400, description="Missing 'calibration_name'.")
 
-        calibration_data = convert(data, AllCalibrations)
         path = calibration_data.save_to_disk_for_device(device)
 
         # Respond with success and the created calibration details

@@ -27,7 +27,9 @@ from msgspec.yaml import decode as yaml_decode
 from pioreactor.config import get_leader_hostname
 from pioreactor.experiment_profiles.profile_struct import Profile
 from pioreactor.pubsub import get_from
+from pioreactor.structs import CalibrationBase
 from pioreactor.structs import Dataset
+from pioreactor.structs import subclass_union
 from pioreactor.utils.networking import resolve_to_address
 from pioreactor.utils.timing import current_utc_datetime
 from pioreactor.utils.timing import current_utc_timestamp
@@ -57,6 +59,7 @@ from .utils import create_task_response
 from .utils import is_valid_unix_filename
 from .utils import scrub_to_valid
 
+AllCalibrations = subclass_union(CalibrationBase)
 
 api = Blueprint("api", __name__, url_prefix="/api")
 
@@ -832,6 +835,27 @@ def get_calibration(pioreactor_unit, device, cal_name) -> ResponseReturnValue:
     else:
         task = tasks.multicast_get_across_cluster(
             f"/unit_api/calibrations/{device}/{cal_name}", [pioreactor_unit]
+        )
+    return create_task_response(task)
+
+
+@api.route("/workers/<pioreactor_unit>/calibrations/<device>", methods=["POST"])
+def create_calibration(pioreactor_unit, device) -> ResponseReturnValue:
+    yaml_data = request.get_json()["calibration_data"]
+    try:
+        yaml_decode(yaml_data, type=AllCalibrations)
+    except Exception as e:
+        publish_to_error_log(str(e), "create_calibration")
+        abort(
+            400,
+            description="YAML data is not correct, or required calibration struct missing. See logs for more.",
+        )
+
+    if pioreactor_unit == UNIVERSAL_IDENTIFIER:
+        task = broadcast_post_across_cluster(f"/unit_api/calibrations/{device}", request.get_json())
+    else:
+        task = tasks.multicast_post_across_cluster(
+            f"/unit_api/calibrations/{device}", [pioreactor_unit], request.get_json()
         )
     return create_task_response(task)
 
