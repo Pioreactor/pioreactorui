@@ -5,6 +5,7 @@ import os
 import zipfile
 from io import BytesIO
 from pathlib import Path
+from shlex import quote
 from subprocess import run
 from time import sleep
 
@@ -40,6 +41,7 @@ from .config import huey
 from .utils import attach_cache_control
 from .utils import create_task_response
 from .utils import is_rate_limited
+from .utils import is_valid_unix_filename
 from pioreactorui import structs
 
 
@@ -75,7 +77,7 @@ def task_status(task_id):
 @unit_api.route("/system/update/<target>", methods=["POST", "PATCH"])
 def update_target(target) -> ResponseReturnValue:
     if target not in ("app", "ui"):  # todo: firmware
-        abort(404)
+        abort(404, "Invalid target")
 
     body = current_app.get_json(request.data, type=structs.ArgsOptionsEnvs)
 
@@ -134,6 +136,12 @@ def shutdown() -> ResponseReturnValue:
 def remove_file() -> ResponseReturnValue:
     # use filepath in body
     body = request.get_json()
+
+    if not body["filepath"].startswith("/home/pioreactor") or not body["filepath"].startswith(
+        "/tmp"
+    ):
+        raise FileNotFoundError()
+
     task = tasks.rm(body["filepath"])
     return create_task_response(task)
 
@@ -193,7 +201,7 @@ def set_clock_time():
 @unit_api.route("/system/path/<path:req_path>")
 def dir_listing(req_path: str):
     if os.path.isfile(Path(env["DOT_PIOREACTOR"]) / "DISALLOW_UI_FILE_SYSTEM"):
-        abort(403)
+        abort(403, "DISALLOW_UI_FILE_SYSTEM is present")
 
     BASE_DIR = env["DOT_PIOREACTOR"]
 
@@ -218,7 +226,7 @@ def dir_listing(req_path: str):
 
     # Return 404 if path doesn't exist
     if not os.path.exists(abs_path):
-        abort(404)
+        abort(404, "Path not found.")
 
     # Check if path is a file and serve
     if os.path.isfile(abs_path):
@@ -402,7 +410,7 @@ def get_settings_for_a_specific_job(job_name) -> ResponseReturnValue:
     if settings:
         return jsonify({"settings": {s["setting"]: s["value"] for s in settings}})
     else:
-        return Response(status=404)
+        return {"status": "error"}, 404
 
 
 @unit_api.route("/jobs/settings/job_name/<job_name>/setting/<setting>", methods=["GET"])
@@ -421,7 +429,7 @@ def get_specific_setting_for_a_job(job_name, setting) -> ResponseReturnValue:
     if setting:
         return jsonify({setting["setting"]: setting["value"]})
     else:
-        return Response(status=404)
+        return {"status": "error"}, 404
 
 
 @unit_api.route("/jobs/settings/job_name/<job_name>", methods=["PATCH"])
@@ -437,7 +445,7 @@ def update_job(job_name: str) -> ResponseReturnValue:
     }
     """
     # body = request.get_json()
-    return Response(status=503)
+    abort(503, "Not implemented.")
 
 
 ### PLUGINS
@@ -486,7 +494,7 @@ def get_plugin(filename: str) -> ResponseReturnValue:
     except IOError:
         abort(404, "must provide a .py file")
     except Exception:
-        return Response(status=500)
+        abort(500, "server error")
 
 
 @unit_api.route("/plugins/install", methods=["POST", "PATCH"])
@@ -565,7 +573,7 @@ def get_app_version() -> ResponseReturnValue:
         text=True,
     )
     if result.returncode != 0:
-        return Response(status=500)
+        abort(500, "server error")
     return attach_cache_control(jsonify({"version": result.stdout.strip()}), max_age=30)
 
 
@@ -588,8 +596,11 @@ def create_calibration(device) -> ResponseReturnValue:
     try:
         calibration_data = yaml_decode(request.get_json()["calibration_data"], type=AllCalibrations)
         calibration_name = calibration_data.calibration_name
-        if not calibration_name:
-            abort(400, description="Missing 'calibration_name'.")
+
+        if not calibration_name or not is_valid_unix_filename(calibration_name):
+            abort(400, description="Missing or invalid 'calibration_name'.")
+        elif not device or not is_valid_unix_filename(device):
+            abort(400, description="Missing or invalid 'device'.")
 
         path = calibration_data.save_to_disk_for_device(device)
 
@@ -645,7 +656,7 @@ def get_all_calibrations() -> ResponseReturnValue:
     calibration_dir = Path(env["DOT_PIOREACTOR"]) / "storage" / "calibrations"
 
     if not calibration_dir.exists():
-        abort(404)
+        abort(404, "Calibration directory does not exist.")
 
     all_calibrations: dict[str, list] = {}
 
@@ -671,7 +682,7 @@ def get_all_active_calibrations() -> ResponseReturnValue:
     calibration_dir = Path(env["DOT_PIOREACTOR"]) / "storage" / "calibrations"
 
     if not calibration_dir.exists():
-        abort(404)
+        abort(404, "Calibration directory does not exist.")
 
     all_calibrations: dict[str, dict] = {}
 
@@ -697,7 +708,7 @@ def get_all_calibrations_as_zipped_yaml() -> ResponseReturnValue:
     calibration_dir = Path(env["DOT_PIOREACTOR"]) / "storage" / "calibrations"
 
     if not calibration_dir.exists():
-        abort(404)
+        abort(404, "Calibration directory does not exist.")
 
     buffer = BytesIO()
 
@@ -724,7 +735,7 @@ def get_calibrations_by_device(device) -> ResponseReturnValue:
     calibration_dir = Path(env["DOT_PIOREACTOR"]) / "storage" / "calibrations" / device
 
     if not calibration_dir.exists():
-        abort(404)
+        abort(404, "Calibration directory does not exist.")
 
     calibrations: list[dict] = []
 
@@ -750,7 +761,7 @@ def get_calibration(device, cal_name) -> ResponseReturnValue:
     )
 
     if not calibration_path.exists():
-        abort(404)
+        abort(404, "Calibration file does not exist.")
 
     with local_persistent_storage("active_calibrations") as c:
         try:
@@ -759,7 +770,7 @@ def get_calibration(device, cal_name) -> ResponseReturnValue:
             return attach_cache_control(jsonify(cal), max_age=10)
         except Exception as e:
             publish_to_error_log(f"Error reading {calibration_path.stem}: {e}", "get_calibration")
-            abort(500)
+            abort(500, "Failed to read calibration file.")
 
 
 @unit_api.route("/active_calibrations/<device>/<cal_name>", methods=["PATCH"])
@@ -767,26 +778,16 @@ def set_active_calibration(device, cal_name) -> ResponseReturnValue:
     with local_persistent_storage("active_calibrations") as c:
         c[device] = cal_name
 
-    return Response(status=200)
+    return {"status": "success"}, 200
 
 
 @unit_api.route("/active_calibrations/<device>", methods=["DELETE"])
 def remove_active_status_calibration(device) -> ResponseReturnValue:
     with local_persistent_storage("active_calibrations") as c:
-        c.pop(device)
+        if device in c:
+            c.pop(device)
 
-    return Response(status=200)
-
-
-@unit_api.route("/calibrations/<device>/<cal_name>", methods=["DELETE"])
-def remove_calibration(device, cal_name) -> ResponseReturnValue:
-    target_file = CALIBRATION_PATH / device / f"{cal_name}.yaml"
-    if not target_file.exists():
-        abort(404, f"{target_file} not found")
-
-    target_file.unlink()
-
-    return Response(status=200)
+    return {"status": "success"}, 200
 
 
 @unit_api.errorhandler(404)

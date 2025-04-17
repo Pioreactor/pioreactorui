@@ -42,12 +42,32 @@ def scrub_to_valid(value: str) -> str:
     return "".join(chr for chr in value if (chr.isalnum() or chr == "_"))
 
 
-def is_valid_unix_filename(filename: str) -> bool:
-    return (
-        bool(re.fullmatch(r"[\sa-zA-Z0-9._-]+", filename))
-        and "/" not in filename
-        and "\0" not in filename
-    )
+_ALLOWED = re.compile(r"^[A-Za-z0-9._-]+( [A-Za-z0-9._-]+)*$")  # single spaces only
+
+
+def is_valid_unix_filename(name: str, *, max_bytes: int = 255) -> bool:
+    """
+    Return True iff *name* is a single portable filename component.
+
+    Rules
+    -----
+    • ASCII letters, digits, dot, underscore, dash, single spaces
+    • No leading dot or dash
+    • Not '.' or '..'
+    • No slash, backslash, or control chars
+    • Max 255 bytes in UTF‑8
+    """
+    if name in {".", ".."}:
+        return False
+    if name[0] in ".-":
+        return False
+    if "/" in name or "\\" in name:
+        return False
+    if any(ord(c) < 0x20 for c in name):  # control chars (NUL already caught)
+        return False
+    if len(name.encode()) > max_bytes:
+        return False
+    return bool(_ALLOWED.fullmatch(name))
 
 
 def is_rate_limited(job: str, expire_time_seconds=1.0) -> bool:
