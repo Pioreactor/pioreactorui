@@ -90,10 +90,10 @@ def initialized():
 
 @huey.task(priority=10)
 def pio_run(*args: str, env: dict[str, str] = {}) -> bool:
-    if not _args_are_valid(args):
-        raise Exception(
-            f"Args {args} are not valid. Check {join(('pio', 'run') + args)} for errors. Is {args[0]} a job?"
-        )
+    # if not _args_are_valid(args):
+    #     raise Exception(
+    #         f"Args {args} are not valid. Check {join(('pio', 'run') + args)} for errors. Is {args[0]} a job?"
+    #     )
 
     # for long running pio run jobs where we don't care about the output / status
     command = ("nohup", PIO_EXECUTABLE, "run") + args

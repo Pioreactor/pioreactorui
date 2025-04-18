@@ -212,7 +212,10 @@ def run_job_on_unit_in_experiment(
             assigned_workers = [worker]  # type: ignore
 
     if len(assigned_workers) == 0:
-        abort(404, f"Worker(s) {pioreactor_unit} not found or not active.")
+        abort(
+            404,
+            f"Worker(s) {pioreactor_unit} not found, not active, or not assigned to experiment {experiment}.",
+        )
 
     # and we can include experiment in the env since we know these workers are in the experiment!
     # json.env = json.env | {"EXPERIMENT": experiment, "ACTIVE": "1"}
