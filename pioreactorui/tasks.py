@@ -12,8 +12,11 @@ from subprocess import run
 from subprocess import STDOUT
 from typing import Any
 
+from click import ClickException
+from click.testing import CliRunner
 from msgspec import DecodeError
 from pioreactor import whoami
+from pioreactor.cli.pio import pio as pio_cli
 from pioreactor.config import config
 from pioreactor.mureq import HTTPErrorStatus
 from pioreactor.mureq import HTTPException
@@ -65,6 +68,22 @@ ALLOWED_ENV = (
 )
 
 
+def _args_are_valid(args: tuple[str, ...]) -> bool:
+    """
+    Return True only when Click accepts `pio run …` *syntactically*.
+    """
+    runner = CliRunner()
+    try:
+        # standalone_mode=False → just parse, don’t execute callbacks
+        runner.invoke(pio_cli, ("run", *args), catch_exceptions=False, standalone_mode=False)
+        print("okay")
+    except ClickException as exc:
+        logger.error("`pio run` argument error: %s", exc.format_message())
+        return False
+    print(args)
+    return True
+
+
 @huey.on_startup()
 def initialized():
     logger.info("Starting Huey consumer...")
@@ -73,6 +92,9 @@ def initialized():
 
 @huey.task(priority=10)
 def pio_run(*args: str, env: dict[str, str] = {}) -> bool:
+    if not _args_are_valid(args):
+        return False
+
     # for long running pio run jobs where we don't care about the output / status
     command = ("nohup", PIO_EXECUTABLE, "run") + args
 
