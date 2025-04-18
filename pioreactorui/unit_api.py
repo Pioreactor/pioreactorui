@@ -5,7 +5,6 @@ import os
 import zipfile
 from io import BytesIO
 from pathlib import Path
-from shlex import quote
 from subprocess import run
 from time import sleep
 
@@ -19,10 +18,9 @@ from flask import send_file
 from flask.typing import ResponseReturnValue
 from huey.exceptions import HueyException
 from huey.exceptions import TaskException
-from msgspec import convert
+from huey.exceptions import TaskLockedException
 from msgspec import to_builtins
 from msgspec.yaml import decode as yaml_decode
-from pioreactor.calibrations import CALIBRATION_PATH
 from pioreactor.config import get_leader_hostname
 from pioreactor.structs import CalibrationBase
 from pioreactor.structs import subclass_union
@@ -55,13 +53,20 @@ unit_api = Blueprint("unit_api", __name__, url_prefix="/unit_api")
 def task_status(task_id):
     try:
         task = huey.result(task_id)
-    except TaskException:
+    except TaskLockedException:
         return (
-            jsonify(
-                {"status": "failed", "error": "task was prevented from completing due to a lock."}
-            ),
+            jsonify({"status": "failed", "error": "could not complete task due to lock."}),
             500,
         )
+    except TaskException as e:
+        # huey wraps the exception, so lets reraise it.
+        try:
+            exec(f"raise {str(e)}")
+        except Exception as ee:
+            return (
+                jsonify({"status": "failed", "error": str(ee)}),
+                500,
+            )
 
     if task is None:
         return jsonify({"status": "pending or not present"}), 202

@@ -76,11 +76,9 @@ def _args_are_valid(args: tuple[str, ...]) -> bool:
     try:
         # standalone_mode=False → just parse, don’t execute callbacks
         runner.invoke(pio_cli, ("run", *args), catch_exceptions=False, standalone_mode=False)
-        print("okay")
     except ClickException as exc:
         logger.error("`pio run` argument error: %s", exc.format_message())
         return False
-    print(args)
     return True
 
 
@@ -93,7 +91,9 @@ def initialized():
 @huey.task(priority=10)
 def pio_run(*args: str, env: dict[str, str] = {}) -> bool:
     if not _args_are_valid(args):
-        return False
+        raise Exception(
+            f"Args {args} are not valid. Check {join(('pio', 'run') + args)} for errors. Is {args[0]} a job?"
+        )
 
     # for long running pio run jobs where we don't care about the output / status
     command = ("nohup", PIO_EXECUTABLE, "run") + args
