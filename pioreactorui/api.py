@@ -677,17 +677,21 @@ def get_fallback_time_series(experiment: str, data_source: str, column: str) -> 
         column = scrub_to_valid(column)
         r = query_app_db(
             f"""
-            SELECT
-                json_object('series', json_group_array(unit), 'data', json_group_array(json(data))) as json
-            FROM (
-                SELECT pioreactor_unit as unit, json_group_array(json_object('x', timestamp, 'y', round({column}, 7))) as data
+            WITH incrementing_data AS (
+                SELECT pioreactor_unit as unit, timestamp, {column} as data, row_number() OVER () AS row_num
                 FROM {data_source}
                 WHERE experiment=? AND
-                    ((ROWID * 0.61803398875) - cast(ROWID * 0.61803398875 as int) < 1.0/?) AND
-                    timestamp > STRFTIME('%Y-%m-%dT%H:%M:%f000Z', 'NOW',?) AND
-                    {column} IS NOT NULL
+                timestamp > STRFTIME('%Y-%m-%dT%H:%M:%f000Z', 'NOW',?) AND
+                {column} IS NOT NULL
+            )
+            SELECT
+                json_object('series', json_group_array(unit), 'data', json_group_array(json(rdata))) as json
+            FROM (
+                SELECT unit, json_group_array(json_object('x', timestamp, 'y', round(data, 7))) as rdata
+                FROM incrementing_data
+                    WHERE ((row_num * 0.61803398875) - cast(row_num * 0.61803398875 as int) < 1.0/?)
                 GROUP BY 1
-                );
+            );
             """,
             (experiment, filter_mod_n, f"-{lookback} hours"),
             one=True,
