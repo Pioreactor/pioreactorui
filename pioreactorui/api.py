@@ -26,11 +26,9 @@ from msgspec import ValidationError
 from msgspec.yaml import decode as yaml_decode
 from pioreactor.config import get_leader_hostname
 from pioreactor.experiment_profiles.profile_struct import Profile
-from pioreactor.pubsub import get_from
 from pioreactor.structs import CalibrationBase
 from pioreactor.structs import Dataset
 from pioreactor.structs import subclass_union
-from pioreactor.utils.networking import resolve_to_address
 from pioreactor.utils.timing import current_utc_datetime
 from pioreactor.utils.timing import current_utc_timestamp
 from pioreactor.whoami import UNIVERSAL_EXPERIMENT
@@ -134,7 +132,11 @@ def stop_all_jobs_on_worker_for_experiment(
     "/units/<pioreactor_unit>/jobs/stop/job_name/<job_name>/experiments/<experiment>",
     methods=["PATCH", "POST"],
 )
-def stop_job_on_unit(pioreactor_unit: str, experiment: str, job_name: str) -> ResponseReturnValue:
+def stop_job_on_unit(
+    pioreactor_unit: str,
+    job_name: str,
+    experiment: str,
+) -> ResponseReturnValue:
     """Kills specified job on unit"""
 
     msg = client.publish(
@@ -161,7 +163,9 @@ def stop_job_on_unit(pioreactor_unit: str, experiment: str, job_name: str) -> Re
     methods=["PATCH", "POST"],
 )
 def run_job_on_unit_in_experiment(
-    pioreactor_unit: str, experiment: str, job: str
+    pioreactor_unit: str,
+    job: str,
+    experiment: str,
 ) -> ResponseReturnValue:
     """
     Runs specified job on unit.
@@ -262,7 +266,7 @@ def blink_worker(pioreactor_unit: str) -> ResponseReturnValue:
     "/units/<pioreactor_unit>/jobs/update/job_name/<job>/experiments/<experiment>",
     methods=["PATCH"],
 )
-def update_job_on_unit(pioreactor_unit: str, experiment: str, job: str) -> ResponseReturnValue:
+def update_job_on_unit(pioreactor_unit: str, job: str, experiment: str) -> ResponseReturnValue:
     """
     Update specified job on unit. Use $broadcast for everyone.
 
@@ -663,7 +667,7 @@ def get_od_raw_readings(experiment: str) -> ResponseReturnValue:
 
 
 @api.route("/experiments/<experiment>/time_series/<data_source>/<column>", methods=["GET"])
-def get_fallback_time_series(data_source: str, experiment: str, column: str) -> ResponseReturnValue:
+def get_fallback_time_series(experiment: str, data_source: str, column: str) -> ResponseReturnValue:
     args = request.args
     filter_mod_n = float(args.get("filter_mod_N", 100.0))
     lookback = float(args.get("lookback", 4.0))
@@ -961,7 +965,9 @@ def get_jobs_running_across_cluster_in_experiment(experiment) -> ResponseReturnV
 
 
 @api.route("/experiments/<experiment>/jobs/settings/job_name/<job_name>", methods=["GET"])
-def get_settings_for_job_across_cluster_in_experiment(experiment, job_name) -> ResponseReturnValue:
+def get_settings_for_job_across_cluster_in_experiment(
+    experiment: str, job_name: str
+) -> ResponseReturnValue:
     list_of_assigned_workers = get_all_workers_in_experiment(experiment)
     return create_task_response(
         tasks.multicast_get_across_cluster(
@@ -974,7 +980,7 @@ def get_settings_for_job_across_cluster_in_experiment(experiment, job_name) -> R
     "/experiments/<experiment>/jobs/settings/job_name/<job_name>/setting/<setting>", methods=["GET"]
 )
 def get_setting_for_job_across_cluster_in_experiment(
-    experiment, job_name, setting
+    experiment: str, job_name: str, setting: str
 ) -> ResponseReturnValue:
     list_of_assigned_workers = get_all_workers_in_experiment(experiment)
     return create_task_response(
