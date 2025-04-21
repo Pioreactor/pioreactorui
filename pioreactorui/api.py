@@ -693,7 +693,7 @@ def get_fallback_time_series(experiment: str, data_source: str, column: str) -> 
                 GROUP BY 1
             );
             """,
-            (experiment, filter_mod_n, f"-{lookback} hours"),
+            (experiment, f"-{lookback} hours", filter_mod_n),
             one=True,
         )
 
