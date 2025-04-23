@@ -844,13 +844,17 @@ def get_calibration(pioreactor_unit, device, cal_name) -> ResponseReturnValue:
 @api.route("/workers/<pioreactor_unit>/calibrations/<device>", methods=["POST"])
 def create_calibration(pioreactor_unit, device) -> ResponseReturnValue:
     yaml_data = request.get_json()["calibration_data"]
+
+    if not yaml_data:
+        abort(400, "YAML data is missing.")
+
     try:
         yaml_decode(yaml_data, type=AllCalibrations)
     except Exception as e:
         publish_to_error_log(str(e), "create_calibration")
         abort(
             400,
-            description="YAML data is not correct, or required calibration struct missing. See logs for more.",
+            description=f"YAML data is not correct, or required calibration struct missing: {str(e)}",
         )
 
     if pioreactor_unit == UNIVERSAL_IDENTIFIER:

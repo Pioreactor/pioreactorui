@@ -221,7 +221,7 @@ def dir_listing(req_path: str):
 
     # If it's a file, serve the file
     if os.path.isfile(safe_path):
-        if safe_path.endswith(".sqlite") or safe_path.endswith(".sqlite.backup"):
+        if safe_path.endswith((".sqlite", ".sqlite.backup", ".sqlite-shm", ".sqlite-wal")):
             abort(403, "Access to downloading sqlite files is restricted.")
 
         return send_file(safe_path, mimetype="text/plain")
