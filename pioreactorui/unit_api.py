@@ -599,7 +599,8 @@ def create_calibration(device) -> ResponseReturnValue:
     # if folder does not exist, users should make it with mkdir -p ... && chown -R pioreactor:www-data ...
 
     try:
-        calibration_data = yaml_decode(request.get_json()["calibration_data"], type=AllCalibrations)
+        raw_yaml = request.get_json()["calibration_data"]
+        calibration_data = yaml_decode(raw_yaml, type=AllCalibrations)
         calibration_name = calibration_data.calibration_name
 
         if not calibration_name or not is_valid_unix_filename(calibration_name):
@@ -607,7 +608,8 @@ def create_calibration(device) -> ResponseReturnValue:
         elif not device or not is_valid_unix_filename(device):
             abort(400, description="Missing or invalid 'device'.")
 
-        path = calibration_data.save_to_disk_for_device(device)
+        path = calibration_data.path_on_disk_for_device(device)
+        tasks.save_file(path, raw_yaml)
 
         # Respond with success and the created calibration details
         return jsonify({"msg": "Calibration created successfully.", "path": str(path)}), 201
