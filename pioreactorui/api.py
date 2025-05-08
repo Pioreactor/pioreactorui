@@ -376,7 +376,7 @@ def get_level_string(min_level: str) -> str:
 
 @api.route("/experiments/<experiment>/recent_logs", methods=["GET"])
 def get_recent_logs(experiment: str) -> ResponseReturnValue:
-    """Shows event logs from all units"""
+    """Shows recent event logs from all units"""
 
     min_level = request.args.get("min_level", "INFO")
 
@@ -472,11 +472,11 @@ def get_logs_for_unit_and_experiment(pioreactor_unit: str, experiment: str) -> R
                on h.pioreactor_unit = l.pioreactor_unit
                and h.assigned_at <= l.timestamp
                and DATETIME(l.timestamp) <= DATETIME(coalesce(h.unassigned_at, STRFTIME('%Y-%m-%dT%H:%M:%f000Z', 'NOW')), '+5 seconds')
-            WHERE (l.experiment=? or l.experiment=?)
+            WHERE (l.experiment=?)
                 AND (l.pioreactor_unit=? or l.pioreactor_unit=?)
                 AND ({get_level_string(min_level)})
             ORDER BY l.timestamp DESC LIMIT 50 OFFSET {skip};""",
-        (experiment, UNIVERSAL_EXPERIMENT, pioreactor_unit, UNIVERSAL_IDENTIFIER),
+        (experiment, pioreactor_unit, UNIVERSAL_IDENTIFIER),
     )
 
     return jsonify(recent_logs)

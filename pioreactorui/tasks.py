@@ -346,12 +346,13 @@ def post_to_worker(
     worker: str, endpoint: str, json: dict | None = None, params: dict | None = None
 ) -> tuple[str, Any]:
     try:
-        r = post_into(resolve_to_address(worker), endpoint, json=json, params=params, timeout=1)
+        address = resolve_to_address(worker)
+        r = post_into(address, endpoint, json=json, params=params, timeout=1)
         r.raise_for_status()
         return worker, r.json() if r.content else None
     except (HTTPErrorStatus, HTTPException) as e:
         logger.error(
-            f"Could not post to {worker}'s {endpoint=}, sent {json=} and returned {e}. Check connection?"
+            f"Could not post to {worker}'s {address=}/{endpoint=}, sent {json=} and returned {e}. Check connection? Check port?"
         )
         return worker, None
     except DecodeError:
@@ -393,7 +394,9 @@ def get_from_worker(
     worker: str, endpoint: str, json: dict | None = None, timeout=1.0, return_raw=False
 ) -> tuple[str, Any]:
     try:
-        r = get_from(resolve_to_address(worker), endpoint, json=json, timeout=timeout)
+        address = resolve_to_address(worker)
+
+        r = get_from(address, endpoint, json=json, timeout=timeout)
         r.raise_for_status()
         if not return_raw:
             return worker, r.json() if r.content else None
@@ -401,7 +404,7 @@ def get_from_worker(
             return worker, r.content or None
     except (HTTPErrorStatus, HTTPException) as e:
         logger.error(
-            f"Could not get from {worker}'s {endpoint=}, sent {json=} and returned {e}. Check connection?"
+            f"Could not get from {worker}'s {address=}/{endpoint=}, sent {json=} and returned {e}. Check connection? Check port?"
         )
         return worker, None
     except DecodeError:
@@ -436,12 +439,13 @@ def multicast_get_across_cluster(
 @huey.task(priority=10)
 def patch_to_worker(worker: str, endpoint: str, json: dict | None = None) -> tuple[str, Any]:
     try:
-        r = patch_into(resolve_to_address(worker), endpoint, json=json, timeout=1)
+        address = resolve_to_address(worker)
+        r = patch_into(address, endpoint, json=json, timeout=1)
         r.raise_for_status()
         return worker, r.json() if r.content else None
     except (HTTPErrorStatus, HTTPException) as e:
         logger.error(
-            f"Could not PATCH to {worker}'s {endpoint=}, sent {json=} and returned {e}. Check connection?"
+            f"Could not PATCH to {worker}'s {address=}/{endpoint=}, sent {json=} and returned {e}. Check connection? Check port?"
         )
         return worker, None
     except DecodeError:
