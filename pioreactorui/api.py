@@ -393,6 +393,23 @@ def get_recent_logs(experiment: str) -> ResponseReturnValue:
     return jsonify(recent_logs)
 
 
+@api.route("/logs", methods=["GET"])
+def get_logs() -> ResponseReturnValue:
+    """Shows event logs from all units, uses pagination."""
+
+    skip = int(request.args.get("skip", 0))
+    min_level = request.args.get("min_level", "INFO")
+
+    recent_logs = query_app_db(
+        f"""SELECT l.timestamp, level, l.pioreactor_unit, message, task, l.experiment
+            FROM logs AS l
+            WHERE ({get_level_string(min_level)})
+            ORDER BY l.timestamp DESC LIMIT 50 OFFSET {skip};"""
+    )
+
+    return jsonify(recent_logs)
+
+
 @api.route("/experiments/<experiment>/logs", methods=["GET"])
 def get_exp_logs(experiment: str) -> ResponseReturnValue:
     """Shows event logs from all units, uses pagination."""
@@ -411,23 +428,6 @@ def get_exp_logs(experiment: str) -> ResponseReturnValue:
             AND ({get_level_string(min_level)})
             ORDER BY l.timestamp DESC LIMIT 50 OFFSET {skip};""",
         (experiment,),
-    )
-
-    return jsonify(recent_logs)
-
-
-@api.route("/logs", methods=["GET"])
-def get_logs() -> ResponseReturnValue:
-    """Shows event logs from all units, uses pagination."""
-
-    skip = int(request.args.get("skip", 0))
-    min_level = request.args.get("min_level", "INFO")
-
-    recent_logs = query_app_db(
-        f"""SELECT l.timestamp, level, l.pioreactor_unit, message, task, l.experiment
-            FROM logs AS l
-            WHERE ({get_level_string(min_level)})
-            ORDER BY l.timestamp DESC LIMIT 50 OFFSET {skip};"""
     )
 
     return jsonify(recent_logs)
@@ -460,7 +460,7 @@ def get_recent_logs_for_unit_and_experiment(
 
 @api.route("/workers/<pioreactor_unit>/experiments/<experiment>/logs", methods=["GET"])
 def get_logs_for_unit_and_experiment(pioreactor_unit: str, experiment: str) -> ResponseReturnValue:
-    """Shows event logs from all units, uses pagination."""
+    """Shows event logs from specific unit and experiment, uses pagination."""
 
     skip = int(request.args.get("skip", 0))
     min_level = request.args.get("min_level", "INFO")
@@ -477,6 +477,26 @@ def get_logs_for_unit_and_experiment(pioreactor_unit: str, experiment: str) -> R
                 AND ({get_level_string(min_level)})
             ORDER BY l.timestamp DESC LIMIT 50 OFFSET {skip};""",
         (experiment, pioreactor_unit, UNIVERSAL_IDENTIFIER),
+    )
+
+    return jsonify(recent_logs)
+
+
+@api.route("/units/<pioreactor_unit>/system_logs", methods=["GET"])
+def get_system_logs_for_unit(pioreactor_unit: str) -> ResponseReturnValue:
+    """Shows system logs from specific unit uses pagination."""
+
+    skip = int(request.args.get("skip", 0))
+    min_level = request.args.get("min_level", "INFO")
+
+    recent_logs = query_app_db(
+        f"""SELECT l.timestamp, l.level, l.pioreactor_unit, l.message, l.task, l.experiment
+            FROM logs AS l
+            WHERE (l.experiment="$experiment")
+                AND (l.pioreactor_unit=? or l.pioreactor_unit=?)
+                AND ({get_level_string(min_level)})
+            ORDER BY l.timestamp DESC LIMIT 50 OFFSET {skip};""",
+        (pioreactor_unit, UNIVERSAL_IDENTIFIER),
     )
 
     return jsonify(recent_logs)
