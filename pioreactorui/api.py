@@ -418,12 +418,8 @@ def get_exp_logs(experiment: str) -> ResponseReturnValue:
     min_level = request.args.get("min_level", "INFO")
 
     recent_logs = query_app_db(
-        f"""SELECT l.timestamp, level, l.pioreactor_unit, message, task, l.experiment
+        f"""SELECT l.timestamp, l.level, l.pioreactor_unit, l.message, l.task, l.experiment
             FROM logs AS l
-            JOIN experiment_worker_assignments_history h
-               on h.pioreactor_unit = l.pioreactor_unit
-               and h.assigned_at <= l.timestamp
-               and DATETIME(l.timestamp) <= DATETIME(coalesce(h.unassigned_at, STRFTIME('%Y-%m-%dT%H:%M:%f000Z', 'NOW')), '+5 seconds')
             WHERE (l.experiment=? )
             AND ({get_level_string(min_level)})
             ORDER BY l.timestamp DESC LIMIT 50 OFFSET {skip};""",
@@ -437,7 +433,7 @@ def get_exp_logs(experiment: str) -> ResponseReturnValue:
 def get_recent_logs_for_unit_and_experiment(
     pioreactor_unit: str, experiment: str
 ) -> ResponseReturnValue:
-    """Shows event logs for a specific unit within an experiment"""
+    """Shows event logs for a specific unit within an experiment. This is for the single-page Pioreactor ui"""
 
     min_level = request.args.get("min_level", "INFO")
 
