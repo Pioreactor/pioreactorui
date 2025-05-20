@@ -1280,7 +1280,7 @@ def export_datasets() -> ResponseReturnValue:
         status, msg = result(blocking=True, timeout=5 * 60)
     except (HueyException, TaskException):
         status = False
-        return {"result": status, "filename": None, "msg": "Timed out"}, 500
+        return {"result": status, "filename": None, "msg": "Task error, or time out"}, 500
 
     if not status:
         publish_to_error_log(msg, "export_datasets")

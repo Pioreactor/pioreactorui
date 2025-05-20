@@ -204,10 +204,12 @@ def pio_plugins_list(*args: str, env: dict[str, str] = {}) -> tuple[bool, str]:
 
 @huey.task()
 @huey.lock_task("export-data-lock")
-def pio_run_export_experiment_data(*args: str, env: dict[str, str] = {}) -> tuple[bool, bytes]:
+def pio_run_export_experiment_data(*args: str, env: dict[str, str] = {}) -> tuple[bool, str]:
     logger.info(f'Executing `{join(("pio", "run", "export_experiment_data") + args)}`, {env=}')
     result = run(
         (PIO_EXECUTABLE, "run", "export_experiment_data") + args,
+        capture_output=True,
+        text=True,
         env=dict(os.environ) | env,
     )
     return result.returncode == 0, result.stdout.strip()
