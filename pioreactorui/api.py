@@ -518,10 +518,12 @@ def get_logs_for_unit(pioreactor_unit: str) -> ResponseReturnValue:
 
 
 @api.route("/workers/<pioreactor_unit>/experiments/<experiment>/logs", methods=["POST"])
+@api.route("/units/<pioreactor_unit>/experiments/<experiment>/logs", methods=["POST"])
 def publish_new_log(pioreactor_unit: str, experiment: str) -> ResponseReturnValue:
     body = request.get_json()
+    source_ = body.get("source_", "ui")
 
-    topic = f"pioreactor/{pioreactor_unit}/{experiment}/logs/ui/{body['level'].lower()}"
+    topic = f"pioreactor/{pioreactor_unit}/{experiment}/logs/{source_}/{body['level'].lower()}"
     client.publish(
         topic,
         msg_to_JSON(
@@ -1275,14 +1277,14 @@ def export_datasets() -> ResponseReturnValue:
         "--output", filename_with_path.as_posix(), *cmd_tables, *experiment_options, *other_options
     )
     try:
-        status = result(blocking=True, timeout=5 * 60)
+        status, msg = result(blocking=True, timeout=5 * 60)
     except (HueyException, TaskException):
         status = False
         return {"result": status, "filename": None, "msg": "Timed out"}, 500
 
     if not status:
-        publish_to_error_log("Failed.", "export_datasets")
-        return {"result": status, "filename": None, "msg": "Failed."}, 500
+        publish_to_error_log(msg, "export_datasets")
+        return {"result": status, "filename": None, "msg": msg}, 500
 
     return {"result": status, "filename": filename, "msg": "Finished"}, 200
 

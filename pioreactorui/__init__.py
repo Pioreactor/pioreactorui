@@ -55,7 +55,7 @@ logger.addHandler(ui_logs)
 logger.debug(f"Starting {NAME}={VERSION} on {HOSTNAME}...")
 logger.debug(f".env={dict(env)}")
 
-client = mqtt.Client(callback_api_version=CallbackAPIVersion.VERSION2)
+client = mqtt.Client(client_id="pioreactor_ui", callback_api_version=CallbackAPIVersion.VERSION2)
 client.username_pw_set(
     pioreactor_config.get("mqtt", "username", fallback="pioreactor"),
     pioreactor_config.get("mqtt", "password", fallback="raspberry"),
@@ -192,12 +192,11 @@ def _get_temp_local_metadata_db_connection():
     db = getattr(g, "_local_metadata_database", None)
     if db is None:
         db = g._local_metadata_database = sqlite3.connect(
-            pioreactor_config.get("storage", "temporary_cache")
+            f'file:{pioreactor_config.get("storage", "temporary_cache")}?mode=ro', uri=True
         )
         db.row_factory = _make_dicts
         db.executescript(
             """
-            PRAGMA synchronous = 1; -- aka NORMAL, recommended when using WAL
             PRAGMA temp_store = 2;  -- stop writing small files to disk, use mem
             PRAGMA busy_timeout = 15000;
             PRAGMA foreign_keys = ON;

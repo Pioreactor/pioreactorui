@@ -720,7 +720,7 @@ def get_all_calibrations_as_zipped_yaml() -> ResponseReturnValue:
     buffer = BytesIO()
 
     with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
-        for file_path in sorted(calibration_dir.rglob("*")):
+        for file_path in sorted(calibration_dir.rglob("*.yaml")):
             if file_path.is_file():
                 arc_name = file_path.relative_to(calibration_dir)
                 zip_file.write(str(file_path), arcname=str(arc_name))

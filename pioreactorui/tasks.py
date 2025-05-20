@@ -204,13 +204,13 @@ def pio_plugins_list(*args: str, env: dict[str, str] = {}) -> tuple[bool, str]:
 
 @huey.task()
 @huey.lock_task("export-data-lock")
-def pio_run_export_experiment_data(*args: str, env: dict[str, str] = {}) -> bool:
+def pio_run_export_experiment_data(*args: str, env: dict[str, str] = {}) -> tuple[bool, bytes]:
     logger.info(f'Executing `{join(("pio", "run", "export_experiment_data") + args)}`, {env=}')
     result = run(
         (PIO_EXECUTABLE, "run", "export_experiment_data") + args,
         env=dict(os.environ) | env,
     )
-    return result.returncode == 0
+    return result.returncode == 0, result.stdout.strip()
 
 
 @huey.task(priority=100)
@@ -391,7 +391,7 @@ def multicast_post_across_cluster(
 
 @huey.task(priority=10)
 def get_from_worker(
-    worker: str, endpoint: str, json: dict | None = None, timeout=1.0, return_raw=False
+    worker: str, endpoint: str, json: dict | None = None, timeout=5.0, return_raw=False
 ) -> tuple[str, Any]:
     try:
         address = resolve_to_address(worker)
@@ -419,7 +419,7 @@ def multicast_get_across_cluster(
     endpoint: str,
     workers: list[str],
     json: dict | list[dict | None] | None = None,
-    timeout: float = 1.0,
+    timeout: float = 5.0,
     return_raw=False,
 ) -> dict[str, Any]:
     # this function "consumes" one huey thread waiting fyi
