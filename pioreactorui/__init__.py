@@ -169,7 +169,17 @@ def _make_dicts(cursor, row) -> dict:
 def _get_app_db_connection():
     db = getattr(g, "_app_database", None)
     if db is None:
-        db = g._app_database = sqlite3.connect(pioreactor_config.get("storage", "database"))
+        try:
+            db = g._app_database = sqlite3.connect(pioreactor_config.get("storage", "database"))
+        except sqlite3.OperationalError as e:
+            if "database is locked" in str(e):
+                logger.error("Database is locked, please close any other connections or restart.")
+            elif "unable to open database file" in str(e):
+                logger.error(
+                    "Permissions on database are probably incorrect, ownership should be pioreactor:www-data on all sqlite files."
+                )
+            raise e
+
         db.create_function(
             "BASE64", 1, decode_base64
         )  # TODO: until next OS release which implements a native sqlite3 base64 function
@@ -199,7 +209,6 @@ def _get_temp_local_metadata_db_connection():
             """
             PRAGMA temp_store = 2;  -- stop writing small files to disk, use mem
             PRAGMA busy_timeout = 15000;
-            PRAGMA foreign_keys = ON;
             PRAGMA cache_size = -4000;
         """
         )

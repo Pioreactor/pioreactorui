@@ -62,6 +62,7 @@ ALLOWED_ENV = (
     "DEBUG",
     "MODEL_NAME",
     "MODEL_VERSION",
+    "SKIP_PLUGINS",
 )
 
 
