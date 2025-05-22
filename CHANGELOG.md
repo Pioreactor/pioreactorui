@@ -1,3 +1,7 @@
+### 25.5.22
+ - New system logs page
+ - bug fixes
+
 ### 25.5.1
 
  - update MUI
