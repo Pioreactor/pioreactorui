@@ -404,7 +404,7 @@ def get_logs() -> ResponseReturnValue:
         f"""SELECT l.timestamp, level, l.pioreactor_unit, message, task, l.experiment
             FROM logs AS l
             WHERE ({get_level_string(min_level)})
-            ORDER BY l.timestamp DESC LIMIT 50 OFFSET {skip};"""
+            ORDER BY l.timestamp DESC LIMIT 100 OFFSET {skip};"""
     )
 
     return jsonify(recent_logs)
@@ -422,7 +422,7 @@ def get_exp_logs(experiment: str) -> ResponseReturnValue:
             FROM logs AS l
             WHERE (l.experiment=? )
             AND ({get_level_string(min_level)})
-            ORDER BY l.timestamp DESC LIMIT 50 OFFSET {skip};""",
+            ORDER BY l.timestamp DESC LIMIT 100 OFFSET {skip};""",
         (experiment,),
     )
 
@@ -471,7 +471,7 @@ def get_logs_for_unit_and_experiment(pioreactor_unit: str, experiment: str) -> R
             WHERE (l.experiment=?)
                 AND (l.pioreactor_unit=? or l.pioreactor_unit=?)
                 AND ({get_level_string(min_level)})
-            ORDER BY l.timestamp DESC LIMIT 50 OFFSET {skip};""",
+            ORDER BY l.timestamp DESC LIMIT 100 OFFSET {skip};""",
         (experiment, pioreactor_unit, UNIVERSAL_IDENTIFIER),
     )
 
@@ -491,7 +491,7 @@ def get_system_logs_for_unit(pioreactor_unit: str) -> ResponseReturnValue:
             WHERE (l.experiment="$experiment")
                 AND (l.pioreactor_unit=? or l.pioreactor_unit=?)
                 AND ({get_level_string(min_level)})
-            ORDER BY l.timestamp DESC LIMIT 50 OFFSET {skip};""",
+            ORDER BY l.timestamp DESC LIMIT 100 OFFSET {skip};""",
         (pioreactor_unit, UNIVERSAL_IDENTIFIER),
     )
 
@@ -510,7 +510,7 @@ def get_logs_for_unit(pioreactor_unit: str) -> ResponseReturnValue:
             FROM logs AS l
             WHERE (l.pioreactor_unit=? or l.pioreactor_unit=?)
             AND ({get_level_string(min_level)})
-            ORDER BY l.timestamp DESC LIMIT 50 OFFSET {skip};""",
+            ORDER BY l.timestamp DESC LIMIT 100 OFFSET {skip};""",
         (pioreactor_unit, UNIVERSAL_IDENTIFIER),
     )
 
@@ -712,6 +712,203 @@ def get_fallback_time_series(experiment: str, data_source: str, column: str) -> 
             );
             """,
             (experiment, f"-{lookback} hours", filter_mod_n),
+            one=True,
+        )
+
+    except Exception as e:
+        publish_to_error_log(str(e), "get_fallback_time_series")
+        abort(400, str(e))
+
+    assert isinstance(r, dict)
+    return attach_cache_control(as_json_response(r["json"]))
+
+
+@api.route(
+    "/workers/<pioreactor_unit>/experiments/<experiment>/time_series/growth_rates", methods=["GET"]
+)
+def get_growth_rates_per_unit(pioreactor_unit: str, experiment: str) -> ResponseReturnValue:
+    args = request.args
+    filter_mod_n = float(args.get("filter_mod_N", 100.0))
+    lookback = float(args.get("lookback", 4.0))
+
+    growth_rates = query_app_db(
+        """
+        SELECT
+            json_object('series', json_group_array(unit), 'data', json_group_array(json(data))) as json
+        FROM (
+            SELECT pioreactor_unit as unit,
+                   json_group_array(json_object('x', timestamp, 'y', round(rate, 5))) as data
+            FROM growth_rates
+            WHERE experiment=? AND pioreactor_unit=?
+                  ((ROWID * 0.61803398875) - cast(ROWID * 0.61803398875 as int) < 1.0/?) AND
+                  timestamp > STRFTIME('%Y-%m-%dT%H:%M:%f000Z', 'NOW', ?)
+            GROUP BY 1
+            );
+        """,
+        (experiment, pioreactor_unit, filter_mod_n, f"-{lookback} hours"),
+        one=True,
+    )
+
+    assert isinstance(growth_rates, dict)
+    return attach_cache_control(as_json_response(growth_rates["json"]))
+
+
+@api.route(
+    "/workers/<pioreactor_unit>/experiments/<experiment>/time_series/temperature_readings",
+    methods=["GET"],
+)
+def get_temperature_readings_per_unit(pioreactor_unit: str, experiment: str) -> ResponseReturnValue:
+    args = request.args
+    filter_mod_n = float(args.get("filter_mod_N", 100.0))
+    lookback = float(args.get("lookback", 4.0))
+
+    temperature_readings = query_app_db(
+        """
+        SELECT json_object('series', json_group_array(unit), 'data', json_group_array(json(data))) as json
+        FROM (
+            SELECT
+                pioreactor_unit as unit,
+                json_group_array(json_object('x', timestamp, 'y', round(temperature_c, 2))) as data
+            FROM temperature_readings
+            WHERE experiment=? AND pioreactor_unit=? AND
+                ((ROWID * 0.61803398875) - cast(ROWID * 0.61803398875 as int) < 1.0/?) AND
+                timestamp > STRFTIME('%Y-%m-%dT%H:%M:%f000Z', 'NOW' , ?)
+            GROUP BY 1
+            );
+        """,
+        (experiment, pioreactor_unit, filter_mod_n, f"-{lookback} hours"),
+        one=True,
+    )
+
+    assert isinstance(temperature_readings, dict)
+    return attach_cache_control(as_json_response(temperature_readings["json"]))
+
+
+@api.route(
+    "/workers/<pioreactor_unit>/experiments/<experiment>/time_series/od_readings_filtered",
+    methods=["GET"],
+)
+def get_od_readings_filtered_per_unit(pioreactor_unit: str, experiment: str) -> ResponseReturnValue:
+    args = request.args
+    filter_mod_n = float(args.get("filter_mod_N", 100.0))
+    lookback = float(args.get("lookback", 4.0))
+
+    filtered_od_readings = query_app_db(
+        """
+        SELECT
+            json_object('series', json_group_array(unit), 'data', json_group_array(json(data))) as json
+        FROM (
+            SELECT
+                pioreactor_unit as unit,
+                json_group_array(json_object('x', timestamp, 'y', round(normalized_od_reading, 7))) as data
+            FROM od_readings_filtered
+            WHERE experiment=? AND pioreactor_unit=? AND
+                ((ROWID * 0.61803398875) - cast(ROWID * 0.61803398875 as int) < 1.0/?) AND
+                timestamp > STRFTIME('%Y-%m-%dT%H:%M:%f000Z', 'NOW', ?)
+            GROUP BY 1
+            );
+        """,
+        (experiment, pioreactor_unit, filter_mod_n, f"-{lookback} hours"),
+        one=True,
+    )
+
+    assert isinstance(filtered_od_readings, dict)
+    return attach_cache_control(as_json_response(filtered_od_readings["json"]))
+
+
+@api.route(
+    "/workers/<pioreactor_unit>/experiments/<experiment>/time_series/od_readings", methods=["GET"]
+)
+def get_od_readings_per_unit(pioreactor_unit: str, experiment: str) -> ResponseReturnValue:
+    args = request.args
+    filter_mod_n = float(args.get("filter_mod_N", 100.0))
+    lookback = float(args.get("lookback", 4.0))
+
+    raw_od_readings = query_app_db(
+        """
+        SELECT
+            json_object('series', json_group_array(unit), 'data', json_group_array(json(data))) as json
+        FROM (
+            SELECT pioreactor_unit || '-' || channel as unit, json_group_array(json_object('x', timestamp, 'y', round(od_reading, 7))) as data
+            FROM od_readings
+            WHERE experiment=? AND pioreactor_unit=? AND
+                ((ROWID * 0.61803398875) - cast(ROWID * 0.61803398875 as int) < 1.0/?) AND
+                timestamp > STRFTIME('%Y-%m-%dT%H:%M:%f000Z', 'NOW',  ?)
+            GROUP BY 1
+            );
+        """,
+        (experiment, pioreactor_unit, filter_mod_n, f"-{lookback} hours"),
+        one=True,
+    )
+
+    assert isinstance(raw_od_readings, dict)
+    return attach_cache_control(as_json_response(raw_od_readings["json"]))
+
+
+@api.route(
+    "/workers/<pioreactor_unit>/experiments/<experiment>/time_series/raw_od_readings",
+    methods=["GET"],
+)
+def get_od_raw_readings_per_unit(pioreactor_unit: str, experiment: str) -> ResponseReturnValue:
+    args = request.args
+    filter_mod_n = float(args.get("filter_mod_N", 100.0))
+    lookback = float(args.get("lookback", 4.0))
+
+    raw_od_readings = query_app_db(
+        """
+        SELECT
+            json_object('series', json_group_array(unit), 'data', json_group_array(json(data))) as json
+        FROM (
+            SELECT pioreactor_unit || '-' || channel as unit, json_group_array(json_object('x', timestamp, 'y', round(od_reading, 7))) as data
+            FROM raw_od_readings
+            WHERE experiment=? AND pioreactor_unit=? AND
+                ((ROWID * 0.61803398875) - cast(ROWID * 0.61803398875 as int) < 1.0/?) AND
+                timestamp > STRFTIME('%Y-%m-%dT%H:%M:%f000Z', 'NOW',  ?)
+            GROUP BY 1
+            );
+        """,
+        (experiment, pioreactor_unit, filter_mod_n, f"-{lookback} hours"),
+        one=True,
+    )
+
+    assert isinstance(raw_od_readings, dict)
+    return attach_cache_control(as_json_response(raw_od_readings["json"]))
+
+
+@api.route(
+    "/workers/<pioreactor_unit>/experiments/<experiment>/time_series/<data_source>/<column>",
+    methods=["GET"],
+)
+def get_fallback_time_series_per_unit(
+    pioreactor_unit: str, experiment: str, data_source: str, column: str
+) -> ResponseReturnValue:
+    args = request.args
+    filter_mod_n = float(args.get("filter_mod_N", 100.0))
+    lookback = float(args.get("lookback", 4.0))
+
+    try:
+        data_source = scrub_to_valid(data_source)
+        column = scrub_to_valid(column)
+        r = query_app_db(
+            f"""
+            WITH incrementing_data AS (
+                SELECT pioreactor_unit as unit, timestamp, {column} as data, row_number() OVER () AS row_num
+                FROM {data_source}
+                WHERE experiment=? AND
+                timestamp > STRFTIME('%Y-%m-%dT%H:%M:%f000Z', 'NOW',?) AND
+                pioreactor_unit=?
+                {column} IS NOT NULL
+            )
+            SELECT
+                json_object('series', json_group_array(unit), 'data', json_group_array(json(rdata))) as json
+            FROM (
+                SELECT unit, json_group_array(json_object('x', timestamp, 'y', round(data, 7))) as rdata
+                FROM incrementing_data
+                    WHERE ((row_num * 0.61803398875) - cast(row_num * 0.61803398875 as int) < 1.0/?)
+                GROUP BY 1
+            );
+            """,
+            (experiment, f"-{lookback} hours", pioreactor_unit, filter_mod_n),
             one=True,
         )
 

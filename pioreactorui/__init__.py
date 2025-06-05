@@ -176,7 +176,7 @@ def _get_app_db_connection():
                 logger.error("Database is locked, please close any other connections or restart.")
             elif "unable to open database file" in str(e):
                 logger.error(
-                    "Permissions on database are probably incorrect, ownership should be pioreactor:www-data on all sqlite files."
+                    "Permissions on database are probably incorrect, ownership should be pioreactor:www-data on ALL sqlite files AND THE .pioreactor/storage DIR! ."
                 )
             raise e
 

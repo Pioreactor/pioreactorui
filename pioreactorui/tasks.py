@@ -434,9 +434,13 @@ def multicast_get_across_cluster(
     tasks = get_from_worker.map(
         ((workers[i], endpoint, json[i], timeout, return_raw) for i in range(len(workers)))
     )
-    return {
-        worker: response for (worker, response) in tasks.get(blocking=True, timeout=30)
+    unsorted_responses = {
+        worker: response for (worker, response) in tasks.get(blocking=True, timeout=15)
     }  # add a timeout so that we don't hold up a thread forever.
+
+    return dict(
+        sorted(unsorted_responses.items())
+    )  # always sort alphabetically for downstream uses.
 
 
 @huey.task(priority=10)
