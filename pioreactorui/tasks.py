@@ -73,9 +73,9 @@ def initialized():
 
 
 @huey.task(priority=10)
-def pio_run(*args: str, env: dict[str, str] = {}) -> bool:
+def pio_run(config_overrides: tuple[str], *args: str, env: dict[str, str] = {}) -> bool:
     # for long running pio run jobs where we don't care about the output / status
-    command = ("nohup", PIO_EXECUTABLE, "run") + args
+    command = ("nohup", PIO_EXECUTABLE, "run") + config_overrides + args
 
     env = {k: v for k, v in (env or {}).items() if k in ALLOWED_ENV}
     logger.info(f"Executing `{join(command)}`, {env=}")

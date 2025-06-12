@@ -267,7 +267,8 @@ def run_job(job: str) -> ResponseReturnValue:
         "EXPERIMENT": "test",
         "JOB_SOURCE": "user",
       }
-      "args": ["arg1", "arg2"]
+      "args": ["arg1", "arg2"],
+      "config": ["stirring.config,pwm_hz,100"]
     }
     Ex:
 
@@ -279,10 +280,13 @@ def run_job(job: str) -> ResponseReturnValue:
     if is_rate_limited(job):
         return jsonify({"error": "Too many requests, please try again later."}), 429
 
-    body = current_app.get_json(request.data, type=structs.ArgsOptionsEnvs)
+    body = current_app.get_json(request.data, type=structs.ArgsOptionsEnvsConfig)
     args = body.args
     options = body.options
     env = body.env
+    config = body.config
+
+    config_overrides: tuple[str, ...] = sum([("--config-override", x) for x in config], tuple())
 
     commands: tuple[str, ...] = (job,)
     commands += tuple(args)
@@ -291,7 +295,7 @@ def run_job(job: str) -> ResponseReturnValue:
         if value is not None:
             commands += (str(value),)
 
-    task = tasks.pio_run(*commands, env=env)
+    task = tasks.pio_run(config_overrides, *commands, env=env)
     return create_task_response(task)
 
 

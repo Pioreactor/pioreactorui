@@ -1722,7 +1722,7 @@ def get_experiment(experiment: str) -> ResponseReturnValue:
 ## CONFIG CONTROL
 
 
-@api.route("/unit/<pioreactor_unit>/configuration", methods=["GET"])
+@api.route("/units/<pioreactor_unit>/configuration", methods=["GET"])
 def get_configuration_for_pioreactor_unit(pioreactor_unit: str) -> ResponseReturnValue:
     """get configuration for a pioreactor unit"""
     try:

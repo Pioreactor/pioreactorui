@@ -87,3 +87,7 @@ class ArgsOptionsEnvs(Struct):
     options: dict[str, t.Any] = {}
     env: dict[str, str] = {}
     args: list[str] = []
+
+
+class ArgsOptionsEnvsConfig(ArgsOptionsEnvs):
+    config: list[str] = []
