@@ -179,9 +179,11 @@ def run_job_on_unit_in_experiment(
       },
       "env": {},
       "args": ["arg1", "arg2"]
+      "config_overrides": []
+
     }
     """
-    json = current_app.get_json(request.data, type=structs.ArgsOptionsEnvs)
+    json = current_app.get_json(request.data, type=structs.ArgsOptionsEnvsConfigOverrides)
 
     if pioreactor_unit == UNIVERSAL_IDENTIFIER:
         # make sure the worker is active, too
@@ -231,6 +233,7 @@ def run_job_on_unit_in_experiment(
             {
                 "args": json.args,
                 "options": json.options,
+                "config_overrides": json.config_overrides,
                 "env": (
                     json.env
                     | {"EXPERIMENT": experiment}

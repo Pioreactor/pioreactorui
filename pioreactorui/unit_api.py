@@ -280,13 +280,15 @@ def run_job(job: str) -> ResponseReturnValue:
     if is_rate_limited(job):
         return jsonify({"error": "Too many requests, please try again later."}), 429
 
-    body = current_app.get_json(request.data, type=structs.ArgsOptionsEnvsConfig)
+    body = current_app.get_json(request.data, type=structs.ArgsOptionsEnvsConfigOverrides)
     args = body.args
     options = body.options
     env = body.env
-    config = body.config
+    config_overrides = body.config_overrides
 
-    config_overrides: tuple[str, ...] = sum([("--config-override", x) for x in config], tuple())
+    config_overrides_as_flags: tuple[str, ...] = sum(
+        [("--config-override", x) for x in config_overrides], tuple()
+    )
 
     commands: tuple[str, ...] = (job,)
     commands += tuple(args)
@@ -295,7 +297,7 @@ def run_job(job: str) -> ResponseReturnValue:
         if value is not None:
             commands += (str(value),)
 
-    task = tasks.pio_run(config_overrides, *commands, env=env)
+    task = tasks.pio_run(config_overrides_as_flags, *commands, env=env)
     return create_task_response(task)
 
 

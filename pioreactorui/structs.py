@@ -89,5 +89,5 @@ class ArgsOptionsEnvs(Struct):
     args: list[str] = []
 
 
-class ArgsOptionsEnvsConfig(ArgsOptionsEnvs):
-    config: list[str] = []
+class ArgsOptionsEnvsConfigOverrides(ArgsOptionsEnvs):
+    config_overrides: list[str] = []
