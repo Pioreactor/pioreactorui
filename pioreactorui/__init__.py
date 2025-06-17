@@ -223,7 +223,9 @@ def query_app_db(
     cur = _get_app_db_connection().execute(query, args)
     rv = cur.fetchall()
     cur.close()
-    return (rv[0] if rv else None) if one else rv
+    if one:
+        return rv[0] if rv else None  # only when explicitly requested
+    return rv
 
 
 def query_temp_local_metadata_db(

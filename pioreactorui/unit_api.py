@@ -50,7 +50,7 @@ unit_api = Blueprint("unit_api", __name__, url_prefix="/unit_api")
 
 # Endpoint to check the status of a background task. unit_api is required to ping workers (who only expose unit_api)
 @unit_api.route("/task_results/<task_id>", methods=["GET"])
-def task_status(task_id):
+def task_status(task_id: str):
     try:
         task = huey.result(task_id)
     except TaskLockedException:
@@ -80,7 +80,7 @@ def task_status(task_id):
 
 
 @unit_api.route("/system/update/<target>", methods=["POST", "PATCH"])
-def update_target(target) -> ResponseReturnValue:
+def update_target(target: str) -> ResponseReturnValue:
     if target not in ("app", "ui"):  # todo: firmware
         abort(404, "Invalid target")
 
@@ -378,7 +378,7 @@ def get_all_running_jobs() -> ResponseReturnValue:
 
 
 @unit_api.route("/jobs/running/<job>", methods=["GET"])
-def get_running_job(job) -> ResponseReturnValue:
+def get_running_job(job: str) -> ResponseReturnValue:
     jobs = query_temp_local_metadata_db(
         "SELECT * FROM pio_job_metadata where is_running=1 and job_name=?", (job,)
     )
@@ -398,7 +398,7 @@ def get_all_long_running_jobs() -> ResponseReturnValue:
 
 
 @unit_api.route("/jobs/settings/job_name/<job_name>", methods=["GET"])
-def get_settings_for_a_specific_job(job_name) -> ResponseReturnValue:
+def get_settings_for_a_specific_job(job_name: str) -> ResponseReturnValue:
     """
     {
       "settings": {
@@ -425,8 +425,8 @@ def get_settings_for_a_specific_job(job_name) -> ResponseReturnValue:
 
 
 @unit_api.route("/jobs/settings/job_name/<job_name>/setting/<setting>", methods=["GET"])
-def get_specific_setting_for_a_job(job_name, setting) -> ResponseReturnValue:
-    setting = query_temp_local_metadata_db(
+def get_specific_setting_for_a_job(job_name: str, setting: str) -> ResponseReturnValue:
+    setting_metadata = query_temp_local_metadata_db(
         """
     SELECT s.setting, s.value FROM
         pio_job_published_settings s
@@ -437,8 +437,9 @@ def get_specific_setting_for_a_job(job_name, setting) -> ResponseReturnValue:
         (job_name, setting),
         one=True,
     )
-    if setting:
-        return jsonify({setting["setting"]: setting["value"]})
+    assert isinstance(setting_metadata, dict)
+    if setting_metadata:
+        return jsonify({setting_metadata["setting"]: setting_metadata["value"]})
     else:
         return {"status": "error"}, 404
 
@@ -597,7 +598,7 @@ def get_ui_version() -> ResponseReturnValue:
 
 
 @unit_api.route("/calibrations/<device>", methods=["POST"])
-def create_calibration(device) -> ResponseReturnValue:
+def create_calibration(device: str) -> ResponseReturnValue:
     """
     Create a new calibration for the specified device.
     """
@@ -744,7 +745,7 @@ def get_all_calibrations_as_zipped_yaml() -> ResponseReturnValue:
 
 
 @unit_api.route("/calibrations/<device>", methods=["GET"])
-def get_calibrations_by_device(device) -> ResponseReturnValue:
+def get_calibrations_by_device(device: str) -> ResponseReturnValue:
     calibration_dir = Path(env["DOT_PIOREACTOR"]) / "storage" / "calibrations" / device
 
     if not calibration_dir.exists():
@@ -768,7 +769,7 @@ def get_calibrations_by_device(device) -> ResponseReturnValue:
 
 
 @unit_api.route("/calibrations/<device>/<cal_name>", methods=["GET"])
-def get_calibration(device, cal_name) -> ResponseReturnValue:
+def get_calibration(device: str, cal_name: str) -> ResponseReturnValue:
     calibration_path = (
         Path(env["DOT_PIOREACTOR"]) / "storage" / "calibrations" / device / f"{cal_name}.yaml"
     )
@@ -787,7 +788,7 @@ def get_calibration(device, cal_name) -> ResponseReturnValue:
 
 
 @unit_api.route("/active_calibrations/<device>/<cal_name>", methods=["PATCH"])
-def set_active_calibration(device, cal_name) -> ResponseReturnValue:
+def set_active_calibration(device: str, cal_name: str) -> ResponseReturnValue:
     with local_persistent_storage("active_calibrations") as c:
         c[device] = cal_name
 
@@ -795,7 +796,7 @@ def set_active_calibration(device, cal_name) -> ResponseReturnValue:
 
 
 @unit_api.route("/active_calibrations/<device>", methods=["DELETE"])
-def remove_active_status_calibration(device) -> ResponseReturnValue:
+def remove_active_status_calibration(device: str) -> ResponseReturnValue:
     with local_persistent_storage("active_calibrations") as c:
         if device in c:
             c.pop(device)

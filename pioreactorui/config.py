@@ -21,7 +21,7 @@ CACHE_DIR = (
     Path("/tmp") / "pioreactor_cache"
 )  # sucks that is hardcoded - I don't have a config for this location.
 
-env = dotenv_values(".env", verbose=True)
+env: dict[str, str] = dotenv_values(".env", verbose=True)
 
 try:
     huey = SqliteHuey(filename=CACHE_DIR / "huey.db")

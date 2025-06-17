@@ -47,8 +47,8 @@ if not is_testing_env():
     PIO_EXECUTABLE = "/usr/local/bin/pio"
     PIOS_EXECUTABLE = "/usr/local/bin/pios"
 else:
-    PIO_EXECUTABLE = env.get("PIO_EXECUTABLE")
-    PIOS_EXECUTABLE = env.get("PIOS_EXECUTABLE")
+    PIO_EXECUTABLE = env["PIO_EXECUTABLE"]
+    PIOS_EXECUTABLE = env["PIOS_EXECUTABLE"]
 
 ALLOWED_ENV = (
     "EXPERIMENT",
@@ -360,7 +360,7 @@ def post_to_worker(
         return worker, None
     except DecodeError:
         logger.error(
-            f"Could not decode response from {worker}'s {endpoint=}, sent {json=} and returned {r.body}."
+            f"Could not decode response from {worker}'s {endpoint=}, sent {json=} and returned {r.body.decode()}."
         )
         return worker, None
 
@@ -412,7 +412,7 @@ def get_from_worker(
         return worker, None
     except DecodeError:
         logger.error(
-            f"Could not decode response from {worker}'s {endpoint=}, sent {json=} and returned {r.body}."
+            f"Could not decode response from {worker}'s {endpoint=}, sent {json=} and returned {r.body.decode()}."
         )
         return worker, None
 
@@ -457,7 +457,7 @@ def patch_to_worker(worker: str, endpoint: str, json: dict | None = None) -> tup
         return worker, None
     except DecodeError:
         logger.error(
-            f"Could not decode response from {worker}'s {endpoint=}, sent {json=} and returned {r.body}."
+            f"Could not decode response from {worker}'s {endpoint=}, sent {json=} and returned {r.body.decode()}."
         )
         return worker, None
 
@@ -489,7 +489,7 @@ def delete_from_worker(worker: str, endpoint: str, json: dict | None = None) -> 
         return worker, None
     except DecodeError:
         logger.error(
-            f"Could not decode response from {worker}'s {endpoint=}, sent {json=} and returned {r.body}."
+            f"Could not decode response from {worker}'s {endpoint=}, sent {json=} and returned {r.body.decode()}."
         )
         return worker, None
 

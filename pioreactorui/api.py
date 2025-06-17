@@ -1038,7 +1038,7 @@ def get_all_calibrations_as_yamls(pioreactor_unit: str) -> ResponseReturnValue:
 
 
 @api.route("/workers/<pioreactor_unit>/calibrations/<device>", methods=["GET"])
-def get_calibrations(pioreactor_unit, device) -> ResponseReturnValue:
+def get_calibrations(pioreactor_unit: str, device: str) -> ResponseReturnValue:
     if pioreactor_unit == UNIVERSAL_IDENTIFIER:
         task = broadcast_get_across_cluster(f"/unit_api/calibrations/{device}")
     else:
@@ -1049,7 +1049,7 @@ def get_calibrations(pioreactor_unit, device) -> ResponseReturnValue:
 
 
 @api.route("/workers/<pioreactor_unit>/calibrations/<device>/<cal_name>", methods=["GET"])
-def get_calibration(pioreactor_unit, device, cal_name) -> ResponseReturnValue:
+def get_calibration(pioreactor_unit: str, device: str, cal_name: str) -> ResponseReturnValue:
     if pioreactor_unit == UNIVERSAL_IDENTIFIER:
         task = broadcast_get_across_cluster(f"/unit_api/calibrations/{device}/{cal_name}")
     else:
@@ -1060,7 +1060,7 @@ def get_calibration(pioreactor_unit, device, cal_name) -> ResponseReturnValue:
 
 
 @api.route("/workers/<pioreactor_unit>/calibrations/<device>", methods=["POST"])
-def create_calibration(pioreactor_unit, device) -> ResponseReturnValue:
+def create_calibration(pioreactor_unit: str, device: str) -> ResponseReturnValue:
     yaml_data = request.get_json()["calibration_data"]
 
     if not yaml_data:
@@ -1792,7 +1792,7 @@ def get_configs() -> ResponseReturnValue:
     def strip_worker_name_from_config(file_name):
         return file_name.removeprefix("config_").removesuffix(".ini")
 
-    def allow_file_through(file_name):
+    def allow_file_through(file_name: str):
         if file_name == "config.ini":
             return True
         else:
@@ -2049,9 +2049,9 @@ def get_experiment_profiles() -> ResponseReturnValue:
             if file.stat().st_size == 0:
                 parsed_yaml.append(
                     {
-                        "experimentProfile": {
-                            "experiment_profile_name": f"temporary name: {file.stem}"
-                        },
+                        "experimentProfile": Profile(
+                            experiment_profile_name=f"temporary name: {file.stem}"
+                        ),
                         "file": Path(file).name,
                         "fullpath": Path(file).as_posix(),
                     }
@@ -2220,7 +2220,7 @@ def delete_worker(pioreactor_unit: str) -> ResponseReturnValue:
 @api.route("/workers/<pioreactor_unit>/is_active", methods=["PUT"])
 def change_worker_status(pioreactor_unit: str) -> ResponseReturnValue:
     # Get the new status from the request body
-    data = request.json
+    data = request.get_json()
     new_status = data.get("is_active")
 
     if new_status not in [0, 1]:
@@ -2248,7 +2248,7 @@ def change_worker_status(pioreactor_unit: str) -> ResponseReturnValue:
 @api.route("/workers/<pioreactor_unit>/model", methods=["PUT"])
 def change_worker_model(pioreactor_unit: str) -> ResponseReturnValue:
     # Get the new status from the request body
-    data = request.json
+    data = request.get_json()
     model_version, model_name = data.get("model_version"), data.get("model_name")
 
     if not model_version or not model_name:
@@ -2410,7 +2410,7 @@ def get_list_of_historical_workers_for_experiment(experiment: str) -> ResponseRe
 @api.route("/experiments/<experiment>/workers", methods=["PUT"])
 def add_worker_to_experiment(experiment: str) -> ResponseReturnValue:
     # assign
-    data = request.json
+    data = request.get_json()
     pioreactor_unit = data.get("pioreactor_unit")
     if not pioreactor_unit:
         return jsonify({"error": "Missing pioreactor_unit"}), 400
