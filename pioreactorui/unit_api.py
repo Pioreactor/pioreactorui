@@ -268,7 +268,7 @@ def run_job(job: str) -> ResponseReturnValue:
         "JOB_SOURCE": "user",
       }
       "args": ["arg1", "arg2"],
-      "config": ["stirring.config,pwm_hz,100"]
+      "config_overrides": [ ["stirring.config" ,"pwm_hz", "100"], ]
     }
     Ex:
 
@@ -287,7 +287,7 @@ def run_job(job: str) -> ResponseReturnValue:
     config_overrides = body.config_overrides
 
     config_overrides_as_flags: tuple[str, ...] = sum(
-        [("--config-override", x) for x in config_overrides], tuple()
+        [("--config-override",) + tuple(_args) for _args in config_overrides], tuple()
     )
 
     commands: tuple[str, ...] = (job,)
