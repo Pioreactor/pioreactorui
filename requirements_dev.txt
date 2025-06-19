@@ -3,3 +3,6 @@ pytest
 pytest-timeout
 pytest-random-order
 pytest-mock
+mypy
+black
+flake8

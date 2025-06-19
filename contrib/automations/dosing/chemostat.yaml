@@ -11,5 +11,5 @@ fields:
   - key: volume
     default: 0.5
     unit: mL
-    label: Volume / dose
+    label: Volume per dose
     type: numeric

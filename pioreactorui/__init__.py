@@ -224,7 +224,7 @@ def query_app_db(
     rv = cur.fetchall()
     cur.close()
     if one:
-        return rv[0] if rv else None  # only when explicitly requested
+        return rv[0] if rv else None
     return rv
 
 
@@ -244,7 +244,8 @@ def modify_app_db(statement: str, args=()) -> int:
     try:
         cur.execute(statement, args)
         con.commit()
-    except sqlite3.IntegrityError:
+    except sqlite3.IntegrityError as e:
+        print(e)
         return 0
     except Exception as e:
         print(e)

@@ -742,7 +742,7 @@ def get_growth_rates_per_unit(pioreactor_unit: str, experiment: str) -> Response
             SELECT pioreactor_unit as unit,
                    json_group_array(json_object('x', timestamp, 'y', round(rate, 5))) as data
             FROM growth_rates
-            WHERE experiment=? AND pioreactor_unit=?
+            WHERE experiment=? AND pioreactor_unit=? AND
                   ((ROWID * 0.61803398875) - cast(ROWID * 0.61803398875 as int) < 1.0/?) AND
                   timestamp > STRFTIME('%Y-%m-%dT%H:%M:%f000Z', 'NOW', ?)
             GROUP BY 1
@@ -2335,11 +2335,12 @@ def get_experiments_worker_assignments() -> ResponseReturnValue:
         """
         SELECT e.experiment, count(a.pioreactor_unit) as worker_count
         FROM experiments e
-        LEFT JOIN experiment_worker_assignments a
+        JOIN experiment_worker_assignments a
           on e.experiment = a.experiment
+        JOIN workers w -- make sure the worker is still part of the inventory
+          on w.pioreactor_unit = a.pioreactor_unit
         GROUP BY 1
         HAVING count(a.pioreactor_unit) > 0
-        ORDER BY 2 DESC
         """,
     )
     if result:
