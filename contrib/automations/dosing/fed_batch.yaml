@@ -8,7 +8,7 @@ fields:
     unit: min
     label: Duration between additions
     type: numeric
-  - key: volume
+  - key: dosing_volume_ml
     default: 1.0
     unit: mL
     label: Volume per dose

@@ -18,10 +18,10 @@ fields:
     unit: OD
     label: Target OD
     type: numeric
-  - key: volume
+  - key: exchange_volume_ml
     default: 1.0
     unit: mL
-    label: Volume
+    label: Exchange volume
     type: numeric
   - key: duration
     default: 0.25

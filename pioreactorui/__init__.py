@@ -79,7 +79,9 @@ def create_app():
         # we currently only need to communicate with MQTT for the leader.
         # don't even connect if a worker - if the leader is down, this will crash and restart the server over and over.
         client.connect(
-            host=pioreactor_config.get("mqtt", "broker_address", fallback="localhost"),
+            host=pioreactor_config.get("mqtt", "broker_address", fallback="localhost").split(";")[
+                0
+            ],
             port=pioreactor_config.getint("mqtt", "broker_port", fallback=1883),
         )
         logger.debug("Starting MQTT client")

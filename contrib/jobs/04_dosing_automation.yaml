@@ -12,9 +12,9 @@ published_settings:
     type: numeric
     display: true
     description: Change how long to wait between dilutions. Typically between 0.5 and 60 minutes. Changing may immediately trigger a dosing event.
-  - key: volume
+  - key: exchange_volume_ml
     unit: mL
-    label: Volume / dosing
+    label: Exchange volume
     type: numeric
     display: true
     description: Change the volume per dilution. Typical values are between 0.0mL and 2.0mL.
@@ -33,9 +33,9 @@ published_settings:
   - key: automation_name
     type: string
     display: false
-  - key: max_volume
+  - key: max_working_volume_ml
     type: string
     display: false
-  - key: liquid_volume
+  - key: current_volume_ml
     type: string
     display: false
