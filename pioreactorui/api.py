@@ -899,7 +899,7 @@ def get_fallback_time_series_per_unit(
                 FROM {data_source}
                 WHERE experiment=? AND
                 timestamp > STRFTIME('%Y-%m-%dT%H:%M:%f000Z', 'NOW',?) AND
-                pioreactor_unit=?
+                pioreactor_unit=? AND
                 {column} IS NOT NULL
             )
             SELECT
