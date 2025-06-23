@@ -281,6 +281,7 @@ def test_broadcast_in_manage_all(client):
     assert bucket[0].json == {
         "args": [],
         "options": {"target_rpm": 10},
+        "config_overrides": [],
         "env": {
             "EXPERIMENT": "exp1",
             "ACTIVE": "1",
@@ -309,6 +310,7 @@ def test_run_job(client):
     assert bucket[0].json == {
         "args": [],
         "options": {"target_rpm": 10},
+        "config_overrides": [],
         "env": {
             "EXPERIMENT": "exp1",
             "ACTIVE": "1",
@@ -346,6 +348,7 @@ def test_run_job_with_job_source(client):
     assert bucket[0].json == {
         "args": [],
         "options": {"target_rpm": 10},
+        "config_overrides": [],
         "env": {
             "EXPERIMENT": "exp1",
             "ACTIVE": "1",

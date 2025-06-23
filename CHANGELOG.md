@@ -1,3 +1,19 @@
+### 25.6.22
+
+
+ - There's a new "Advanced" start option in the UI to modify configuration temporarily when starting a job. The options shown are from the section `[<job_name>.config]`. This is useful for changing different configurations without changing the config files.
+ - Chemostat modal in the UI now shows the computed dilution rate
+ - New "Duplicate" profiles button.
+ - Calibration charts have new crosshairs
+ - Performance improvements
+ - The config `[mqtt]`  `broker_address` can now be a list of addresses, separated by `;`. Example:
+ ```
+ [mqtt]
+ broker_address=pio01.local;100.119.150.2;localhost
+ ```
+
+
+
 ### 25.5.22
  - New system logs page
  - bug fixes
